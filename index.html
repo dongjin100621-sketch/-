@@ -571,11 +571,16 @@ function portraitSVG(L) {
   let defs = "", back = "", body = "", head = "", front = "", defsExtra = "";
   // 바탕
   const bgC = L.bg || c1;
-  defs += `<radialGradient id="${U("bg")}" cx="0.5" cy="0.38" r="0.75"><stop offset="0" stop-color="${mixH(bgC, "#fff2dc", 0.28)}"/><stop offset="0.55" stop-color="${mixH(bgC, "#1a1024", 0.35)}"/><stop offset="1" stop-color="${mixH(bgC, "#08040e", 0.78)}"/></radialGradient>`;
+  defs += `<radialGradient id="${U("bg")}" cx="0.5" cy="0.3" r="0.85"><stop offset="0" stop-color="${mixH(bgC, "#ffffff", 0.78)}"/><stop offset="0.5" stop-color="${mixH(bgC, "#fff4e8", 0.38)}"/><stop offset="1" stop-color="${mixH(bgC, "#2a1838", 0.45)}"/></radialGradient>`;
   defs += g("sk", skL, skD, 1, 0.3) + g("hr", hrL, hrD) + g("c1", mixH(c1, "#fff4e0", 0.18), mixH(c1, "#1a1024", 0.45)) + g("c2", mixH(c2, "#fff4e0", 0.15), mixH(c2, "#1a1024", 0.45));
   defs += g("c3", mixH(c3, "#ffffff", 0.2), mixH(c3, "#2a1a34", 0.3)) + g("gold", "#fff0a0", "#a8741c") + g("st", "#eef2f8", "#6a7488") + g("wh", "#ffffff", "#c8c0b4") + g("fur", "#ffffff", "#d8d0c4");
   defs += `<pattern id="${U("pt")}" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" fill="#fff" opacity="0.05"/></pattern>`;
-  let svg = `<rect width="200" height="250" fill="${fill("bg")}"/><rect width="200" height="250" fill="url(#${U("pt")})"/>`;
+  let svg = `<rect width="200" height="250" fill="${fill("bg")}"/>`;
+  { let sd = 7; for (const ch of (L.hair || "") + (L.c1 || "") + (L.eye || "")) sd = (sd * 31 + ch.charCodeAt(0)) % 9973;
+    const rn = () => (sd = (sd * 48271) % 2147483647) / 2147483647;
+    svg += `<path d="M100 -10 L40 260 L70 260Z M100 -10 L130 260 L170 260Z M100 -10 L-10 120 L-10 160Z" fill="#fff" opacity="0.12"/>`;
+    for (let k = 0; k < 9; k++) svg += `<circle cx="${rn() * 200}" cy="${rn() * 150}" r="${4 + rn() * 11}" fill="#fff" opacity="${0.12 + rn() * 0.18}"/>`;
+    for (let k = 0; k < 9; k++) { const x = rn() * 200, y = rn() * 240, a = rn() * 360, r = 3 + rn() * 3; svg += `<path transform="translate(${x} ${y}) rotate(${a})" d="M0 0 C${r} ${-r} ${r * 2} ${r * 0.4} 0 ${r * 1.8} C${-r * 2} ${r * 0.4} ${-r} ${-r} 0 0Z" fill="#ffd0e0" opacity="${0.55 + rn() * 0.4}"/>`; } }
   // 후광
   if (L.halo) {
     const rays = Array.from({ length:16 }, (_, k) => { const a = k / 16 * Math.PI * 2, r1 = 52, r2 = k % 2 ? 66 : 76; return `M${100 + Math.cos(a - 0.06) * r1} ${88 + ky + Math.sin(a - 0.06) * r1} L${100 + Math.cos(a) * r2} ${88 + ky + Math.sin(a) * r2} L${100 + Math.cos(a + 0.06) * r1} ${88 + ky + Math.sin(a + 0.06) * r1}Z`; }).join("");
@@ -584,7 +589,7 @@ function portraitSVG(L) {
   // 등 뒤 소지품
   back += itemBack(L, fill, ky);
   // 뒷머리
-  back += hairBack(L, fill, hr, hrD, ky);
+  back += `<g stroke="${hrDD}" stroke-width="1.5" stroke-linejoin="round">` + hairBack(L, fill, hr, hrD, ky) + `</g>`;
   // 몸과 옷
   body += clothes(L, fill, { sk, skD, skL, c1, c2, c3, ky, broad, belly });
   // 목
@@ -592,11 +597,12 @@ function portraitSVG(L) {
   if (L.necklace) head += necklace(L, fill, ky);
   // 얼굴
   const face = kid ? `M64 ${108 + ky} C64 ${78 + ky} 82 ${62 + ky} 100 ${62 + ky} C118 ${62 + ky} 136 ${78 + ky} 136 ${108 + ky} C136 ${132 + ky} 124 ${150 + ky} 100 ${154 + ky} C76 ${150 + ky} 64 ${132 + ky} 64 ${108 + ky}Z`
-    : fem ? `M62 104 C62 74 80 58 100 58 C120 58 138 74 138 104 C138 126 130 142 118 152 C112 158 106 161 100 161 C94 161 88 158 82 152 C70 142 62 126 62 104Z`
-    : `M${broad ? 58 : 60} 104 C${broad ? 58 : 60} 72 80 56 100 56 C120 56 ${broad ? 142 : 140} 72 ${broad ? 142 : 140} 104 C${broad ? 142 : 140} ${128 + belly} ${broad ? 136 : 134} 146 122 156 C114 162 107 ${164 + belly / 2} 100 ${164 + belly / 2} C93 ${164 + belly / 2} 86 162 78 156 C66 146 ${broad ? 58 : 60} ${128 + belly} ${broad ? 58 : 60} 104Z`;
+    : fem ? `M62 104 C62 74 80 58 100 58 C120 58 138 74 138 104 C138 124 131 143 115 157 Q104 168 100 170 Q96 168 85 157 C69 143 62 124 62 104Z`
+    : `M${broad ? 58 : 60} 104 C${broad ? 58 : 60} 72 80 56 100 56 C120 56 ${broad ? 142 : 140} 72 ${broad ? 142 : 140} 104 C${broad ? 142 : 140} ${126 + belly} ${broad ? 136 : 134} 146 118 158 Q106 ${167 + belly / 2} 100 ${169 + belly / 2} Q94 ${167 + belly / 2} 82 158 C66 146 ${broad ? 58 : 60} ${126 + belly} ${broad ? 58 : 60} 104Z`;
   head += `<ellipse cx="${kid ? 63 : 60}" cy="${116 + ky}" rx="7" ry="11" fill="${skD}"/><ellipse cx="${kid ? 137 : 140}" cy="${116 + ky}" rx="7" ry="11" fill="${skD}"/><ellipse cx="${kid ? 63 : 60}" cy="${116 + ky}" rx="4" ry="7" fill="${sk}"/><ellipse cx="${kid ? 137 : 140}" cy="${116 + ky}" rx="4" ry="7" fill="${sk}"/>`;
   head += `<path d="${face}" fill="${fill("sk")}"/>`;
-  head += `<path d="${face}" fill="none" stroke="${skDD}" stroke-width="1.2" opacity="0.45"/>`;
+  head += `<clipPath id="${U("fc")}"><path d="${face}"/></clipPath><g clip-path="url(#${U("fc")})"><path d="M122 50 L160 50 L160 190 L98 190 Q126 160 128 120Z" fill="${skD}" opacity="0.2"/><path d="M60 140 Q100 176 140 140 L140 190 L60 190Z" fill="${skD}" opacity="0.16"/></g>`;
+  head += `<path d="${face}" fill="none" stroke="${mixH(sk, "#6a2a30", 0.62)}" stroke-width="1.7" stroke-linejoin="round" opacity="0.8"/>`;
   // 볼·이마 그늘
   head += `<ellipse cx="100" cy="${78 + ky}" rx="36" ry="12" fill="${skD}" opacity="0.28"/>`;
   if (L.fem || L.kid || ex === "shy" || L.lashes) head += `<ellipse cx="78" cy="${132 + ky}" rx="10" ry="4.5" fill="#ff8a9a" opacity="${ex === "shy" ? 0.55 : 0.32}"/><ellipse cx="122" cy="${132 + ky}" rx="10" ry="4.5" fill="#ff8a9a" opacity="${ex === "shy" ? 0.55 : 0.32}"/>`;
@@ -610,14 +616,14 @@ function portraitSVG(L) {
   if (L.mask && L.role === "bandit") head += `<path d="M58 ${124 + ky} Q100 ${118 + ky} 142 ${124 + ky} L140 ${150 + ky} Q120 ${170 + ky} 100 ${172 + ky} Q80 ${170 + ky} 60 ${150 + ky} Z" fill="#2c2834"/><path d="M60 ${126 + ky} Q100 ${120 + ky} 140 ${126 + ky}" stroke="#4a4654" stroke-width="2" fill="none"/>`;
   else if (L.mask) head += `<path fill-rule="evenodd" d="M58 ${100 + ky} Q100 ${88 + ky} 142 ${100 + ky} L138 ${122 + ky} Q120 ${128 + ky} 104 ${118 + ky} Q100 ${114 + ky} 96 ${118 + ky} Q80 ${128 + ky} 62 ${122 + ky} Z M70 ${112 + ky} Q82 ${102 + ky} 94 ${112 + ky} Q82 ${120 + ky} 70 ${112 + ky} Z M106 ${112 + ky} Q118 ${102 + ky} 130 ${112 + ky} Q118 ${120 + ky} 106 ${112 + ky} Z" fill="#3a2048"/><path d="M58 ${100 + ky} Q100 ${88 + ky} 142 ${100 + ky}" stroke="${fill("gold")}" stroke-width="2" fill="none"/>`;
   // 앞머리와 머리쓰개
-  head += hairFront(L, fill, hr, hrL, hrD, hrDD, ky);
+  head += `<g stroke="${hrDD}" stroke-width="1.3" stroke-linejoin="round">` + hairFront(L, fill, hr, hrL, hrD, hrDD, ky) + `</g>`;
   head += headwear(L, fill, ky);
   if (L.bandage) head += `<path d="M60 ${84 + ky} Q100 ${72 + ky} 140 ${86 + ky} L140 ${96 + ky} Q100 ${82 + ky} 60 ${94 + ky} Z" fill="${fill("wh")}"/><ellipse cx="124" cy="${86 + ky}" rx="5" ry="3" fill="#c03a3a" opacity="0.7"/>`;
   front += itemFront(L, fill, { sk, skD });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" width="200" height="250"><defs>${defs}${defsExtra}</defs>${svg}${back}${body}${head}${front}<rect width="200" height="250" fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="6"/></svg>`;
 }
 function eyes(L, U, addDefs, ky) {
-  const ex = L.ex || L.expr, fem = L.fem, kid = L.kid, w = kid ? 25 : fem ? 24 : 22, h = kid ? 18 : fem ? 15 : 12;
+  const ex = L.ex || L.expr, fem = L.fem, kid = L.kid, w = kid ? 29 : fem ? 28 : 25, h = kid ? 22 : fem ? 20 : 16;
   const cy = 112 + ky + (kid ? 4 : 0), lash = mixH(L.hair, "#0c0614", 0.78), iris = L.eye, irisD = mixH(iris, "#0c0614", 0.6), irisL = mixH(iris, "#ffffff", 0.5);
   const look = ex === "shy" ? 2 : 0, lid = ex === "smug" ? 0.42 : ex === "angry" ? 0.3 : ex === "gentle" ? 0.12 : 0;
   let s = "";
@@ -627,13 +633,13 @@ function eyes(L, U, addDefs, ky) {
     const cid = `e${side}${Math.round(cx)}`;
     s += `<clipPath id="CL${cid}"><path d="${scl}"/></clipPath>`;
     s += `<path d="${scl}" fill="#fbf7f4"/>`;
-    s += `<g clip-path="url(#CL${cid})"><ellipse cx="${cx + side * 0.5}" cy="${cy + look}" rx="${w * 0.29}" ry="${h * 0.6}" fill="${irisD}"/><ellipse cx="${cx + side * 0.5}" cy="${cy + 1.5 + look}" rx="${w * 0.25}" ry="${h * 0.5}" fill="${iris}"/><ellipse cx="${cx + side * 0.5}" cy="${cy + h * 0.3 + look}" rx="${w * 0.18}" ry="${h * 0.22}" fill="${irisL}" opacity="0.85"/><ellipse cx="${cx + side * 0.5}" cy="${cy + look}" rx="${w * 0.11}" ry="${h * 0.3}" fill="${mixH(irisD, "#000", 0.5)}"/>`;
-    s += `<ellipse cx="${cx - w * 0.1}" cy="${cy - h * 0.22 + look}" rx="${w * 0.08}" ry="${h * 0.14}" fill="#fff"/><circle cx="${cx + w * 0.12}" cy="${cy + h * 0.26 + look}" r="1.1" fill="#fff" opacity="0.9"/>`;
+    s += `<g clip-path="url(#CL${cid})"><linearGradient id="IG${cid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${mixH(irisD, "#000", 0.55)}"/><stop offset="0.38" stop-color="${irisD}"/><stop offset="0.72" stop-color="${iris}"/><stop offset="1" stop-color="${irisL}"/></linearGradient><ellipse cx="${cx}" cy="${cy + 0.5 + look}" rx="${w * 0.36}" ry="${h * 0.7}" fill="url(#IG${cid})"/><ellipse cx="${cx}" cy="${cy + h * 0.1 + look}" rx="${w * 0.13}" ry="${h * 0.3}" fill="#0c0614"/><path d="M${cx - w * 0.3} ${cy + h * 0.38 + look} Q${cx} ${cy + h * 0.72 + look} ${cx + w * 0.3} ${cy + h * 0.38 + look}" stroke="${irisL}" stroke-width="1.4" fill="none" opacity="0.8"/>`;
+    s += `<ellipse cx="${cx - w * 0.13}" cy="${cy - h * 0.24 + look}" rx="${w * 0.12}" ry="${h * 0.2}" fill="#fff"/><circle cx="${cx + w * 0.14}" cy="${cy + h * 0.3 + look}" r="${w * 0.055}" fill="#fff" opacity="0.95"/><circle cx="${cx + w * 0.02}" cy="${cy + h * 0.02 + look}" r="${w * 0.03}" fill="#fff" opacity="0.8"/>`;
     if (lid) s += `<path d="M${L0 - 2} ${top - 4} L${R0 + 2} ${top - 4} L${R0 + 2} ${top + h * lid * (ex === "angry" ? (side < 0 ? 0.6 : 1.4) : 1) + 2} L${L0 - 2} ${top + h * lid * (ex === "angry" ? (side < 0 ? 1.4 : 0.6) : 1) + 2}Z" fill="${mixH(SKIN[L.skin], "#9a3a52", 0.18)}"/>`;
     s += `</g>`;
     // 속눈썹
     const lt = top + (lid ? h * lid : 0);
-    s += `<path d="M${L0 - 1} ${cy + 0.5} C${cx - w / 4} ${lt - 1} ${cx + w / 4} ${lt - 1} ${R0 + 1} ${cy - 1.5}" stroke="${lash}" stroke-width="${big(L) ? 3.2 : 2.6}" fill="none" stroke-linecap="round"/>`;
+    s += `<path d="M${L0 - 1} ${cy + 0.5} C${cx - w / 4} ${lt - 1} ${cx + w / 4} ${lt - 1} ${R0 + 1} ${cy - 1.5}" stroke="${lash}" stroke-width="${big(L) ? 4 : 3.2}" fill="none" stroke-linecap="round"/><path d="M${side < 0 ? L0 - 1 : R0 + 1} ${cy - (side < 0 ? -0.5 : 1.5)} q${side * 4} -1 ${side * 6} -5" stroke="${lash}" stroke-width="2.2" fill="none" stroke-linecap="round"/>${kid ? "" : `<path d="M${L0 + 2} ${top - 3} Q${cx} ${top - 8} ${R0 - 2} ${top - 3}" stroke="${mixH(sk0(L), "#7a3a40", 0.5)}" stroke-width="0.9" fill="none" opacity="0.6"/>`}`;
     if (fem || kid || L.lashes) s += `<path d="M${side < 0 ? L0 : R0} ${cy - (side < 0 ? 0 : 1.5)} l${side * -1 * 0 + (side < 0 ? -4 : 4)} -3 M${side < 0 ? L0 + 2 : R0 - 2} ${cy - 2.5} l${side < 0 ? -3 : 3} -4" stroke="${lash}" stroke-width="1.6" stroke-linecap="round"/>`;
     s += `<path d="M${L0 + 3} ${bot - 1} Q${cx} ${bot + (ex === "gentle" || ex === "cheer" ? -1.5 : 1)} ${R0 - 3} ${bot - 1.5}" stroke="${lash}" stroke-width="0.9" fill="none" opacity="0.55"/>`;
     s += `<path d="M${L0 + 2} ${top - 2.5} Q${cx} ${top - 5} ${R0 - 1} ${top - 2}" stroke="${lash}" stroke-width="0.8" fill="none" opacity="0.35"/>`;
@@ -645,9 +651,10 @@ function eyes(L, U, addDefs, ky) {
   return s;
 }
 const big = L => L.fem || L.kid;
+const sk0 = L => SKIN[L.skin];
 function mouthNose(L, ky, skD, skDD) {
   const ex = L.expr, fem = L.fem, my = 147 + ky + (L.kid ? -2 : 0), lip = fem ? "#c84c5c" : mixH(skDD, "#7a2a3a", 0.3);
-  let s = `<path d="M101 ${122 + ky} Q105 ${131 + ky} 100 ${134 + ky}" stroke="${skDD}" stroke-width="1.4" fill="none" opacity="0.55"/><path d="M96 ${134 + ky} Q100 ${136 + ky} 104 ${134 + ky}" stroke="${skDD}" stroke-width="1.2" fill="none" opacity="0.45"/>`;
+  let s = `<path d="M99.5 ${131 + ky} Q101.5 ${134 + ky} 100.5 ${135 + ky}" stroke="${skDD}" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.6"/>`;
   if (L.beard === "full" || L.mask && L.role === "bandit") return s;
   const d = ex === "cheer" ? `M89 ${my - 2} Q100 ${my + 9} 111 ${my - 2}` : ex === "gentle" ? `M91 ${my} Q100 ${my + 5} 109 ${my}` : ex === "angry" ? `M91 ${my + 3} Q100 ${my - 2} 109 ${my + 3}` : ex === "smug" ? `M92 ${my + 1} Q102 ${my + 3} 110 ${my - 3}` : ex === "shy" ? `M95 ${my + 1} Q100 ${my + 2} 105 ${my + 1}` : `M92 ${my} Q100 ${my + 2} 108 ${my}`;
   if (ex === "cheer") s += `<path d="${d} Q100 ${my + 4} 89 ${my - 2}Z" fill="#7a2a3a"/><path d="M93 ${my + 1} Q100 ${my + 5} 107 ${my + 1}" fill="#e88a9a"/>`;
@@ -687,6 +694,8 @@ function hairFront(L, fill, hr, hrL, hrD, hrDD, ky) {
     if (L.hs === 1) s += `<path d="M66 ${60 + ky} L58 ${40 + ky} L78 ${52 + ky} L82 ${30 + ky} L96 ${48 + ky} L106 ${28 + ky} L114 ${48 + ky} L128 ${34 + ky} L128 ${56 + ky} L146 ${50 + ky} L136 ${72 + ky}Z" fill="${fill("hr")}"/>`;
   }
   // 윤기와 결
+  s = `<g transform="translate(0 7)" fill="${hrDD}" opacity="0.2" stroke="none">${s.match(/<path[^>]*>/)[0].replace(/fill="[^"]*"/, "")}</g>` + s;
+  if (L.hs !== 1 || L.fem) s += `<path d="M66 ${70 + ky} Q100 ${44 + ky} 134 ${70 + ky} Q100 ${54 + ky} 66 ${78 + ky}Z" fill="${hrL}" opacity="0.55" stroke="none"/><path d="M80 ${52 + ky} Q100 ${44 + ky} 116 ${52 + ky}" stroke="#fff" stroke-width="2.4" opacity="0.7" fill="none" stroke-linecap="round"/>`;
   s += `<path d="M72 ${62 + ky} Q100 ${50 + ky} 128 ${62 + ky}" stroke="#fff" stroke-width="4" opacity="0.28" fill="none" stroke-linecap="round"/><path d="M80 ${58 + ky} Q100 ${50 + ky} 118 ${57 + ky}" stroke="${hrL}" stroke-width="2" opacity="0.6" fill="none"/>`;
   s += `<path d="M76 ${66 + ky} L84 ${92 + ky} M104 ${62 + ky} L104 ${90 + ky} M124 ${66 + ky} L118 ${90 + ky}" stroke="${hrDD}" stroke-width="1.2" opacity="0.4"/>`;
   if (L.fem && L.hs === 1) s += `<path d="M126 ${44 + ky} l14 -8 l-2 14Z M126 ${44 + ky} l14 8 l-12 4Z" fill="${fill("c3")}"/><circle cx="126" cy="${46 + ky}" r="3.5" fill="${fill("c3")}"/>`;
