@@ -37,7 +37,7 @@
   @media (max-width:900px) { .main { grid-template-columns:minmax(0,1fr); } }
   .mapwrap { padding:8px; }
   .mapin { position:relative; }
-  #map { display:block; width:100%; aspect-ratio:384/240; max-width:100%; cursor:pointer; background:#284673; }
+  #map { display:block; width:100%; aspect-ratio:448/280; max-width:100%; cursor:pointer; background:#284673; }
   #labels { position:absolute; inset:0; pointer-events:none; }
   .lbl { position:absolute; transform:translate(-50%,-100%); font-size:12px; font-weight:700; color:#fff; white-space:nowrap;
          text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000; }
@@ -45,7 +45,7 @@
   .lbl img { width:12px; height:12px; vertical-align:-1px; margin-right:1px; }
   .dlbl { position:absolute; transform:translate(-50%,-50%); font-size:24px; font-weight:700; color:rgba(255,246,214,.82); white-space:nowrap; letter-spacing:2px;
           text-shadow:2px 0 0 #1a1420,-2px 0 0 #1a1420,0 2px 0 #1a1420,0 -2px 0 #1a1420; }
-  @media (max-width:600px) { .dlbl { font-size:12px; letter-spacing:1px; } }
+  @media (max-width:600px) { .dlbl { font-size:12px; letter-spacing:1px; } .lbl:not(.mine):not(.sel) { display:none; } }
   .mapbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding-top:8px; }
   .mapbar .dim { flex:1; min-width:200px; }
   .vote { display:grid; grid-template-columns:minmax(0,1fr) 120px 28px; gap:8px; align-items:center; }
@@ -108,9 +108,11 @@
   .scene { display:inline-flex; align-items:flex-end; justify-content:center; padding:4px 8px 0; background:linear-gradient(180deg,#2e2540 0%,#1a1424 70%,#120d18 100%); border:3px solid var(--edge); box-shadow:0 0 0 2px var(--gold2); }
   .chr { display:inline-block; flex:none; background-repeat:no-repeat; background-position-x:0; image-rendering:pixelated; image-rendering:crisp-edges; }
   body.f1 .chr { background-position-x:100%; }
-  .chr.big { width:120px; height:180px; background-size:240px 180px; }
-  .chr.mid { width:80px; height:120px; background-size:160px 120px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
-  .chr.bust { width:80px; height:64px; background-size:160px 120px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
+  .chr.big { width:192px; height:288px; background-size:384px 288px; }
+  .chr.mid { width:96px; height:144px; background-size:192px 144px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
+  .chr.bust { width:96px; height:80px; background-size:192px 144px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
+  .vs { flex-wrap:wrap; }
+  @media (max-width:480px) { .chr.big { width:144px; height:216px; background-size:288px 216px; } }
   .opts { display:flex; flex-direction:column; gap:6px; }
   .opts .btn { width:100%; flex-direction:column; align-items:flex-start; gap:0; }
   .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
@@ -131,7 +133,7 @@
   <div class="main">
     <section class="mapwrap panel">
       <div class="mapin">
-        <canvas id="map" class="px" width="384" height="240" aria-label="제국 지도"></canvas>
+        <canvas id="map" class="px" width="448" height="280" aria-label="제국 지도"></canvas>
         <div id="labels"></div>
       </div>
       <div class="mapbar" id="mapbar"></div>
@@ -272,69 +274,108 @@ const SCHEMES = {
 const WAR_COST = 100, PATROL_COST = 40, TRIBUTE = 120;
 const PLAYER_COLOR = "#c8402e";
 const KIN_COLORS = ["#e0803a", "#a8c048", "#6a8ad8", "#d89a5a"];
-const DUCHY_DEFS = [
-  { n:"라인펠트", color:"#d0603e" },
-  { n:"작센하임", color:"#3aa6a0" },
-  { n:"아델",     color:"#e0d6b4", theo:true },
-  { n:"프랑켄",   color:"#c9a227" },
-  { n:"브란덴",   color:"#9256bc" },
-  { n:"베른",     color:"#5a8ad0" },
+// ---- 제국 지도 생성: 고정 시드라 매번 같은 세계가 나온다 ----
+const COUNTY_NAMES = ["로슬린","에르힐","모르그","하겐","슈타인","클라우스","뉘른","레겐","리벤","알텐","바르크","코르벤","디트마르","엘스","파일","글라첸","홀름","이젠",
+  "야르","켐펜","라우","미르텐","오르벤","프라임","퀼","라벤","젤레","타우","울름","바이스","볼켄","잔트","에벤","하르츠","린델","가르텐","벨츠","치르","헤름","루벤",
+  "슈발","마르크","아이흐","보덴","펠트","그륀","하펠","로텐","지크","탄","외데","브룩","알름","쿠르","디펜"];
+const DUCHY_INFO = [
+  { n:"라인펠트", color:"#d0603e", cap:"로슬린" }, { n:"프랑켄", color:"#c9a227", cap:"아헨" }, { n:"아델", color:"#e0d6b4", cap:"아델", theo:true },
+  { n:"작센하임", color:"#3aa6a0", cap:"투르마" }, { n:"브란덴", color:"#9256bc", cap:"브란덴" }, { n:"베른", color:"#5a8ad0", cap:"베른" },
+  { n:"노르트마르크", color:"#4f9e5a", cap:"노르트" }, { n:"슈바르츠발트", color:"#2f6a4a", cap:"도른" }, { n:"오스트란트", color:"#c05a8a", cap:"오스터" },
+  { n:"티롤렌", color:"#8a6ac8", cap:"인스" }, { n:"베스트팔", color:"#b8844a", cap:"베스트" }, { n:"케른텐", color:"#4ab0c0", cap:"클라겐" },
 ];
-const COUNTY_DEFS = [
-  { n:"발란",     x:120, y:104, d:0 },
-  { n:"로슬린",   x:52,  y:98,  d:0 },
-  { n:"카엘",     x:60,  y:160, d:0, elector:true },
-  { n:"투르마",   x:118, y:46,  d:1, elector:true },
-  { n:"오스터",   x:186, y:40,  d:1 },
-  { n:"리벤",     x:252, y:48,  d:1 },
-  { n:"아델",     x:322, y:62,  d:2, elector:true },
-  { n:"클라우스", x:328, y:118, d:2 },
-  { n:"아헨",     x:186, y:100, d:3, elector:true },
-  { n:"뉘른",     x:254, y:106, d:3 },
-  { n:"레겐",     x:190, y:156, d:3 },
-  { n:"에르힐",   x:256, y:160, d:4 },
-  { n:"브란덴",   x:322, y:172, d:4, elector:true },
-  { n:"모르그",   x:236, y:212, d:4 },
-  { n:"펠스",     x:304, y:218, d:4, elector:true },
-  { n:"하겐",     x:124, y:160, d:5 },
-  { n:"베른",     x:92,  y:212, d:5, elector:true },
-  { n:"슈타인",   x:166, y:214, d:5 },
-];
-const DUCHY_COUNTIES = DUCHY_DEFS.map((_, i) => COUNTY_DEFS.map((c, j) => c.d === i ? j : -1).filter(j => j >= 0));
-const ELECTOR_SEATS = COUNTY_DEFS.map((c, i) => c.elector ? i : -1).filter(i => i >= 0);
-const REALM_DEFS = [
-  { id:0,  n:"하르트 가문",     color:PLAYER_COLOR },
-  { id:1,  n:"로슬린 백작령",   color:"#4f7ec4", c:[1] },
-  { id:2,  n:"카엘 주교령",     color:"#d8c070", c:[2], theo:true },
-  { id:3,  n:"작센하임 공국",   color:"#3aa6a0", c:[3, 4], duchy:1 },
-  { id:4,  n:"리벤 백작령",     color:"#86b8e0", c:[5] },
-  { id:5,  n:"아델 대주교령",   color:"#e6dcc0", c:[6, 7], duchy:2, theo:true },
-  { id:6,  n:"호엔슈타인 황가", color:"#3c3448", c:[8, 9, 10], duchy:3, emperor:true },
-  { id:7,  n:"브란덴 공국",     color:"#9256bc", c:[12, 13], duchy:4 },
-  { id:8,  n:"에르힐 백작령",   color:"#5e9e48", c:[11] },
-  { id:9,  n:"베른 공국",       color:"#c07a3a", c:[15, 16], duchy:5 },
-  { id:10, n:"슈타인 백작령",   color:"#8a9a50", c:[17] },
-  { id:11, n:"펠스 수도원령",   color:"#d06a9a", c:[14], theo:true },
-];
-const START_HOLD = {
-  1:[["castle",["palisade"]],["city",[]]],
-  2:[["temple",["abbey"]],["castle",[]],["city",[]]],
-  3:[["castle",["palisade","barracks"]],["city",["market"]]],
-  4:[["castle",["palisade"]],["temple",[]]],
-  5:[["castle",[]],["city",[]]],
-  6:[["temple",["abbey","school"]],["castle",["palisade"]],["city",[]]],
-  7:[["temple",[]],["castle",[]]],
-  8:[["castle",["palisade","barracks"]],["city",["market","guild"]],["temple",["abbey"]]],
-  9:[["castle",["palisade"]],["city",["market"]]],
-  10:[["castle",["palisade"]],["temple",[]]],
-  11:[["castle",[]],["temple",["abbey"]]],
-  12:[["castle",["palisade","barracks"]],["city",["market"]]],
-  13:[["castle",["palisade"]]],
-  14:[["temple",["abbey"]],["castle",[]]],
-  15:[["castle",["palisade"]],["city",[]]],
-  16:[["castle",["palisade","barracks"]],["city",["market"]]],
-  17:[["castle",[]],["city",[]]],
-};
+let DUCHY_DEFS = [], COUNTY_DEFS = [], DUCHY_COUNTIES = [], ELECTOR_SEATS = [], REALM_DEFS = [], START_HOLD = {}, LANDMASK = null;
+function genWorld() {
+  const rnd = mulberry(2024), n1 = noise(11);
+  const fbm = (n, x, y) => n(x / 60, y / 60) * 0.55 + n(x / 26, y / 26) * 0.3 + n(x / 10, y / 10) * 0.15;
+  LANDMASK = new Uint8Array(MW * MH);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const dx = (x - MW / 2) / (MW * 0.56), dy = (y - MH / 2) / (MH * 0.58);
+    LANDMASK[y * MW + x] = fbm(n1, x, y) * 0.6 + (1 - dx * dx - dy * dy) * 0.7 >= 0.55 ? 1 : 0;
+  }
+  const landAround = (x, y, r) => { for (let oy = -r; oy <= r; oy += 3) for (let ox = -r; ox <= r; ox += 3) { const xx = x + ox, yy = y + oy; if (xx < 0 || yy < 0 || xx >= MW || yy >= MH || !LANDMASK[yy * MW + xx]) return false; } return true; };
+  // 백작령 씨앗: 고르게 흩뿌린다
+  let seeds = [];
+  for (let r = 46; r >= 24 && seeds.length < 50; r -= 1) {
+    seeds = []; const pr = mulberry(77);
+    for (let t = 0; t < 30000 && seeds.length < 50; t++) {
+      const x = 12 + Math.floor(pr() * (MW - 24)), y = 12 + Math.floor(pr() * (MH - 24));
+      if (!landAround(x, y, 9) || seeds.some(s => (s.x - x) ** 2 + (s.y - y) ** 2 < r * r)) continue;
+      seeds.push({ x, y });
+    }
+  }
+  // 제후국 12개: 멀리 떨어진 중심을 고르고 균형 있게 나눈다
+  const K = 12, d2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2, mid = { x:MW / 2, y:MH / 2 };
+  let centers = [seeds.reduce((b, s) => d2(s, mid) < d2(b, mid) ? s : b, seeds[0])];
+  while (centers.length < K) centers.push(seeds.reduce((b, s) => Math.min(...centers.map(c => d2(c, s))) > Math.min(...centers.map(c => d2(c, b))) ? s : b, seeds[0]));
+  centers = centers.map(c => ({ ...c }));
+  let asg = [];
+  for (let it = 0; it < 6; it++) {
+    const cap = Math.ceil(seeds.length / K) + 1, cnt = new Array(K).fill(0);
+    asg = new Array(seeds.length).fill(-1);
+    const pairs = [];
+    seeds.forEach((s, i) => centers.forEach((c, k) => pairs.push([d2(s, c), i, k])));
+    pairs.sort((a, b) => a[0] - b[0]);
+    for (const [, i, k] of pairs) if (asg[i] < 0 && cnt[k] < cap) { asg[i] = k; cnt[k]++; }
+    centers = centers.map((c, k) => { const m = seeds.filter((_, i) => asg[i] === k); return m.length ? { x:m.reduce((a, s) => a + s.x, 0) / m.length, y:m.reduce((a, s) => a + s.y, 0) / m.length } : c; });
+  }
+  const members = k => seeds.map((s, i) => i).filter(i => asg[i] === k).sort((a, b) => d2(seeds[a], centers[k]) - d2(seeds[b], centers[k]));
+  // 역할: 황제 직할(중앙) · 플레이어(서쪽, 4곳 이상) · 대주교령(동쪽) · 나머지 공국
+  const imperial = centers.reduce((b, c, k) => d2(c, mid) < d2(centers[b], mid) ? k : b, 0);
+  const player = [...centers.keys()].filter(k => k !== imperial && members(k).length >= 4).sort((a, b) => centers[a].x - centers[b].x)[0];
+  const theo = [...centers.keys()].filter(k => k !== imperial && k !== player && members(k).length >= 3).sort((a, b) => centers[b].x - centers[a].x)[0];
+  const rest = [...centers.keys()].filter(k => ![imperial, player, theo].includes(k)).sort((a, b) => centers[a].y * 2 + centers[a].x - (centers[b].y * 2 + centers[b].x));
+  const order = [player, imperial, theo, ...rest];   // DUCHY_INFO 순서와 맞춘다
+  DUCHY_DEFS = order.map((k, i) => ({ n:DUCHY_INFO[i].n, color:DUCHY_INFO[i].color, theo:!!DUCHY_INFO[i].theo, cx:centers[k].x, cy:centers[k].y }));
+  // 백작령 번호: 0번은 플레이어의 발란
+  const pm = members(player), pIdx = pm[1] ?? pm[0];
+  const ids = [pIdx, ...order.flatMap(k => members(k)).filter(i => i !== pIdx)];
+  const remap = new Map(ids.map((s, i) => [s, i]));
+  let pool = 0;
+  const reserved = new Set(["발란", "카엘", "펠스", ...DUCHY_INFO.map(d => d.cap)]), names = COUNTY_NAMES.filter(n => !reserved.has(n));
+  COUNTY_DEFS = ids.map(si => ({ n:"", x:seeds[si].x, y:seeds[si].y, d:order.indexOf(asg[si]) }));
+  DUCHY_COUNTIES = DUCHY_DEFS.map((_, d) => COUNTY_DEFS.map((c, j) => c.d === d ? j : -1).filter(j => j >= 0).sort((a, b) => ((COUNTY_DEFS[a].x - DUCHY_DEFS[d].cx) ** 2 + (COUNTY_DEFS[a].y - DUCHY_DEFS[d].cy) ** 2) - ((COUNTY_DEFS[b].x - DUCHY_DEFS[d].cx) ** 2 + (COUNTY_DEFS[b].y - DUCHY_DEFS[d].cy) ** 2)));
+  COUNTY_DEFS[0].n = "발란";
+  DUCHY_COUNTIES.forEach((cs, d) => { const cap = cs.find(j => j !== 0); if (cap != null) COUNTY_DEFS[cap].n = DUCHY_INFO[d].cap; });
+  COUNTY_DEFS.forEach(c => { if (!c.n) c.n = names[pool++ % names.length]; });
+  // 세력 배치
+  REALM_DEFS = [{ id:0, n:"하르트 가문", color:PLAYER_COLOR }];
+  const add = o => { o.id = REALM_DEFS.length; REALM_DEFS.push(o); return o; };
+  const tint = (c, k) => mixH(c, ["#ffffff", "#1c1828", "#e05a4a", "#4a8ae0", "#e0c050", "#60c070"][k % 6], 0.42);
+  let tk = 0, abbeyPlaced = false;
+  const counts = (cs, dc, abbeyOk = true) => {
+    for (let i = 0; i < cs.length; i++) {
+      const j = cs[i], two = cs[i + 1] != null && rnd() < 0.25 && (COUNTY_DEFS[j].x - COUNTY_DEFS[cs[i + 1]].x) ** 2 + (COUNTY_DEFS[j].y - COUNTY_DEFS[cs[i + 1]].y) ** 2 < 64 * 64;
+      if (abbeyOk && !abbeyPlaced && rnd() < 0.3) { abbeyPlaced = true; COUNTY_DEFS[j].n = "펠스"; COUNTY_DEFS[j].elector = true; add({ n:"펠스 수도원령", color:"#d06a9a", c:[j], theo:true }); continue; }
+      add({ n:`${COUNTY_DEFS[j].n} 백작령`, color:tint(dc, tk++), c:two ? [j, cs[i + 1]] : [j] });
+      if (two) i++;
+    }
+  };
+  DUCHY_COUNTIES.forEach((cs, d) => {
+    const dc = DUCHY_DEFS[d].color;
+    if (d === 0) {   // 라인펠트: 공작 자리는 비어 있고, 카엘 주교가 선제후
+      const others = cs.filter(j => j !== 0), kael = others[others.length - 1];
+      COUNTY_DEFS[kael].n = "카엘"; COUNTY_DEFS[kael].elector = true;
+      add({ n:"카엘 주교령", color:"#d8c070", c:[kael], theo:true });
+      counts(others.filter(j => j !== kael), dc, false);
+    } else if (d === 1) { const k = Math.min(4, cs.length - 1); COUNTY_DEFS[cs[0]].elector = true; add({ n:"호엔슈타인 황가", color:"#3c3448", c:cs.slice(0, k), duchy:d, emperor:true }); counts(cs.slice(k), dc, false); }
+    else if (d === 2) { COUNTY_DEFS[cs[0]].elector = true; add({ n:"아델 대주교령", color:"#e6dcc0", c:cs.slice(0, 2), duchy:d, theo:true }); counts(cs.slice(2), dc); }
+    else { const k = cs.length >= 5 ? 3 : cs.length >= 3 ? 2 : 1; add({ n:`${DUCHY_DEFS[d].n} 공국`, color:dc, c:cs.slice(0, k), duchy:d }); counts(cs.slice(k), dc); }
+  });
+  if (!abbeyPlaced) { const r = REALM_DEFS.find(r => r.id > 3 && !r.duchy && !r.theo && r.c.length === 1); COUNTY_DEFS[r.c[0]].n = "펠스"; COUNTY_DEFS[r.c[0]].elector = true; r.n = "펠스 수도원령"; r.theo = true; r.color = "#d06a9a"; }
+  // 세속 선제후: 가장 큰 세 공국의 수도
+  REALM_DEFS.filter(r => r.duchy > 2).sort((a, b) => DUCHY_COUNTIES[b.duchy].length - DUCHY_COUNTIES[a.duchy].length || a.duchy - b.duchy).slice(0, 3).forEach(r => { COUNTY_DEFS[r.c[0]].elector = true; });
+  ELECTOR_SEATS = COUNTY_DEFS.map((c, i) => c.elector ? i : -1).filter(i => i >= 0);
+  // 처음 장원
+  START_HOLD = {};
+  for (const r of REALM_DEFS) if (r.c) r.c.forEach((j, n) => {
+    const capital = n === 0;
+    if (r.emperor && capital) START_HOLD[j] = [["castle", ["palisade", "barracks"]], ["city", ["market", "guild"]], ["temple", ["abbey"]]];
+    else if (r.theo && capital) START_HOLD[j] = [["temple", ["abbey", "school"]], ["castle", ["palisade"]], ["city", []]];
+    else if (r.duchy != null && capital) START_HOLD[j] = [["castle", ["palisade", "barracks"]], ["city", ["market"]], ["temple", ["abbey"]]];
+    else { const h = [["castle", rnd() < 0.55 ? ["palisade"] : []]]; if (rnd() < 0.65) h.push(["city", rnd() < 0.3 ? ["market"] : []]); if (rnd() < 0.4) h.push(["temple", []]); START_HOLD[j] = h; }
+  });
+}
 
 // ================= 픽셀 그래픽 =================
 const K = "#1a1420", GOLD = "#e8b84a", GOLD_D = "#a87a24", WHITE = "#f4ecd8";
@@ -401,6 +442,11 @@ function buildSprites() {
   SPR.keep  = art(["k.k..k.k","kkk..kkk","kGkkkkGk","kGGGGGGk","kGGkkGGk","kGGkkGGk","kkkkkkkk","........"], ip);
   SPR.dagger = art([".......s","......s.",".....s..","....s...",".y.s....","..y.....",".pny....","p..y...."], ip);
   SPR.ring  = art(["..kyk...",".k.r.k..","........","..kkkk..",".kyyyyk.","ky....yk","ky....yk",".kyyyyk."], ip);
+  const sp = { k:K, g:C.stoneL, d:C.stone, r:C.roof, R:C.roofD, w:C.wall, y:GOLD, s:C.slate, n:C.wood };
+  SPR.castleS = art([".k.k.k.k.", ".kgkgkgk.", ".kgggggk.", "kkgggggkk", "kgggkgggk", "kgdgkgdgk", "kggdkdggk", "kkkkkkkkk"], sp);
+  SPR.cityS = art(["...kkk...", "..krrrk..", ".krrrrRk.", "krrrrrrRk", "kwwwwwwwk", "kwykwwkwk", "kwwkwwwwk", "kkkkkkkkk"], sp);
+  SPR.templeS = art(["....y....", "...yyy...", "....y....", "...kkk...", "..ksssk..", ".kwwwwwk.", "kwwwkwwwk", "kkkkkkkkk"], sp);
+  SPR.scaffoldS = art(["n...n...n", "nnnnnnnnn", "n...n...n", "n...n...n", "nnnnnnnnn", "n.kkkkk.n", "nkgggggkn", "kkkkkkkkk"], sp);
   for (const k in SPR) SURL[k] = SPR[k].toDataURL();
 }
 const icon = (k, cls = "i16") => `<img class="px ${cls}" src="${SURL[k]}" alt="">`;
@@ -412,249 +458,406 @@ function soldier(color, flip) {
   const s = art(rows, { k:K, g:C.stoneL, s:"#e3ae86", c:color, w:"#d8dce8" }); SOLDIER.set(key, s); return s;
 }
 
-// ---- 인물 도트: 3/4 시점 전신 스프라이트 (숨쉬기 2프레임) ----
-const SKIN = [["#f6d2b0","#dca480"],["#e8b48c","#c08860"],["#c88c60","#9c6840"],["#97623e","#6e4428"]];
-const HAIR = ["#2e2228","#6a4026","#b0682e","#e6c066","#a83a24"];
-const EYE = ["#3d7ad8","#3f9a52","#8a5a30"];
-const SW = 40, SH = 60;
+// ---- 인물 도트: 96×144 고해상도 3/4 시점 전신 (숨쉬기·바람 2프레임) ----
+// 부품마다 곡선으로 실루엣을 그린 뒤, 부품 안쪽 거리장으로 둥근 명암을 계산하고 색 있는 외곽선을 두른다.
+const SKIN = ["#f8dcc6", "#efc09e", "#d29a70", "#9e6a48"];
+const HAIR = ["#2a2232", "#643c26", "#b0602a", "#e8c46a", "#a3302a"];
+const EYE = ["#3d7ce0", "#3a9e5e", "#9a6230"];
+const SW = 96, SH = 144;
 const mixH = (a, b, t) => toHex(mix(hex(a), hex(b), t));
-function ramp(c) { return { o:mixH(c, "#120a1c", 0.72), d:mixH(c, "#2a1848", 0.34), b:c, l:mixH(c, "#fff6e0", 0.32) }; }
-function hairColor(ch) { return ch.age >= 68 ? "#e8e6e0" : ch.age >= 52 ? "#a6a2ae" : HAIR[ch.dna.h]; }
-function painter() {
-  const mat = new Array(SW * SH).fill(null), part = new Int16Array(SW * SH).fill(-1);
-  let cur = 0;
+const ramp6 = c => [mixH(c, "#0e0818", 0.8), mixH(c, "#2a1446", 0.52), mixH(c, "#2e1a4c", 0.27), c, mixH(c, "#fff3dc", 0.34), mixH(c, "#ffffff", 0.68)];
+const skinRamp = c => [mixH(c, "#2a0c16", 0.8), mixH(c, "#8e2c46", 0.4), mixH(c, "#b04a5c", 0.18), c, mixH(c, "#fff2e4", 0.38), mixH(c, "#ffffff", 0.64)];
+function hairColor(ch) { return ch.age >= 66 ? "#e6e4de" : ch.age >= 52 ? "#a8a4b0" : HAIR[ch.dna.h]; }
+let RCV = null;
+function rctx() {
+  if (!RCV) { RCV = document.createElement("canvas"); RCV.width = SW; RCV.height = SH; }
+  const x = RCV.getContext("2d", { willReadFrequently:true });
+  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, SW, SH); x.fillStyle = "#000"; x.strokeStyle = "#000"; x.lineCap = "round"; x.lineJoin = "round";
+  return x;
+}
+function newPainter() {
+  const N = SW * SH, mat = new Array(N).fill(null), part = new Int16Array(N).fill(-1), parts = [];
   const P = {
-    mat, part, top:0,
-    begin() { cur++; return P; },
-    px(x, y, m) { if (x < 0 || y < 0 || x >= SW || y >= SH) return; const i = y * SW + x; mat[i] = m; part[i] = cur; },
-    span(y, x0, x1, m) { for (let x = x0; x <= x1; x++) P.px(x, y, m); },
-    rows(y0, spans, m) { spans.forEach((s, i) => { if (s) for (let k = 0; k < s.length; k += 2) P.span(y0 + i, s[k], s[k + 1], m); }); },
-    rect(x0, y0, x1, y1, m) { for (let y = y0; y <= y1; y++) P.span(y, x0, x1, m); },
-    line(x0, y0, x1, y1, m) { const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx + dy;
-      for (;;) { P.px(x0, y0, m); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } } },
-    clear(x, y) { if (x < 0 || y < 0 || x >= SW || y >= SH) return; mat[y * SW + x] = null; },
+    mat, part, parts,
+    add(m, fn, o = {}) {
+      const x = rctx(); fn(x);
+      const d = x.getImageData(0, 0, SW, SH).data, id = parts.length;
+      let top = SH, bot = 0;
+      for (let i = 0; i < N; i++) if (d[i * 4 + 3] >= 110) { mat[i] = m; part[i] = id; const y = (i / SW) | 0; if (y < top) top = y; if (y > bot) bot = y; }
+      parts.push({ m, top, bot, shade:o.shade || 0, line:o.line !== false });
+      return id;
+    },
   };
   return P;
 }
-// 재질별 명암 + 겹침 경계선 + 바깥 외곽선
-function shade(P, pal, img, ox) {
-  const { mat, part } = P, d = img.data, W = img.width;
-  const same = (x, y, m, p) => x >= 0 && y >= 0 && x < SW && y < SH && mat[y * SW + x] === m && part[y * SW + x] === p;
-  const put = (x, y, c, a = 255) => { const [r, g, b] = hex(c), i = (y * W + x + ox) * 4; d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = a; };
+// 그리기 도구: 모두 ctx 를 받는 함수를 돌려준다
+const Dp = s => x => x.fill(new Path2D(s));
+const De = (cx, cy, rx, ry, rot = 0) => x => { x.beginPath(); x.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), rot, 0, Math.PI * 2); x.fill(); };
+function Dl(pts, w0, w1 = w0) {   // 굵기가 변하는 선: [x0,y0,x1,y1] 직선 · 6개 2차 곡선 · 8개 3차 곡선
+  return x => {
+    const n = 48;
+    for (let k = 0; k <= n; k++) {
+      const t = k / n, u = 1 - t; let px, py;
+      if (pts.length === 8) { const [a, b, c, d, e, f, g, h] = pts; px = u*u*u*a + 3*u*u*t*c + 3*u*t*t*e + t*t*t*g; py = u*u*u*b + 3*u*u*t*d + 3*u*t*t*f + t*t*t*h; }
+      else if (pts.length === 6) { const [a, b, c, d, e, f] = pts; px = u*u*a + 2*u*t*c + t*t*e; py = u*u*b + 2*u*t*d + t*t*f; }
+      else { const [a, b, c, d] = pts; px = a + (c - a) * t; py = b + (d - b) * t; }
+      x.beginPath(); x.arc(px, py, Math.max(0.55, (w0 + (w1 - w0) * t) / 2), 0, Math.PI * 2); x.fill();
+    }
+  };
+}
+const Dr = (x0, y0, w, h) => x => x.fillRect(x0, y0, w, h);
+const Dm = (...fs) => x => fs.forEach(f => f(x));
+// 명암: 거리장 → 법선 → 왼쪽 위 빛
+function shade2(P, pal, img, ox) {
+  const { mat, part, parts } = P, N = SW * SH, d = img.data, W = img.width;
+  const dist = new Uint8Array(N), q = [];
+  for (let i = 0; i < N; i++) {
+    const p = part[i]; if (p < 0) continue; const x = i % SW, y = (i / SW) | 0;
+    if (x === 0 || y === 0 || x === SW - 1 || y === SH - 1 || part[i - 1] !== p || part[i + 1] !== p || part[i - SW] !== p || part[i + SW] !== p) { dist[i] = 1; q.push(i); }
+  }
+  for (let h = 0; h < q.length; h++) { const i = q[h]; if (dist[i] >= 7) continue; const p = part[i]; for (const j of [i - 1, i + 1, i - SW, i + SW]) { if (j < 0 || j >= N || part[j] !== p || dist[j]) continue; dist[j] = dist[i] + 1; q.push(j); } }
+  for (let i = 0; i < N; i++) if (part[i] >= 0 && !dist[i]) dist[i] = 7;
+  const put = (x, y, c) => { const [r, g, b] = hex(c), k = (y * W + x + ox) * 4; d[k] = r; d[k + 1] = g; d[k + 2] = b; d[k + 3] = 255; };
+  const Dd = (x, y, p) => (x < 0 || y < 0 || x >= SW || y >= SH || part[y * SW + x] !== p) ? 0 : dist[y * SW + x];
+  const flat = m => typeof pal[m] === "string";
   for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) {
-    const i = y * SW + x, m = mat[i];
-    if (m == null) {   // 바깥 외곽선: 이웃 재질 중 가장 어두운 색
-      let best = null;
-      for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
-        if (nx < 0 || ny < 0 || nx >= SW || ny >= SH) continue; const nm = mat[ny * SW + nx];
-        if (nm != null) { const r = pal[nm]; const o = typeof r === "string" ? mixH(r, "#120a1c", 0.7) : r.o; if (!best || hex(o).reduce((a, v) => a + v) < hex(best).reduce((a, v) => a + v)) best = o; }
+    const i = y * SW + x, p = part[i];
+    if (p < 0) {   // 바깥 외곽선 (빛 받는 쪽은 한 단계 밝게)
+      let best = -1, soft = 0;
+      for (const [nx, ny, s] of [[x + 1, y, 1], [x, y + 1, 1], [x - 1, y, 0], [x, y - 1, 0]]) {
+        if (nx < 0 || ny < 0 || nx >= SW || ny >= SH) continue; const j = ny * SW + nx;
+        if (part[j] < 0 || flat(mat[j])) continue; if (part[j] > best) { best = part[j]; soft = s; }
       }
-      if (best) put(x, y, best);
+      if (best >= 0) { const r = pal[parts[best].m]; put(x, y, soft ? r[1] : r[0]); }
       continue;
     }
-    const r = pal[m], p = part[i];
+    const m = mat[i], r = pal[m];
     if (typeof r === "string") { put(x, y, r); continue; }
-    let behind = false;
-    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
-      if (nx < 0 || ny < 0 || nx >= SW || ny >= SH) continue; const j = ny * SW + nx;
-      if (mat[j] != null && part[j] < p && !(typeof pal[mat[j]] === "string")) behind = true;
-    }
-    const up = same(x, y - 1, m, p), down = same(x, y + 1, m, p), left = same(x - 1, y, m, p), right = same(x + 1, y, m, p);
-    const right2 = right && same(x + 2, y, m, p);
-    let c = r.b;
-    if (!up && left && right) c = r.l;               // 윗면: 빛
-    else if (!left && up) c = r.l;                   // 왼쪽 가장자리: 빛
-    if (!right2 || !down) c = r.d;                   // 오른쪽·아랫면: 그늘
-    if (!up && !right2) c = r.b;
-    if (behind) c = mixH(r.o, r.d, 0.3);             // 앞 부품의 윤곽선
-    put(x, y, c);
+    const pt = parts[p], dd = dist[i];
+    let nx = -(Dd(x + 1, y, p) - Dd(x - 1, y, p)), ny = -(Dd(x, y + 1, p) - Dd(x, y - 1, p));
+    const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+    const e = Math.max(0, 1 - (dd - 1) / 4), lam = nx * -0.55 + ny * -0.84;
+    let v = 0.53 + 0.42 * lam * e - ((y - pt.top) / Math.max(10, pt.bot - pt.top)) * 0.17 + pt.shade;
+    for (const k of [1, 2, 3]) { if (y - k < 0) break; const j = i - k * SW, pj = part[j]; if (pj > p && parts[pj].line && !flat(mat[j])) { v -= 0.17; break; } }
+    let t = v > 0.86 && e > 0.55 ? 5 : v > 0.67 ? 4 : v > 0.43 ? 3 : v > 0.26 ? 2 : 1;
+    if (pt.line) for (const j of [i - 1, i + 1, i - SW, i + SW]) if (j >= 0 && j < N && part[j] >= 0 && part[j] < p && !flat(mat[j])) { t = Math.min(t, 1); break; }
+    put(x, y, r[t]);
   }
 }
-const SPRITES = new Map();
-// look: { role, hat, c1, c2, fem, kid, b, hs, eye, skin, hair, beard, elder }
-function drawFigure(P, L, f) {
-  const b = f;   // 숨쉬기: 상체가 1픽셀 내려간다
-  const kid = L.kid;
-  if (kid) return drawChild(P, L, f);
-  const robe = L.role === "clergy" || L.role === "monk", gown = L.fem && !robe && L.role !== "peasant", armored = L.role === "knight";
-  // 뒤쪽: 망토
+
+// ---- 몸 ----
+function figure(P, L, f) {
+  const kid = L.kid, dy = f, sw = f;
+  const hx = 50, hy = (kid ? 78 : 27) + dy + (L.tilt || 0);
+  const fem = L.fem, build = L.build === "broad" ? 2 : L.build === "slim" ? -1 : 0, belly = L.belly ? 4 : 0;
+  const shY = (kid ? 89 : 46) + dy, shB = kid ? 42 : (fem ? 40 : 37 - build), shF = kid ? 58 : (fem ? 58 : 61 + build);
+  const waY = kid ? 104 + dy : 70 + dy, hipY = kid ? 110 : 80;
+  const role = L.role, gown = fem && !["clergy", "monk", "peasant", "bandit", "knight"].includes(role) && !kid;
+  const robe = role === "clergy" || role === "monk", armor = role === "knight", longCoat = role === "ruler" && !fem;
+  const sleeve = robe ? (role === "clergy" ? "white" : "c1") : armor ? "steel" : gown ? "c1" : "c2";
+  // 등 뒤 소지품: 활
+  if (L.item === "bow") P.add("wood", Dl([34, shY - 6, 14, 74, 30, 112], 2.4, 2));
+  // 망토
   if (L.cape) {
-    P.begin();
-    for (let y = 20 + b; y <= 55; y++) { const xl = Math.round(13 - (y - 20) * 0.17), xr = y < 24 ? 26 : 27; P.span(y, xl, xr, "c1"); }
-    for (let x = 6; x <= 27; x++) if ((x + f) % 3 === 0) P.clear(x, 55);
-    for (let y = 30; y <= 53; y++) P.px(Math.round(13 - (y - 20) * 0.17) + 3, y, "c1F");
-    for (let y = 38; y <= 53; y++) P.px(Math.round(13 - (y - 20) * 0.17) + 7, y, "c1F");
+    const hem = kid ? 126 : 128;
+    P.add("c1", Dp(`M${shB} ${shY} L${shF - 2} ${shY} Q${shF - 6} 92 ${shF - 9} ${hem - 2} Q32 ${hem + 6 + sw} ${12 - sw * 2} ${hem} Q16 98 26 72 Q30 ${shY + 8} ${shB} ${shY} Z`), { shade:-0.06 });
+    P.add("c3", Dp(`M26 74 Q16 98 ${12 - sw * 2} ${hem} L${18 - sw} ${hem + 1} Q22 100 31 76 Z`), { shade:-0.08 });
   }
-  // 뒤쪽: 긴 머리
-  if (L.hs === 1 || L.fem) { P.begin(); const len = L.fem ? 34 : 19; for (let y = 9 + b; y <= len + b; y++) P.span(y, 13 - (y > 20 && L.fem ? 1 : 0), 18, "hair"); if (L.fem) for (let x = 12; x <= 18; x++) if ((x + f) % 2) P.clear(x, len + b); }
-  // 방패 (기사)
-  if (armored) { P.begin(); P.rows(23 + b, [[9, 15], [8, 16], [8, 16], [8, 16], [8, 16], [8, 16], [8, 16], [8, 16], [9, 15], [9, 15], [10, 14], [10, 14], [11, 13], [12, 12]], "c1"); P.rect(11, 25 + b, 13, 33 + b, "gold"); P.rect(9, 27 + b, 15, 28 + b, "gold"); }
+  // 리본 (허리 장식끈이 바람에 날린다)
+  if (L.sash && !kid) {
+    P.add("c3", Dl([shB + 3, waY + 1, 24, waY + 8, 14 - sw, waY + 22, 4 - sw * 2, waY + 34 + sw], 7, 3.4));
+    P.add("c2", Dl([shB + 4, waY + 3, 30, waY + 18, 22 - sw, waY + 34, 14 - sw * 2, waY + 50], 5.5, 2.6));
+    P.add("c3", De(shB + 3, waY + 1, 4, 3));
+  }
+  // 뒷머리
+  backHair(P, L, hx, hy, sw);
+  // 방패
+  if (L.item === "shield") { P.add("gold", Dp(`M21 ${shY + 3} L42 ${shY + 3} Q42 ${shY + 32} 31 ${shY + 48} Q20 ${shY + 32} 21 ${shY + 3} Z`)); P.add("c1", Dp(`M23 ${shY + 5} L40 ${shY + 5} Q40 ${shY + 31} 31 ${shY + 45} Q22 ${shY + 31} 23 ${shY + 5} Z`)); P.add("gold", Dm(Dr(30, shY + 9, 3, 26), Dr(25, shY + 16, 13, 3)), { line:false }); }
   // 뒷팔
-  P.begin();
-  if (!gown && !robe) { P.rect(12, 22 + b, 14, 32 + b, armored ? "steel" : "c2"); P.rect(12, 33 + b, 14, 34 + b, armored ? "steel" : "skin"); }
-  // 다리
+  if (gown) P.add("c2", Dp(`M${shB + 1} ${shY + 2} Q30 ${shY + 22} ${25 - sw} ${shY + 46 + sw} L35 ${shY + 48} Q39 ${shY + 26} ${shB + 5} ${shY + 4} Z`), { shade:0.04 });
+  else { P.add(sleeve, Dl(kid ? [shB + 1, shY + 2, shB - 3, shY + 10, shB - 1, shY + 18] : [shB + 1, shY + 3, shB - 5, shY + 17, shB - 2, shY + 33], kid ? 6 : 9, kid ? 5 : 7)); P.add(armor ? "steel" : "skin", De(kid ? shB - 1 : shB - 2, kid ? shY + 20 : shY + 36, kid ? 3 : 3.6, kid ? 3 : 4)); }
+  // 다리와 신발
   if (!gown && !robe) {
-    const pants = armored ? "steel" : "pants", boot = armored ? "steel" : "leather";
-    P.begin(); P.rect(16, 40, 19, 51, pants); P.rect(15, 52, 20, 54, boot); P.rect(15, 55, 21, 56, boot);
-    P.begin(); P.rect(21, 40, 24, 51, pants); P.rect(21, 52, 25, 54, boot); P.rect(21, 55, 27, 56, boot);
+    const pants = armor ? "steel" : "pants", boot = armor ? "steel" : "leather";
+    if (kid) {
+      P.add(pants, Dl([45, hipY, 44, 132], 6, 5)); P.add(boot, Dm(Dl([44, 124, 44, 133], 6, 6), De(46, 135, 5, 3)));
+      P.add(pants, Dl([54, hipY, 55, 132], 6, 5)); P.add(boot, Dm(Dl([55, 124, 55, 133], 6, 6), De(58, 135, 5.5, 3)));
+    } else {
+      P.add(pants, Dm(Dl([44, hipY, 42, 96, 41, 112], 10, 8), Dl([41, 112, 40, 128], 8, 6.5)));
+      P.add(boot, Dm(Dl([41, 113, 40, 131], 9, 8), De(44, 134.5, 7, 3.6)));
+      P.add(pants, Dm(Dl([55, hipY, 57, 96, 57, 112], 10, 8), Dl([57, 112, 58, 128], 8, 6.5)));
+      P.add(boot, Dm(Dl([57, 113, 58, 131], 9, 8), De(63, 134.5, 8, 3.6)));
+      if (armor) { P.add("steelD", Dm(De(41, 110, 4.5, 3.5), De(57, 110, 4.5, 3.5)), { line:false }); }
+    }
+  }
+  // 하의 (치마·로브·튜닉 자락·긴 외투)
+  if (gown) {
+    P.add("c1", Dp(`M42 ${waY} L56 ${waY} Q63 96 ${72 + sw} 133 Q61 ${139} 50 137 Q38 139 ${26 - sw} 133 Q36 96 42 ${waY} Z`));
+    P.add("c3", Dp(`M52 ${waY + 2} L56 ${waY + 2} Q62 100 ${67 + sw} 134 L58 136 Q56 102 52 ${waY + 2} Z`));
+    P.add("gold", Dl([28 - sw, 132.5, 50, 137.5, 70 + sw, 132.5], 2.2), { line:false });
+  } else if (robe) {
+    const mt = role === "clergy" ? "white" : "c1";
+    P.add(mt, Dp(`M39 ${waY - 4} L59 ${waY - 4} Q63 100 ${66 + sw} 136 Q50 140 ${32 - sw} 136 Q35 100 39 ${waY - 4} Z`));
+    if (role === "clergy") { P.add("c1", Dp(`M47 ${shY + 2} L53 ${shY + 2} L55 132 L47 132 Z`)); P.add("gold", Dm(Dr(47, 131, 9, 3), Dl([46, shY + 20, 56, shY + 20], 1.6)), { line:false }); }
+  } else if (longCoat) {
+    P.add("c2", Dp(`M39 ${waY - 2} L59 ${waY - 2} Q64 94 ${67 + sw} 120 Q50 126 ${32 - sw} 120 Q35 94 39 ${waY - 2} Z`));
+    P.add("c3", Dp(`M52 ${waY} L58 ${waY} Q62 96 ${64 + sw} 121 L56 122 Q55 96 52 ${waY} Z`));
+    P.add("gold", Dl([33 - sw, 119.5, 50, 124.5, 66 + sw, 119.5], 1.8), { line:false });
+  } else if (kid && fem) {
+    P.add("c1", Dp(`M43 ${waY - 2} L57 ${waY - 2} Q61 116 ${64 + sw} 128 Q50 132 ${36 - sw} 128 Q39 116 43 ${waY - 2} Z`));
+  } else {
+    const top = armor ? "c1" : "c2", hem = kid ? 116 : role === "peasant" || role === "bandit" ? 94 : 98;
+    P.add(top, Dp(`M${kid ? 43 : 39} ${waY - 2} L${kid ? 57 : 59} ${waY - 2} L${(kid ? 60 : 64) + belly / 2} ${hem + dy} Q50 ${hem + 5 + dy} ${kid ? 40 : 35} ${hem + dy} Z`));
   }
   // 몸통
-  P.begin();
   if (gown) {
-    P.rows(20 + b, [[17, 24], [16, 25], [16, 25], [16, 25], [16, 25], [17, 24], [17, 24], [17, 24], [17, 24], [17, 24], [17, 24]], "c1");
-    P.span(31 + b, 17, 24, "gold");
-    for (let y = 32 + b; y <= 57; y++) P.span(y, Math.round(17 - (y - 32) * 0.28), Math.round(24 + (y - 32) * 0.24), "c1");
-    for (let x = 10; x <= 30; x++) if ((x + f) % 2 === 0) P.clear(x, 57);
-    for (let y = 36; y <= 56; y++) { P.px(Math.round(17 - (y - 32) * 0.28) + 4, y, "c1F"); P.px(21, y, "c1F"); P.px(Math.round(24 + (y - 32) * 0.24) - 3, y, "c1F"); }
-    P.span(20 + b, 19, 22, "skin"); P.span(21 + b, 20, 21, "skin"); P.span(22 + b, 18, 23, "gold");
-  } else if (robe) {
-    const mt = L.role === "clergy" ? "white" : "c1";
-    P.rows(20 + b, [[16, 24], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26], [15, 26]], mt);
-    for (let y = 31 + b; y <= 57; y++) P.span(y, Math.round(15 - (y - 31) * 0.12), Math.round(26 + (y - 31) * 0.1), mt);
-    for (let y = 34 + b; y <= 56; y++) { P.px(18, y, mt + "F"); if (y > 37) P.px(24, y, mt + "F"); }
-    if (L.role === "clergy") { for (let y = 21 + b; y <= 50; y++) P.span(y, 20, 21, "c1"); P.span(57, 12, 28, "gold"); }
-    else P.span(31 + b, 15, 26, "straw");
+    P.add("skin", Dp(`M44 ${shY - 2} L55 ${shY - 2} L54 ${shY + 8} L45 ${shY + 8} Z`));
+    P.add("c1", Dp(`M${shB} ${shY + 1} L45 ${shY} Q49 ${shY + 7} 54 ${shY} L${shF} ${shY + 1} Q${shF + 1} ${shY + 13} 56 ${waY} L42 ${waY} Q${shB - 1} ${shY + 13} ${shB} ${shY + 1} Z`));
+    P.add("gold", Dm(Dl([42, waY - 1, 56, waY - 1], 2.6), Dl([45, shY + 1, 49, shY + 7, 54, shY + 1], 1.4)), { line:false });
+  } else if (!robe) {
+    const tm = armor ? "steel" : kid ? "c1" : "c2";
+    P.add(tm, Dp(`M${shB} ${shY + 1} Q50 ${shY - 3} ${shF} ${shY + 1} Q${shF + 2 + belly} ${shY + 13} ${(kid ? 57 : 59) + belly} ${waY} L${kid ? 43 : 39} ${waY} Q${shB - 2} ${shY + 13} ${shB} ${shY + 1} Z`));
+    if (armor) P.add("c1", Dp(`M45 ${shY + 3} L54 ${shY + 3} L56 ${waY + 24} L44 ${waY + 24} Z`));
+    if (longCoat || role === "noble" || role === "vassal") P.add("gold", Dm(Dl([50, shY + 4, 50, waY - 2], 1.3), Dl([shB + 2, waY - 1, shF - 2, waY - 1], 2.6)), { line:false });
+    else if (!kid) P.add("leather", Dl([shB + 1, waY - 1, shF - 1, waY - 1], 2.6), { line:false });
   } else {
-    const top = armored ? "steel" : "c2";
-    P.rows(20 + b, [[16, 24], [14, 26], [14, 26], [14, 26], [14, 26], [14, 26], [14, 26], [15, 26], [15, 25], [15, 25], [15, 25], [15, 25]], top);
-    P.span(32 + b, 15, 25, L.role === "peasant" || L.role === "bandit" ? "leather" : "gold");
-    P.rows(33 + b, [[15, 25], [15, 26], [14, 26], [14, 26], [14, 27], [14, 27], [14, 27]], armored ? "c1" : top);
-    if (armored) for (let y = 21 + b; y <= 39 + b; y++) P.span(y, 18, 23, "c1");
-    else { P.px(18, 35 + b, top + "F"); P.px(18, 36 + b, top + "F"); P.px(18, 37 + b, top + "F"); P.px(23, 36 + b, top + "F"); P.px(23, 37 + b, top + "F"); P.px(23, 38 + b, top + "F"); }
-    if (L.ermine) { for (let y = 23 + b; y <= 31 + b; y++) P.px(20, y, "gold"); P.span(39 + b, 14, 27, "gold"); }
+    const mt = role === "clergy" ? "white" : "c1";
+    P.add(mt, Dp(`M${shB} ${shY + 1} Q50 ${shY - 3} ${shF} ${shY + 1} Q${shF + 2} ${shY + 13} 59 ${waY} L39 ${waY} Q${shB - 2} ${shY + 13} ${shB} ${shY + 1} Z`));
+    if (role === "monk") P.add("straw", Dm(Dl([39, waY - 1, 59, waY - 1], 2.4), Dl([56, waY, 58, waY + 16], 1.8)), { line:false });
+    if (role === "clergy") P.add("c1", Dp(`M44 ${shY} L56 ${shY} L54 ${shY + 18} L46 ${shY + 18} Z`));
   }
-  // 깃: 담비털(군주) · 두건 망토(수도사·도적)
-  if (L.ermine) { P.begin(); P.rows(19 + b, [[16, 24], [14, 26], [13, 27], [14, 26]], "fur"); [[16, 21], [20, 22], [24, 21]].forEach(([x, y]) => P.px(x, y + b, "spot")); }
-  if (armored) { P.begin(); P.rows(20 + b, [[13, 17, 23, 27], [12, 17, 23, 28], [12, 16, 24, 28], [13, 15, 25, 27]], "steel"); }
+  // 열쇠 꾸러미 (관리)
+  if (L.item === "keys") P.add("gold", Dm(Dl([40, waY + 1, 38, waY + 8], 1.4), De(38, waY + 10, 2.2, 2.2), Dl([37, waY + 12, 36, waY + 18], 1.4)));
+  // 목걸이
+  if (L.necklace) P.add("gold", Dm(Dl([44, shY + 1, 50, shY + 9, 56, shY + 1], 1.3), De(50, shY + 11, 2, 2.4)), { line:false });
+  // 깃: 담비털 · 견갑
+  if (L.ermine) P.add("fur", Dp(`M${shB - 2} ${shY + 2} Q50 ${shY - 6} ${shF + 2} ${shY + 2} Q${shF + 3} ${shY + 9} ${shF - 3} ${shY + 10} Q50 ${shY + 5} ${shB + 3} ${shY + 10} Q${shB - 3} ${shY + 9} ${shB - 2} ${shY + 2} Z`));
+  else if (L.cape && !kid) P.add("c1", Dp(`M${shB - 1} ${shY + 2} Q50 ${shY - 5} ${shF + 1} ${shY + 2} Q${shF} ${shY + 7} 50 ${shY + 6} Q${shB} ${shY + 7} ${shB - 1} ${shY + 2} Z`));
+  if (L.pauldron) { P.add("steel", De(shB, shY + 4, 6, 5)); P.add("steel", De(shF, shY + 4, 6.5, 5)); }
   // 목과 머리
-  P.begin(); P.rect(19, 17 + b, 22, 19 + b, "skin");
-  P.begin(); P.rows(7 + b, [[17, 23], [16, 24], [15, 25], [15, 25], [15, 25], [15, 25], [15, 25], [15, 25], [15, 25], [16, 25], [17, 24], [18, 23]], "skin");
-  P.top = 4;
-  // 머리카락
-  P.begin();
-  if (L.hat !== "hood" && L.hat !== "mitre") {
-    P.rows(4 + b, [[17, 22], [15, 24], [14, 25], [14, 25], [14, 25]], "hair");
-    P.rows(9 + b, L.fem ? [[14, 19, 21, 22, 24, 24], [14, 18], [14, 18], [14, 18], [14, 17], [14, 17], [15, 17], [15, 17]] : [[14, 18, 20, 21, 23, 23], [14, 17], [14, 17], [14, 17], [14, 17], [14, 17], [15, 17], [16, 17]], "hair");
-    if (L.fem) { P.rect(17, 12 + b, 18, 21 + b, "hair"); }
-    P.span(6 + b, 17, 20, "hairL"); P.px(18, 5 + b, "hairL");
-  } else if (L.hat === "mitre") P.rows(9 + b, [[14, 16], [14, 16], [14, 16], [15, 16]], "hair");
+  P.add("skin", Dr(46, hy + 7, 7, 12));
+  P.add("skin", Dm(De(hx, hy, kid ? 9.5 : 9.5, kid ? 10 : 11), Dp(`M${hx - 8} ${hy + 1} Q${hx - 5} ${hy + 11} ${hx + 2} ${hy + 12} Q${hx + 7} ${hy + 11} ${hx + 9} ${hy + 4} Z`), Dp(`M${hx + 8} ${hy - 1} L${hx + 11} ${hy + 5} L${hx + 8} ${hy + 6} Z`)));
+  P.add("skin", De(hx - 5, hy + 2, 2.2, 3.3));
   // 수염
-  if (L.beard === 1) { P.begin(); P.rows(15 + b, [[18, 24], [17, 24], [18, 24], [19, 23], [20, 22]], "hair"); }
-  else if (L.beard === 2) { P.begin(); P.span(15 + b, 21, 24, "hair"); }
-  // 앞팔과 손에 든 것
-  P.begin();
-  if (gown) { P.rows(21 + b, [[24, 26], [24, 26], [24, 26], [24, 26], [24, 26], [23, 26], [22, 25], [21, 24]], "c1"); P.rect(20, 29 + b, 23, 30 + b, "skin"); }
-  else if (robe) { P.rows(21 + b, [[25, 27], [25, 28], [25, 28], [25, 28], [25, 28], [24, 28], [23, 28], [22, 27], [21, 27]], L.role === "clergy" ? "white" : "c1"); P.rect(22, 30 + b, 25, 31 + b, "skin"); }
-  else {
-    const held = L.role === "peasant" ? "fork" : L.role === "bandit" ? "dagger" : L.sword ? "sword" : null;
-    if (held === "sword") { P.begin(); P.line(29, 37 + b, 29, 53, "blade"); P.line(30, 37 + b, 30, 52, "blade"); P.span(36 + b, 26, 31, "gold"); P.rect(28, 33 + b, 29, 35 + b, "leather"); P.px(28, 32 + b, "gold"); }
-    if (held === "fork") { P.begin(); P.line(30, 8, 30, 57, "wood"); P.rect(29, 8, 31, 8, "blade"); P.line(29, 4, 29, 8, "blade"); P.line(31, 4, 31, 8, "blade"); P.line(30, 3, 30, 8, "blade"); }
-    if (held === "dagger") { P.begin(); P.line(28, 27 + b, 28, 32 + b, "blade"); P.span(33 + b, 27, 29, "gold"); }
-    P.begin(); P.rows(21 + b, [[25, 27], [25, 28], [26, 28], [26, 28], [26, 28], [26, 28], [26, 28], [26, 28], [26, 28], [26, 28], [26, 28]], armored ? "steel" : "c2");
-    P.span(32 + b, 26, 28, armored ? "steel" : L.role === "peasant" || L.role === "bandit" ? "c2" : "gold");
-    P.rect(26, 33 + b, 28, 35 + b, armored ? "steel" : "skin");
+  if (L.beard === "full") P.add("hair", Dp(`M${hx - 6} ${hy + 3} Q${hx - 5} ${hy + 15} ${hx + 3} ${hy + 17} Q${hx + 10} ${hy + 13} ${hx + 10} ${hy + 4} L${hx + 7} ${hy + 6} Q${hx + 2} ${hy + 11} ${hx - 2} ${hy + 6} Z`));
+  else if (L.beard === "goatee") P.add("hair", Dm(De(hx + 4, hy + 13, 3.5, 3), Dl([hx + 2, hy + 8, hx + 9, hy + 8], 2)));
+  else if (L.beard === "mustache") P.add("hair", Dl([hx + 1, hy + 8.5, hx + 5, hy + 7, hx + 10, hy + 9], 2.2, 1.4));
+  // 앞머리 · 머리쓰개
+  frontHair(P, L, hx, hy, sw);
+  headwear(P, L, hx, hy, sw);
+  // 손에 드는 것 (손 뒤로 지나가는 것)
+  heldBehind(P, L, shY, dy, sw);
+  // 앞팔
+  if (gown || robe && role === "clergy") {
+    P.add(sleeve, Dl([shF - 1, shY + 3, shF + 5, shY + 16, shF + 3, shY + 30], 9, 8));
+    P.add("skin", De(shF + 3, shY + 33, 3.6, 3.8));
+  } else if (robe) {
+    P.add(sleeve, Dp(`M${shF - 3} ${shY + 2} Q${shF + 7} ${shY + 14} ${shF + 4} ${shY + 30} L${shF - 8} ${shY + 30} Q${shF - 6} ${shY + 16} ${shF - 3} ${shY + 2} Z`));
+    P.add("skin", De(shF - 3, shY + 31, 4.5, 3));
+  } else {
+    P.add(sleeve, Dl(kid ? [shF - 1, shY + 2, shF + 3, shY + 10, shF + 3, shY + 18] : [shF - 1, shY + 3, shF + 5, shY + 17, shF + 6, shY + 31], kid ? 6 : 9, kid ? 5 : 7));
+    if (!kid && !armor && role !== "peasant" && role !== "bandit") P.add("gold", Dl([shF + 3, shY + 30, shF + 9, shY + 30], 2.2), { line:false });
+    P.add(armor ? "steel" : "skin", De(kid ? shF + 3 : shF + 6.5, kid ? shY + 20 : shY + 35.5, kid ? 3 : 4, kid ? 3 : 4.2));
   }
-  if (L.role === "clergy") { P.begin(); P.line(30, 6 + b, 30, 57, "gold"); P.rows(3 + b, [[31, 32], [30, 30, 33, 33], [30, 30, 33, 33], [32, 32]], "gold"); }
-  // 머리쓰개
-  P.begin(); drawHeadwear(P, L.hat, b);
-  return { b };
+  heldFront(P, L, shY, dy, sw);
+  return { hx, hy };
 }
-function drawHeadwear(P, hat, b) {
-  if (hat === "crown0") { P.span(6 + b, 15, 24, "gold"); P.span(7 + b, 15, 24, "gold"); P.px(20, 6 + b, "gem"); }
-  else if (hat === "crown1") { P.rows(3 + b, [[15, 15, 19, 20, 24, 24], [15, 16, 19, 20, 23, 24], [15, 24], [15, 24]], "gold"); P.px(19, 5 + b, "gem"); P.px(20, 5 + b, "gem"); }
-  else if (hat === "crown2") {
-    P.rows(1 + b, [[17, 22], [16, 23], [16, 23]], "velvet");
-    P.rows(0 + b, [[19, 20], [14, 14, 19, 20, 25, 25], [14, 15, 19, 20, 24, 25], [14, 16, 19, 20, 23, 25], [14, 25], [14, 25], [14, 25]], "gold");
-    P.px(17, 5 + b, "gem"); P.px(20, 5 + b, "gemB"); P.px(23, 5 + b, "gem"); P.top = 0;
-  } else if (hat === "mitre") {
-    P.rows(0 + b, [[19, 20], [18, 21], [17, 22], [16, 23], [16, 23], [15, 24], [15, 24], [15, 24], [15, 24]], "white");
-    for (let y = 1 + b; y <= 8 + b; y++) P.span(y, 19, 20, "gold"); P.span(8 + b, 15, 24, "gold"); P.top = 0;
-  } else if (hat === "hood") {
-    P.rows(3 + b, [[17, 23], [15, 25], [14, 26], [13, 26], [13, 26], [13, 18, 25, 26], [13, 17, 26, 26], [13, 17, 26, 26], [13, 17, 26, 26], [13, 17, 26, 26], [13, 17, 26, 26], [13, 17, 26, 26], [13, 18], [13, 18], [13, 19], [13, 27], [12, 28], [12, 28]], "hoodC");
-  } else if (hat === "straw") {
-    P.rows(2 + b, [[17, 22], [16, 24], [16, 24], [15, 25], [12, 28], [10, 30]], "straw"); P.span(5 + b, 15, 25, "c1"); P.top = 2;
+function backHair(P, L, hx, hy, sw) {
+  if (L.bald || L.hat === "hood" || L.hat === "mitre") return;
+  const st = L.hs, mass = (path, grooves = [], shine = []) => {
+    P.add("hair", Dp(path));
+    if (grooves.length) P.add("hairD", Dm(...grooves.map(g => Dl(g, 1.1, 0.7))), { line:false });
+    if (shine.length) P.add("hairL", Dm(...shine.map(g => Dl(g, 1.2, 0.6))), { line:false });
+  };
+  P.add("hair", De(hx - 3, hy + 2, 10.5, 12.5));
+  if (L.kid) {
+    if (L.fem) mass(`M${hx - 9} ${hy - 7} Q${hx - 17} ${hy + 3} ${hx - 17 - sw} ${hy + 24} Q${hx - 11} ${hy + 27} ${hx - 6} ${hy + 19} L${hx - 3} ${hy - 4} Z`, [[hx - 9, hy, hx - 13, hy + 12, hx - 14 - sw, hy + 22]]);
+    return;
+  }
+  if (L.fem) {
+    if (st === 0) mass(`M${hx - 8} ${hy - 9} Q${hx - 19} ${hy - 3} ${hx - 21} ${hy + 14} Q${hx - 25 - sw} ${hy + 34} ${hx - 32 - sw * 2} ${hy + 54} Q${hx - 24 - sw} ${hy + 52} ${hx - 19} ${hy + 45} Q${hx - 15} ${hy + 53} ${hx - 9 - sw} ${hy + 50} Q${hx - 6} ${hy + 32} ${hx - 4} ${hy + 14} L${hx + 2} ${hy - 10} Z`,
+      [[hx - 10, hy - 2, hx - 18, hy + 14, hx - 22 - sw, hy + 32, hx - 28 - sw * 2, hy + 50], [hx - 6, hy + 4, hx - 12, hy + 18, hx - 14 - sw, hy + 34, hx - 17 - sw, hy + 46], [hx - 14, hy + 6, hx - 20, hy + 22, hx - 24, hy + 34]],
+      [[hx - 12, hy - 4, hx - 16, hy + 6, hx - 17, hy + 18]]);
+    else if (st === 1) { mass(`M${hx - 9} ${hy - 12} Q${hx - 27} ${hy - 11} ${hx - 31 - sw} ${hy + 8} Q${hx - 33 - sw * 2} ${hy + 27} ${hx - 25 - sw * 2} ${hy + 42} Q${hx - 23} ${hy + 25} ${hx - 17} ${hy + 11} Q${hx - 13} ${hy - 1} ${hx - 7} ${hy - 6} Z`,
+      [[hx - 12, hy - 10, hx - 24, hy - 6, hx - 27 - sw, hy + 12, hx - 26 - sw * 2, hy + 34]], [[hx - 14, hy - 10, hx - 22, hy - 8, hx - 25, hy + 2]]);
+      P.add("c3", Dm(De(hx - 9, hy - 10, 2.6, 2.2), Dl([hx - 10, hy - 9, hx - 14, hy - 4], 1.8, 1)), { line:false }); }
+    else { P.add("hair", Dm(De(hx - 8, hy - 9, 7, 6), De(hx - 12, hy - 3, 5.5, 5.5))); mass(`M${hx - 10} ${hy + 3} Q${hx - 16} ${hy + 16} ${hx - 14 - sw} ${hy + 34} L${hx - 9 - sw} ${hy + 34} Q${hx - 10} ${hy + 18} ${hx - 6} ${hy + 6} Z`, [[hx - 11, hy + 8, hx - 13, hy + 20, hx - 12 - sw, hy + 32]]); }
+  } else if (st === 1) mass(`M${hx - 9} ${hy - 7} Q${hx - 17} ${hy + 3} ${hx - 16 - sw} ${hy + 21} Q${hx - 10} ${hy + 23} ${hx - 6} ${hy + 16} L${hx - 4} ${hy - 4} Z`, [[hx - 10, hy, hx - 13, hy + 10, hx - 14 - sw, hy + 19]]);
+  else if (st === 2) mass(`M${hx - 10} ${hy + 1} Q${hx - 17} ${hy + 7} ${hx - 18 - sw} ${hy + 20} L${hx - 14 - sw} ${hy + 21} Q${hx - 13} ${hy + 10} ${hx - 7} ${hy + 5} Z`);
+}
+function frontHair(P, L, hx, hy, sw) {
+  if (L.hat === "hood" || L.hat === "mitre") return;
+  if (L.bald) { P.add("hair", Dp(`M${hx - 10} ${hy + 1} Q${hx - 10} ${hy - 5} ${hx - 6} ${hy - 6} L${hx - 5} ${hy + 4} Z`)); return; }
+  // 두피를 덮는 머리 덩어리
+  P.add("hair", Dp(`M${hx - 11} ${hy + 5} Q${hx - 12} ${hy - 13} ${hx + 1} ${hy - 13} Q${hx + 11} ${hy - 12} ${hx + 10} ${hy - 2} L${hx + 6} ${hy - 4} Q${hx - 1} ${hy - 6} ${hx - 5} ${hy - 1} Q${hx - 6} ${hy + 5} ${hx - 9} ${hy + 9} Z`));
+  // 앞머리 가닥
+  const n = L.fem ? 5 : 4;
+  for (let k = 0; k < n; k++) P.add("hair", Dl([hx - 4 + k * 3.2, hy - 12, hx - 1 + k * 3.5, hy - 7, hx + 1 + k * 3.2 + (k === n - 1 ? 2 : 0), hy - 1 - (k % 2) * 2], 4.2, 1.2));
+  if (L.fem) P.add("hair", Dl([hx - 4, hy - 6, hx - 7, hy + 10, hx - 4 - sw, hy + 26], 4.5, 1.8));   // 귀 앞 옆머리
+  // 머리 윤기 띠
+  P.add("hairL", Dl([hx - 7, hy - 8, hx - 2, hy - 11, hx + 4, hy - 10], 1.3), { line:false });
+}
+function headwear(P, L, hx, hy, sw) {
+  const band = (w, m = "gold") => P.add(m, Dl([hx - 10, hy - 4, hx, hy - 9, hx + 10, hy - 5], w));
+  const h = L.hat;
+  if (L.flower) { P.add("rose", Dm(De(hx - 9, hy - 9, 3.4, 3), De(hx - 13, hy - 5, 2.8, 2.6), De(hx - 6, hy - 12, 2.4, 2.2))); P.add("gold", Dl([hx - 12, hy - 11, hx - 4, hy - 15], 1.1), { line:false }); }
+  if (L.bandage) P.add("cloth", Dl([hx - 10, hy - 3, hx, hy - 5, hx + 9, hy - 1], 3.2));
+  if (h === "coronet") { band(2.2); P.add("pearl", Dm(De(hx - 6, hy - 9, 1, 1), De(hx, hy - 11, 1, 1), De(hx + 6, hy - 9, 1, 1)), { line:false }); }
+  else if (h === "crown0") { band(2.8); P.add("gem", De(hx, hy - 9, 1.3, 1.3), { line:false }); }
+  else if (h === "crown1") { band(3); P.add("gold", Dm(Dp(`M${hx - 9} ${hy - 5} L${hx - 8} ${hy - 12} L${hx - 5} ${hy - 7} Z`), Dp(`M${hx - 3} ${hy - 8} L${hx} ${hy - 16} L${hx + 3} ${hy - 8} Z`), Dp(`M${hx + 5} ${hy - 7} L${hx + 8} ${hy - 13} L${hx + 9} ${hy - 5} Z`))); P.add("gem", Dm(De(hx, hy - 9, 1.3, 1.3), De(hx - 6, hy - 7, 1, 1)), { line:false }); }
+  else if (h === "crown2") {
+    P.add("velvet", De(hx, hy - 12, 9, 6));
+    band(3.4);
+    P.add("gold", Dm(Dl([hx - 9, hy - 6, hx - 6, hy - 18, hx, hy - 19], 1.6), Dl([hx + 9, hy - 6, hx + 6, hy - 18, hx, hy - 19], 1.6), Dl([hx, hy - 8, hx, hy - 19], 1.6), De(hx, hy - 20, 2, 2), Dl([hx, hy - 24, hx, hy - 20], 1.4), Dl([hx - 2, hy - 23, hx + 2, hy - 23], 1.2)));
+    P.add("gem", Dm(De(hx - 5, hy - 7, 1.1, 1.1), De(hx, hy - 9, 1.4, 1.4), De(hx + 5, hy - 7, 1.1, 1.1)), { line:false });
+  } else if (h === "mitre") {
+    P.add("white", Dp(`M${hx - 9} ${hy - 4} Q${hx - 9} ${hy - 18} ${hx} ${hy - 27} Q${hx + 9} ${hy - 18} ${hx + 9} ${hy - 4} Z`));
+    P.add("gold", Dm(Dl([hx, hy - 25, hx, hy - 4], 2.4), Dl([hx - 9, hy - 5, hx + 9, hy - 5], 2.4)), { line:false });
+    P.add("hair", Dp(`M${hx - 10} ${hy - 3} Q${hx - 11} ${hy + 4} ${hx - 8} ${hy + 8} L${hx - 6} ${hy - 3} Z`));
+  } else if (h === "hood") {
+    P.add("hoodC", x => { const p = new Path2D(`M${hx - 13} ${hy + 22} Q${hx - 15} ${hy - 6} ${hx - 6} ${hy - 13} Q${hx + 6} ${hy - 17} ${hx + 12} ${hy - 4} Q${hx + 14} ${hy + 8} ${hx + 12} ${hy + 22} Z M${hx - 4} ${hy - 6} Q${hx + 5} ${hy - 9} ${hx + 10} ${hy - 1} L${hx + 11} ${hy + 8} Q${hx + 5} ${hy + 14} ${hx - 2} ${hy + 12} Q${hx - 6} ${hy + 4} ${hx - 4} ${hy - 6} Z`); x.fill(p, "evenodd"); });
+  } else if (h === "straw") {
+    P.add("straw", Dm(De(hx, hy - 7, 19, 4.2), De(hx, hy - 11, 9.5, 6)));
+    P.add("c1", Dl([hx - 9, hy - 8, hx + 9, hy - 8], 2), { line:false });
   }
 }
-function drawChild(P, L, f) {
-  const b = f, y0 = 18;
-  if (L.fem) { P.begin(); for (let y = y0 + 5 + b; y <= y0 + 22 + b; y++) P.span(y, 14, 18, "hair"); }
-  P.begin(); P.rect(16, 46, 18, 53, "pants"); P.rect(15, 54, 19, 56, "leather");
-  P.begin(); P.rect(20, 46, 22, 53, "pants"); P.rect(20, 54, 24, 56, "leather");
-  P.begin();
-  if (L.fem) for (let y = y0 + 15 + b; y <= 53; y++) P.span(y, Math.round(16 - (y - y0 - 15) * 0.18), Math.round(23 + (y - y0 - 15) * 0.15), "c1");
-  else { P.rows(y0 + 15 + b, [[16, 23], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24]], "c1"); P.span(y0 + 24 + b, 15, 24, "leather"); P.rows(y0 + 25 + b, [[15, 24], [15, 24], [14, 24]], "c1"); }
-  P.begin(); P.rect(18, y0 + 13 + b, 21, y0 + 15 + b, "skin");
-  P.begin(); P.rows(y0 + 3 + b, [[17, 22], [16, 23], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [15, 24], [16, 23], [17, 22]], "skin");
-  P.top = y0;
-  P.begin(); P.rows(y0 + b, [[17, 21], [15, 23], [14, 24], [14, 24], [14, 24], [14, 18, 20, 20, 22, 22], [14, 17], [14, 17], [14, 17], [15, 17], [16, 17]], "hair");
-  P.span(y0 + 2 + b, 16, 19, "hairL");
-  P.begin(); P.rows(y0 + 16 + b, [[24, 25], [24, 26], [24, 26], [24, 26], [24, 26], [24, 26]], "c1"); P.rect(24, y0 + 22 + b, 26, y0 + 23 + b, "skin");
-  return { b };
+function heldBehind(P, L, shY, dy, sw) {
+  const it = L.item;
+  if (it === "spear") { P.add("wood", Dl([44, 138, 88, 30], 2.4)); P.add("blade", Dp(`M86 34 L95 6 L90 33 Z`)); P.add("gold", Dl([84, 36, 91, 31], 2.6)); P.add("rose", Dl([86, 36, 82 - sw, 46, 84 - sw * 2, 54], 2.2, 1)); }
+  else if (it === "sword") { P.add("blade", Dl([71, shY + 41, 77, 134], 3.2, 1.6)); P.add("bladeL", Dl([71, shY + 42, 76, 128], 0.9), { line:false }); P.add("gold", Dl([64, shY + 40, 76, shY + 38], 2.6)); P.add("leather", Dl([69, shY + 33, 70, shY + 40], 2.6)); P.add("gold", De(69, shY + 32, 2, 2)); }
+  else if (it === "crozier") { P.add("gold", Dm(Dl([72, 138, 72, shY - 22], 2.4), Dl([72, shY - 22, 79, shY - 40, 86, shY - 26], 2.4), Dl([86, shY - 26, 82, shY - 22], 2.2), De(72, shY - 4, 2.6, 3.2))); }
+  else if (it === "fork") { P.add("wood", Dl([73, 138, 79, 18], 2.4)); P.add("blade", Dm(Dl([74, 22, 86, 18], 1.8), Dl([74, 22, 73, 6], 1.6), Dl([80, 20, 79, 4], 1.6), Dl([86, 18, 86, 3], 1.6))); }
+  else if (it === "scepter") { P.add("gold", Dm(Dl([68, shY + 38, 74, shY + 10], 2.2), De(75, shY + 6, 3.4, 3.4), Dl([75, shY + 1, 75, shY - 4], 1.3), Dl([73, shY - 2, 77, shY - 2], 1.2))); P.add("gem", De(74, shY + 5, 1.2, 1.2), { line:false }); }
+  else if (it === "dagger") { P.add("blade", Dl([71, shY + 34, 82, shY + 26], 2.4, 1)); P.add("gold", Dl([68, shY + 33, 72, shY + 38], 1.8)); }
 }
-function face(img, ox, L, f) {
+function heldFront(P, L, shY, dy, sw) {
+  const it = L.item;
+  if (it === "book") { P.add("leather", Dp(`M57 ${shY + 26} L70 ${shY + 22} L72 ${shY + 36} L59 ${shY + 40} Z`)); P.add("paper", Dl([70, shY + 23, 72, shY + 36], 1.4), { line:false }); P.add("gold", Dm(De(63, shY + 30, 2, 2), Dl([58, shY + 27, 70, shY + 23], 1)), { line:false }); }
+  else if (it === "scroll") { P.add("paper", Dl([60, shY + 32, 76, shY + 27], 5.2)); P.add("wood", Dm(De(59, shY + 32.5, 1.8, 3), De(77, shY + 26.5, 1.8, 3))); P.add("rose", Dl([66, shY + 28, 68, shY + 33], 1.4), { line:false }); }
+  else if (it === "ledger") { P.add("c3", Dp(`M60 ${shY + 28} L71 ${shY + 26} L72 ${shY + 37} L61 ${shY + 39} Z`)); P.add("gold", Dl([62, shY + 32, 70, shY + 31], 1.2), { line:false }); }
+  else if (it === "goblet") { P.add("gold", Dm(Dp(`M64 ${shY + 22} L74 ${shY + 22} L72 ${shY + 29} L66 ${shY + 29} Z`), Dl([69, shY + 29, 69, shY + 33], 1.6), De(69, shY + 33.5, 3, 1))); P.add("wine", Dl([65, shY + 22.5, 73, shY + 22.5], 1.2), { line:false }); }
+  else if (it === "rose") { P.add("leaf", Dl([69, shY + 36, 71, shY + 24], 1.2)); P.add("rose", Dm(De(71, shY + 22, 3, 2.6), De(69, shY + 24, 2, 1.8))); }
+  else if (it === "rosary") { P.add("wood", x => { for (let k = 0; k < 7; k++) { x.beginPath(); x.arc(68 - k * 0.3, shY + 38 + k * 2.2, 1, 0, 7); x.fill(); } }); P.add("gold", Dm(Dl([67, shY + 52, 67, shY + 58], 1.2), Dl([65, shY + 54, 69, shY + 54], 1.2))); }
+}
+
+// ---- 얼굴 (명암을 입힌 뒤 한 픽셀씩) ----
+function face2(img, ox, L, hx, hy) {
   const d = img.data, W = img.width;
-  const put = (x, y, c) => { const [r, g, b] = hex(c), i = (y * W + x + ox) * 4; d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255; };
-  const b = f, kid = L.kid, ey = (kid ? 25 : 12) + b, ex = kid ? [18, 22] : [19, 23];
-  const lash = mixH(L.hair, "#120a1c", 0.75), iris = L.eye, irisD = mixH(L.eye, "#120a1c", 0.45);
-  const [skB, skD] = SKIN[L.skin];
-  if (L.hat === "hood" && L.role === "bandit") {   // 복면
-    for (let y = ey + 3; y <= ey + 6; y++) for (let x = 18; x <= 25; x++) put(x, y, y === ey + 3 ? "#1a1620" : "#2a2630");
-  }
-  for (const [i, x] of ex.entries()) {
-    const w = i === 0 ? 2 : 2;
-    for (let k = 0; k < w; k++) { put(x + k, ey, lash); put(x + k, ey + 1, iris); put(x + k, ey + 2, irisD); }
-    put(x, ey + 1, "#ffffff");
-    if (L.fem || kid) put(i === 0 ? x - 1 : x + 2, ey, lash);
-    put(x, ey - 2, mixH(L.hair, "#120a1c", 0.5)); put(x + 1, ey - 2, mixH(L.hair, "#120a1c", 0.5));
-  }
-  if (!(L.hat === "hood" && L.role === "bandit")) {
-    put(kid ? 24 : 25, ey + 2, skB); put(kid ? 23 : 24, ey + 3, skD);
-    const my = ey + (kid ? 4 : 4);
-    if (!(L.beard === 1)) { put(kid ? 21 : 22, my, mixH(skD, "#7a2a2a", 0.4)); put(kid ? 22 : 23, my, mixH(skD, "#7a2a2a", 0.4)); }
-    if (L.fem || kid) { put(ex[0], ey + 3, mixH(skB, "#ff7a8a", 0.35)); put(ex[1] + 1, ey + 3, mixH(skB, "#ff7a8a", 0.35)); }
-    if (L.elder) { put(18, ey + 3, skD); put(24, ey + 4, skD); }
-  }
+  const put = (x, y, c) => { if (x < 0 || y < 0 || x >= SW || y >= SH) return; const [r, g, b] = hex(c), k = (y * W + x + ox) * 4; d[k] = r; d[k + 1] = g; d[k + 2] = b; d[k + 3] = 255; };
+  const get = (x, y) => { const k = (y * W + x + ox) * 4; return toHex([d[k], d[k + 1], d[k + 2]]); };
+  const blend = (x, y, c, t) => put(x, y, mixH(get(x, y), c, t));
+  const sk = L.skinC, sr = skinRamp(sk), hairD = mixH(L.hair, "#0e0818", 0.72), lash = mixH(hairD, "#0e0818", 0.4);
+  const ir = L.eye, irD = mixH(ir, "#0e0818", 0.55), irL = mixH(ir, "#ffffff", 0.45), ex = L.expr;
+  const ey = hy + 1, nearX = hx - 3, farX = hx + 5;
+  if (L.hat === "hood" && L.role === "bandit") { for (let y = hy + 5; y <= hy + 13; y++) for (let x = hx - 4; x <= hx + 11; x++) { const k = (y * W + x + ox) * 4; if (d[k + 3]) put(x, y, y === hy + 5 ? "#16121c" : (x + y) % 5 ? "#2a2632" : "#34303e"); } }
+  // 눈썹
+  const brow = (x0, w, inner) => { for (let k = 0; k < w; k++) { const lift = ex === "angry" ? (inner ? k : w - 1 - k) * 0.5 : ex === "gentle" ? -(k === 1 || k === 2 ? 1 : 0) : 0; put(x0 + k, Math.round(ey - 4 + lift - (ex === "angry" ? 1 : 0)), hairD); } };
+  brow(nearX - 1, 5, true); brow(farX, 4, false);
+  // 눈
+  const eye = (x0, w, near) => {
+    const lid = ex === "smug" ? 1 : 0, look = ex === "shy" ? 1 : 0;
+    for (let k = -1; k <= w; k++) put(x0 + k, ey + lid, k < 0 || k === w ? sr[1] : lash);
+    if (L.fem || L.kid || L.lashes) { put(near ? x0 - 2 : x0 + w + 1, ey - 1 + lid, lash); put(near ? x0 - 1 : x0 + w, ey + lid, lash); }
+    for (let r = 1; r <= 3; r++) for (let k = 0; k < w; k++) {
+      if (r <= lid) continue;
+      const white = near ? k === 0 : k === w - 1;
+      put(x0 + k, ey + r, white ? "#f4f0ec" : r === 1 + look ? irD : r === 3 ? irL : ir);
+    }
+    put(x0 + (near ? 1 : 0), ey + 1 + lid + look, "#ffffff");
+    for (let k = 0; k < w; k++) put(x0 + k, ey + 4, sr[2]);
+  };
+  eye(nearX, 4, true); eye(farX, 3, false);
+  // 코 · 입 · 볼
+  put(hx + 8, hy + 6, sr[1]); put(hx + 7, hy + 5, sr[2]);
+  const lip = L.fem ? "#c4505a" : sr[1], my = hy + 9;
+  if (L.beard !== "full") {
+    if (ex === "cheer" || ex === "gentle") { put(hx + 2, my - 1, lip); put(hx + 3, my, lip); put(hx + 4, my, lip); put(hx + 5, my, lip); put(hx + 6, my - 1, lip); }
+    else if (ex === "angry") { put(hx + 2, my + 1, lip); put(hx + 3, my, lip); put(hx + 4, my, lip); put(hx + 5, my, lip); put(hx + 6, my + 1, lip); }
+    else if (ex === "smug") { put(hx + 3, my, lip); put(hx + 4, my, lip); put(hx + 5, my, lip); put(hx + 6, my - 1, lip); }
+    else { put(hx + 3, my, lip); put(hx + 4, my, lip); put(hx + 5, my, lip); }
+    if (L.fem) { put(hx + 3, my + 1, mixH(lip, "#ffffff", 0.25)); put(hx + 4, my + 1, mixH(lip, "#ffffff", 0.25)); }
+  } else { put(hx + 3, my, hairD); put(hx + 4, my, hairD); put(hx + 5, my, hairD); }
+  if (L.fem || L.kid || ex === "shy" || L.rednose) { const bc = L.rednose ? "#e04050" : "#ff7f8e", t = L.rednose ? 0.55 : 0.32; for (const x of [hx - 4, hx - 3]) blend(x, hy + 6, bc, t); for (const x of [hx + 6, hx + 7]) blend(x, hy + 6, bc, t); }
+  if (L.rednose) { put(hx + 9, hy + 5, "#d84050"); put(hx + 8, hy + 6, "#b83040"); }
+  if (L.elder) { put(nearX - 1, ey + 6, sr[2]); put(nearX, ey + 7, sr[2]); put(hx + 6, hy + 8, sr[2]); put(hx + 7, hy + 9, sr[2]); }
+  if (L.earring) { put(hx - 5, hy + 6, "#f0c040"); put(hx - 5, hy + 7, "#f8e080"); }
+  if (L.scar) { put(hx + 5, ey - 2, sr[0]); put(hx + 6, ey - 1, sr[0]); put(hx + 6, ey + 5, sr[0]); put(hx + 7, ey + 6, sr[0]); }
 }
+// ---- 조립 ----
+const SPRITES = new Map();
 function makeSprite(L) {
   const key = JSON.stringify(L);
   if (SPRITES.has(key)) return SPRITES.get(key);
+  if (typeof Path2D === "undefined") { const sp = { u:"", top:0 }; SPRITES.set(key, sp); return sp; }
+  const sk = L.pale ? mixH(SKIN[L.skin], "#b8c4d0", 0.35) : SKIN[L.skin];
+  L = { ...L, skinC:sk };
+  const R6 = c => ramp6(c);
   const pal = {
-    skin:ramp(SKIN[L.skin][0]), hair:ramp(L.hair), hairL:mixH(L.hair, "#fff6e0", 0.45),
-    c1:ramp(L.c1), c2:ramp(L.c2), pants:ramp(mixH(L.c2, "#20202a", 0.45)), leather:ramp("#6a4428"), gold:ramp("#e2b23a"),
-    fur:ramp("#f2ede4"), spot:"#1a1420", steel:ramp("#9aa2b4"), blade:ramp("#d6dce8"), wood:ramp("#8a5a2b"),
-    white:ramp("#ece6d8"), whiteF:ramp("#ece6d8").d, c1F:ramp(L.c1).d, c2F:ramp(L.c2).d, steelF:ramp("#9aa2b4").d, straw:ramp("#d8b45c"), velvet:ramp("#a8202c"), gem:"#e0303c", gemB:"#3a6ae0", hoodC:ramp(L.c1),
+    skin:skinRamp(sk), hair:R6(L.hair), hairL:mixH(L.hair, "#fff6e4", 0.5),
+    c1:R6(L.c1), c2:R6(L.c2), c3:R6(L.c3), pants:R6(mixH(L.c2, "#1c1c28", 0.5)), leather:R6("#6e4628"), gold:R6("#e2b03a"),
+    fur:R6("#f4efe6"), steel:R6("#a4adbf"), steelD:R6("#6e7688"), blade:R6("#d8dee9"), bladeL:"#ffffff", wood:R6("#8a5a2e"),
+    white:R6("#efe8da"), straw:R6("#dcb862"), velvet:R6("#b0202e"), gem:"#e8303e", pearl:"#fbf6ee", hoodC:R6(L.c1),
+    rose:R6("#d8283a"), hairD:mixH(L.hair, "#1a0c24", 0.45), leaf:R6("#4a8a3a"), paper:R6("#efe2c0"), cloth:R6("#f2ede4"), wine:"#7a1020",
   };
   const cv = document.createElement("canvas"); cv.width = SW * 2; cv.height = SH;
   const ctx = cv.getContext("2d"), img = ctx.createImageData(SW * 2, SH);
-  let top = 4;
+  let top = 4, head = null;
   for (let f = 0; f < 2; f++) {
-    const P = painter(); drawFigure(P, L, f); top = P.top;
-    // 발밑 그림자
-    for (let x = 11; x <= 31; x++) { const i = (58 * SW * 2 + x + f * SW) * 4; img.data[i + 3] = 0; }
-    shade(P, pal, img, f * SW);
-    for (let x = 12; x <= 30; x++) for (const y of [57, 58]) { const i = (y * SW * 2 + x + f * SW) * 4; if (img.data[i + 3] === 0 && (y === 58 || x > 13 && x < 29)) { img.data[i] = 10; img.data[i + 1] = 6; img.data[i + 2] = 16; img.data[i + 3] = y === 58 ? 70 : 40; } }
-    face(img, f * SW, L, f);
+    const P = newPainter(); head = figure(P, L, f);
+    shade2(P, pal, img, f * SW);
+    for (let x = 22; x <= 76; x++) for (const y of [137, 138, 139]) {   // 발밑 그림자
+      const k = (y * SW * 2 + x + f * SW) * 4, dx = (x - 50) / 27, dy2 = (y - 138) / 2.2;
+      if (img.data[k + 3] === 0 && dx * dx + dy2 * dy2 <= 1) { img.data[k] = 12; img.data[k + 1] = 6; img.data[k + 2] = 20; img.data[k + 3] = 80; }
+    }
+    face2(img, f * SW, L, head.hx, head.hy);
   }
   ctx.putImageData(img, 0, 0);
-  const sp = { u:cv.toDataURL(), top:Math.max(0, top - 2), kid:!!L.kid };
+  const sp = { u:cv.toDataURL(), top:Math.max(0, head.hy - (L.hat === "crown2" || L.hat === "mitre" ? 30 : 18)), kid:!!L.kid };
   SPRITES.set(key, sp);
   return sp;
 }
-// role: ruler · noble · child · clergy · monk · peasant · bandit · knight
-function lookOf(ch, role, hat, c1, c2) {
-  const kid = ch.age < 14 && role !== "clergy";
-  return { role:kid ? "child" : role, hat:kid ? "none" : hat, c1, c2, fem:ch.sex === "f", kid, skin:ch.dna.s, hair:hairColor(ch), eye:EYE[ch.dna.e],
-           hs:ch.sex === "m" ? (ch.dna.h + ch.dna.b) % 3 === 0 ? 1 : 0 : 2, beard:ch.sex === "m" && ch.age >= 18 && role !== "clergy" ? ch.dna.b : 0, elder:ch.age >= 52,
-           cape:!kid && (role === "ruler" || role === "noble" && ch.sex === "m") && !(ch.sex === "f" && role === "noble"), ermine:!kid && role === "ruler", sword:!kid && (role === "ruler" || role === "knight") && ch.sex === "m" };
+// ---- 인물의 특성을 생김새로 ----
+function lookOf(ch, role, hat, c1, c2, c3) {
+  const t = ch.traits || [], has = k => t.includes(k), kid = ch.age < 14 && role !== "clergy", fem = ch.sex === "f";
+  const ed = t.find(x => x.startsWith("ed_")), focus = ed ? ed.split("_")[1] : null, tier = ed ? +ed.split("_")[2] : 0;
+  let item = null;
+  if (!kid) {
+    if (role === "clergy") item = "crozier"; else if (role === "monk") item = "rosary"; else if (role === "peasant") item = "fork"; else if (role === "bandit") item = "dagger";
+    else if (role === "knight") item = has("brave") ? "spear" : "sword";
+    else if (hat === "crown2") item = "scepter";
+    else if (has("drunkard")) item = "goblet"; else if (has("hunter")) item = "bow"; else if (has("flagellant")) item = "rosary"; else if (has("recluse") || has("theologian")) item = "book";
+    else if (has("schemer")) item = "dagger"; else if (has("administrator")) item = "ledger"; else if (has("strategist")) item = "spear"; else if (has("diplomat")) item = "scroll";
+    else if (focus === "mar") item = tier >= 3 && has("brave") ? "spear" : fem ? "rose" : "sword";
+    else if (focus === "lrn") item = "book"; else if (focus === "stw") item = fem ? "ledger" : "keys"; else if (focus === "int") item = "dagger";
+    else if (focus === "dip") item = fem ? (has("lustful") ? "rose" : "scroll") : "scroll";
+    else item = fem ? "rose" : "sword";
+  }
+  if (role === "knight" && !kid) item = item === "spear" ? "spear" : "sword";
+  const expr = has("wrathful") || has("vengeful") || has("callous") ? "angry" : has("arrogant") || has("deceitful") || has("ambitious") ? "smug"
+    : has("shy") || has("craven") || has("paranoid") ? "shy" : has("gregarious") || has("lustful") || has("generous") ? "cheer"
+    : has("calm") || has("compassionate") || has("humble") || has("forgiving") ? "gentle" : "neutral";
+  const noble = ["ruler", "noble", "vassal"].includes(role);
+  return {
+    role:kid ? "child" : role, hat:kid ? "none" : hat, fem, kid, skin:ch.dna.s, pale:has("ill"), hair:hairColor(ch), eye:EYE[ch.dna.e],
+    hs:(ch.dna.h + ch.dna.b * 2 + ch.dna.e) % 3, bald:!fem && ch.age >= 50 && ch.dna.b === 2 && ch.dna.h % 2 === 0,
+    beard:fem || kid || ch.age < 18 || role === "clergy" ? null : ["mustache", "full", "goatee", null][(ch.dna.b + ch.dna.h) % 4] || (ch.age >= 45 ? "full" : null),
+    build:has("herculean") || has("robust") ? "broad" : has("feeble") || fem ? "slim" : "normal", belly:has("gluttonous") && !kid,
+    tilt:has("arrogant") ? -1 : has("craven") ? 1 : 0, expr, item:role === "knight" && !kid && item === "sword" ? "sword" : item,
+    c1, c2, c3:c3 || mixH(c1, "#f0e0c0", 0.55), elder:ch.age >= 52, lashes:has("beautiful") || has("radiant"),
+    cape:!kid && (role === "ruler" || role === "noble" && !fem || role === "bandit") , ermine:!kid && role === "ruler" && !fem || !kid && role === "ruler" && hat === "crown2",
+    sash:!kid && (fem && noble || role === "ruler"), necklace:!kid && (has("greedy") || has("arrogant") || hat === "crown2" || has("zealous")), pauldron:!kid && !fem && (role === "knight" || focus === "mar" && tier >= 3 && noble),
+    flower:fem && !kid && (has("beautiful") || has("radiant") || has("lustful") || ch.dna.h % 2 === 0), earring:fem && !kid,
+    bandage:has("wounded"), rednose:has("drunkard"), scar:has("wounded") || has("strategist") && !fem,
+  };
 }
+const shieldFor = (L) => L;
 const rulerTunic = c => mixH(c, "#1e2030", 0.55);
-function portrait(ch, hat, bg, cloth) { return makeSprite(lookOf(ch, hat.startsWith("crown") ? "ruler" : hat === "mitre" ? "clergy" : "noble", hat, cloth, rulerTunic(cloth))); }
 let TEMP_ID = -1;
 function npc(kind) {
-  const ch = { id:TEMP_ID--, sex: kind === "monk" || kind === "bandit" || kind === "knight" ? "m" : (R() < 0.5 ? "m" : "f"), age: ri(22, 60), dna:{ s:ri(0,3), h:ri(0,4), e:ri(0,2), b:ri(0,2) } };
+  const ch = { id:TEMP_ID--, sex: kind === "monk" || kind === "bandit" || kind === "knight" ? "m" : (R() < 0.5 ? "m" : "f"), age: ri(22, 60), dna:{ s:ri(0,3), h:ri(0,4), e:ri(0,2), b:ri(0,2) }, traits:[pick(PERSONALITY)] };
   if (kind === "monk") return makeSprite(lookOf(ch, "monk", "hood", "#7a5434", "#7a5434"));
   if (kind === "bandit") return makeSprite(lookOf(ch, "bandit", "hood", "#34303c", "#4a3a2c"));
-  if (kind === "knight") return makeSprite(lookOf(ch, "knight", "none", "#8a2a2a", "#8a2a2a"));
+  if (kind === "knight") return makeSprite(lookOf(ch, "knight", "none", "#8a2a2a", "#4a4a5e"));
   return makeSprite(lookOf(ch, "peasant", "straw", "#6a8a3a", "#8a6a3e"));
 }
 function realmOf(id) { return G.realms[id]; }
@@ -662,19 +865,21 @@ function charPortrait(ch, who) {
   if (who === "player") return makeSprite(lookOf(ch, "ruler", HATS[rank()], PLAYER_COLOR, rulerTunic("#3a4a8a")));
   if (who === "family") return makeSprite(lookOf(ch, "noble", "none", PLAYER_COLOR, "#4a5a8a"));
   if (who === "suitor") return makeSprite(lookOf(ch, "noble", "none", "#5a6ab0", "#3a4060"));
+  if (typeof who === "string" && who[0] === "v") { const lid = +who.slice(1), col = lid === 0 ? PLAYER_COLOR : realmOf(lid).color; return makeSprite(lookOf(ch, "vassal", "coronet", mixH(col, "#4a4a3a", 0.35), mixH(col, "#2a2a34", 0.6))); }
   const r = realmOf(who), hat = realmHat(r);
   return makeSprite(lookOf(ch, r.theo ? "clergy" : "ruler", hat, r.color, rulerTunic(r.color)));
 }
-// 화면에 그리기: big(3배 전신) · mid(2배 전신) · bust(2배 상반신)
+function portrait(ch, hat, bg, cloth) { return makeSprite(lookOf(ch, hat.startsWith("crown") ? "ruler" : hat === "mitre" ? "clergy" : "noble", hat, cloth, rulerTunic(cloth))); }
+// 화면에 그리기: big(2배 전신) · mid(1배 전신) · bust(1배 상반신)
 function chr(sp, size = "mid") {
   if (!sp) return "";
   if (typeof sp === "string") return `<img class="px pf96 scene" src="${sp}" alt="">`;
-  const style = `background-image:url(${sp.u})` + (size === "bust" ? `;background-position-y:${-sp.top * 2}px` : "");
+  const style = `background-image:url(${sp.u})` + (size === "bust" ? `;background-position-y:${-sp.top}px` : "");
   return `<span class="chr ${size}" style="${style}" role="img" aria-label="인물"></span>`;
 }
 
 // ================= 지도 =================
-const MW = 384, MH = 240;
+const MW = 448, MH = 280;
 let CMAP, TER, SHORE, COAST, ADJ, BORDER, SEA_PTS, DECOR, baseCanvas, baseCtx, mapCtx, mapDirty = true, lastFrame = -1;
 function noise(seed) {
   const rnd = mulberry(seed), N = 64, g = new Float32Array(N * N).map(() => rnd());
@@ -686,22 +891,20 @@ function noise(seed) {
     return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
   };
 }
-function slotPos(c, si) { const o = [[0, 0], [-17, 9], [17, 9]][si]; return { x:c.x + o[0], y:c.y + o[1] }; }
+function slotPos(c, si) { const o = [[0, 0], [-11, 7], [11, 7]][si]; return { x:c.x + o[0], y:c.y + o[1] }; }
 function genMap() {
   const n1 = noise(11), n2 = noise(23), n3 = noise(37), n4 = noise(41);
   const fbm = (n, x, y) => n(x / 48, y / 48) * 0.55 + n(x / 20, y / 20) * 0.3 + n(x / 8, y / 8) * 0.15;
   CMAP = new Int8Array(MW * MH); TER = new Uint8Array(MW * MH); SHORE = new Uint8Array(MW * MH); COAST = new Uint8Array(MW * MH);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
     const i = y * MW + x, e = fbm(n1, x, y);
-    const dx = (x - 194) / 202, dy = (y - 128) / 132;
-    let v = e * 0.6 + (1 - dx * dx - dy * dy) * 0.7;
-    const wx = x + (n2(x / 22, y / 22) - 0.5) * 34, wy = y + (n3(x / 22, y / 22) - 0.5) * 34;
+    let v = LANDMASK[i] ? 1 : 0;
+    const wx = x + (n2(x / 20, y / 20) - 0.5) * 24, wy = y + (n3(x / 20, y / 20) - 0.5) * 24;
     let near = -1, nd = 1e9;
     COUNTY_DEFS.forEach((d, k) => {
       const dd = (wx - d.x) ** 2 + (wy - d.y) ** 2; if (dd < nd) { nd = dd; near = k; }
       const rd = (x - d.x) ** 2 + (y - d.y) ** 2;
-      if (rd < 30 * 30) v = Math.max(v, 0.62);
-      if (rd < 16 * 16) near = k;
+      if (rd < 12 * 12) { v = 1; near = k; }
     });
     if (v < 0.56) { CMAP[i] = -1; continue; }
     CMAP[i] = near;
@@ -722,7 +925,7 @@ function genMap() {
       }
     }
     const d = COUNTY_DEFS[k], hasSeed = comp.includes(d.y * MW + d.x);
-    if (!hasSeed) { const best = Object.entries(nb).sort((a, b) => b[1] - a[1])[0]; if (best) for (const i of comp) CMAP[i] = +best[0]; }
+    if (!hasSeed) { const best = Object.entries(nb).sort((a, b) => b[1] - a[1])[0]; for (const i of comp) CMAP[i] = best ? +best[0] : -1; }
   }
   ADJ = COUNTY_DEFS.map(() => new Set()); BORDER = COUNTY_DEFS.map(() => []);
   const at = (x, y) => (x < 0 || y < 0 || x >= MW || y >= MH) ? -1 : CMAP[y * MW + x];
@@ -780,7 +983,8 @@ function renderBase() {
   for (const o of DECOR) baseCtx.drawImage(SPR[o.k], o.x, o.y);
   for (const c of G.counties) for (let si = 0; si < 3; si++) {
     const s = c.slots[si], p = slotPos(c, si);
-    if (s) baseCtx.drawImage(SPR[s.under ? "scaffold" : s.type], p.x - 8, p.y - 12);
+    if (s && si === 0) baseCtx.drawImage(SPR[s.under ? "scaffold" : s.type], p.x - 8, p.y - 12);
+    else if (s) { baseCtx.drawImage(SPR[(s.under ? "scaffold" : s.type) + "S"], p.x - 4, p.y - 6); if (s.vassal) { baseCtx.fillStyle = "#f0e6c8"; baseCtx.fillRect(p.x + 4, p.y - 7, 1, 3); baseCtx.fillStyle = G.vassals[s.vassal] && G.vassals[s.vassal].title === "viscount" ? "#e8b84a" : "#7fa8e8"; baseCtx.fillRect(p.x + 5, p.y - 7, 2, 2); } }
     else if (c.owner === 0) baseCtx.drawImage(SPR.plot, p.x - 3, p.y - 3);
   }
 }
@@ -946,7 +1150,7 @@ function heirOf() {
   if (G.law === "senior") return eldest([...G.kids, ...G.sibs]) || null;
   return eldest(G.kids) || eldest(G.sibs) || null;
 }
-function allChars() { return [G.ruler, G.spouse, ...G.kids, ...G.sibs, ...G.realms.map(r => r.dead ? null : r.ruler)].filter(Boolean); }
+function allChars() { return [G.ruler, G.spouse, ...G.kids, ...G.sibs, ...G.realms.map(r => r.dead ? null : r.ruler), ...Object.values(G.vassals).map(v => v.ch)].filter(Boolean); }
 function family() { return [...G.kids, ...G.sibs]; }
 function removeFamily(ch) { G.kids = G.kids.filter(k => k !== ch); G.sibs = G.sibs.filter(k => k !== ch); }
 
@@ -972,7 +1176,7 @@ function countyStat(c) {
   const o = { tax:0, levy:0, piety:0, prestige:0, dev:0, ctrl:0 };
   for (const s of c.slots) {
     if (!s || s.under) continue;
-    const t = slotStat(s), mt = s.vassal ? 0.25 : 1, ml = s.vassal ? 0.5 : 1;
+    const t = slotStat(s), vs = s.vassal && G.vassals[s.vassal] ? vShare(G.vassals[s.vassal]) : null, mt = vs ? vs.tax : 1, ml = vs ? vs.levy : 1;
     o.tax += t.tax * mt; o.levy += t.levy * ml;
     if (!s.vassal) { o.piety += t.piety; o.prestige += t.prestige; o.dev += t.dev; o.ctrl += t.ctrl; }
   }
@@ -1136,11 +1340,10 @@ function endWar(res, note) {
   G.manpower = maxLevy ? clamp(w.my * share / maxLevy, 0, 1) : 1;
   if (w.foeStart) r.morale = clamp(r.morale * (w.foe / w.foeStart), 0.2, 1);
   let msg, mood = "";
-  const strip = cc => { for (const s of cc.slots) if (s) { s.q = null; s.vassal = null; s.under = 0; } };
   if (note) msg = note;
   else if (w.iAttack) {
     if (res === "win") {
-      c.owner = 0; c.control = 35; strip(c); G.prestige += 30; mapDirty = true; mood = "good";
+      transferCounty(c, 0); c.control = 35; G.prestige += 30; mood = "good";
       msg = `${eulreul(c.name)} 함락했습니다! 위신 +30`;
       if (COUNTY_DEFS[c.id].elector) msg += " 선제후 자리도 우리 것이 되었습니다!";
       if (!G.counties.some(x => x.owner === r.id)) { r.dead = true; msg += ` ${eunneun(r.name)} 멸망했습니다.`; vacateTitles(r); }
@@ -1152,7 +1355,7 @@ function endWar(res, note) {
     if (res === "win") { G.prestige += 20; mood = "good"; msg = `${r.name}의 군대를 몰아냈습니다! 위신 +20`; }
     else if (res === "lose") {
       mood = "bad";
-      if (c.id !== G.capital) { c.owner = r.id; strip(c); mapDirty = true; msg = `${eulreul(c.name)} 빼앗겼습니다.`; }
+      if (c.id !== G.capital) { transferCounty(c, r.id); msg = `${eulreul(c.name)} 빼앗겼습니다.`; }
       else { G.gold = Math.max(0, G.gold - 150); G.prestige = Math.max(0, G.prestige - 30); msg = "수도가 포위되어 금화 150과 위신 30을 바치고 강화했습니다."; }
     } else msg = "양측 모두 지쳐 백지 강화를 맺었습니다.";
   }
@@ -1290,6 +1493,7 @@ function step() {
   if (++G.m > 12) { G.m = 1; G.y++; for (const ch of allChars()) ch.age++; yearlyGrowth(); save(); }
   lifeAndDeath();
   if (G.over) return;
+  vassalStep();
   if (G.war) { warStep(); if (G.over) return; }
   if (G.scheme) schemeStep();
   aiSchemes(); if (G.over) return;
@@ -1344,7 +1548,7 @@ function partition(heir, others) {
     const id = G.realms.length;
     const nm = `${cs[0].name} 백작령`;
     G.realms.push({ id, name:G.realms.some(x => x.name === nm) ? `${k.name}의 ${nm}` : nm, color:KIN_COLORS[id % KIN_COLORS.length], hat:"crown0", ruler:k, mul:1, morale:1, dead:false, hostile:0, kinId:k.id });
-    for (const c of cs) { c.owner = id; c.control = Math.min(c.control, 60); for (const s of c.slots) if (s) { s.q = null; s.under = 0; s.vassal = null; } }
+    for (const c of cs) { transferCounty(c, id); c.control = Math.min(c.control, 60); }
     k.allyRealm = null; k.married = null;
     parts.push(`${iga(k.name)} ${cs.map(c => c.name).join("·")}`); landed.push(k);
   }
@@ -1441,7 +1645,95 @@ EVENTS.push(() => { const er = emperorRealm(); if (!er) return null;
   return { title:"황제의 소집령", img:charPortrait(er.ruler, er.id), text:`${EMPIRE}의 황제 ${iga(er.ruler.name)} 이교도 원정에 나설 병력을 제후들에게 요구합니다.`, opts:[
     { t:"병사를 보낸다", fx:"병력 -25% · 위신 +20 · 황가의 호의 +20", stress:{ craven:15, zealous:-15, ambitious:5 }, run:() => { G.manpower = Math.max(0, G.manpower - 0.25); G.prestige += 20; G.favor[er.id] = Math.min(100, (G.favor[er.id] || 0) + 20); } },
     { t:"핑계를 대고 거절한다", fx:"위신 -10 · 황가의 호의 -20", stress:{ zealous:20, honest:10, brave:10 }, run:() => { G.prestige = Math.max(0, G.prestige - 10); G.favor[er.id] = Math.max(0, (G.favor[er.id] || 0) - 20); } } ] }; });
+EVENTS.push(() => { const vs = myVassals(); if (!vs.length) return null; const v = pick(vs), c = G.counties[v.county];
+  return { title:"봉신의 청원", img:charPortrait(v.ch, "v0"), text:`${c.name}의 ${iga(vName(v))} 흉년으로 영지가 어렵다며 금화를 빌려 달라고 청합니다. (호감 ${Math.round(v.opinion)})`, opts:[
+    { t:"넉넉히 내어 준다", fx:`💰 -60 · ${v.ch.name}의 호감 +25`, stress:{ greedy:15, generous:-10, compassionate:-5 }, can:() => G.gold >= 60, run:() => { G.gold -= 60; v.opinion = Math.min(100, v.opinion + 25); } },
+    { t:"제 앞가림은 스스로 하라", fx:`${v.ch.name}의 호감 -20`, stress:{ generous:15, compassionate:15, greedy:-5 }, run:() => { v.opinion -= 20; } } ] }; });
 function fireEvent() { for (let n = 0; n < 10; n++) { const e = pick(EVENTS)(); if (e) { popup(e); return; } } }
+
+// ================= 봉신: 남작 · 자작 =================
+// 남작은 장원 하나, 자작은 한 백작령 안의 장원 둘을 받는다. 호감이 높을수록 세금과 병력을 더 바치고, 낮으면 반란을 일으킨다.
+const VTITLE = { baron:"남작", viscount:"자작" };
+const vassalOf = s => s && s.vassal ? G.vassals[s.vassal] : null;
+const vName = v => `${VTITLE[v.title]} ${v.ch.name}`;
+function vShare(v) {
+  const op = v.liege === 0 ? clamp(1 + v.opinion / 100, 0.3, 1.5) : 1;
+  return v.title === "viscount" ? { tax:0.3 * op, levy:0.6 * op } : { tax:0.25 * op, levy:0.5 * op };
+}
+function mkVassal(c, si, liege, ch) {
+  const id = G.nextVid++;
+  const v = { id, ch:ch || mkChar({ sex:R() < 0.85 ? "m" : "f", age:ri(20, 55) }), title:"baron", county:c.id, slots:[si], opinion:liege === 0 ? 20 : 10, liege };
+  G.vassals[id] = v; c.slots[si].vassal = id;
+  return v;
+}
+function vassalTarget(v) {
+  return compat(G.ruler, v.ch) * 10 + rs("dip") - 6 + (hasTrait(G.ruler, "just") ? 10 : 0) + (hasTrait(G.ruler, "arbitrary") ? -10 : 0)
+    + (v.title === "viscount" ? 5 : 0) + (G.tyranny || 0) + (hasTrait(v.ch, "content") ? 10 : 0) + (hasTrait(v.ch, "ambitious") ? -10 : 0);
+}
+function myVassals() { return Object.values(G.vassals).filter(v => v.liege === 0); }
+function countyVassals(c) { const seen = new Set(); return c.slots.map(vassalOf).filter(v => v && !seen.has(v.id) && seen.add(v.id)); }
+function dropVassal(v) { const c = G.counties[v.county]; for (const si of v.slots) if (c.slots[si]) c.slots[si].vassal = null; delete G.vassals[v.id]; }
+function transferCounty(c, owner) {
+  c.owner = owner; mapDirty = true;
+  for (const s of c.slots) if (s) { s.q = null; s.under = 0; }
+  for (const v of countyVassals(c)) { v.liege = owner; v.opinion = owner === 0 ? -10 : 10; }
+}
+function grantBaron(c, si) {
+  const s = c.slots[si]; if (!s || s.vassal || s.q || s.under || (c.id === G.capital && si === 0) || c.owner !== 0) return;
+  const v = mkVassal(c, si, 0); G.prestige += 5;
+  say(`${c.name}의 ${HOLD[s.type].n}${josa(HOLD[s.type].n, "을", "를")} ${vName(v)}에게 하사했습니다.`, "good");
+}
+function promoteViscount(c, si) {
+  const s = c.slots[si]; if (!s || s.vassal || s.q || s.under || (c.id === G.capital && si === 0) || c.owner !== 0) return;
+  const v = countyVassals(c).find(v => v.liege === 0 && v.title === "baron"); if (!v || G.prestige < 20) return;
+  G.prestige -= 20; v.title = "viscount"; v.slots.push(si); s.vassal = v.id; v.opinion = Math.min(100, v.opinion + 20);
+  say(`${v.ch.name}에게 ${c.name}의 ${HOLD[s.type].n}${josa(HOLD[s.type].n, "을", "를")} 더 주어 자작으로 올렸습니다.`, "good");
+}
+function revokeVassal(v) {
+  if (!v || v.liege !== 0 || G.prestige < 30) return;
+  const c = G.counties[v.county]; G.prestige -= 30; c.control = Math.max(0, c.control - 15);
+  G.tyranny = (G.tyranny || 0) - 10;
+  say(`${vName(v)}의 봉토를 회수했습니다. 다른 봉신들이 불안해합니다.`, "bad"); dropVassal(v);
+}
+function giftVassal(v) {
+  if (!v || v.liege !== 0 || G.gold < 50 || v.opinion >= 100) return;
+  G.gold -= 50; v.opinion = Math.min(100, v.opinion + 15); say(`${vName(v)}에게 선물을 보냈습니다. 호감 +15`);
+}
+function vassalStep() {
+  G.tyranny = Math.min(0, (G.tyranny || 0) + 0.25);
+  for (const v of Object.values(G.vassals)) {
+    if (R() < deathP(v.ch)) {   // 봉신이 죽으면 자식이 잇는다
+      const old = v.ch; v.ch = mkChar({ sex:R() < 0.85 ? "m" : "f", age:ri(16, 40) });
+      if (v.liege === 0) { v.opinion = 0; say(`${vName({ ...v, ch:old })}이(가) 죽고 ${v.ch.name}이(가) 뒤를 이었습니다.`); }
+    }
+    if (v.liege !== 0) continue;
+    const t = vassalTarget(v); v.opinion += Math.sign(t - v.opinion) * Math.min(1, Math.abs(t - v.opinion));
+    if (v.opinion <= -40 && R() < 0.03 && !G.queue.some(q => q.title === "봉신의 반란")) vassalRevolt(v);
+  }
+}
+function vassalArmy(v) { const c = G.counties[v.county]; return Math.round(v.slots.reduce((a, si) => a + (c.slots[si] ? slotStat(c.slots[si]).levy : 0), 0) * 2.5); }
+function vassalRevolt(v) {
+  const c = G.counties[v.county], foe = vassalArmy(v), me = summary().army;
+  const od = warOdds(me, myWarBonus(), foe, stat(v.ch, "mar") * 0.04 + stat(v.ch, "pro") * 0.01, true);
+  popup({ title:"봉신의 반란", img:charPortrait(v.ch, "v0"),
+    text:`${c.name}의 ${iga(vName(v))} 주군의 처사에 분노해 병사 ${foe}명과 함께 성문을 걸어 잠갔습니다.`,
+    opts:[
+      { t:"군대를 보내 진압한다", fx:`승률 약 ${od}% · 이기면 봉토 몰수 · 지면 금화와 위신을 잃음`, stress:{ craven:15, wrathful:-10, compassionate:10 }, run:() => {
+        G.manpower = Math.max(0, G.manpower - 0.2);
+        if (R() * 100 < od) { G.prestige += 20; say(`${vName(v)}의 반란을 진압하고 봉토를 몰수했습니다.`, "good"); dropVassal(v); }
+        else { G.prestige = Math.max(0, G.prestige - 30); G.gold = Math.max(0, G.gold - 150); v.opinion = 20; say(`${vName(v)}의 반란 진압에 실패했습니다. 요구를 들어주어야 했습니다.`, "bad"); } } },
+      { t:"요구를 들어준다", fx:"💰 -100 · 그 봉신의 호감 +40", stress:{ arrogant:20, wrathful:15, generous:-10 }, can:() => G.gold >= 100, run:() => { G.gold -= 100; v.opinion += 40; } },
+    ] });
+}
+function vassalRow(v, compact) {
+  const op = Math.round(v.opinion), mine = v.liege === 0, who = mine ? "v0" : `v${v.liege}`;
+  return `<div class="card">${chr(charPortrait(v.ch, who), "bust")}<div class="col" style="flex:1">
+    <div><span class="tag ${v.title === "viscount" ? "gold" : ""}">${VTITLE[v.title]}</span> <span class="nm">${v.ch.name}</span> <span class="dim">${v.ch.age}세${compact ? ` · ${G.counties[v.county].name}` : ""}</span></div>
+    ${mine ? `<div class="row"><span class="dim">호감</span><span class="meter ${op >= 0 ? "green" : ""}"><i style="width:${Math.abs(op)}%;${op < 0 ? "background:var(--bad)" : ""}"></i></span><span class="${op < -20 ? "bad" : op > 20 ? "good" : ""}">${op > 0 ? "+" : ""}${op}</span><span class="dim">· 세금 ${pct(vShare(v).tax)}% · 병력 ${pct(vShare(v).levy)}%</span></div>` : ""}
+    ${compact ? "" : `<div class="row">${traitTags(v.ch)}${mine ? compatTag(v.ch, G.ruler) : ""}</div>`}
+    ${mine && !compact ? `<div class="row"><button class="btn" data-a="vgift" data-v="${v.id}" ${G.gold < 50 || op >= 100 ? "disabled" : ""}>선물 <small>💰50 · 호감 +15</small></button><button class="btn" data-a="vrevoke" data-v="${v.id}" ${G.prestige < 30 ? "disabled" : ""}>봉토 회수 <small>위신 -30 · 다른 봉신 호감 -10</small></button></div>` : ""}
+  </div></div>`;
+}
 
 // ================= 플레이어 행동 =================
 function buildHolding(c, si, type) {
@@ -1453,15 +1745,6 @@ function buildBld(c, si, id) {
   const s = c.slots[si], b = BLD[id];
   if (!s || s.q || s.under || s.vassal || G.gold < bldCost(b) || s.b.includes(id)) return;
   G.gold -= bldCost(b); s.q = { id, left:b.time }; say(`${c.name} ${HOLD[s.type].n}: ${b.n} 공사를 시작했습니다.`);
-}
-function grant(c, si) {
-  const s = c.slots[si]; if (!s || s.vassal || s.q || s.under || (c.id === G.capital && si === 0)) return;
-  s.vassal = `${pick(MN)} 남작`; G.prestige += 5;
-  say(`${c.name}의 ${HOLD[s.type].n}${josa(HOLD[s.type].n, "을", "를")} ${s.vassal}에게 하사했습니다.`);
-}
-function revoke(c, si) {
-  const s = c.slots[si]; if (!s || !s.vassal || G.prestige < 30) return;
-  G.prestige -= 30; c.control = Math.max(0, c.control - 20); say(`${s.vassal}의 봉토를 회수했습니다. ${c.name} 통제력 -20`, "bad"); s.vassal = null;
 }
 function openMarriage() {
   if (G.spouse || G.ruler.age < 16) return;
@@ -1612,6 +1895,9 @@ function rulerTab() {
   if (G.sibs.length) h += `<div class="sec">가문 친척</div>` + [...G.sibs].sort((a, b) => b.age - a.age).map(k => kinCard(k, heir, false)).join("");
   if (!heir) h += `<div class="note bad">후계자가 없습니다! 영주가 죽으면 가문이 끝납니다.</div>`;
   const L = LAWS[G.law];
+  const mv = myVassals();
+  h += `<div class="sec">봉신 (남작 ${mv.filter(v => v.title === "baron").length} · 자작 ${mv.filter(v => v.title === "viscount").length})</div>`;
+  h += mv.length ? mv.sort((a, b) => a.opinion - b.opinion).map(v => vassalRow(v, true)).join("") : `<div class="dim">아직 봉신이 없습니다. 백작령 탭에서 장원을 남작에게 하사할 수 있습니다.</div>`;
   h += `<div class="sec">상속법</div><div><b>${L.n}</b> <span class="dim">${L.d}</span></div>`;
   if (G.law === "gavel" && G.kids.length > 1 && own().length > 1) h += `<div class="note bad">지금 영주가 죽으면 자녀 ${G.kids.length}명이 영지를 나눠 가집니다.</div>`;
   h += `<div class="row">${Object.entries(LAWS).filter(([k]) => k !== G.law).map(([k, l]) => `<button class="btn" data-a="law" data-k="${k}" title="${l.d}" ${G.lawLock || G.war || G.prestige < l.cost ? "disabled" : ""}>${euro(l.n)} 변경 <small>${l.cost ? `위신 ${l.cost}` : "무료"}</small></button>`).join("")}</div>
@@ -1638,16 +1924,19 @@ function slotHtml(c, si, mine) {
   const hd = HOLD[s.type];
   if (s.under) return `<div class="slot"><div class="sh">${icon("scaffold", "i32")}<div class="col" style="flex:1"><b>${hd.n} 건설 중</b><div class="prog"><i style="width:${100 - s.under / HOLD_TIME * 100}%"></i></div><span class="dim">${s.under}개월 남음</span></div></div></div>`;
   const st = slotStat(s);
-  let h = `<div class="sh">${icon(s.type, "i32")}<div><b>${hd.n}</b> ${s.vassal ? `<span class="tag blue">가신 · ${s.vassal}</span>` : ""}
-    <div class="dim">세수 ${st.tax} · 병력 ${st.levy}${st.piety ? ` · 신앙 ${f1(st.piety)}` : ""}${s.vassal ? " (일부만 상납)" : ""}</div></div></div>`;
+  const vv = vassalOf(s);
+  let h = `<div class="sh">${icon(s.type, "i32")}<div><b>${hd.n}</b> ${vv ? `<span class="tag ${vv.title === "viscount" ? "gold" : "blue"}">${vName(vv)}의 ${vv.title === "viscount" ? "자작령" : "남작령"}</span>` : si === 0 ? `<span class="tag">백작 직할</span>` : ""}
+    <div class="dim">세수 ${st.tax} · 병력 ${st.levy}${st.piety ? ` · 신앙 ${f1(st.piety)}` : ""}${vv ? ` (봉신이 세금 ${pct(vShare(vv).tax)}%·병력 ${pct(vShare(vv).levy)}%를 바침)` : ""}</div></div></div>`;
   if (s.b.length) h += `<div class="row">${s.b.map(id => `<span class="tag">${BLD[id].n}</span>`).join("")}</div>`;
+  if (!mine && vv) h += vassalRow(vv, true);
   if (mine) {
-    if (s.vassal) h += `<div class="row"><button class="btn" data-a="revoke" data-c="${c.id}" data-s="${si}" ${G.prestige < 30 ? "disabled" : ""}>봉토 회수 <small>위신 -30 · 통제력 -20</small></button></div>`;
+    if (vv) h += vassalRow(vv, false);
     else {
       if (s.q) { const b = BLD[s.q.id]; h += `<div class="dim">${b.n} 공사 중 · ${s.q.left}개월 남음</div><div class="prog"><i style="width:${100 - s.q.left / b.time * 100}%"></i></div>`; }
       else { const opts = Object.entries(BLD).filter(([id, b]) => b.on === s.type && !s.b.includes(id));
         if (opts.length) h += `<div class="row">${opts.map(([id, b]) => `<button class="btn" data-a="build" data-c="${c.id}" data-s="${si}" data-k="${id}" ${G.gold < bldCost(b) ? "disabled" : ""}>${b.n} <small>💰${bldCost(b)} · ${b.time}개월 · ${fxText(b)}</small></button>`).join("")}</div>`; }
-      if (!(c.id === G.capital && si === 0) && !s.q) h += `<div class="row"><button class="btn" data-a="grant" data-c="${c.id}" data-s="${si}">가신에게 하사 <small>직할 -1 · 세수 25%·병력 50%만 받음 · 위신 +5</small></button></div>`;
+      if (!(c.id === G.capital && si === 0) && !s.q) { const bv = countyVassals(c).find(v => v.liege === 0 && v.title === "baron");
+        h += `<div class="row"><button class="btn" data-a="grant" data-c="${c.id}" data-s="${si}">남작 서임 <small>새 남작에게 하사 · 직할 -1 · 위신 +5</small></button>${bv ? `<button class="btn" data-a="promote" data-c="${c.id}" data-s="${si}" ${G.prestige < 20 ? "disabled" : ""}>${bv.ch.name}을(를) 자작으로 <small>위신 -20 · 장원 둘을 다스림 · 호감 +20</small></button>` : ""}</div>`; }
     }
   }
   return `<div class="slot">${h}</div>`;
@@ -1702,8 +1991,9 @@ function realmTab() {
   if (G.war) h += warPanel();
   if (G.scheme) h += schemePanel();
   h += `<div class="dim">이웃 세력은 시간이 갈수록 강해집니다. 혼인으로 동맹을 맺거나, 음모로 약하게 만들거나, 직접 정복하세요. 음모 능력치 ${rs("int")}.</div>`;
-  for (const r of G.realms) {
-    if (!r.id) continue;
+  const shown = G.realms.filter(r => r.id && (G.allRealms || !r.dead && (realmAdj(r) || isAlly(r) || r.hostile > 0 || G.empire.realm === r.id || G.scheme && G.scheme.realm === r.id || G.war && G.war.realm === r.id)));
+  h += `<div class="row"><button class="btn ${G.allRealms ? "on" : ""}" data-a="allrealms">${G.allRealms ? "가까운 제후만 보기" : `제국의 모든 제후 보기 (${G.realms.filter(r => r.id && !r.dead).length})`}</button></div>`;
+  for (const r of shown) {
     if (r.dead) { h += `<div class="slot"><span class="dim">${r.name} · 멸망</span></div>`; continue; }
     const foe = aiArmy(r), link = allyLink(r), cs = G.counties.filter(c => c.owner === r.id);
     const schemeBtn = k => { const s = SCHEMES[k], cost = schemeCost(k, r); return `<button class="btn" data-a="scheme" data-k="${k}" data-r="${r.id}" title="${s.d}${G.empire.realm === r.id && k === "kill" ? " 황제는 근위대가 지켜 성공률이 절반이고, 발각되면 모든 선제후의 호의를 잃습니다." : ""}" ${G.scheme || link || G.gold < cost ? "disabled" : ""}>🗡 ${s.n} <small>💰${cost} · ${s.time}개월 · ${pct(schemeChance(k, r))}%</small></button>`; };
@@ -1753,7 +2043,7 @@ function empireTab() {
   return h;
 }
 function renderLabels() {
-  let h = G.counties.map(c => `<div class="lbl ${c.owner === 0 ? "mine" : ""}" style="left:${c.x / MW * 100}%;top:${(c.y - 21) / MH * 100}%">${COUNTY_DEFS[c.id].elector ? `<img class="px" src="${SURL.crown}" alt="선제후">` : ""}${c.name}</div>`).join("");
+  let h = G.counties.map(c => `<div class="lbl ${c.owner === 0 ? "mine" : ""} ${c.id === G.sel ? "sel" : ""}" style="left:${c.x / MW * 100}%;top:${(c.y - 13) / MH * 100}%">${COUNTY_DEFS[c.id].elector ? `<img class="px" src="${SURL.crown}" alt="선제후">` : ""}${c.name}</div>`).join("");
   if (G.mapMode === "duchy") h += DUCHY_DEFS.map((d, i) => {
     const cs = DUCHY_COUNTIES[i].map(j => COUNTY_DEFS[j]), x = cs.reduce((s, c) => s + c.x, 0) / cs.length, y = cs.reduce((s, c) => s + c.y, 0) / cs.length;
     return `<div class="dlbl" style="left:${x / MW * 100}%;top:${(y + 4) / MH * 100}%">${d.n}</div>`;
@@ -1794,8 +2084,11 @@ function act(d) {
     case "opt": return chooseOpt(+d.i);
     case "hold": buildHolding(c, si, d.k); break;
     case "build": buildBld(c, si, d.k); break;
-    case "grant": grant(c, si); break;
-    case "revoke": revoke(c, si); break;
+    case "grant": grantBaron(c, si); break;
+    case "promote": promoteViscount(c, si); break;
+    case "vgift": giftVassal(G.vassals[+d.v]); break;
+    case "vrevoke": revokeVassal(G.vassals[+d.v]); break;
+    case "allrealms": G.allRealms = !G.allRealms; break;
     case "patrol": if (G.gold >= PATROL_COST && c.owner === 0) { G.gold -= PATROL_COST; c.control = Math.min(100, c.control + 20); say(`${c.name}에 순찰대를 보냈습니다. 통제력 +20`); } break;
     case "war": declareWar(c); break;
     case "peace":
@@ -1822,8 +2115,9 @@ function act(d) {
 function showHelp(first) {
   const saved = first && hasSave();
   popup({ title:"왕관과 장원", img:charPortrait(G.ruler, "player"),
-    text:`1066년, 당신은 ${EMPIRE}의 작은 백작령 <b>발란</b>을 물려받은 하르트 가문의 영주입니다. 제국에는 황제 아래 여러 제후국이 있습니다.<br><br>
-      · 지도에서 백작령을 눌러 <b>장원</b>(성·도시·교회)과 건물을 지으세요. 직할 한도를 넘으면 <b>가신에게 하사</b>하세요.<br>
+    text:`1066년, 당신은 ${EMPIRE}의 작은 백작령 <b>발란</b>을 물려받은 하르트 가문의 영주입니다. 제국에는 황제 아래 12개 제후국과 50개 백작령이 있습니다.<br><br>
+      · 지도에서 백작령을 눌러 <b>장원</b>(성·도시·교회)과 건물을 지으세요.<br>
+      · 장원을 <b>남작</b>에게 하사하고, 같은 백작령의 장원을 하나 더 주면 <b>자작</b>이 됩니다. 봉신은 호감만큼 세금과 병력을 바치고, 호감이 바닥나면 반란을 일으킵니다.<br>
       · 영주는 늙고 죽습니다. <b>혼인</b>해 후계자를 남기세요. 기본 상속법인 <b>분할 상속</b>에서는 자녀가 많으면 영지가 쪼개집니다.<br>
       · 이웃을 정복하거나 혼인으로 <b>동맹</b>을 맺고, <b>암살</b>과 <b>선동</b> 음모를 꾸미세요. 황제의 직할령은 침공할 수 없습니다.<br>
       · 제후국 백작령의 과반을 차지하면 <b>공작</b>이 됩니다. 황제가 죽으면 <b>선제후</b> 7명이 공작들 가운데서 새 황제를 뽑습니다. 황제로 선출되면 승리합니다.<br><br>
@@ -1842,7 +2136,7 @@ document.addEventListener("keydown", e => {
 });
 
 // ================= 저장 =================
-const SAVE_KEY = "crown-holdings-v4";
+const SAVE_KEY = "crown-holdings-v5";
 function save() { try { const { queue, ...rest } = G; localStorage.setItem(SAVE_KEY, JSON.stringify({ ...rest, NEXT_ID })); } catch (e) {} }
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
 function loadGame() {
@@ -1866,8 +2160,14 @@ function newGame(restart) {
         duchies:DUCHY_DEFS.map((_, i) => ({ holder:(REALM_DEFS.find(r => r.duchy === i) || { id:null }).id })),
         empire:{ realm:REALM_DEFS.find(r => r.emperor).id }, favor:{}, mapMode:"realm",
         war:null, scheme:null, log:[], queue:[], speed:0, lastSpeed:1, sel:0, tab:"county", nextEvent:ri(4, 7), truce:18, cd:{ feast:0, pilgrim:0 }, won:false, over:false };
+  G.vassals = {}; G.nextVid = 1; G.tyranny = 0; G.allRealms = false;
   G.counties[0].slots[0] = mkSlot("castle");
   for (const d of REALM_DEFS) if (d.c) d.c.forEach(ci => { G.counties[ci].owner = d.id; START_HOLD[ci].forEach((hd, si) => { const s = mkSlot(hd[0]); s.b = [...hd[1]]; G.counties[ci].slots[si] = s; }); });
+  for (const c of G.counties) if (c.owner) {   // 다른 백작령의 남작·자작
+    const free = [1, 2].filter(si => c.slots[si]);
+    if (free.length === 2 && R() < 0.3) { const v = mkVassal(c, free[0], c.owner); v.title = "viscount"; v.slots.push(free[1]); c.slots[free[1]].vassal = v.id; }
+    else for (const si of free) if (R() < 0.5) mkVassal(c, si, c.owner);
+  }
   lsInit(G.ruler).focus = "mar";
   mapDirty = true;
   say(`1066년 1월, 에드릭 하르트가 ${EMPIRE}의 발란 백작령을 물려받았습니다.`);
@@ -1888,7 +2188,7 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 function boot() {
-  buildSprites(); genMap();
+  buildSprites(); genWorld(); genMap();
   const cv = $("map"); mapCtx = cv.getContext("2d");
   cv.addEventListener("click", e => {
     const b = cv.getBoundingClientRect();
