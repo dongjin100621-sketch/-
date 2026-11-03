@@ -874,19 +874,51 @@ const rulerTunic = c => mixH(c, "#1e2030", 0.55);
 let TEMP_ID = -1;
 function npc(kind) {
   const ch = { id:TEMP_ID--, sex: kind === "monk" || kind === "bandit" || kind === "knight" ? "m" : (R() < 0.5 ? "m" : "f"), age: ri(22, 60), dna:{ s:ri(0,3), h:ri(0,4), e:ri(0,2), b:ri(0,2) }, traits:[pick(PERSONALITY)] };
-  if (kind === "monk") return makeSprite(lookOf(ch, "monk", "none", "#7a5434", "#7a5434"));
-  if (kind === "bandit") return makeSprite(lookOf(ch, "bandit", "none", "#2e2a36", "#4a3a2c"));
-  if (kind === "knight") return makeSprite(lookOf(ch, "knight", "none", "#8a2a2a", "#4a4a5e"));
-  return makeSprite(lookOf(ch, "peasant", "straw", "#6a8a3a", "#8a6a3e"));
+  if (kind === "monk") return mkP(ch, "monk", "none", "#7a5434", "#7a5434");
+  if (kind === "bandit") return mkP(ch, "bandit", "none", "#2e2a36", "#4a3a2c");
+  if (kind === "knight") return mkP(ch, "knight", "none", "#8a2a2a", "#4a4a5e");
+  return mkP(ch, "peasant", "straw", "#6a8a3a", "#8a6a3e");
+}
+// ---- 일러스트 (img/*.webp): 있으면 일러스트, 없으면 SVG 초상화 ----
+const ART_FAM = { "베르너":"fam_werner", "레긴린데":"fam_reginlinde", "오토":"fam_otto", "알브레히트":"fam_albrecht" };
+const ART_REAL = { "하인리히 4세":"heinrich", "마틸데 디 카노사":"mathilde", "오토 폰 노르트하임":"lord_otto", "루돌프 폰 라인펠덴":"lord_rudolf", "아델라이데 디 수사":"lord_adelheid", "브라티슬라프 2세":"lord_bratislav" };
+const ART_SEE = { "마인츠":"bp_mainz", "쾰른":"bp_hiltuk", "트리어":"bp_trier", "잘츠부르크":"bp_salzburg", "함부르크":"bp_bremen" };
+const ART_BP = ["bp_mainz", "bp_hiltuk", "bp_trier", "bp_salzburg", "bp_bremen", "rank_bishop", "rank_archbishop"];
+const artSp = n => ({ u:`img/${n}.webp`, art:true });
+function artFor(ch, role, hat, who) {
+  const t = ch.traits || [], has = k => t.includes(k), f = ch.sex === "f", h = Math.abs(((ch.id | 0) * 2654435761) >>> 0), age = ch.age;
+  if (age < 14 && role !== "clergy") return null;
+  if (role === "monk") return "npc_monk"; if (role === "bandit") return "npc_bandit"; if (role === "knight") return "npc_knight";
+  if (role === "peasant") return f ? "npc_peasant_f" : "npc_peasant_m";
+  if ((who === "player" || who === "family") && ART_FAM[ch.name]) return ART_FAM[ch.name];
+  if (typeof who === "number") {
+    const r = realmOf(who);
+    if (ART_REAL[ch.name] && !r.theo) return ART_REAL[ch.name];
+    if (r.theo) { for (const k in ART_SEE) if (r.name.startsWith(k)) return ART_SEE[k]; return ART_BP[h % ART_BP.length]; }
+  }
+  if (role === "clergy") return f ? "trait_faith" : ART_BP[h % ART_BP.length];
+  if (!f && hat === "crown2") return "rank_emperor";
+  if (!f && hat === "crown1") return "rank_duke";
+  if (!f && hat === "crown0") return "rank_count";
+  const T = f
+    ? [["chaste", "trait_faith"], ["zealous", "trait_faith"], ["compassionate", "trait_kind"], ["diplomat", "trait_diplo"], ["lustful", "trait_lust"], ["drunkard", "trait_lust"]]
+    : [["wrathful", "trait_wrath"], ["callous", "trait_cruel"], ["vengeful", "trait_cruel"], ["schemer", "trait_scheme"], ["greedy", "trait_greed"], ["ambitious", "trait_ambit"], ["theologian", "trait_wise"], ["brave", "trait_brave"], ["zealous", age >= 55 ? "trait_zeal" : null]];
+  if (h % 3 !== 0) for (const [k, a] of T) if (a && has(k)) return a;
+  const g = age < 31 ? "young" : age <= 50 ? "mid" : "old";
+  return `gen_${f ? "f" : "m"}_${g}`;
+}
+function mkP(ch, role, hat, c1, c2, who) {
+  const a = artFor(ch, role, hat, who);
+  return a ? artSp(a) : makeSprite(lookOf(ch, role, hat, c1, c2));
 }
 function realmOf(id) { return G.realms[id]; }
 function charPortrait(ch, who) {
-  if (who === "player") return makeSprite(lookOf(ch, "ruler", HATS[rank()], PLAYER_COLOR, rulerTunic("#3a4a8a")));
-  if (who === "family") return makeSprite(lookOf(ch, "noble", "none", PLAYER_COLOR, "#4a5a8a"));
-  if (who === "suitor") return makeSprite(lookOf(ch, "noble", "none", "#5a6ab0", "#3a4060"));
-  if (typeof who === "string" && who[0] === "v") { const lid = +who.slice(1), col = lid === 0 ? PLAYER_COLOR : realmOf(lid).color; return makeSprite(lookOf(ch, "vassal", "coronet", mixH(col, "#4a4a3a", 0.3), mixH(col, "#2a2a34", 0.55))); }
+  if (who === "player") return mkP(ch, "ruler", HATS[rank()], PLAYER_COLOR, rulerTunic("#3a4a8a"), who);
+  if (who === "family") return mkP(ch, "noble", "none", PLAYER_COLOR, "#4a5a8a", who);
+  if (who === "suitor") return mkP(ch, "noble", "none", "#5a6ab0", "#3a4060", who);
+  if (typeof who === "string" && who[0] === "v") { const lid = +who.slice(1), col = lid === 0 ? PLAYER_COLOR : realmOf(lid).color; return mkP(ch, "vassal", "coronet", mixH(col, "#4a4a3a", 0.3), mixH(col, "#2a2a34", 0.55), who); }
   const r = realmOf(who), hat = realmHat(r);
-  return makeSprite(lookOf(ch, r.theo ? "clergy" : "ruler", hat, r.color, rulerTunic(r.color)));
+  return mkP(ch, r.theo ? "clergy" : "ruler", hat, r.color, rulerTunic(r.color), who);
 }
 function portrait(ch, hat, bg, cloth) { return makeSprite(lookOf(ch, hat.startsWith("crown") ? "ruler" : hat === "mitre" ? "clergy" : "noble", hat, cloth, rulerTunic(cloth))); }
 // 화면에 그리기: big(2배 전신) · mid(1배 전신) · bust(1배 상반신)
