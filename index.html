@@ -886,6 +886,7 @@ const abp = n => "abp" + String(n).padStart(2, "0"), lordN = n => "lord" + Strin
 const artSp = n => ({ u:`img/${n}.webp`, art:true });
 function artFor(ch, role, hat, who) {
   const t = ch.traits || [], has = k => t.includes(k), f = ch.sex === "f", h = Math.abs(((ch.id | 0) * 2654435761) >>> 0), age = ch.age;
+  if (age < 14 && (who === "player" || who === "family") && ch.name === "오토") return "fam_otto_kid";
   if (age < 14 && role !== "clergy") return null;
   if (role === "monk") return "npc_monk"; if (role === "bandit") return "npc_bandit"; if (role === "knight") return "npc_knight";
   if (role === "peasant") return f ? "npc_peasant_f" : "npc_peasant_m";
