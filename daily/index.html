@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>하루 책상</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="메모, 할 일, 캘린더, 알람, 타이머, 음악, 가계부, 습관, 계산기를 한곳에서 쓰는 개인 대시보드">
+<meta name="theme-color" content="#F3F4EF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail" id="rail">
+    <a class="brand" href="#home" aria-label="하루 책상 홈">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">하루 책상</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="메뉴"></nav>
+    <p class="rail-note">모든 기록은 이 브라우저에만 저장돼요.</p>
+  </aside>
+  <main class="view" id="view" tabindex="-1"></main>
+</div>
+<div class="mini" id="mini" hidden></div>
+<div id="layer"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="js/core.js"></script>
+<script src="js/home.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/todo.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/alarm.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/music.js"></script>
+<script src="js/budget.js"></script>
+<script src="js/habits.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/prefs.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
