@@ -7,6 +7,13 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="메모, 할 일, 캘린더, 알람, 타이머, 음악, 가계부, 습관, 계산기를 한곳에서 쓰는 개인 대시보드">
 <meta name="theme-color" content="#F3F4EF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="하루 책상">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
@@ -41,5 +48,10 @@
 <script src="js/calc.js"></script>
 <script src="js/prefs.js"></script>
 <script src="js/app.js"></script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
 </body>
 </html>
