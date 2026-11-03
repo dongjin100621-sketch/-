@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영지 개발</title>
+<style>
+  :root { --bg:#1d2a1f; --panel:#2b3d2e; --ink:#f1ecd8; --accent:#e0b84c; --bad:#e07a5f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:960px; margin:0 auto; padding:16px; }
+  h1 { margin:0 0 12px; font-size:22px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .chip { background:var(--panel); padding:6px 12px; border-radius:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; margin-bottom:12px; }
+  .tile { aspect-ratio:1; background:#3a5240; border:2px solid transparent; border-radius:6px;
+          font-size:clamp(14px,3.5vw,28px); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .tile:hover { border-color:var(--accent); }
+  .tile.sel { border-color:var(--accent); background:#4a6650; }
+  .shop { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; margin-bottom:12px; }
+  button { font:inherit; color:var(--ink); background:var(--panel); border:1px solid #567a5d; border-radius:8px;
+           padding:8px 10px; cursor:pointer; text-align:left; }
+  button.sel { border-color:var(--accent); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  button.primary { background:var(--accent); color:#222; font-weight:700; text-align:center; }
+  small { opacity:.75; }
+  #log { background:var(--panel); border-radius:8px; padding:8px 12px; height:140px; overflow:auto; font-size:13px; }
+  #log p { margin:2px 0; } .bad { color:var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <h1>🏰 영지 개발</h1>
+  <div class="bar" id="stats"></div>
+  <div class="grid" id="map"></div>
+  <div class="shop" id="shop"></div>
+  <div class="bar">
+    <button class="primary" id="next">다음 턴 ▶</button>
+    <button id="demolish">🧹 철거 모드</button>
+    <button id="reset">새 게임</button>
+  </div>
+  <div id="log"></div>
+</main>
+<script>
+const SIZE = 8;
+const BUILDINGS = {
+  house:  { icon:"🏠", name:"주택",   cost:{wood:20},            desc:"인구 +4 수용" },
+  farm:   { icon:"🌾", name:"농장",   cost:{wood:15},            desc:"식량 +6/턴",  prod:{food:6},  workers:2 },
+  lumber: { icon:"🪓", name:"벌목소", cost:{wood:10},            desc:"목재 +5/턴",  prod:{wood:5},  workers:2 },
+  quarry: { icon:"⛏️", name:"채석장", cost:{wood:25},            desc:"석재 +4/턴",  prod:{stone:4}, workers:2 },
+  market: { icon:"🏪", name:"시장",   cost:{wood:30,stone:15},   desc:"금화 +8/턴",  prod:{gold:8},  workers:3 },
+  wall:   { icon:"🧱", name:"성벽",   cost:{stone:30,gold:10},   desc:"습격 피해 감소" },
+  castle: { icon:"🏯", name:"성",     cost:{stone:80,gold:60},   desc:"인구 +10, 승리 목표" },
+};
+const LABEL = { food:"🍖 식량", wood:"🪵 목재", stone:"🪨 석재", gold:"💰 금화" };
+let S, selected = "house", demolish = false;
+
+function newGame() {
+  S = { turn:1, pop:6, res:{food:30, wood:60, stone:0, gold:0},
+        map:Array(SIZE*SIZE).fill(null), over:false, log:[] };
+  say("영지를 세웠습니다. 건물을 지어 번영시키세요! 성을 완성하면 승리합니다.");
+  render();
+}
+const count = t => S.map.filter(x => x === t).length;
+const housing = () => 6 + count("house")*4 + count("castle")*10;
+const jobs = () => ["farm","lumber","quarry","market"].reduce((n,t) => n + count(t)*BUILDINGS[t].workers, 0);
+const canPay = c => Object.entries(c).every(([k,v]) => S.res[k] >= v);
+const pay = c => Object.entries(c).forEach(([k,v]) => S.res[k] -= v);
+const costText = c => Object.entries(c).map(([k,v]) => LABEL[k].split(" ")[0]+v).join(" ");
+
+function say(msg, bad) { S.log.push({msg, bad}); if (S.log.length > 60) S.log.shift(); }
+
+function clickTile(i) {
+  if (S.over) return;
+  if (demolish) {
+    if (S.map[i]) { S.map[i] = null; say("건물을 철거했습니다."); }
+  } else if (!S.map[i]) {
+    const b = BUILDINGS[selected];
+    if (!canPay(b.cost)) return say("자원이 부족합니다.", true), render();
+    pay(b.cost); S.map[i] = selected; say(`${b.name} 건설 완료.`);
+  }
+  render();
+}
+
+function nextTurn() {
+  if (S.over) return;
+  // 생산: 일할 사람이 부족하면 비율만큼만 생산
+  const ratio = Math.min(1, jobs() ? S.pop / jobs() : 1);
+  for (const t of Object.keys(BUILDINGS)) {
+    const b = BUILDINGS[t];
+    if (b.prod) for (const [k,v] of Object.entries(b.prod)) S.res[k] += Math.floor(v * count(t) * ratio);
+  }
+  // 식량 소비와 인구 변화
+  S.res.food -= S.pop;
+  if (S.res.food < 0) {
+    const lost = Math.min(S.pop - 1, Math.ceil(-S.res.food / 2));
+    S.pop -= lost; S.res.food = 0;
+    say(`기근! 주민 ${lost}명이 떠났습니다.`, true);
+  } else if (S.pop < housing() && S.res.food > S.pop) {
+    S.pop += 1; say("새 주민이 이주해 왔습니다.");
+  }
+  if (S.pop > housing()) S.pop = housing();
+  // 무작위 사건
+  const r = Math.random();
+  if (S.turn % 5 === 0) {
+    const defense = 1 - Math.min(0.8, count("wall") * 0.2);
+    const loss = Math.floor(Math.min(S.res.gold, 10 + S.turn) * defense);
+    S.res.gold -= loss;
+    say(loss ? `산적 습격! 금화 ${loss}를 빼앗겼습니다.` : "산적이 성벽을 보고 물러났습니다.", loss > 0);
+  } else if (r < 0.12) { S.res.food += 10; say("풍년이 들어 식량 +10!"); }
+  else if (r < 0.2) { S.res.gold += 15; say("떠돌이 상인이 선물을 주고 갔습니다. 금화 +15"); }
+  S.turn++;
+  if (count("castle")) { S.over = true; say(`🎉 ${S.turn-1}턴 만에 성을 완성했습니다! 승리!`); }
+  render();
+}
+
+function render() {
+  const st = document.getElementById("stats");
+  st.innerHTML = `<div class="chip">📅 ${S.turn}턴</div><div class="chip">👥 ${S.pop}/${housing()}</div>
+    <div class="chip">⚒️ 일자리 ${jobs()}</div>` +
+    Object.keys(LABEL).map(k => `<div class="chip">${LABEL[k]} ${S.res[k]}</div>`).join("");
+  const map = document.getElementById("map");
+  map.innerHTML = "";
+  S.map.forEach((t,i) => {
+    const d = document.createElement("div");
+    d.className = "tile"; d.textContent = t ? BUILDINGS[t].icon : "";
+    d.onclick = () => clickTile(i); map.appendChild(d);
+  });
+  const shop = document.getElementById("shop");
+  shop.innerHTML = "";
+  for (const [id,b] of Object.entries(BUILDINGS)) {
+    const el = document.createElement("button");
+    el.className = (!demolish && selected === id) ? "sel" : "";
+    el.disabled = !canPay(b.cost);
+    el.innerHTML = `${b.icon} <b>${b.name}</b><br><small>${costText(b.cost)} · ${b.desc}</small>`;
+    el.onclick = () => { selected = id; demolish = false; render(); };
+    shop.appendChild(el);
+  }
+  document.getElementById("demolish").classList.toggle("sel", demolish);
+  document.getElementById("next").disabled = S.over;
+  const log = document.getElementById("log");
+  log.innerHTML = S.log.map(l => `<p class="${l.bad?"bad":""}">${l.msg}</p>`).join("");
+  log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById("next").onclick = nextTurn;
+document.getElementById("demolish").onclick = () => { demolish = !demolish; render(); };
+document.getElementById("reset").onclick = newGame;
+newGame();
+</script>
+</body>
+</html>
