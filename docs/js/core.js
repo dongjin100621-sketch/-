@@ -35,7 +35,7 @@ window.App = (function () {
 
   const clone = v => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const DEFAULTS = {
-    prefs: { name: '', theme: 'system', city: null, seeded: false, sound: 'chime' },
+    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime' },
     notes: [],
     todoLists: [{ id: 'inbox', name: '할 일' }],
     todos: [],
@@ -461,7 +461,7 @@ window.App = (function () {
     else if (hostTheme) root.setAttribute('data-theme', hostTheme);
     else root.removeAttribute('data-theme');
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--paper').trim() || '#F3F4EF');
+    if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--paper').trim() || '#1F1E1D');
   }
 
   /* 페이지 다른 곳에서 클릭할 때 열린 인라인 메뉴를 닫는 등의 공통 처리는 각 화면에서 */

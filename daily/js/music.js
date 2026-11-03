@@ -540,8 +540,8 @@
         if (!cv) return;
         const g = cv.getContext('2d');
         const css = getComputedStyle(document.documentElement);
-        const color = css.getPropertyValue('--accent').trim() || '#2C4E8A';
-        const faint = css.getPropertyValue('--line').trim() || '#DCDFD6';
+        const color = css.getPropertyValue('--accent').trim() || '#D97757';
+        const faint = css.getPropertyValue('--line').trim() || '#3A3936';
         const data = new Uint8Array(analyser ? analyser.frequencyBinCount : 64);
         const frame = () => {
           if (!cv.isConnected) return;

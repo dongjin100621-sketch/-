@@ -1,30 +1,30 @@
 /* 하루 책상
    Layout: 왼쪽에 도구 레일, 오른쪽에 도구마다 한 장의 작업 화면. 휴대폰에서는 레일이 위쪽 가로 줄로 접힌다.
-   Color: 종이색 바탕 + 쪽빛(인디고) 강조. 적·황·녹은 상태(지출/중요/완료)에만 쓴다. */
+   Color: 먹색 바탕 + 주황 강조(밝은 테마는 미색 바탕). 적·황·녹은 상태(지출/중요/완료)에만 쓴다. */
 :root {
-  --paper: #F3F4EF;
+  --paper: #FAF9F5;
   --sheet: #FFFFFF;
-  --sheet-2: #EBEDE6;
-  --ink: #1A211D;
-  --ink-2: #57615B;
-  --ink-3: #8A938D;
-  --line: #DCDFD6;
-  --accent: #2C4E8A;
-  --accent-soft: #E2E8F3;
+  --sheet-2: #F0EEE6;
+  --ink: #1F1E1D;
+  --ink-2: #5E5D59;
+  --ink-3: #8C8A84;
+  --line: #E3E0D7;
+  --accent: #C15F3C;
+  --accent-soft: #F7E6DD;
   --on-accent: #FFFFFF;
-  --red: #BF3A26;
-  --red-soft: #F8E3DE;
+  --red: #B8323F;
+  --red-soft: #F7DFE1;
   --on-red: #FFFFFF;
-  --yellow: #B98208;
-  --yellow-soft: #F6ECCB;
-  --green: #277551;
-  --green-soft: #DCEEE4;
+  --yellow: #A87708;
+  --yellow-soft: #F5EBCB;
+  --green: #2F7A55;
+  --green-soft: #DDEFE4;
   --sat: #2F62C9;
-  --toast-bg: #1A211D;
-  --toast-fg: #F3F4EF;
-  --toast-act: #A9C3F2;
-  --scrim: rgba(20, 26, 23, .42);
-  --shadow: 0 1px 2px rgba(26, 33, 29, .05), 0 10px 28px -14px rgba(26, 33, 29, .25);
+  --toast-bg: #1F1E1D;
+  --toast-fg: #FAF9F5;
+  --toast-act: #F0A585;
+  --scrim: rgba(20, 19, 18, .42);
+  --shadow: 0 1px 2px rgba(31, 30, 29, .05), 0 10px 28px -14px rgba(31, 30, 29, .25);
 
   --font-display: "Hahmlet", "Noto Serif KR", "AppleMyungjo", "Batang", serif;
   --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
@@ -37,54 +37,54 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #111513;
-    --sheet: #191E1B;
-    --sheet-2: #232925;
-    --ink: #E6EAE5;
-    --ink-2: #A3ACA6;
-    --ink-3: #747E78;
-    --line: #2D3430;
-    --accent: #8FAFE9;
-    --accent-soft: #1F2B42;
-    --on-accent: #0E1626;
-    --red: #F0826D;
-    --red-soft: #3A211C;
-    --on-red: #2A0E08;
+    --paper: #1F1E1D;
+    --sheet: #262624;
+    --sheet-2: #30302E;
+    --ink: #F0EEE6;
+    --ink-2: #B0AEA5;
+    --ink-3: #7F7D76;
+    --line: #3A3936;
+    --accent: #D97757;
+    --accent-soft: #3B2A23;
+    --on-accent: #1F1E1D;
+    --red: #F07178;
+    --red-soft: #3D2326;
+    --on-red: #2A0E10;
     --yellow: #E4B947;
-    --yellow-soft: #352B12;
+    --yellow-soft: #3A3018;
     --green: #6AC498;
-    --green-soft: #17301F;
-    --sat: #8AABF2;
-    --toast-bg: #E6EAE5;
-    --toast-fg: #111513;
-    --toast-act: #2C4E8A;
+    --green-soft: #1C3226;
+    --sat: #86A8F0;
+    --toast-bg: #F0EEE6;
+    --toast-fg: #1F1E1D;
+    --toast-act: #B5532F;
     --scrim: rgba(0, 0, 0, .6);
     --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -14px rgba(0, 0, 0, .7);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #111513;
-  --sheet: #191E1B;
-  --sheet-2: #232925;
-  --ink: #E6EAE5;
-  --ink-2: #A3ACA6;
-  --ink-3: #747E78;
-  --line: #2D3430;
-  --accent: #8FAFE9;
-  --accent-soft: #1F2B42;
-  --on-accent: #0E1626;
-  --red: #F0826D;
-  --red-soft: #3A211C;
-  --on-red: #2A0E08;
+  --paper: #1F1E1D;
+  --sheet: #262624;
+  --sheet-2: #30302E;
+  --ink: #F0EEE6;
+  --ink-2: #B0AEA5;
+  --ink-3: #7F7D76;
+  --line: #3A3936;
+  --accent: #D97757;
+  --accent-soft: #3B2A23;
+  --on-accent: #1F1E1D;
+  --red: #F07178;
+  --red-soft: #3D2326;
+  --on-red: #2A0E10;
   --yellow: #E4B947;
-  --yellow-soft: #352B12;
+  --yellow-soft: #3A3018;
   --green: #6AC498;
-  --green-soft: #17301F;
-  --sat: #8AABF2;
-  --toast-bg: #E6EAE5;
-  --toast-fg: #111513;
-  --toast-act: #2C4E8A;
+  --green-soft: #1C3226;
+  --sat: #86A8F0;
+  --toast-bg: #F0EEE6;
+  --toast-fg: #1F1E1D;
+  --toast-act: #B5532F;
   --scrim: rgba(0, 0, 0, .6);
   --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -14px rgba(0, 0, 0, .7);
   color-scheme: dark;
@@ -150,17 +150,7 @@ img, canvas, svg { max-width: 100%; }
   color: var(--ink);
   text-decoration: none;
 }
-.brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background:
-    linear-gradient(var(--accent), var(--accent)) left 5px top 6px / 12px 2px no-repeat,
-    linear-gradient(var(--accent), var(--accent)) left 5px top 10px / 9px 2px no-repeat,
-    linear-gradient(var(--accent), var(--accent)) left 5px top 14px / 11px 2px no-repeat,
-    var(--accent-soft);
-  border: 1.5px solid var(--accent);
-}
+.brand-mark { flex: none; display: block; image-rendering: pixelated; }
 .brand-name { font: 600 19px/1 var(--font-display); letter-spacing: -.01em; }
 .nav { position: relative; display: flex; flex-direction: column; gap: 2px; }
 .nav a {

@@ -98,6 +98,12 @@
 
   /* ---------- 시작 ---------- */
   if (!A.data.prefs.seeded) seed();
+  // 새 색상(먹색 + 주황)으로 바뀐 뒤 처음 열면 어두운 테마로 맞춘다
+  if (A.data.prefs.palette !== 2) {
+    if (A.data.prefs.theme === 'system') A.data.prefs.theme = 'dark';
+    A.data.prefs.palette = 2;
+    A.save('prefs');
+  }
   A.applyTheme();
   buildNav();
   window.addEventListener('hashchange', A.route);
