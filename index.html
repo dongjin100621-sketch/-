@@ -4,148 +4,246 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>영지 개발</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
-  :root { --bg:#1d2a1f; --panel:#2b3d2e; --ink:#f1ecd8; --accent:#e0b84c; --bad:#e07a5f; }
+  /* Layout: resource bar, one card per county with three holding slots, rank/conquest panel, log */
+  :root { --bg:#f3f1ea; --panel:#e4e8dc; --card:#ecefe4; --ink:#1f2a21; --accent:#a8741a; --accent-ink:#fff; --line:#9fb08f; --bad:#b0412a; --good:#2e7d32; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1d2a1f; --panel:#2b3d2e; --card:#243427; --ink:#f1ecd8; --accent:#e0b84c; --accent-ink:#222; --line:#567a5d; --bad:#e07a5f; --good:#8fd694; color-scheme:dark; } }
+  :root[data-theme="dark"] { --bg:#1d2a1f; --panel:#2b3d2e; --card:#243427; --ink:#f1ecd8; --accent:#e0b84c; --accent-ink:#222; --line:#567a5d; --bad:#e07a5f; --good:#8fd694; color-scheme:dark; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--ink); }
-  main { max-width:960px; margin:0 auto; padding:16px; }
-  h1 { margin:0 0 12px; font-size:22px; }
-  .bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
-  .chip { background:var(--panel); padding:6px 12px; border-radius:8px; font-size:14px; }
-  .grid { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; margin-bottom:12px; }
-  .tile { aspect-ratio:1; background:#3a5240; border:2px solid transparent; border-radius:6px;
-          font-size:clamp(14px,3.5vw,28px); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .tile:hover { border-color:var(--accent); }
-  .tile.sel { border-color:var(--accent); background:#4a6650; }
-  .shop { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; margin-bottom:12px; }
-  button { font:inherit; color:var(--ink); background:var(--panel); border:1px solid #567a5d; border-radius:8px;
-           padding:8px 10px; cursor:pointer; text-align:left; }
-  button.sel { border-color:var(--accent); }
+  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--ink); font-size:14px;
+         padding-block:16px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+  main { max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+  h1 { margin:0; font-size:22px; } h2 { margin:0; font-size:17px; } h3 { margin:0; font-size:14px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { background:var(--panel); padding:6px 12px; border-radius:8px; }
+  .chip b { font-variant-numeric:tabular-nums; }
+  .county { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:10px; }
+  .chead { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline; }
+  .meter { display:inline-block; width:80px; height:8px; background:var(--panel); border-radius:4px; vertical-align:middle; overflow:hidden; }
+  .meter i { display:block; height:100%; background:var(--accent); }
+  .slots { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; }
+  .slot { background:var(--panel); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .slot.empty { border:1px dashed var(--line); background:transparent; }
+  .row { display:flex; flex-wrap:wrap; gap:6px; }
+  button { font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 9px; cursor:pointer; text-align:left; min-width:0; }
+  button:hover:not(:disabled) { border-color:var(--accent); }
   button:disabled { opacity:.45; cursor:not-allowed; }
-  button.primary { background:var(--accent); color:#222; font-weight:700; text-align:center; }
-  small { opacity:.75; }
-  #log { background:var(--panel); border-radius:8px; padding:8px 12px; height:140px; overflow:auto; font-size:13px; }
-  #log p { margin:2px 0; } .bad { color:var(--bad); }
+  button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  button.primary { background:var(--accent); color:var(--accent-ink); font-weight:700; text-align:center; border-color:var(--accent); }
+  small, .dim { opacity:.75; }
+  .tag { background:var(--bg); border-radius:6px; padding:2px 7px; font-size:12px; }
+  .prog { height:6px; background:var(--bg); border-radius:3px; overflow:hidden; } .prog i { display:block; height:100%; background:var(--good); }
+  #log { background:var(--panel); border-radius:8px; padding:8px 12px; height:150px; overflow:auto; font-size:13px; }
+  #log p { margin:2px 0; } .bad { color:var(--bad); } .good { color:var(--good); }
+  .help { background:var(--panel); border-radius:8px; padding:8px 12px; font-size:13px; line-height:1.5; }
 </style>
 </head>
 <body>
 <main>
   <h1>🏰 영지 개발</h1>
+  <div class="help">백작령마다 장원(성·도시·교회)을 지어 세수와 병력을 키우세요. 성은 병력, 도시는 금화, 교회는 신앙심을 줍니다. 개발도와 통제력이 높을수록 세수가 늘어납니다. 위신과 신앙심을 모아 <b>왕</b>이 되면 승리합니다.</div>
   <div class="bar" id="stats"></div>
-  <div class="grid" id="map"></div>
-  <div class="shop" id="shop"></div>
+  <div id="counties" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div class="county" id="realm"></div>
   <div class="bar">
-    <button class="primary" id="next">다음 턴 ▶</button>
-    <button id="demolish">🧹 철거 모드</button>
-    <button id="reset">새 게임</button>
+    <button class="primary" onclick="tick()">다음 달 ▶</button>
+    <button onclick="tick(6)">6개월 ⏩</button>
+    <button onclick="newGame()">새 게임</button>
   </div>
   <div id="log"></div>
 </main>
 <script>
-const SIZE = 8;
-const BUILDINGS = {
-  house:  { icon:"🏠", name:"주택",   cost:{wood:20},            desc:"인구 +4 수용" },
-  farm:   { icon:"🌾", name:"농장",   cost:{wood:15},            desc:"식량 +6/턴",  prod:{food:6},  workers:2 },
-  lumber: { icon:"🪓", name:"벌목소", cost:{wood:10},            desc:"목재 +5/턴",  prod:{wood:5},  workers:2 },
-  quarry: { icon:"⛏️", name:"채석장", cost:{wood:25},            desc:"석재 +4/턴",  prod:{stone:4}, workers:2 },
-  market: { icon:"🏪", name:"시장",   cost:{wood:30,stone:15},   desc:"금화 +8/턴",  prod:{gold:8},  workers:3 },
-  wall:   { icon:"🧱", name:"성벽",   cost:{stone:30,gold:10},   desc:"습격 피해 감소" },
-  castle: { icon:"🏯", name:"성",     cost:{stone:80,gold:60},   desc:"인구 +10, 승리 목표" },
+const HOLD = {
+  castle: { icon:"🏰", name:"성",   tax:3, levy:20, piety:0, desc:"병력의 근원" },
+  city:   { icon:"🏘️", name:"도시", tax:8, levy:5,  piety:0, desc:"금화의 근원" },
+  temple: { icon:"⛪", name:"교회", tax:4, levy:5,  piety:1, desc:"신앙심의 근원" },
 };
-const LABEL = { food:"🍖 식량", wood:"🪵 목재", stone:"🪨 석재", gold:"💰 금화" };
-let S, selected = "house", demolish = false;
+const HOLD_COST = 150, HOLD_TIME = 4;
+const BLD = {
+  palisade: { name:"목책",     on:["castle"], cost:80,  time:3, levy:10 },
+  barracks: { name:"병영",     on:["castle"], cost:160, time:4, levy:25 },
+  stables:  { name:"마구간",   on:["castle"], cost:140, time:4, prestige:0.5 },
+  market:   { name:"시장",     on:["city"],   cost:100, time:3, tax:4 },
+  guild:    { name:"길드회관", on:["city"],   cost:220, time:5, tax:8 },
+  aqueduct: { name:"수로",     on:["city"],   cost:180, time:4, dev:0.04 },
+  abbey:    { name:"수도원",   on:["temple"], cost:100, time:3, piety:1 },
+  school:   { name:"학교",     on:["temple"], cost:180, time:4, dev:0.05 },
+  hospital: { name:"시약소",   on:["temple"], cost:150, time:4, tax:3 },
+};
+const RANKS = ["백작", "공작", "왕"], LIMIT = [5, 8, 12];
+const PROMOTE = [
+  { need:"2개 백작령, 위신 100", ok:g => g.counties.length >= 2 && g.prestige >= 100, pay:g => g.prestige -= 100 },
+  { need:"3개 백작령, 위신 250, 신앙심 50", ok:g => g.counties.length >= 3 && g.prestige >= 250 && g.piety >= 50, pay:g => { g.prestige -= 250; g.piety -= 50; } },
+];
+const TARGETS = [ { name:"로슬린", need:30 }, { name:"에르힐", need:60 }, { name:"브란덴", need:100 } ];
+const WAR_COST = 120;
+let G;
+
+const f1 = n => (Math.round(n * 10) / 10).toString();
+function say(msg, cls) { G.log.push({ msg, cls }); if (G.log.length > 80) G.log.shift(); }
+function mkCounty(name, control) { return { name, dev:1, control, slots:[ { type:"castle", b:[], q:null, under:0 }, null, null ] }; }
 
 function newGame() {
-  S = { turn:1, pop:6, res:{food:30, wood:60, stone:0, gold:0},
-        map:Array(SIZE*SIZE).fill(null), over:false, log:[] };
-  say("영지를 세웠습니다. 건물을 지어 번영시키세요! 성을 완성하면 승리합니다.");
+  G = { year:1066, month:1, gold:300, prestige:10, piety:5, rank:0, over:false,
+        counties:[ mkCounty("발란", 70) ], targets:TARGETS.map(t => ({ ...t })), log:[] };
+  say("1066년 1월, 발란 백작령을 물려받았습니다. 성 하나뿐인 작은 영지입니다.");
   render();
 }
-const count = t => S.map.filter(x => x === t).length;
-const housing = () => 6 + count("house")*4 + count("castle")*10;
-const jobs = () => ["farm","lumber","quarry","market"].reduce((n,t) => n + count(t)*BUILDINGS[t].workers, 0);
-const canPay = c => Object.entries(c).every(([k,v]) => S.res[k] >= v);
-const pay = c => Object.entries(c).forEach(([k,v]) => S.res[k] -= v);
-const costText = c => Object.entries(c).map(([k,v]) => LABEL[k].split(" ")[0]+v).join(" ");
 
-function say(msg, bad) { S.log.push({msg, bad}); if (S.log.length > 60) S.log.shift(); }
+// ---- 계산 ----
+function holdStat(s) {
+  const h = HOLD[s.type];
+  const r = { tax:h.tax, levy:h.levy, piety:h.piety, prestige:0, dev:0 };
+  for (const id of s.b) { const b = BLD[id]; for (const k of ["tax","levy","piety","prestige","dev"]) r[k] += b[k] || 0; }
+  return r;
+}
+function countyStat(c) {
+  const r = { tax:0, levy:0, piety:0, prestige:0, dev:0, n:0 };
+  for (const s of c.slots) if (s && !s.under) {
+    const h = holdStat(s); r.n++;
+    for (const k of ["tax","levy","piety","prestige","dev"]) r[k] += h[k];
+  }
+  r.factor = (0.4 + 0.6 * c.control / 100) * (1 + c.dev * 0.1);
+  r.income = r.tax * r.factor;
+  return r;
+}
+function realm() {
+  const t = { income:0, levy:0, piety:0, prestige:2, holdings:0 };
+  for (const c of G.counties) {
+    const s = countyStat(c);
+    t.income += s.income; t.levy += s.levy; t.piety += s.piety; t.prestige += s.prestige;
+    t.holdings += c.slots.filter(Boolean).length;
+  }
+  return t;
+}
 
-function clickTile(i) {
-  if (S.over) return;
-  if (demolish) {
-    if (S.map[i]) { S.map[i] = null; say("건물을 철거했습니다."); }
-  } else if (!S.map[i]) {
-    const b = BUILDINGS[selected];
-    if (!canPay(b.cost)) return say("자원이 부족합니다.", true), render();
-    pay(b.cost); S.map[i] = selected; say(`${b.name} 건설 완료.`);
+// ---- 행동 ----
+function act(kind, ci, si, id) {
+  if (G.over) return;
+  const c = G.counties[ci];
+  if (kind === "hold") {
+    if (G.gold < HOLD_COST) return say("금화가 부족합니다.", "bad"), render();
+    if (realm().holdings >= LIMIT[G.rank]) return say("영지 보유 한도에 도달했습니다. 직위를 올려야 합니다.", "bad"), render();
+    G.gold -= HOLD_COST; c.slots[si] = { type:id, b:[], q:null, under:HOLD_TIME };
+    say(`${c.name}에 ${HOLD[id].name} 건설을 시작했습니다.`);
+  } else if (kind === "build") {
+    const s = c.slots[si], b = BLD[id];
+    if (G.gold < b.cost) return say("금화가 부족합니다.", "bad"), render();
+    G.gold -= b.cost; s.q = { id, left:b.time };
+    say(`${c.name}의 ${HOLD[s.type].name}에 ${b.name} 건설을 시작했습니다.`);
+  } else if (kind === "patrol") {
+    if (G.gold < 30) return say("금화가 부족합니다.", "bad"), render();
+    G.gold -= 30; c.control = Math.min(100, c.control + 20);
+    say(`${c.name}에 병사를 풀어 질서를 바로잡았습니다. 통제력 +20`);
+  } else if (kind === "conquer") {
+    const t = G.targets[ci], lv = realm().levy;
+    if (G.gold < WAR_COST) return say("전쟁 비용이 부족합니다.", "bad"), render();
+    if (lv < t.need) return say(`병력이 부족합니다. (${lv}/${t.need})`, "bad"), render();
+    G.gold -= WAR_COST; G.prestige += 25;
+    G.counties.push(mkCounty(t.name, 40)); G.targets.splice(ci, 1);
+    say(`${t.name} 백작령을 정복했습니다! 위신 +25`, "good");
+  } else if (kind === "promote") {
+    const p = PROMOTE[G.rank];
+    if (!p || !p.ok(G)) return;
+    p.pay(G); G.rank++;
+    say(`${RANKS[G.rank]}으로 즉위했습니다! 영지 보유 한도 ${LIMIT[G.rank]}`, "good");
+    if (G.rank === 2) { G.over = true; say(`🎉 ${G.year}년 ${G.month}월, 왕관을 쓰고 승리했습니다!`, "good"); }
   }
   render();
 }
 
-function nextTurn() {
-  if (S.over) return;
-  // 생산: 일할 사람이 부족하면 비율만큼만 생산
-  const ratio = Math.min(1, jobs() ? S.pop / jobs() : 1);
-  for (const t of Object.keys(BUILDINGS)) {
-    const b = BUILDINGS[t];
-    if (b.prod) for (const [k,v] of Object.entries(b.prod)) S.res[k] += Math.floor(v * count(t) * ratio);
-  }
-  // 식량 소비와 인구 변화
-  S.res.food -= S.pop;
-  if (S.res.food < 0) {
-    const lost = Math.min(S.pop - 1, Math.ceil(-S.res.food / 2));
-    S.pop -= lost; S.res.food = 0;
-    say(`기근! 주민 ${lost}명이 떠났습니다.`, true);
-  } else if (S.pop < housing() && S.res.food > S.pop) {
-    S.pop += 1; say("새 주민이 이주해 왔습니다.");
-  }
-  if (S.pop > housing()) S.pop = housing();
-  // 무작위 사건
-  const r = Math.random();
-  if (S.turn % 5 === 0) {
-    const defense = 1 - Math.min(0.8, count("wall") * 0.2);
-    const loss = Math.floor(Math.min(S.res.gold, 10 + S.turn) * defense);
-    S.res.gold -= loss;
-    say(loss ? `산적 습격! 금화 ${loss}를 빼앗겼습니다.` : "산적이 성벽을 보고 물러났습니다.", loss > 0);
-  } else if (r < 0.12) { S.res.food += 10; say("풍년이 들어 식량 +10!"); }
-  else if (r < 0.2) { S.res.gold += 15; say("떠돌이 상인이 선물을 주고 갔습니다. 금화 +15"); }
-  S.turn++;
-  if (count("castle")) { S.over = true; say(`🎉 ${S.turn-1}턴 만에 성을 완성했습니다! 승리!`); }
+function tick(n = 1) {
+  for (let i = 0; i < n && !G.over; i++) step();
   render();
 }
+function step() {
+  const r = realm();
+  // 건설 진행
+  for (const c of G.counties) for (const s of c.slots) {
+    if (!s) continue;
+    if (s.under) { if (--s.under === 0) say(`${c.name}의 ${HOLD[s.type].name}이(가) 완공되었습니다.`, "good"); }
+    else if (s.q && --s.q.left === 0) { s.b.push(s.q.id); say(`${c.name}: ${BLD[s.q.id].name} 완공.`, "good"); s.q = null; }
+  }
+  // 개발도·통제력
+  for (const c of G.counties) {
+    const s = countyStat(c);
+    c.dev = Math.min(10, c.dev + 0.02 + s.dev);
+    c.control = Math.max(0, Math.min(100, c.control + (s.levy >= 25 ? 1 : -0.5)));
+  }
+  G.gold += r.income; G.prestige += r.prestige; G.piety += r.piety;
+  event();
+  if (++G.month > 12) { G.month = 1; G.year++; }
+}
+function event() {
+  const x = Math.random(), c = G.counties[Math.floor(Math.random() * G.counties.length)];
+  if (x < 0.05) { const g = 40 + Math.floor(Math.random() * 40); G.gold += g; say(`${c.name}에 풍년이 들어 금화 +${g}`, "good"); }
+  else if (x < 0.09) { const g = Math.min(G.gold, 50); G.gold -= g; say(`${c.name}에 흉년이 들어 금화 -${g}`, "bad"); }
+  else if (x < 0.14) {
+    const d = c.control > 70 ? 10 : 25; c.control = Math.max(0, c.control - d);
+    say(`${c.name}에서 농민 소요가 일어났습니다. 통제력 -${d}`, "bad");
+  } else if (x < 0.18) { G.piety += 5; say("순례자들이 찾아와 헌금을 남겼습니다. 신앙심 +5", "good"); }
+  else if (x < 0.22) {
+    const lv = realm().levy, g = Math.min(G.gold, Math.max(0, 60 - lv));
+    G.gold -= g; say(g ? `도적이 ${c.name}을(를) 약탈했습니다. 금화 -${g}` : "도적떼가 병력을 보고 물러났습니다.", g ? "bad" : "");
+  }
+}
 
+// ---- 화면 ----
+function slotHtml(c, ci, si) {
+  const s = c.slots[si];
+  if (!s) {
+    const btns = Object.entries(HOLD).map(([id, h]) =>
+      `<button ${G.gold < HOLD_COST || G.over ? "disabled" : ""} onclick="act('hold',${ci},${si},'${id}')">${h.icon} ${h.name} <small>💰${HOLD_COST} · ${h.desc}</small></button>`).join("");
+    return `<div class="slot empty"><h3 class="dim">빈 장원 (${si + 1})</h3><div class="row">${btns}</div></div>`;
+  }
+  const h = HOLD[s.type];
+  if (s.under) return `<div class="slot"><h3>${h.icon} ${h.name} 건설 중</h3>
+    <div class="prog"><i style="width:${(1 - s.under / HOLD_TIME) * 100}%"></i></div><small>${s.under}개월 남음</small></div>`;
+  const st = holdStat(s), have = s.b.map(id => `<span class="tag">${BLD[id].name}</span>`).join("") || `<small class="dim">건물 없음</small>`;
+  let work;
+  if (s.q) {
+    const b = BLD[s.q.id];
+    work = `<small>${b.name} 건설 중 · ${s.q.left}개월 남음</small><div class="prog"><i style="width:${(1 - s.q.left / b.time) * 100}%"></i></div>`;
+  } else {
+    work = Object.entries(BLD).filter(([id, b]) => b.on.includes(s.type) && !s.b.includes(id)).map(([id, b]) => {
+      const fx = [b.tax && `세수+${b.tax}`, b.levy && `병력+${b.levy}`, b.piety && `신앙+${b.piety}`, b.prestige && `위신+${b.prestige}`, b.dev && `개발+${b.dev}`].filter(Boolean).join(" ");
+      return `<button ${G.gold < b.cost || G.over ? "disabled" : ""} onclick="act('build',${ci},${si},'${id}')">${b.name} <small>💰${b.cost} · ${b.time}개월 · ${fx}</small></button>`;
+    }).join("") || `<small class="dim">지을 수 있는 건물을 모두 지었습니다.</small>`;
+  }
+  return `<div class="slot"><h3>${h.icon} ${h.name}</h3>
+    <small>세수 ${st.tax} · 병력 ${st.levy}${st.piety ? ` · 신앙 ${st.piety}` : ""}</small>
+    <div class="row">${have}</div><div class="row">${work}</div></div>`;
+}
 function render() {
-  const st = document.getElementById("stats");
-  st.innerHTML = `<div class="chip">📅 ${S.turn}턴</div><div class="chip">👥 ${S.pop}/${housing()}</div>
-    <div class="chip">⚒️ 일자리 ${jobs()}</div>` +
-    Object.keys(LABEL).map(k => `<div class="chip">${LABEL[k]} ${S.res[k]}</div>`).join("");
-  const map = document.getElementById("map");
-  map.innerHTML = "";
-  S.map.forEach((t,i) => {
-    const d = document.createElement("div");
-    d.className = "tile"; d.textContent = t ? BUILDINGS[t].icon : "";
-    d.onclick = () => clickTile(i); map.appendChild(d);
-  });
-  const shop = document.getElementById("shop");
-  shop.innerHTML = "";
-  for (const [id,b] of Object.entries(BUILDINGS)) {
-    const el = document.createElement("button");
-    el.className = (!demolish && selected === id) ? "sel" : "";
-    el.disabled = !canPay(b.cost);
-    el.innerHTML = `${b.icon} <b>${b.name}</b><br><small>${costText(b.cost)} · ${b.desc}</small>`;
-    el.onclick = () => { selected = id; demolish = false; render(); };
-    shop.appendChild(el);
-  }
-  document.getElementById("demolish").classList.toggle("sel", demolish);
-  document.getElementById("next").disabled = S.over;
+  const r = realm();
+  document.getElementById("stats").innerHTML =
+    `<div class="chip">📅 <b>${G.year}년 ${G.month}월</b></div><div class="chip">👑 <b>${RANKS[G.rank]}</b></div>
+     <div class="chip">💰 <b>${Math.floor(G.gold)}</b> <small>(+${f1(r.income)}/월)</small></div>
+     <div class="chip">⭐ 위신 <b>${Math.floor(G.prestige)}</b> <small>(+${f1(r.prestige)})</small></div>
+     <div class="chip">🙏 신앙심 <b>${Math.floor(G.piety)}</b> <small>(+${f1(r.piety)})</small></div>
+     <div class="chip">⚔️ 병력 <b>${r.levy}</b></div>
+     <div class="chip">🏛️ 장원 <b>${r.holdings}/${LIMIT[G.rank]}</b></div>`;
+  document.getElementById("counties").innerHTML = G.counties.map((c, ci) => {
+    const s = countyStat(c);
+    return `<section class="county"><div class="chead"><h2>${c.name} 백작령</h2>
+      <span>개발도 <b>${f1(c.dev)}</b> <span class="meter"><i style="width:${c.dev * 10}%"></i></span></span>
+      <span>통제력 <b>${Math.round(c.control)}</b> <span class="meter"><i style="width:${c.control}%"></i></span></span>
+      <span class="dim">월 세수 ${f1(s.income)} · 병력 ${s.levy}</span>
+      <button ${G.gold < 30 || G.over ? "disabled" : ""} onclick="act('patrol',${ci})">🛡️ 순찰 <small>💰30 · 통제력+20</small></button></div>
+      <div class="slots">${c.slots.map((_, si) => slotHtml(c, ci, si)).join("")}</div></section>`;
+  }).join("");
+  const p = PROMOTE[G.rank];
+  const conq = G.targets.map((t, i) =>
+    `<button ${G.gold < WAR_COST || r.levy < t.need || G.over ? "disabled" : ""} onclick="act('conquer',${i})">⚔️ ${t.name} 정복 <small>💰${WAR_COST} · 병력 ${t.need} 필요</small></button>`).join("")
+    || `<small class="dim">정복할 이웃 백작령이 없습니다.</small>`;
+  document.getElementById("realm").innerHTML = `<h2>왕국 운영</h2>
+    <div class="row">${conq}</div>
+    <div class="row">${p ? `<button class="primary" ${p.ok(G) && !G.over ? "" : "disabled"} onclick="act('promote')">👑 ${RANKS[G.rank + 1]} 즉위 <small>(${p.need})</small></button>` : `<b>왕이 되었습니다!</b>`}</div>`;
   const log = document.getElementById("log");
-  log.innerHTML = S.log.map(l => `<p class="${l.bad?"bad":""}">${l.msg}</p>`).join("");
+  log.innerHTML = G.log.map(l => `<p class="${l.cls || ""}">${l.msg}</p>`).join("");
   log.scrollTop = log.scrollHeight;
 }
-
-document.getElementById("next").onclick = nextTurn;
-document.getElementById("demolish").onclick = () => { demolish = !demolish; render(); };
-document.getElementById("reset").onclick = newGame;
 newGame();
 </script>
 </body>
