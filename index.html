@@ -896,7 +896,7 @@ function artFor(ch, role, hat, who) {
     if (r.theo) return abp(G.realms.filter(x => x.theo).indexOf(r) % 23 + 1);
   }
   if (role === "clergy") return f ? "trait_faith" : abp(h % 23 + 1);
-  if (!f && hat === "crown2") return "otto8";
+  if (!f && (hat === "crown2" || hat.startsWith("crown") && age <= 16)) return "otto8";
   if (!f && hat === "crown1") return "rank_duke";
   if (!f && hat === "crown0") return "rank_count";
   const T = f
