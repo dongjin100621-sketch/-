@@ -36,16 +36,18 @@
   .main { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:10px; align-items:start; }
   @media (max-width:900px) { .main { grid-template-columns:minmax(0,1fr); } }
   .mapwrap { padding:8px; }
-  .mapin { position:relative; }
-  #map { display:block; width:100%; aspect-ratio:448/280; max-width:100%; cursor:pointer; background:#284673; }
+  .mapview { position:relative; height:min(72vh, 660px); overflow:auto; background:#25406c; border:2px solid var(--edge); overscroll-behavior:contain; }
+  .mapin { position:relative; width:100%; }
+  #map { display:block; width:100%; aspect-ratio:600/712; cursor:pointer; background:#284673; }
   #labels { position:absolute; inset:0; pointer-events:none; }
   .lbl { position:absolute; transform:translate(-50%,-100%); font-size:12px; font-weight:700; color:#fff; white-space:nowrap;
          text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000; }
   .lbl.mine { color:var(--goldhi); }
   .lbl img { width:12px; height:12px; vertical-align:-1px; margin-right:1px; }
-  .dlbl { position:absolute; transform:translate(-50%,-50%); font-size:24px; font-weight:700; color:rgba(255,246,214,.82); white-space:nowrap; letter-spacing:2px;
+  .flbl { position:absolute; transform:translate(-50%,-50%); font-size:12px; font-weight:700; color:rgba(236,228,214,.6); white-space:nowrap; letter-spacing:3px; pointer-events:none; text-shadow:1px 1px 0 #1a1420; }
+  .dlbl { position:absolute; transform:translate(-50%,-50%); font-size:12px; pointer-events:none; font-weight:700; color:rgba(255,246,214,.82); white-space:nowrap; letter-spacing:2px;
           text-shadow:2px 0 0 #1a1420,-2px 0 0 #1a1420,0 2px 0 #1a1420,0 -2px 0 #1a1420; }
-  @media (max-width:600px) { .dlbl { font-size:12px; letter-spacing:1px; } .lbl:not(.mine):not(.sel) { display:none; } }
+  @media (max-width:600px) { .lbl:not(.mine):not(.sel) { display:none; } .mapview { height:62vh; } .dlbl { display:none; } .flbl { letter-spacing:1px; } }
   .mapbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding-top:8px; }
   .mapbar .dim { flex:1; min-width:200px; }
   .vote { display:grid; grid-template-columns:minmax(0,1fr) 120px 28px; gap:8px; align-items:center; }
@@ -108,11 +110,14 @@
   .scene { display:inline-flex; align-items:flex-end; justify-content:center; padding:4px 8px 0; background:linear-gradient(180deg,#2e2540 0%,#1a1424 70%,#120d18 100%); border:3px solid var(--edge); box-shadow:0 0 0 2px var(--gold2); }
   .chr { display:inline-block; flex:none; background-repeat:no-repeat; background-position-x:0; image-rendering:pixelated; image-rendering:crisp-edges; }
   body.f1 .chr { background-position-x:100%; }
-  .chr.big { width:208px; height:368px; background-size:416px 368px; }
+  .chr.por { background-size:cover !important; background-position:center !important; image-rendering:auto; border:2px solid var(--edge); box-shadow:0 0 0 1px var(--gold2); background-color:#1f1828; }
+  .chr.por.big { width:220px; height:275px; }
+  .chr.por.mid { width:112px; height:140px; }
+  .chr.por.bust { width:88px; height:110px; }
   .chr.mid { width:104px; height:184px; background-size:208px 184px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
   .chr.bust { width:104px; height:96px; background-size:208px 184px; background-color:#1f1828; box-shadow:inset 0 0 0 2px var(--edge); }
   .vs { flex-wrap:wrap; }
-  @media (max-width:480px) { .chr.big { width:156px; height:276px; background-size:312px 276px; } }
+  @media (max-width:480px) { .chr.por.big { width:160px; height:200px; } }
   .opts { display:flex; flex-direction:column; gap:6px; }
   .opts .btn { width:100%; flex-direction:column; align-items:flex-start; gap:0; }
   .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
@@ -132,9 +137,9 @@
   </header>
   <div class="main">
     <section class="mapwrap panel">
-      <div class="mapin">
-        <canvas id="map" class="px" width="448" height="280" aria-label="제국 지도"></canvas>
-        <div id="labels"></div>
+      <div class="mapview" id="mapview"><div class="mapin" id="mapin">
+        <canvas id="map" class="px" width="600" height="712" aria-label="신성로마제국 지도"></canvas>
+        <div id="labels"></div></div>
       </div>
       <div class="mapbar" id="mapbar"></div>
     </section>
@@ -259,7 +264,7 @@ const FX_NAME = { tax:"세수", levy:"병력", piety:"신앙", prestige:"위신"
 const RANKS = ["백작", "공작", "황제"];
 const HATS = ["crown0", "crown1", "crown2"];
 const BASE_LIMIT = [4, 6, 9];
-const EMPIRE = "신성 아르덴 제국";
+const EMPIRE = "신성로마제국";
 const DUCHY_COST = { gold:400, prestige:200, usurp:300 };
 const GIFT_COST = 100;
 const LAWS = {
@@ -273,108 +278,181 @@ const SCHEMES = {
 };
 const WAR_COST = 100, PATROL_COST = 40, TRIBUTE = 120;
 const PLAYER_COLOR = "#c8402e";
-const KIN_COLORS = ["#e0803a", "#a8c048", "#6a8ad8", "#d89a5a"];
-// ---- 제국 지도 생성: 고정 시드라 매번 같은 세계가 나온다 ----
-const COUNTY_NAMES = ["로슬린","에르힐","모르그","하겐","슈타인","클라우스","뉘른","레겐","리벤","알텐","바르크","코르벤","디트마르","엘스","파일","글라첸","홀름","이젠",
-  "야르","켐펜","라우","미르텐","오르벤","프라임","퀼","라벤","젤레","타우","울름","바이스","볼켄","잔트","에벤","하르츠","린델","가르텐","벨츠","치르","헤름","루벤",
-  "슈발","마르크","아이흐","보덴","펠트","그륀","하펠","로텐","지크","탄","외데","브룩","알름","쿠르","디펜"];
-const DUCHY_INFO = [
-  { n:"라인펠트", color:"#d0603e", cap:"로슬린" }, { n:"프랑켄", color:"#c9a227", cap:"아헨" }, { n:"아델", color:"#e0d6b4", cap:"아델", theo:true },
-  { n:"작센하임", color:"#3aa6a0", cap:"투르마" }, { n:"브란덴", color:"#9256bc", cap:"브란덴" }, { n:"베른", color:"#5a8ad0", cap:"베른" },
-  { n:"노르트마르크", color:"#4f9e5a", cap:"노르트" }, { n:"슈바르츠발트", color:"#2f6a4a", cap:"도른" }, { n:"오스트란트", color:"#c05a8a", cap:"오스터" },
-  { n:"티롤렌", color:"#8a6ac8", cap:"인스" }, { n:"베스트팔", color:"#b8844a", cap:"베스트" }, { n:"케른텐", color:"#4ab0c0", cap:"클라겐" },
+const GEO = { MW:600, MH:712, K:46.2535, COS:0.66523, LON0:1.5, LAT1:56, land:"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", river:"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AwIBAQsCBQNlAUkDhgMDAwEDAQwCAwJnAbwDARQBAQEHAQ4FZwFPA+sCARQCwAQBmQEBlAgB8QUBvAMBmgEBuwMBmwEBuwMBmwEBuwMB1wQBmgEBvAMBmgEB1wQBuwMBmwEBuwMBmwEBvAMBmgEBvAMBmgEBvQMCmAEBvwMD2AQBlQEBwgMBlAEBwgMBig4B2AQBkQEBxgMB6gUBxgMBkQEBxgMBkAEBuwMCCAGRAQG6AwECAQYBzQQBBwGSAQHWBAG8AwGZAQGtCQHXBAHAAwGWAQHBAwGVAQHXBAHBAwH5AgHcAQGVAQHUBATkAQHaAQGTAQEDAeQBAdcBA5MBAQQB5AEB7QIBBQG4AwGYAQEGAbQDAQEBmQEBBgHiAQHQAQGbAQHrAQHOAQGbAQG7AwHWBAGcAQHvAQHKAQGcAQHwAQGgBgGPAwHXBAHIAQGOAwHIAQGOAwHYBAHYBAHIAQIBAYsDAYwCAcsCAcsBAT8BzAIBiwIBywIBywEBPwHMAgHLAQE+AcwCAc4BA4cDAdABATgBnwQB2AQBhAMB0wEBNgHNAgHTAQE1AcwCAdUBATQBogQBNAGiBAE0AcwCAdcBATEBzAIB2QEBMQHLAgHaAQIvAacEAS8BywIBswYBLwHXBAHKAgHbAQEwAcsCAdoBATABygIB2wEBMQHKAgHaAQEyAscCAZECAcQCAZMCAcECAdYEAZcCAb4CAZgCAb4CAZcCAcACAdcEAdcEAdcEAdgEAdcEAdcEAdgEAtgEAdgEAdgEAdcEAdcEAq8JAdcEAdgEAdgEA7AJAdYEAdcEAdgEAdcEAdcEAa0JAtUEAdcEAdYEAdcEAdcEAdcEAdYEAdcEAdcEAdcEAdcEAdYEAdMEBNMEAdcEAdYEAe31AQ==" };
+// ---- 1066년 신성로마제국: 왕국 · 공국 · 백작령 (이름, 위도, 경도) ----
+const HRE = [
+  { k:"독일", n:"작센", col:"#c8a040", c:[["뤼네부르크",53.25,10.41],["첼레",52.62,10.08],["하노버",52.37,9.74],["브라운슈바이크",52.27,10.52],["힐데스하임",52.15,9.95],["고슬라어",51.91,10.43],["베르니게로데",51.83,10.78],["할버슈타트",51.90,11.05],["크베들린부르크",51.79,11.15],["마그데부르크",52.13,11.63],["잘츠베델",52.85,11.15],["슈텐달",52.60,11.86],["노르트하임",51.70,10.00],["괴팅겐",51.53,9.93]] },
+  { k:"독일", n:"노르트알빙기엔", col:"#5a9ec0", c:[["함부르크",53.55,10.00],["브레멘",53.08,8.80],["슈타데",53.60,9.48],["홀슈타인",54.08,9.95],["디트마르셴",54.15,9.10],["슈토르마른",53.70,10.35],["페르덴",52.92,9.23],["호야",52.80,9.13],["올덴부르크",53.14,8.21]] },
+  { k:"독일", n:"베스트팔렌", col:"#b85a4a", c:[["뮌스터",51.96,7.63],["오스나브뤼크",52.28,8.05],["민덴",52.29,8.92],["빌레펠트",52.02,8.53],["파더보른",51.72,8.75],["코르바이",51.77,9.38],["조스트",51.57,8.10],["도르트문트",51.51,7.46],["아른스베르크",51.40,8.06],["링엔",52.52,7.32]] },
+  { k:"독일", n:"튀링겐", col:"#6aa050", c:[["에르푸르트",50.98,11.03],["바이마르",50.98,11.33],["아이제나흐",50.98,10.32],["고타",50.95,10.70],["뮐하우젠",51.21,10.45],["노르트하우젠",51.50,10.79],["오를라뮌데",50.78,11.43],["잘펠트",50.65,11.36],["메르제부르크",51.36,12.00],["나움부르크",51.15,11.81]] },
+  { k:"독일", n:"마이센", col:"#3e8a7a", c:[["마이센",51.16,13.47],["라이프치히",51.34,12.37],["드레스덴",51.05,13.74],["츠비카우",50.72,12.49],["켐니츠",50.83,12.92],["바우첸",51.18,14.42],["뤼벤",51.94,13.89],["코트부스",51.76,14.33]] },
+  { k:"독일", n:"라인프랑켄", col:"#d8b030", c:[["슈파이어",49.32,8.43],["보름스",49.63,8.36],["마인츠",50.00,8.27],["비스바덴",50.08,8.24],["프랑크푸르트",50.11,8.68],["다름슈타트",49.87,8.65],["하나우",50.13,8.92],["기센",50.58,8.68],["마르부르크",50.80,8.77],["카셀",51.31,9.49],["카이저슬라우테른",49.44,7.77],["크로이츠나흐",49.85,7.87],["알차이",49.75,8.12]] },
+  { k:"독일", n:"프랑켄", col:"#c06a2a", c:[["뷔르츠부르크",49.79,9.95],["밤베르크",49.89,10.89],["뉘른베르크",49.45,11.08],["안스바흐",49.30,10.57],["로텐부르크",49.38,10.18],["바이로이트",49.95,11.58],["슈바인푸르트",50.05,10.23],["코부르크",50.26,10.96],["아샤펜부르크",49.98,9.15],["풀다",50.55,9.68]] },
+  { k:"독일", n:"바이에른", col:"#4a7ad0", c:[["레겐스부르크",49.01,12.10],["프라이징",48.40,11.75],["잉골슈타트",48.76,11.42],["노이부르크",48.73,11.18],["아이히슈테트",48.89,11.18],["암베르크",49.44,11.86],["캄",49.22,12.66],["헤프",50.08,12.37],["슈트라우빙",48.88,12.57],["란츠후트",48.54,12.15],["파사우",48.57,13.43],["부르크하우젠",48.17,12.83],["로젠하임",47.86,12.12],["잘츠부르크",47.80,13.04]] },
+  { k:"독일", n:"오스트마르크", col:"#c83a3a", c:[["빈",48.21,16.37],["멜크",48.23,15.33],["크렘스",48.41,15.60],["장크트푈텐",48.20,15.62],["린츠",48.31,14.29],["바덴",48.00,16.23],["츠베틀",48.62,15.17],["슈테이어",48.04,14.42]] },
+  { k:"독일", n:"티롤", col:"#7a6ab0", c:[["트렌토",46.07,11.12],["볼차노",46.50,11.35],["브릭센",46.72,11.66],["인스브루크",47.27,11.39],["메란",46.67,11.16],["쿠프슈타인",47.58,12.17]] },
+  { k:"독일", n:"케른텐", col:"#2f6a4a", c:[["클라겐푸르트",46.62,14.31],["필라흐",46.61,13.85],["프리자흐",46.95,14.41],["장크트파이트",46.77,14.36],["그라츠",47.07,15.44],["레오벤",47.38,15.09],["마리보르",46.55,15.65]] },
+  { k:"독일", n:"크라인·이스트라", col:"#8a9a4a", c:[["류블랴나",46.05,14.51],["크란",46.24,14.36],["노보메스토",45.80,15.17],["고리치아",45.94,13.62],["트리에스테",45.65,13.78],["코페르",45.55,13.73],["풀라",44.87,13.85]] },
+  { k:"독일", n:"슈바벤", col:"#b0303c", c:[["울름",48.40,9.99],["아우크스부르크",48.37,10.90],["딜링엔",48.58,10.49],["슈투트가르트",48.78,9.18],["에슬링겐",48.74,9.30],["호엔슈타우펜",48.74,9.71],["할",49.11,9.74],["하일브론",49.14,9.22],["튀빙겐",48.52,9.06],["칼브",48.71,8.74],["바덴",48.76,8.24],["로트바일",48.17,8.63],["켐프텐",47.73,10.31],["메밍엔",47.98,10.18],["라벤스부르크",47.78,9.61]] },
+  { k:"독일", n:"알레만니아", col:"#d06a8a", c:[["아르가우",47.39,8.05],["취리히",47.37,8.54],["라인펠덴",47.55,7.79],["바젤",47.56,7.59],["콘스탄츠",47.66,9.18],["프라이부르크",47.99,7.85],["브레겐츠",47.50,9.75],["장크트갈렌",47.42,9.38],["추어",46.85,9.53]] },
+  { k:"독일", n:"엘자스", col:"#9a4ac0", c:[["슈트라스부르크",48.58,7.75],["하게나우",48.82,7.79],["셀레스타",48.26,7.45],["콜마르",48.08,7.36],["뮐루즈",47.75,7.34]] },
+  { k:"독일", n:"로트링겐", col:"#e0a050", c:[["메스",49.12,6.18],["툴",48.68,5.89],["베르됭",49.16,5.38],["생미이엘",48.89,5.54],["낭시",48.69,6.18],["바르",48.77,5.16],["에피날",48.17,6.45],["생디에",48.28,6.95]] },
+  { k:"독일", n:"모젤", col:"#5a8a9a", c:[["트리어",49.75,6.64],["룩셈부르크",49.61,6.13],["비트부르크",49.97,6.53],["부용",49.79,5.07],["자르브뤼켄",49.24,7.00],["츠바이브뤼켄",49.25,7.36],["코블렌츠",50.36,7.59]] },
+  { k:"독일", n:"니더로트링겐", col:"#3a6ab0", c:[["아헨",50.78,6.08],["율리히",50.92,6.36],["뒤렌",50.80,6.48],["쾰른",50.94,6.96],["본",50.73,7.10],["노이스",51.20,6.69],["에센",51.45,7.01],["뒤스부르크",51.43,6.76],["크산텐",51.66,6.45],["클레베",51.79,6.14],["겔데른",51.52,6.32],["나이메헌",51.84,5.86]] },
+  { k:"독일", n:"브라반트", col:"#e0c060", c:[["루뱅",50.88,4.70],["브뤼셀",50.85,4.35],["앤트워프",51.22,4.40],["알스트",50.94,4.04],["나뮈르",50.47,4.87],["리에주",50.63,5.57],["마스트리흐트",50.85,5.69],["림뷔르흐",50.61,5.94]] },
+  { k:"독일", n:"에노", col:"#b07040", c:[["몽스",50.45,3.95],["발랑시엔",50.36,3.52],["캉브레",50.18,3.24]] },
+  { k:"독일", n:"프리슬란트", col:"#4aa0a0", c:[["레이던",52.16,4.49],["알크마르",52.63,4.75],["도르드레흐트",51.81,4.67],["질란트",51.50,3.61],["위트레흐트",52.09,5.12],["데벤터",52.25,6.16],["스타보렌",52.88,5.36],["레이우아르던",53.20,5.80],["흐로닝언",53.22,6.57],["엠덴",53.37,7.21]] },
+  { k:"보헤미아", n:"보헤미아", col:"#c84848", c:[["프라하",50.08,14.42],["플젠",49.75,13.38],["자테츠",50.33,13.55],["리토메르지체",50.53,14.13],["볼레슬라프",50.41,14.90],["흐라데츠",50.21,15.83],["차슬라프",49.91,15.39],["부데요비체",48.97,14.47]] },
+  { k:"보헤미아", n:"모라비아", col:"#a8483a", c:[["올로모우츠",49.59,17.25],["프르셰로프",49.46,17.45],["브르노",49.19,16.61],["즈노이모",48.86,16.05],["이흘라바",49.40,15.59]] },
+  { k:"부르군트", n:"부르고뉴", col:"#a04a6a", c:[["브장송",47.24,6.02],["돌",47.09,5.49],["베줄",47.62,6.15],["퐁타를리에",46.90,6.36]] },
+  { k:"부르군트", n:"레만", col:"#5a6ac8", c:[["제네바",46.20,6.15],["로잔",46.52,6.63],["뇌샤텔",46.99,6.93],["졸로투른",47.21,7.54],["시옹",46.23,7.36],["샹베리",45.56,5.92],["모리엔",45.28,6.35]] },
+  { k:"부르군트", n:"비엔누아", col:"#8a5ab0", c:[["리옹",45.76,4.84],["브레스",46.20,5.22],["벨레",45.76,5.69],["비엔",45.52,4.87],["그르노블",45.19,5.72],["발랑스",44.93,4.89],["디",44.75,5.37]] },
+  { k:"부르군트", n:"프로방스", col:"#d8803a", c:[["아를",43.68,4.63],["아비뇽",43.95,4.81],["오랑주",44.14,4.81],["엑스",43.53,5.45],["마르세유",43.30,5.37],["툴롱",43.12,5.93],["프레쥐스",43.43,6.74],["니스",43.70,7.27],["디뉴",44.09,6.24],["포르칼키에",43.96,5.78],["가프",44.56,6.08]] },
+  { k:"이탈리아", n:"토리노", col:"#3a8ac0", c:[["토리노",45.07,7.69],["수사",45.14,7.05],["아오스타",45.74,7.32],["이브레아",45.47,7.88],["베르첼리",45.32,8.42],["노바라",45.45,8.62],["아스티",44.90,8.21],["알바",44.70,8.03],["살루초",44.64,7.49]] },
+  { k:"이탈리아", n:"몬페라토", col:"#c05050", c:[["카살레",45.13,8.45],["아쿠이",44.68,8.47],["사보나",44.31,8.48]] },
+  { k:"이탈리아", n:"리구리아", col:"#e04a6a", c:[["제노바",44.41,8.93],["토르토나",44.90,8.86],["루니",44.07,9.99],["알벵가",44.05,8.21],["벤티미글리아",43.79,7.61]] },
+  { k:"이탈리아", n:"롬바르디아", col:"#4aa070", c:[["밀라노",45.46,9.19],["파비아",45.19,9.16],["코모",45.81,9.09],["베르가모",45.70,9.67],["브레시아",45.54,10.21],["크레마",45.36,9.69],["로디",45.31,9.50],["크레모나",45.13,10.03],["피아첸차",45.05,9.69],["만토바",45.16,10.79]] },
+  { k:"이탈리아", n:"에밀리아", col:"#d0a040", c:[["파르마",44.80,10.33],["카노사",44.58,10.45],["레조",44.70,10.63],["모데나",44.65,10.93],["볼로냐",44.49,11.34],["페라라",44.84,11.62],["라벤나",44.42,12.20],["이몰라",44.35,11.71],["포를리",44.22,12.04],["리미니",44.06,12.57]] },
+  { k:"이탈리아", n:"베로나", col:"#8a3a5a", c:[["베로나",45.44,10.99],["비첸차",45.55,11.55],["파도바",45.41,11.88],["트레비소",45.67,12.24],["벨루노",46.14,12.22]] },
+  { k:"이탈리아", n:"프리울리", col:"#5a7a3a", c:[["아퀼레이아",45.77,13.37],["치비달레",46.09,13.43],["우디네",46.06,13.24]] },
+  { k:"이탈리아", n:"토스카나", col:"#b84030", c:[["피렌체",43.77,11.26],["피스토이아",43.93,10.92],["루카",43.84,10.50],["피사",43.72,10.40],["볼테라",43.40,10.86],["시에나",43.32,11.33],["아레초",43.46,11.88],["키우시",43.02,11.95],["그로세토",42.76,11.11],["피옴비노",42.93,10.53]] },
+  { k:"이탈리아", n:"코르시카", col:"#7a8a5a", c:[["바스티아",42.70,9.45],["아작시오",41.92,8.74]] },
+  { k:"이탈리아", n:"스폴레토", col:"#c06aa0", c:[["스폴레토",42.73,12.74],["페루자",43.11,12.39],["테르니",42.56,12.65],["리에티",42.40,12.86],["오르비에토",42.72,12.11]] },
+  { k:"이탈리아", n:"안코나", col:"#4a8ab0", c:[["안코나",43.62,13.52],["페사로",43.91,12.91],["우르비노",43.73,12.64],["카메리노",43.14,13.07],["페르모",43.16,13.72],["아스콜리",42.85,13.58]] },
 ];
-let DUCHY_DEFS = [], COUNTY_DEFS = [], DUCHY_COUNTIES = [], ELECTOR_SEATS = [], REALM_DEFS = [], START_HOLD = {}, LANDMASK = null;
+// 제국 밖 땅: 경계를 잡아 주는 씨앗
+const FOREIGN = [
+  ["프랑스 왕국", [[48.86,2.35],[49.26,4.03],[48.30,4.08],[47.32,5.04],[47.80,3.57],[47.86,5.33],[48.96,4.36],[49.56,3.62],[49.89,2.30],[50.29,2.78],[51.21,3.22],[50.85,2.89],[51.05,3.72],[46.31,4.83],[46.78,4.85],[46.99,3.16],[45.78,3.08],[45.04,3.88],[43.84,4.36],[43.61,3.88],[47.90,1.90],[47.08,2.40],[49.85,3.29],[48.40,2.70],[44.20,3.40],[46.10,4.20],[44.70,4.30],[42.80,2.80],[46.50,2.30],[49.40,2.0],[50.70,1.80],[48.0,4.8],[45.9,4.25],[44.6,4.55]]],
+  ["덴마크 왕국", [[54.52,9.57],[55.33,8.76],[56.15,10.21],[55.40,10.39],[55.64,12.08],[55.70,13.19],[54.77,11.50],[54.80,9.10]]],
+  ["벤트족", [[53.87,10.69],[53.63,11.41],[54.09,12.13],[52.41,12.53],[52.45,13.58],[52.83,12.07],[53.43,14.55],[53.84,14.62],[52.42,14.53],[53.10,13.20],[53.55,13.25],[52.00,12.90],[54.40,13.40],[52.80,14.00]]],
+  ["폴란드 공국", [[54.18,15.58],[54.35,18.65],[52.41,16.93],[52.53,17.60],[51.66,16.08],[51.11,17.03],[50.67,17.93],[50.06,19.94],[53.10,18.00],[51.80,19.40],[53.40,16.50],[50.30,16.65],[51.20,15.40],[50.80,16.00],[52.00,15.20]]],
+  ["헝가리 왕국", [[48.15,17.11],[48.31,18.09],[47.69,17.63],[47.68,16.59],[47.23,16.62],[46.84,16.84],[47.79,18.74],[47.50,19.05],[46.40,17.80],[46.90,18.40],[48.70,19.10],[49.10,18.70],[48.70,17.70],[46.10,18.60],[47.20,20.20],[48.70,20.50]]],
+  ["크로아티아 왕국", [[45.81,15.98],[46.30,16.34],[45.20,15.40],[44.80,16.20],[45.30,17.50],[44.12,15.23],[43.90,16.40],[45.50,14.70],[44.40,15.80]]],
+  ["베네치아 공국", [[45.44,12.34],[45.20,12.25]]],
+  ["교황령", [[41.90,12.50],[42.42,12.10],[41.96,12.80],[41.40,13.20],[42.20,13.00]]],
+  ["남이탈리아", [[41.21,13.57],[41.11,14.21],[41.13,14.78],[42.35,14.17],[42.35,13.40],[41.60,14.80],[41.50,15.60],[40.85,14.25],[42.00,14.60],[41.20,16.30],[40.80,15.80]]],
+  ["사르데냐", [[39.22,9.12],[40.73,8.56],[40.30,9.30]]],
+  ["잉글랜드", [[52.60,1.60],[51.50,1.20]]],
+  ["보스니아", [[44.30,17.80],[43.90,18.40],[44.80,18.80],[45.60,19.20],[45.00,20.30],[44.20,20.50]]],
+];
+const FOREIGN_LABEL = { "프랑스 왕국":[47.4, 3.2], "덴마크 왕국":[55.6, 9.6], "벤트족":[53.2, 12.9], "폴란드 공국":[52.2, 17.5], "헝가리 왕국":[47.3, 18.6], "크로아티아 왕국":[45.1, 15.9], "교황령":[41.9, 12.7], "남이탈리아":[41.4, 14.8], "사르데냐":[40.4, 9.0], "베네치아 공국":[45.3, 12.5], "보스니아":[44.6, 18.8] };
+// 1066년의 주요 세력과 실제 인물 (이름, 성별, 나이, 특성)
+const HIST = [
+  { n:"잘리어 황가", ruler:["하인리히 4세","m",15,["ambitious","wrathful","lustful","ed_mar_2"]], emperor:true, duchies:["라인프랑켄","프랑켄"], color:"#2a2430", c:["슈파이어","보름스","프랑크푸르트","카이저슬라우테른","뉘른베르크","고슬라어"] },
+  { n:"마인츠 대주교령", ruler:["지크프리트 1세","m",36,["ambitious","diligent","ed_dip_3"]], theo:true, color:"#e8e0c8", c:["마인츠","아샤펜부르크"] },
+  { n:"쾰른 대주교령", ruler:["안노 2세","m",56,["ambitious","deceitful","zealous","ed_int_4"]], theo:true, color:"#f0e8d0", c:["쾰른","노이스","본"] },
+  { n:"트리어 대주교령", ruler:["우도","m",36,["just","zealous","ed_lrn_3"]], theo:true, color:"#e0d8b8", c:["트리어","코블렌츠"] },
+  { n:"함부르크-브레멘 대주교령", ruler:["아달베르트","m",66,["ambitious","arrogant","ed_dip_4"]], theo:true, color:"#e8dcc0", c:["브레멘","함부르크"] },
+  { n:"마그데부르크 대주교령", ruler:["베르너","m",40,["zealous","stubborn","ed_lrn_2"]], theo:true, color:"#ece4cc", c:["마그데부르크"] },
+  { n:"잘츠부르크 대주교령", ruler:["게프하르트","m",56,["zealous","diligent","ed_lrn_3"]], theo:true, color:"#e4dcc4", c:["잘츠부르크"] },
+  { n:"작센 공국", ruler:["오르둘프","m",44,["brave","greedy","ed_mar_2"]], duchies:["작센"], color:"#c8a040", c:["뤼네부르크","첼레","홀슈타인"] },
+  { n:"노르트마르크", ruler:["로타어 우도 2세","m",42,["brave","stubborn","ed_mar_3"]], color:"#8a7a3a", c:["슈타데","슈텐달"] },
+  { n:"바이에른 공국", ruler:["오토 폰 노르트하임","m",46,["brave","ambitious","ed_mar_4"]], duchies:["바이에른"], color:"#4a7ad0", c:["레겐스부르크","란츠후트","노르트하임","괴팅겐"] },
+  { n:"슈바벤 공국", ruler:["루돌프 폰 라인펠덴","m",41,["ambitious","deceitful","ed_dip_3"]], duchies:["슈바벤"], color:"#b0303c", c:["울름","라인펠덴","슈투트가르트"] },
+  { n:"케른텐 공국", ruler:["베르톨트 폰 체링겐","m",66,["calm","just","ed_stw_3"]], duchies:["케른텐"], color:"#2f6a4a", c:["클라겐푸르트","필라흐","프라이부르크"] },
+  { n:"오버로트링겐 공국", ruler:["게르하르트","m",36,["brave","honest","ed_mar_2"]], duchies:["로트링겐"], color:"#e0a050", c:["낭시","에피날","생디에"] },
+  { n:"니더로트링겐 공국", ruler:["고트프리트 수염공","m",69,["brave","wrathful","vengeful","ed_mar_4"]], duchies:["니더로트링겐"], color:"#3a6ab0", c:["부용","베르됭","앤트워프"] },
+  { n:"토스카나 변경백령", ruler:["마틸데 디 카노사","f",20,["brave","zealous","diligent","ed_mar_3"]], duchies:["토스카나","에밀리아"], color:"#b84030", c:["피렌체","루카","카노사","모데나","레조","만토바","페라라"] },
+  { n:"보헤미아 공국", ruler:["브라티슬라프 2세","m",34,["ambitious","brave","ed_dip_3"]], duchies:["보헤미아"], color:"#c84848", c:["프라하","볼레슬라프","리토메르지체","자테츠"] },
+  { n:"올로모우츠 공령", ruler:["오타 1세","m",21,["calm","generous","ed_stw_2"]], duchies:["모라비아"], color:"#a8483a", c:["올로모우츠","프르셰로프"] },
+  { n:"브르노 공령", ruler:["콘라트 1세","m",31,["ambitious","greedy","ed_int_2"]], color:"#9a3a50", c:["브르노","즈노이모"] },
+  { n:"오스트마르크 변경백령", ruler:["에른스트 용맹공","m",39,["brave","zealous","ed_mar_3"]], duchies:["오스트마르크"], color:"#c83a3a", c:["멜크","빈","크렘스","장크트푈텐"] },
+  { n:"슈타이어 변경백령", ruler:["오타카르 1세","m",31,["diligent","stubborn","ed_stw_2"]], color:"#3a8a3a", c:["슈테이어","그라츠","레오벤"] },
+  { n:"마이센 변경백령", ruler:["오토 폰 바이마르","m",40,["greedy","ambitious","ed_stw_2"]], duchies:["마이센"], color:"#3e8a7a", c:["마이센","바이마르","오를라뮌데","드레스덴"] },
+  { n:"라우지츠 변경백령", ruler:["데디 폰 베틴","m",56,["ambitious","deceitful","ed_int_3"]], color:"#6a9a8a", c:["뤼벤","코트부스","라이프치히"] },
+  { n:"튀링겐 백작령", ruler:["루트비히 도약공","m",24,["brave","ambitious","ed_mar_2"]], color:"#6aa050", c:["아이제나흐","고타"] },
+  { n:"크라인·이스트라 변경백령", ruler:["울리히 1세","m",40,["calm","diligent","ed_stw_2"]], duchies:["크라인·이스트라"], color:"#8a9a4a", c:["류블랴나","크란","코페르","풀라"] },
+  { n:"아퀼레이아 총대주교령", ruler:["라베거","m",50,["zealous","calm","ed_lrn_3"]], theo:true, duchies:["프리울리"], color:"#e6e0c0", c:["아퀼레이아","치비달레","우디네"] },
+  { n:"트렌토 주교령", ruler:["하인리히","m",48,["zealous","ed_lrn_2"]], theo:true, color:"#e0dcc0", c:["트렌토","볼차노"] },
+  { n:"브릭센 주교령", ruler:["알트빈","m",45,["ambitious","ed_dip_2"]], theo:true, color:"#ddd4b8", c:["브릭센"] },
+  { n:"홀란트 백작령", ruler:["디르크 5세","m",14,["shy","ed_stw_1"]], color:"#e08a3a", c:["레이던","도르드레흐트","질란트"] },
+  { n:"위트레흐트 주교령", ruler:["빌헬름 1세","m",50,["zealous","ambitious","ed_lrn_3"]], theo:true, color:"#e8e4d4", c:["위트레흐트","데벤터"] },
+  { n:"리에주 주교령", ruler:["테오두인","m",56,["zealous","stubborn","ed_lrn_2"]], theo:true, color:"#e4dcc8", c:["리에주"] },
+  { n:"루뱅 백작령", ruler:["하인리히 2세","m",45,["diligent","calm","ed_stw_3"]], color:"#e0c060", c:["루뱅","브뤼셀"] },
+  { n:"나뮈르 백작령", ruler:["알베르 3세","m",39,["brave","ed_mar_2"]], color:"#c0904a", c:["나뮈르"] },
+  { n:"에노 백작령", ruler:["리실드","f",37,["ambitious","wrathful","ed_int_2"]], color:"#b07040", c:["몽스","발랑시엔"] },
+  { n:"룩셈부르크 백작령", ruler:["콘라트 1세","m",26,["brave","zealous","ed_mar_2"]], color:"#5a8a9a", c:["룩셈부르크","비트부르크"] },
+  { n:"라인 궁중백령", ruler:["헤르만 2세","m",17,["brave","ed_mar_1"]], color:"#4a5ab0", c:["아헨","율리히"] },
+  { n:"플랑드르 백작령", ruler:["보두앵 5세","m",54,["calm","ambitious","ed_dip_4"]], color:"#e0b030", c:["알스트"] },
+  { n:"부르고뉴 백작령", ruler:["기욤 대공","m",46,["brave","greedy","ed_mar_3"]], duchies:["부르고뉴"], color:"#a04a6a", c:["돌","베줄","퐁타를리에"] },
+  { n:"브장송 대주교령", ruler:["위그 2세","m",42,["zealous","ed_lrn_2"]], theo:true, color:"#e8e0cc", c:["브장송"] },
+  { n:"사부아 변경백령", ruler:["아델라이데 디 수사","f",51,["ambitious","stubborn","ed_dip_4"]], duchies:["토리노"], color:"#3a8ac0", c:["토리노","수사","아오스타","샹베리","모리엔"] },
+  { n:"제네바 백작령", ruler:["제롤트","m",44,["calm","ed_stw_2"]], color:"#5a6ac8", c:["제네바"] },
+  { n:"리옹 대주교령", ruler:["엥보","m",50,["zealous","ed_lrn_2"]], theo:true, color:"#e6dcc4", c:["리옹"] },
+  { n:"알봉 백작령", ruler:["기그 1세","m",66,["calm","ed_stw_2"]], color:"#8a5ab0", c:["그르노블","발랑스"] },
+  { n:"프로방스 백작령", ruler:["베르트랑 2세","m",25,["ambitious","lustful","ed_dip_2"]], duchies:["프로방스"], color:"#d8803a", c:["엑스","마르세유","툴롱","프레쥐스"] },
+  { n:"아를 대주교령", ruler:["애마르","m",52,["zealous","ed_lrn_2"]], theo:true, color:"#e8e0c4", c:["아를"] },
+  { n:"몬페라토 변경백령", ruler:["굴리엘모 3세","m",46,["brave","ed_mar_2"]], duchies:["몬페라토"], color:"#c05050", c:["카살레","아쿠이","사보나"] },
+  { n:"에스테 변경백령", ruler:["아초 2세","m",69,["greedy","calm","ed_stw_3"]], color:"#3a5a8a", c:["루니","토르토나","비첸차"] },
+  { n:"밀라노 대주교령", ruler:["귀도 다 벨라테","m",56,["greedy","cynical","ed_dip_2"]], theo:true, duchies:["롬바르디아"], color:"#ece4d0", c:["밀라노"] },
+  { n:"라벤나 대주교령", ruler:["엔리코","m",50,["ambitious","ed_lrn_2"]], theo:true, color:"#e4dcc8", c:["라벤나","이몰라"] },
+  { n:"슈트라스부르크 주교령", ruler:["베르너 2세","m",40,["zealous","ed_lrn_2"]], theo:true, color:"#e8e2cc", c:["슈트라스부르크"] },
+  { n:"콘스탄츠 주교령", ruler:["룸폴트","m",48,["zealous","ed_lrn_2"]], theo:true, color:"#e4e0cc", c:["콘스탄츠"] },
+  { n:"바젤 주교령", ruler:["부르크하르트","m",38,["ambitious","ed_dip_2"]], theo:true, color:"#ece6d4", c:["바젤"] },
+  { n:"뷔르츠부르크 주교령", ruler:["아달베로","m",56,["zealous","just","ed_lrn_3"]], theo:true, color:"#e8e0c8", c:["뷔르츠부르크"] },
+  { n:"밤베르크 주교령", ruler:["귄터","m",41,["generous","ed_dip_2"]], theo:true, color:"#e0dcc8", c:["밤베르크"] },
+  { n:"메스 주교령", ruler:["아달베로 3세","m",54,["zealous","ed_lrn_2"]], theo:true, color:"#ece6cc", c:["메스"] },
+  { n:"렌츠부르크 백작령", ruler:["울리히","m",38,["calm","greedy","ed_stw_2"]], color:"#6a8ab0", c:["취리히"] },
+  { n:"벨프 가문", ruler:["벨프 4세","m",31,["ambitious","brave","ed_mar_3"]], color:"#3a7a5a", c:["라벤스부르크","메밍엔"] },
+  { n:"슈타우펜 가문", ruler:["프리드리히","m",16,["ambitious","diligent","ed_mar_2"]], color:"#e0c040", c:["호엔슈타우펜"] },
+  { n:"샤이에른 백작령", ruler:["오토 1세","m",46,["calm","ed_stw_2"]], color:"#6a8ad8", c:["잉골슈타트"] },
+  { n:"발렌슈테트 백작령", ruler:["아달베르트 2세","m",36,["ambitious","ed_int_2"]], color:"#a0503a", c:["크베들린부르크"] },
+  { n:"브라운슈바이크 백작령", ruler:["에크베르트 1세","m",30,["ambitious","greedy","ed_mar_2"]], color:"#9a8a3a", c:["브라운슈바이크"] },
+];
+const ELECTOR_NAMES = ["마인츠", "쾰른", "트리어", "뤼네부르크", "레겐스부르크", "울름", "프라하"];
+const KIN_COLORS = ["#e0803a", "#a8c048", "#6a8ad8", "#d89a5a"];
+let DUCHY_DEFS = [], COUNTY_DEFS = [], DUCHY_COUNTIES = [], ELECTOR_SEATS = [], REALM_DEFS = [], START_HOLD = {}, FOREIGN_SEEDS = [], LAND = null, RIVERS = null;
+const projX = lon => (lon - GEO.LON0) * GEO.COS * GEO.K, projY = lat => (GEO.LAT1 - lat) * GEO.K;
+function decodeRuns(b64, n) {
+  const s = atob(b64), out = new Uint8Array(n); let i = 0, pos = 0, cur = 0;
+  while (i < s.length) { let v = 0, sh = 0, c; do { c = s.charCodeAt(i++); v |= (c & 127) << sh; sh += 7; } while (c & 128); out.fill(cur, pos, pos + v); pos += v; cur ^= 1; }
+  return out;
+}
 function genWorld() {
-  const rnd = mulberry(2024), n1 = noise(11);
-  const fbm = (n, x, y) => n(x / 60, y / 60) * 0.55 + n(x / 26, y / 26) * 0.3 + n(x / 10, y / 10) * 0.15;
-  LANDMASK = new Uint8Array(MW * MH);
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
-    const dx = (x - MW / 2) / (MW * 0.56), dy = (y - MH / 2) / (MH * 0.58);
-    LANDMASK[y * MW + x] = fbm(n1, x, y) * 0.6 + (1 - dx * dx - dy * dy) * 0.7 >= 0.55 ? 1 : 0;
-  }
-  const landAround = (x, y, r) => { for (let oy = -r; oy <= r; oy += 3) for (let ox = -r; ox <= r; ox += 3) { const xx = x + ox, yy = y + oy; if (xx < 0 || yy < 0 || xx >= MW || yy >= MH || !LANDMASK[yy * MW + xx]) return false; } return true; };
-  // 백작령 씨앗: 고르게 흩뿌린다
-  let seeds = [];
-  for (let r = 46; r >= 24 && seeds.length < 50; r -= 1) {
-    seeds = []; const pr = mulberry(77);
-    for (let t = 0; t < 30000 && seeds.length < 50; t++) {
-      const x = 12 + Math.floor(pr() * (MW - 24)), y = 12 + Math.floor(pr() * (MH - 24));
-      if (!landAround(x, y, 9) || seeds.some(s => (s.x - x) ** 2 + (s.y - y) ** 2 < r * r)) continue;
-      seeds.push({ x, y });
-    }
-  }
-  // 제후국 12개: 멀리 떨어진 중심을 고르고 균형 있게 나눈다
-  const K = 12, d2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2, mid = { x:MW / 2, y:MH / 2 };
-  let centers = [seeds.reduce((b, s) => d2(s, mid) < d2(b, mid) ? s : b, seeds[0])];
-  while (centers.length < K) centers.push(seeds.reduce((b, s) => Math.min(...centers.map(c => d2(c, s))) > Math.min(...centers.map(c => d2(c, b))) ? s : b, seeds[0]));
-  centers = centers.map(c => ({ ...c }));
-  let asg = [];
-  for (let it = 0; it < 6; it++) {
-    const cap = Math.ceil(seeds.length / K) + 1, cnt = new Array(K).fill(0);
-    asg = new Array(seeds.length).fill(-1);
-    const pairs = [];
-    seeds.forEach((s, i) => centers.forEach((c, k) => pairs.push([d2(s, c), i, k])));
-    pairs.sort((a, b) => a[0] - b[0]);
-    for (const [, i, k] of pairs) if (asg[i] < 0 && cnt[k] < cap) { asg[i] = k; cnt[k]++; }
-    centers = centers.map((c, k) => { const m = seeds.filter((_, i) => asg[i] === k); return m.length ? { x:m.reduce((a, s) => a + s.x, 0) / m.length, y:m.reduce((a, s) => a + s.y, 0) / m.length } : c; });
-  }
-  const members = k => seeds.map((s, i) => i).filter(i => asg[i] === k).sort((a, b) => d2(seeds[a], centers[k]) - d2(seeds[b], centers[k]));
-  // 역할: 황제 직할(중앙) · 플레이어(서쪽, 4곳 이상) · 대주교령(동쪽) · 나머지 공국
-  const imperial = centers.reduce((b, c, k) => d2(c, mid) < d2(centers[b], mid) ? k : b, 0);
-  const player = [...centers.keys()].filter(k => k !== imperial && members(k).length >= 4).sort((a, b) => centers[a].x - centers[b].x)[0];
-  const theo = [...centers.keys()].filter(k => k !== imperial && k !== player && members(k).length >= 3).sort((a, b) => centers[b].x - centers[a].x)[0];
-  const rest = [...centers.keys()].filter(k => ![imperial, player, theo].includes(k)).sort((a, b) => centers[a].y * 2 + centers[a].x - (centers[b].y * 2 + centers[b].x));
-  const order = [player, imperial, theo, ...rest];   // DUCHY_INFO 순서와 맞춘다
-  DUCHY_DEFS = order.map((k, i) => ({ n:DUCHY_INFO[i].n, color:DUCHY_INFO[i].color, theo:!!DUCHY_INFO[i].theo, cx:centers[k].x, cy:centers[k].y }));
-  // 백작령 번호: 0번은 플레이어의 발란
-  const pm = members(player), pIdx = pm[1] ?? pm[0];
-  const ids = [pIdx, ...order.flatMap(k => members(k)).filter(i => i !== pIdx)];
-  const remap = new Map(ids.map((s, i) => [s, i]));
-  let pool = 0;
-  const reserved = new Set(["발란", "카엘", "펠스", ...DUCHY_INFO.map(d => d.cap)]), names = COUNTY_NAMES.filter(n => !reserved.has(n));
-  COUNTY_DEFS = ids.map(si => ({ n:"", x:seeds[si].x, y:seeds[si].y, d:order.indexOf(asg[si]) }));
-  DUCHY_COUNTIES = DUCHY_DEFS.map((_, d) => COUNTY_DEFS.map((c, j) => c.d === d ? j : -1).filter(j => j >= 0).sort((a, b) => ((COUNTY_DEFS[a].x - DUCHY_DEFS[d].cx) ** 2 + (COUNTY_DEFS[a].y - DUCHY_DEFS[d].cy) ** 2) - ((COUNTY_DEFS[b].x - DUCHY_DEFS[d].cx) ** 2 + (COUNTY_DEFS[b].y - DUCHY_DEFS[d].cy) ** 2)));
-  COUNTY_DEFS[0].n = "발란";
-  DUCHY_COUNTIES.forEach((cs, d) => { const cap = cs.find(j => j !== 0); if (cap != null) COUNTY_DEFS[cap].n = DUCHY_INFO[d].cap; });
-  COUNTY_DEFS.forEach(c => { if (!c.n) c.n = names[pool++ % names.length]; });
-  // 세력 배치
-  REALM_DEFS = [{ id:0, n:"하르트 가문", color:PLAYER_COLOR }];
-  const add = o => { o.id = REALM_DEFS.length; REALM_DEFS.push(o); return o; };
-  const tint = (c, k) => mixH(c, ["#ffffff", "#1c1828", "#e05a4a", "#4a8ae0", "#e0c050", "#60c070"][k % 6], 0.42);
-  let tk = 0, abbeyPlaced = false;
-  const counts = (cs, dc, abbeyOk = true) => {
-    for (let i = 0; i < cs.length; i++) {
-      const j = cs[i], two = cs[i + 1] != null && rnd() < 0.25 && (COUNTY_DEFS[j].x - COUNTY_DEFS[cs[i + 1]].x) ** 2 + (COUNTY_DEFS[j].y - COUNTY_DEFS[cs[i + 1]].y) ** 2 < 64 * 64;
-      if (abbeyOk && !abbeyPlaced && rnd() < 0.3) { abbeyPlaced = true; COUNTY_DEFS[j].n = "펠스"; COUNTY_DEFS[j].elector = true; add({ n:"펠스 수도원령", color:"#d06a9a", c:[j], theo:true }); continue; }
-      add({ n:`${COUNTY_DEFS[j].n} 백작령`, color:tint(dc, tk++), c:two ? [j, cs[i + 1]] : [j] });
-      if (two) i++;
-    }
+  const rnd = mulberry(1066), W = GEO.MW, H = GEO.MH;
+  LAND = decodeRuns(GEO.land, W * H); RIVERS = decodeRuns(GEO.river, W * H);
+  const snap = (x, y) => {   // 해안 도시는 가장 가까운 땅으로
+    x = Math.round(x); y = Math.round(y);
+    if (LAND[y * W + x]) return [x, y];
+    for (let r = 1; r < 12; r++) for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) { const xx = x + ox, yy = y + oy; if (xx >= 0 && yy >= 0 && xx < W && yy < H && LAND[yy * W + xx]) return [xx, yy]; }
+    return [x, y];
   };
-  DUCHY_COUNTIES.forEach((cs, d) => {
-    const dc = DUCHY_DEFS[d].color;
-    if (d === 0) {   // 라인펠트: 공작 자리는 비어 있고, 카엘 주교가 선제후
-      const others = cs.filter(j => j !== 0), kael = others[others.length - 1];
-      COUNTY_DEFS[kael].n = "카엘"; COUNTY_DEFS[kael].elector = true;
-      add({ n:"카엘 주교령", color:"#d8c070", c:[kael], theo:true });
-      counts(others.filter(j => j !== kael), dc, false);
-    } else if (d === 1) { const k = Math.min(4, cs.length - 1); COUNTY_DEFS[cs[0]].elector = true; add({ n:"호엔슈타인 황가", color:"#3c3448", c:cs.slice(0, k), duchy:d, emperor:true }); counts(cs.slice(k), dc, false); }
-    else if (d === 2) { COUNTY_DEFS[cs[0]].elector = true; add({ n:"아델 대주교령", color:"#e6dcc0", c:cs.slice(0, 2), duchy:d, theo:true }); counts(cs.slice(2), dc); }
-    else { const k = cs.length >= 5 ? 3 : cs.length >= 3 ? 2 : 1; add({ n:`${DUCHY_DEFS[d].n} 공국`, color:dc, c:cs.slice(0, k), duchy:d }); counts(cs.slice(k), dc); }
+  DUCHY_DEFS = HRE.map(d => ({ n:d.n, color:d.col, k:d.k, theo:false }));
+  COUNTY_DEFS = []; const idx = new Map();
+  const push = (name, lat, lon, d) => { const [x, y] = snap(projX(lon), projY(lat)); idx.set(name, COUNTY_DEFS.length); COUNTY_DEFS.push({ n:name, x, y, d }); };
+  const pd = HRE.findIndex(d => d.c.some(c => c[0] === "아르가우")), pc = HRE[pd].c.find(c => c[0] === "아르가우");
+  push(pc[0], pc[1], pc[2], pd);
+  HRE.forEach((d, di) => d.c.forEach(c => { if (c[0] !== "아르가우") push(c[0], c[1], c[2], di); }));
+  DUCHY_COUNTIES = DUCHY_DEFS.map((_, d) => COUNTY_DEFS.map((c, j) => c.d === d ? j : -1).filter(j => j >= 0));
+  ELECTOR_SEATS = ELECTOR_NAMES.map(n => idx.get(n)); ELECTOR_SEATS.forEach(i => { COUNTY_DEFS[i].elector = true; });
+  FOREIGN_SEEDS = [];
+  FOREIGN.forEach(([name, pts], fi) => pts.forEach(([lat, lon]) => { const x = projX(lon), y = projY(lat); FOREIGN_SEEDS.push({ x, y, f:fi }); }));
+  // 세력: 실제 1066년 인물 + 나머지는 백작
+  REALM_DEFS = [{ id:0, n:"합스부르크 가문", color:PLAYER_COLOR, c:[0] }];
+  const add = o => { o.id = REALM_DEFS.length; REALM_DEFS.push(o); return o; };
+  for (const h of HIST) {
+    const cs = h.c.map(n => idx.get(n)).filter(i => i != null && i !== 0);
+    add({ n:h.n, color:h.color, c:cs, theo:!!h.theo, emperor:!!h.emperor, duchies:(h.duchies || []).map(n => DUCHY_DEFS.findIndex(d => d.n === n)).filter(i => i >= 0), ruler:h.ruler });
+  }
+  const taken = new Set(REALM_DEFS.flatMap(r => r.c));
+  let k = 0;
+  COUNTY_DEFS.forEach((c, i) => {
+    if (taken.has(i)) return;
+    const hue = (k++ * 137.508) % 360, base = DUCHY_DEFS[c.d].color;
+    add({ n:`${c.n} 백작령`, color:mixH(base, hslHex(hue, 0.5, 0.5), 0.45), c:[i] });
   });
-  if (!abbeyPlaced) { const r = REALM_DEFS.find(r => r.id > 3 && !r.duchy && !r.theo && r.c.length === 1); COUNTY_DEFS[r.c[0]].n = "펠스"; COUNTY_DEFS[r.c[0]].elector = true; r.n = "펠스 수도원령"; r.theo = true; r.color = "#d06a9a"; }
-  // 세속 선제후: 가장 큰 세 공국의 수도
-  REALM_DEFS.filter(r => r.duchy > 2).sort((a, b) => DUCHY_COUNTIES[b.duchy].length - DUCHY_COUNTIES[a.duchy].length || a.duchy - b.duchy).slice(0, 3).forEach(r => { COUNTY_DEFS[r.c[0]].elector = true; });
-  ELECTOR_SEATS = COUNTY_DEFS.map((c, i) => c.elector ? i : -1).filter(i => i >= 0);
-  // 처음 장원
   START_HOLD = {};
-  for (const r of REALM_DEFS) if (r.c) r.c.forEach((j, n) => {
+  for (const r of REALM_DEFS) if (r.id) r.c.forEach((j, n) => {
     const capital = n === 0;
     if (r.emperor && capital) START_HOLD[j] = [["castle", ["palisade", "barracks"]], ["city", ["market", "guild"]], ["temple", ["abbey"]]];
     else if (r.theo && capital) START_HOLD[j] = [["temple", ["abbey", "school"]], ["castle", ["palisade"]], ["city", []]];
-    else if (r.duchy != null && capital) START_HOLD[j] = [["castle", ["palisade", "barracks"]], ["city", ["market"]], ["temple", ["abbey"]]];
-    else { const h = [["castle", rnd() < 0.55 ? ["palisade"] : []]]; if (rnd() < 0.65) h.push(["city", rnd() < 0.3 ? ["market"] : []]); if (rnd() < 0.4) h.push(["temple", []]); START_HOLD[j] = h; }
+    else if (r.duchies && r.duchies.length && capital) START_HOLD[j] = [["castle", ["palisade", "barracks"]], ["city", ["market"]], ["temple", ["abbey"]]];
+    else { const h = [["castle", rnd() < 0.55 ? ["palisade"] : []]]; if (rnd() < 0.6) h.push(["city", rnd() < 0.3 ? ["market"] : []]); if (rnd() < 0.4) h.push(["temple", []]); START_HOLD[j] = h; }
   });
+}
+function hslHex(h, s, l) {
+  const f = n => { const k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return toHex([f(0) * 255, f(8) * 255, f(4) * 255]);
 }
 
 // ================= 픽셀 그래픽 =================
@@ -446,6 +524,9 @@ function buildSprites() {
   SPR.castleS = art([".k.k.k.k.", ".kgkgkgk.", ".kgggggk.", "kkgggggkk", "kgggkgggk", "kgdgkgdgk", "kggdkdggk", "kkkkkkkkk"], sp);
   SPR.cityS = art(["...kkk...", "..krrrk..", ".krrrrRk.", "krrrrrrRk", "kwwwwwwwk", "kwykwwkwk", "kwwkwwwwk", "kkkkkkkkk"], sp);
   SPR.templeS = art(["....y....", "...yyy...", "....y....", "...kkk...", "..ksssk..", ".kwwwwwk.", "kwwwkwwwk", "kkkkkkkkk"], sp);
+  SPR.mountS = art(["...k...", "..kwk..", ".kssdk.", "kssssdk", "kkkkkkk"], { k:"#2a2630", w:"#f0eee8", s:"#948ea0", d:"#625c70" });
+  SPR.treeS = art([".k.", "kgk", "kGk", ".n."], { k:"#1d361a", g:"#3c742e", G:"#5c9a42", n:"#4e2e19" });
+  SPR.plotS = art(["y.y.y.y.y", ".........", "y.......y", ".........", "y.......y", ".........", "y.y.y.y.y"], { y:"#f0e0a0" });
   SPR.scaffoldS = art(["n...n...n", "nnnnnnnnn", "n...n...n", "n...n...n", "nnnnnnnnn", "n.kkkkk.n", "nkgggggkn", "kkkkkkkkk"], sp);
   for (const k in SPR) SURL[k] = SPR[k].toDataURL();
 }
@@ -458,490 +539,242 @@ function soldier(color, flip) {
   const s = art(rows, { k:K, g:C.stoneL, s:"#e3ae86", c:color, w:"#d8dce8" }); SOLDIER.set(key, s); return s;
 }
 
-// ---- 인물 도트: 104×184, 약 7등신. 골격(관절) 위에 몸을 그리고 옷을 겹겹이 입힌다 ----
-const SKIN = ["#fbe0cc", "#f0c4a2", "#d49c72", "#9c6646"];
+// ---- 인물 일러스트: SVG 상반신 초상화 (200×250) ----
+const SKIN = ["#fbe2d0", "#f1c6a4", "#d49e76", "#9c6848"];
 const HAIR = ["#2a2232", "#5c3624", "#ac5c2c", "#ecc86e", "#f4ead2", "#b0322c", "#8c98bc", "#d8889e"];
 const EYE = ["#3d7ce0", "#3aa062", "#9a6230", "#c83a4c", "#8a4ad4", "#d4a432"];
-const SW = 104, SH = 184, GY = 178;
 const mixH = (a, b, t) => toHex(mix(hex(a), hex(b), t));
-const ramp6 = c => [mixH(c, "#0a0412", 0.84), mixH(c, "#22103c", 0.6), mixH(c, "#2c1848", 0.36), c, mixH(c, "#fff4de", 0.4), mixH(c, "#ffffff", 0.74)];
-const skinRamp = c => [mixH(c, "#280a14", 0.82), mixH(c, "#8a2a44", 0.44), mixH(c, "#b0485c", 0.2), c, mixH(c, "#fff2e6", 0.4), mixH(c, "#ffffff", 0.66)];
 const hairIdx = ch => (ch.dna.h * 3 + ch.dna.e + ch.dna.b) % HAIR.length;
 function hairColor(ch) { return ch.age >= 66 ? "#e8e6e2" : ch.age >= 52 ? "#aaa6b4" : HAIR[hairIdx(ch)]; }
-let RCV = null;
-function rctx() {
-  if (!RCV) { RCV = document.createElement("canvas"); RCV.width = SW; RCV.height = SH; }
-  const x = RCV.getContext("2d", { willReadFrequently:true });
-  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, SW, SH); x.fillStyle = "#000"; x.strokeStyle = "#000"; x.lineCap = "round"; x.lineJoin = "round";
-  return x;
-}
-function newPainter() {
-  const N = SW * SH, mat = new Array(N).fill(null), part = new Int16Array(N).fill(-1), parts = [];
-  return {
-    mat, part, parts,
-    add(m, fn, o = {}) {
-      const x = rctx(); fn(x);
-      const d = x.getImageData(0, 0, SW, SH).data, id = parts.length;
-      let top = SH, bot = 0, lft = SW, rgt = 0;
-      for (let i = 0; i < N; i++) if (d[i * 4 + 3] >= 110) { mat[i] = m; part[i] = id; const y = (i / SW) | 0, xx = i % SW; if (y < top) top = y; if (y > bot) bot = y; if (xx < lft) lft = xx; if (xx > rgt) rgt = xx; }
-      parts.push({ m, top, bot, lft, rgt, shade:o.shade || 0, line:o.line !== false, gloss:!!o.gloss, flatX:!!o.flatX });
-      return id;
-    },
-  };
-}
-// ---- 그리기 도구 ----
-const Dp = s => x => x.fill(new Path2D(s));
-const De = (cx, cy, rx, ry, rot = 0) => x => { x.beginPath(); x.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), rot, 0, Math.PI * 2); x.fill(); };
-const Dm = (...fs) => x => fs.forEach(f => f && f(x));
-const Dr = (x0, y0, w, h) => x => x.fillRect(x0, y0, w, h);
-function crSample(pts, n) {   // Catmull-Rom 으로 매끄럽게
-  const out = [];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    for (let k = 0; k < n; k++) {
-      const t = k / n, t2 = t * t, t3 = t2 * t;
-      out.push([0.5 * (2 * p1[0] + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
-                0.5 * (2 * p1[1] + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3), i + t]);
-    }
-  }
-  out.push([...pts[pts.length - 1], pts.length - 1]);
-  return out;
-}
-function Dw(pts, ws) {   // 점마다 굵기가 다른 매끄러운 선 (팔다리·머리카락·리본)
-  return x => {
-    for (const [px, py, u] of crSample(pts, 16)) {
-      const i = Math.min(ws.length - 2, Math.floor(u)), t = u - i, w = ws[i] + (ws[i + 1] - ws[i]) * t;
-      x.beginPath(); x.arc(px, py, Math.max(0.55, w / 2), 0, Math.PI * 2); x.fill();
-    }
-  };
-}
-function Ds(pts) {   // 매끄러운 닫힌 도형
-  return x => {
-    const s = crSample([...pts, pts[0]], 10); x.beginPath(); x.moveTo(s[0][0], s[0][1]);
-    for (const [px, py] of s) x.lineTo(px, py); x.closePath(); x.fill();
-  };
-}
-const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-// ---- 명암: 거리장 법선 + 왼쪽에서 오는 빛 + 셀 단계 ----
-function shade3(P, pal, img, ox) {
-  const { mat, part, parts } = P, N = SW * SH, d = img.data, W = img.width;
-  const dist = new Uint8Array(N), q = [];
-  for (let i = 0; i < N; i++) {
-    const p = part[i]; if (p < 0) continue; const x = i % SW, y = (i / SW) | 0;
-    if (x === 0 || y === 0 || x === SW - 1 || y === SH - 1 || part[i - 1] !== p || part[i + 1] !== p || part[i - SW] !== p || part[i + SW] !== p) { dist[i] = 1; q.push(i); }
-  }
-  for (let h = 0; h < q.length; h++) { const i = q[h]; if (dist[i] >= 8) continue; const p = part[i]; for (const j of [i - 1, i + 1, i - SW, i + SW]) { if (j < 0 || j >= N || part[j] !== p || dist[j]) continue; dist[j] = dist[i] + 1; q.push(j); } }
-  for (let i = 0; i < N; i++) if (part[i] >= 0 && !dist[i]) dist[i] = 8;
-  const put = (x, y, c) => { const [r, g, b] = hex(c), k = (y * W + x + ox) * 4; d[k] = r; d[k + 1] = g; d[k + 2] = b; d[k + 3] = 255; };
-  const Dd = (x, y, p) => (x < 0 || y < 0 || x >= SW || y >= SH || part[y * SW + x] !== p) ? 0 : dist[y * SW + x];
-  const flat = m => typeof pal[m] === "string";
-  for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) {
-    const i = y * SW + x, p = part[i];
-    if (p < 0) {
-      let best = -1, soft = 0;
-      for (const [nx, ny, s] of [[x + 1, y, 1], [x, y + 1, 1], [x - 1, y, 0], [x, y - 1, 0]]) {
-        if (nx < 0 || ny < 0 || nx >= SW || ny >= SH) continue; const j = ny * SW + nx;
-        if (part[j] < 0 || flat(mat[j])) continue; if (part[j] > best) { best = part[j]; soft = s; }
-      }
-      if (best >= 0) { const r = pal[parts[best].m]; put(x, y, soft ? mixH(r[0], r[1], 0.45) : r[0]); }
-      continue;
-    }
-    const m = mat[i], r = pal[m];
-    if (typeof r === "string") { put(x, y, r); continue; }
-    const pt = parts[p], dd = dist[i];
-    let nx = -(Dd(x + 1, y, p) - Dd(x - 1, y, p)), ny = -(Dd(x, y + 1, p) - Dd(x, y - 1, p));
-    const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
-    const e = Math.max(0, 1 - (dd - 1) / 3.5), lam = nx * -0.7 + ny * -0.7;
-    const wide = pt.rgt - pt.lft, tall = pt.bot - pt.top;
-    let v = 0.53 + 0.44 * lam * e + pt.shade;
-    if (!pt.flatX && wide > 8) v += (0.5 - (x - pt.lft) / wide) * 0.26;   // 몸 전체: 왼쪽 밝고 오른쪽 어둡게
-    v -= ((y - pt.top) / Math.max(12, tall)) * 0.14;
-    for (const k of [1, 2, 3]) { if (y - k < 0) break; const j = i - k * SW, pj = part[j]; if (pj > p && parts[pj].line && !flat(mat[j])) { v -= 0.2; break; } }
-    let t = v > 0.84 ? 5 : v > 0.65 ? 4 : v > 0.42 ? 3 : v > 0.26 ? 2 : 1;
-    if (t === 5 && !(pt.gloss || e > 0.6)) t = 4;
-    if (pt.gloss && t === 4 && dd === 2 && lam > 0.3) t = 5;
-    if (pt.line) for (const j of [i - 1, i + 1, i - SW, i + SW]) if (j >= 0 && j < N && part[j] >= 0 && part[j] < p && !flat(mat[j])) { t = Math.min(t, 1); break; }
-    put(x, y, r[t]);
-  }
-}
-
-// ---- 골격과 자세 ----
-function skeleton(L, f) {
-  const fem = L.fem, b = L.build === "broad" ? 3 : L.build === "slim" ? -1 : 0;
-  const J = fem ? {
-    head:[53, 25], hr:[9, 11], neck:[52, 43], shB:[42, 48], shF:[62, 48], chest:56, waist:73, hip:88,
-    elB:[37, 71], wrB:[37, 92], elF:[66, 71], wrF:[68, 92],
-    hipB:[46, 91], hipF:[58, 91], knB:[44, 128], knF:[60, 127], anB:[43, 166], anF:[63, 166], toB:[50, 175], toF:[71, 175],
-  } : {
-    head:[53, 24], hr:[9.5, 11.5], neck:[52, 43], shB:[38 - b, 49], shF:[66 + b, 49], chest:58, waist:76, hip:91,
-    elB:[33 - b, 73], wrB:[34 - b, 94], elF:[71 + b, 73], wrF:[72 + b, 94],
-    hipB:[46, 93], hipF:[59, 93], knB:[44, 130], knF:[61, 129], anB:[43, 167], anF:[63, 167], toB:[50, 175], toF:[72, 175],
-  };
-  const o = (k, x, y) => { J[k] = [x, y]; };
-  const sx = J.shF[0], sy = J.shF[1];
-  switch (L.pose) {
-    case "hip": o("elF", sx + 10, sy + 20); o("wrF", sx - 2, J.hip - 4); break;
-    case "hips": o("elF", sx + 10, sy + 20); o("wrF", sx - 2, J.hip - 4); o("elB", J.shB[0] - 8, sy + 20); o("wrB", J.shB[0] + 3, J.hip - 4); break;
-    case "ready": o("elF", sx + 7, sy + 17); o("wrF", sx + 17, sy + 22); break;
-    case "staff": o("elF", sx + 6, sy + 21); o("wrF", sx + 12, sy + 34); break;
-    case "planted": o("elF", sx + 5, sy + 24); o("wrF", sx + 12, sy + 41); o("elB", J.shB[0] + 2, sy + 22); o("wrB", sx + 8, sy + 41); break;
-    case "book": o("elF", sx + 5, sy + 25); o("wrF", sx - 4, sy + 28); break;
-    case "raise": o("elF", sx + 8, sy + 15); o("wrF", sx + 11, sy + 2); break;
-    case "chest": o("elF", sx + 6, sy + 24); o("wrF", sx + 3, sy + 22); break;
-    case "clasp": o("elF", sx + 2, sy + 22); o("wrF", sx - 8, J.hip - 2); o("elB", J.shB[0] + 1, sy + 22); o("wrB", sx - 10, J.hip); break;
-  }
-  if (L.legs === "wide") { o("knB", J.knB[0] - 3, J.knB[1]); o("anB", J.anB[0] - 6, J.anB[1]); o("toB", J.toB[0] - 6, J.toB[1]); o("knF", J.knF[0] + 3, J.knF[1]); o("anF", J.anF[0] + 6, J.anF[1]); o("toF", J.toF[0] + 6, J.toF[1]); }
-  else if (L.legs === "together") { o("knB", J.knB[0] + 3, J.knB[1]); o("anB", J.anB[0] + 4, J.anB[1]); o("toB", J.toB[0] + 3, J.toB[1]); o("knF", J.knF[0] - 3, J.knF[1]); o("anF", J.anF[0] - 4, J.anF[1]); o("toF", J.toF[0] - 4, J.toF[1]); }
-  else if (L.legs === "contra") { o("knF", J.knF[0] + 2, J.knF[1] + 1); o("anF", J.anF[0] + 4, J.anF[1]); o("toF", J.toF[0] + 4, J.toF[1]); }
-  // 숨쉬기: 엉덩이 위가 한 픽셀 내려간다
-  for (const k of ["head", "neck", "shB", "shF", "elB", "wrB", "elF", "wrF"]) J[k] = [J[k][0], J[k][1] + f];
-  J.chest += f; J.waist += f; J.hip += f;
-  if (L.tilt) J.head = [J.head[0] + (L.tilt > 0 ? 1 : 0), J.head[1] + L.tilt];
-  if (L.kid) {   // 아이: 땅을 기준으로 줄이고 머리는 덜 줄인다
-    const k = 0.66;
-    for (const key of Object.keys(J)) if (Array.isArray(J[key]) && key !== "hr") J[key] = [52 + (J[key][0] - 52) * 0.82, GY - (GY - J[key][1]) * k];
-    J.chest = GY - (GY - J.chest) * k; J.waist = GY - (GY - J.waist) * k; J.hip = GY - (GY - J.hip) * k;
-    J.head = [J.head[0], J.head[1] + 6]; J.hr = [J.hr[0] * 0.95, J.hr[1] * 0.92];
-  }
-  return J;
-}
-
-// ---- 몸과 옷 ----
-function figure(P, L, f) {
-  const J = skeleton(L, f), fem = L.fem, kid = L.kid, O = L.out, sw = f;
-  const ks = kid ? 0.78 : 1, bw = (L.build === "broad" ? 1.5 : L.build === "slim" ? -0.8 : 0) * ks;
-  const [hx, hy] = J.head, [rx, ry] = J.hr;
-  const armW = (fem ? [7, 5.6, 4.4] : [9, 7.2, 5.4]).map(w => (w + bw) * ks);
-  const thighW = (fem ? [13.5, 11, 7.8] : [14, 12, 9]).map(w => (w + bw) * ks), calfW = (fem ? [7.8, 8.4, 4.6] : [9, 9.6, 5.6]).map(w => (w + bw) * ks);
-  const calf = (kn, an) => lerp(kn, an, 0.35), mid = (a, b) => lerp(a, b, 0.5);
-  const legPts = s => [J["hip" + s], mid(J["hip" + s], J["kn" + s]), J["kn" + s]], shinPts = s => [J["kn" + s], [calf(J["kn" + s], J["an" + s])[0] - 0.5, calf(J["kn" + s], J["an" + s])[1]], J["an" + s]];
-  const armPts = s => [J["sh" + s], J["el" + s], J["wr" + s]];
-  const add = (m, fn, o) => P.add(m, fn, o);
-  const plus = (ws, d) => ws.map(w => w + d);
-  // 후광
-  if (L.halo) {
-    add("halo", Dm(...Array.from({ length:14 }, (_, k) => { const a = (k / 14) * Math.PI * 2, r1 = k % 2 ? 17 : 23; return Dp(`M${hx - 2 + Math.cos(a - 0.12) * 12} ${hy - 4 + Math.sin(a - 0.12) * 12} L${hx - 2 + Math.cos(a) * r1} ${hy - 4 + Math.sin(a) * r1} L${hx - 2 + Math.cos(a + 0.12) * 12} ${hy - 4 + Math.sin(a + 0.12) * 12} Z`); })), { gloss:true });
-    add("halo", x => { x.lineWidth = 2.4; x.beginPath(); x.ellipse(hx - 2, hy - 4, 13, 13, 0, 0, 7); x.stroke(); }, { gloss:true });
-  }
-  // 망토 (뒤)
-  if (O.cape && !kid) {
-    const top = J.shB[1] - 1, hem = O.cape === "short" ? J.hip + 14 : GY - 4, inner = O.cape === "mantle" ? "lining" : "c1";
-    add(O.cape === "mantle" ? "fur" : "cape", Ds([[J.shB[0] + 2, top], [J.shF[0] - 3, top], [J.shF[0] - 4, J.waist], [J.shF[0] - 6, hem - 6], [J.shF[0] - 10, hem], [32, hem + 2 + sw], [14 - sw * 2, hem - 2], [22, J.waist + 10], [J.shB[0] - 4, J.chest]]), { shade:-0.05 });
-    add(inner, Ds([[J.shB[0] - 3, J.chest + 4], [22, J.waist + 12], [15 - sw * 2, hem - 3], [21 - sw, hem - 1], [27, J.waist + 14], [J.shB[0], J.chest + 8]]), { shade:-0.12, flatX:true });
-  }
-  // 뒷머리
-  backHair(P, L, hx, hy, rx, ry, sw, J);
-  // 등 뒤 활
-  if (L.item === "bow") add("wood", Dw([[J.shB[0] - 2, J.shB[1] - 12], [J.shB[0] - 14, J.waist], [J.shB[0] - 4, J.hip + 18]], [2.6, 3, 2.6]));
-  // 방패 (뒷팔)
-  if (L.shield) { const sx = J.shB[0] - 10, sy = J.shB[1] + 4; add("gold", Dp(`M${sx} ${sy} L${sx + 22} ${sy} Q${sx + 22} ${sy + 34} ${sx + 11} ${sy + 52} Q${sx} ${sy + 34} ${sx} ${sy} Z`), { gloss:true }); add("c1", Dp(`M${sx + 2} ${sy + 2} L${sx + 20} ${sy + 2} Q${sx + 20} ${sy + 33} ${sx + 11} ${sy + 49} Q${sx + 2} ${sy + 33} ${sx + 2} ${sy + 2} Z`)); add("gold", Dm(Dr(sx + 10, sy + 7, 3, 30), Dr(sx + 4, sy + 15, 15, 3)), { line:false }); }
-  // 코트 뒷자락 (다리 뒤)
-  if (O.coat && !kid) { const hem = O.coat === "long" ? GY - 16 : J.hip + 26; P.add("c1", Ds([[J.shB[0] + 2, J.waist - 6], [J.shF[0] - 2, J.waist - 6], [J.shF[0] + 3, J.hip + 4], [J.shF[0] + 6, hem - 6], [J.shF[0] + 2, hem], [J.neck[0], hem - 3], [J.shB[0] - 12 - sw, hem + 2], [J.shB[0] - 6, J.hip], [J.shB[0] - 1, J.waist]]), { shade:-0.1 }); if (O.trim) P.add("gold", Dw([[J.shB[0] - 11 - sw, hem + 1], [J.neck[0], hem - 2], [J.shF[0] + 3, hem - 0.5]], [1.6, 1.6, 1.6]), { line:false, gloss:true }); }
-  // 뒷팔
-  arm(P, L, J, "B", armW, armPts);
-  // 다리 (뒤 → 앞)
-  for (const s of ["B", "F"]) leg(P, L, J, s, thighW, calfW, legPts, shinPts);
-  // 몸통 피부
-  const sh = [J.shB, J.shF], wa = J.waist, hp = J.hip, nk = J.neck;
-  const torso = fem
-    ? [[nk[0] - 5, nk[1] - 1], [nk[0] + 4, nk[1] - 1], [J.shF[0] - 1, J.shF[1]], [J.shF[0] + 1, J.chest - 2], [J.shF[0] + 3 * ks, J.chest + 3], [J.shF[0] - 2, J.chest + 8], [J.shF[0] - 4, wa], [J.shF[0] + 1, hp - 4], [J.shF[0] - 1, hp + 4], [J.shB[0] - 1, hp + 4], [J.shB[0] - 2, hp - 4], [J.shB[0] + 3, wa], [J.shB[0] + 1, J.chest], [J.shB[0], J.shB[1] + 1]]
-    : [[nk[0] - 6, nk[1] - 1], [nk[0] + 5, nk[1] - 1], [J.shF[0], J.shF[1]], [J.shF[0] + 1, J.chest], [J.shF[0] - 3, wa], [J.shF[0] - 5 + L.belly, wa + 6], [J.shF[0] - 6, hp + 4], [J.shB[0] + 6, hp + 4], [J.shB[0] + 5, wa], [J.shB[0] + 1, J.chest], [J.shB[0], J.shB[1] + 1]];
-  add("skin", Ds(torso));
-  if (O.abs) add("skinD", Dm(Dw([[nk[0], J.chest + 2], [nk[0], wa + 4]], [1, 1]), Dw([[nk[0] - 6, J.chest + 3], [nk[0] + 6, J.chest + 3]], [1, 1]), Dw([[nk[0] - 4, wa - 6], [nk[0] + 4, wa - 6]], [1, 1]), Dw([[nk[0] - 4, wa], [nk[0] + 4, wa]], [1, 1])), { line:false });
-  // 상의
-  const shirtPath = (exp, bot) => Ds(torso.map(([x, y]) => [x + (x < nk[0] ? -exp : exp), Math.min(y, bot)]).concat([]));
-  if (O.top === "armor") { add("steel", shirtPath(1.2, hp + 2), { gloss:true }); add("steelD", Dw([[nk[0] + 1, nk[1] + 4], [nk[0] + 2, wa + 6]], [1.2, 1]), { line:false }); }
-  else if (O.top && O.top !== "none") {
-    const neckV = O.neckline, topM = O.topC || "c2";
-    add(topM, shirtPath(0.8, O.top === "bodice" ? hp - 2 : hp + 2));
-    if (neckV) add("skin", Ds([[nk[0] - 4, nk[1] - 1], [nk[0] + 4, nk[1] - 1], [nk[0] + 1, nk[1] + neckV]]));
-    if (O.top === "bodice") add("c3", Ds([[J.shB[0] + 4, J.chest + 3], [J.shF[0] - 1, J.chest + 3], [J.shF[0] - 3, wa + 2], [nk[0], wa + 6], [J.shB[0] + 5, wa + 2]]));
-    if (O.trim) add("gold", Dm(Dw([[nk[0] + 1, nk[1] + (neckV || 2)], [nk[0] + 2, wa + 4]], [1.3, 1.3])), { line:false });
-  }
-  if (O.vest) add("c2", Ds([[J.shB[0] + 2, J.shB[1] + 2], [nk[0] - 2, nk[1] + 2], [nk[0] - 1, wa + 6], [J.shB[0] + 4, wa + 6]]));
-  // 하의 (치마·로브·자락)
-  lower(P, L, J, O, sw, ks);
-  // 외투
-  if (O.coat && !kid) coat(P, L, J, O, sw, torso);
-  // 벨트와 장신구
-  if (O.belt) {
-    add(O.belt === "rope" ? "straw" : O.belt === "gold" ? "gold" : "leather", Dw([[J.shB[0] + 2, wa + 1], [nk[0], wa + 3], [J.shF[0] - 2, wa + 1]], [2.8, 3, 2.8]), { gloss:O.belt === "gold" });
-    if (O.belt !== "rope") add("gold", Dr(nk[0] - 1, wa, 4, 4), { gloss:true });
-    if (O.belt === "rope") add("straw", Dw([[nk[0] + 3, wa + 3], [nk[0] + 4, wa + 18 + sw]], [1.6, 1.2]), { line:false });
-  }
-  if (O.pouch) add("leather", De(J.shB[0] + 6, wa + 7, 3.5, 4));
-  if (O.pouch === "gold") add("gold", De(J.shB[0] + 6, wa + 4, 2.5, 1.2), { line:false });
-  if (L.item === "keys") add("gold", Dm(Dw([[J.shB[0] + 5, wa + 3], [J.shB[0] + 3, wa + 10]], [1.4, 1.4]), De(J.shB[0] + 3, wa + 12, 2.2, 2.2), Dw([[J.shB[0] + 2, wa + 14], [J.shB[0] + 1, wa + 20]], [1.4, 1.2])), { gloss:true });
-  if (L.sash) {
-    add("c3", Dw([[J.shB[0] + 4, wa + 2], [J.shB[0] - 3, wa + 14], [J.shB[0] - 9 - sw, wa + 30], [J.shB[0] - 13 - sw * 2, wa + 46 + sw]], [7, 6.4, 5.4, 3.6]));
-    add("c2", Dw([[J.shB[0] + 5, wa + 4], [J.shB[0], wa + 20], [J.shB[0] - 4 - sw, wa + 38], [J.shB[0] - 6 - sw * 2, wa + 56]], [5.6, 5, 4.2, 2.8]));
-    add("c3", De(J.shB[0] + 4, wa + 2, 4, 3));
-  }
-  // 깃: 모피 · 높은 깃 · 견갑
-  if (O.collar === "fur") add("fur", Ds([[J.shB[0] - 4, J.shB[1] + 1], [nk[0] - 6, nk[1] - 3], [nk[0] + 6, nk[1] - 3], [J.shF[0] + 4, J.shF[1] + 1], [J.shF[0] + 2, J.shF[1] + 8], [nk[0] + 4, nk[1] + 7], [nk[0] - 6, nk[1] + 7], [J.shB[0] - 2, J.shB[1] + 9]]));
-  else if (O.collar === "high") add(O.coat ? "c1" : "c2", Ds([[nk[0] - 6, nk[1] - 4], [nk[0] + 5, nk[1] - 4], [nk[0] + 6, nk[1] + 3], [nk[0] - 6, nk[1] + 3]]));
-  if (O.pauldron) { add("steel", De(J.shB[0] + 1, J.shB[1] + 2, 6 * ks, 4.4 * ks), { gloss:true }); add("steel", Dm(De(J.shF[0] + 1, J.shF[1] + 1, 6.4 * ks, 4.6 * ks)), { gloss:true }); add("steelD", Dw([[J.shF[0] - 4, J.shF[1] + 5], [J.shF[0] + 6, J.shF[1] + 5]], [3, 3]), { gloss:true }); add("gold", Dw([[J.shF[0] - 5, J.shF[1] + 7], [J.shF[0] + 7, J.shF[1] + 6]], [1.2, 1.2]), { line:false }); }
-  if (L.necklace) add("gold", Dm(Dw([[nk[0] - 5, nk[1] + 1], [nk[0], nk[1] + 8], [nk[0] + 5, nk[1] + 1]], [1.3, 1.3, 1.3]), L.cross ? Dm(Dr(nk[0] - 1, nk[1] + 8, 2, 7), Dr(nk[0] - 3, nk[1] + 10, 6, 2)) : De(nk[0], nk[1] + 10, 2, 2.5)), { line:false, gloss:true });
-  // 목과 머리
-  add("skin", Dw([[nk[0], nk[1] - 8], [nk[0], nk[1] + 2]], [fem ? 6.5 : 8, fem ? 7 : 9]));
-  add("skin", Dm(De(hx, hy, rx, ry), Dp(`M${hx - rx + 1} ${hy + 1} Q${hx - rx + 3} ${hy + ry - 1} ${hx + 1} ${hy + ry + 1} Q${hx + rx - 2} ${hy + ry - 1} ${hx + rx} ${hy + 3} Z`), Dp(`M${hx + rx - 1} ${hy - 1} L${hx + rx + 2} ${hy + 4} L${hx + rx - 1} ${hy + 5} Z`)));
-  add("skin", De(hx - rx + 4, hy + 2, 2, 3.2));
-  if (L.beard === "full") add("hair", Dp(`M${hx - 6} ${hy + 3} Q${hx - 5} ${hy + 15} ${hx + 3} ${hy + 18} Q${hx + 10} ${hy + 14} ${hx + 10} ${hy + 4} L${hx + 7} ${hy + 6} Q${hx + 2} ${hy + 11} ${hx - 2} ${hy + 6} Z`));
-  else if (L.beard === "goatee") add("hair", Dm(De(hx + 4, hy + 13, 3.4, 3), Dw([[hx + 2, hy + 8], [hx + 9, hy + 8]], [2, 1.6])));
-  else if (L.beard === "mustache") add("hair", Dw([[hx + 1, hy + 9], [hx + 5, hy + 7.5], [hx + 10, hy + 9]], [2.2, 2, 1.4]));
-  frontHair(P, L, hx, hy, rx, ry, sw);
-  headwear(P, L, hx, hy, rx, ry, sw);
-  // 손에 든 것 · 앞팔
-  heldItem(P, L, J, sw, "behind");
-  arm(P, L, J, "F", armW, armPts);
-  heldItem(P, L, J, sw, "front");
-  return { hx, hy, rx, ry };
-}
-function arm(P, L, J, s, armW, armPts) {
-  const O = L.out, pts = armPts(s), kid = L.kid;
-  const hand = J["wr" + s], el = J["el" + s];
-  const dir = [hand[0] - el[0], hand[1] - el[1]], dl = Math.hypot(...dir) || 1, hp = [hand[0] + dir[0] / dl * 3, hand[1] + dir[1] / dl * 3];
-  if (O.sleeves !== "none") P.add("skin", Dw(pts, armW));
-  else P.add("skin", Dw(pts, armW));
-  const sm = O.sleeveC || (O.coat ? "c1" : O.top === "armor" ? "steel" : "c2");
-  if (O.sleeves === "long") P.add(sm, Dw(pts, armW.map((w, i) => w + (i === 2 ? 2 : 2.4))));
-  else if (O.sleeves === "puff") { P.add(sm, Dw(pts, [armW[0] + 5, armW[1] + 4, armW[2] + 3])); P.add("gold", Dw([lerp(el, hand, 0.92), lerp(el, hand, 0.98)], [armW[2] + 3.4, armW[2] + 3.4]), { line:false }); }
-  else if (O.sleeves === "wide") P.add(sm, Dm(Dw(pts, [armW[0] + 3, armW[1] + 5, armW[2] + 9]), Dw([lerp(el, hand, 0.4), [hand[0] - 3, hand[1] + 7]], [armW[1] + 6, armW[2] + 8])));
-  else if (O.sleeves === "rolled") { P.add(sm, Dw([pts[0], pts[1]], [armW[0] + 2.4, armW[1] + 2.6])); P.add(sm, Dw([el, lerp(el, hand, 0.12)], [armW[1] + 3.6, armW[1] + 3.4])); }
-  else if (O.sleeves === "armor") P.add("steel", Dw(pts, armW.map(w => w + 2.2)), { gloss:true });
-  if (L.bandage && s === "F" && !kid) P.add("cloth", Dw([lerp(el, hand, 0.3), lerp(el, hand, 0.6)], [armW[1] + 2.6, armW[2] + 2.6]), { line:false });
-  if (O.gloves === "gauntlet") P.add("steel", Dm(Dw([lerp(el, hand, 0.35), hand], [armW[1] + 3, armW[2] + 2.6]), De(hp[0], hp[1], 3.6 * (kid ? 0.8 : 1), 4 * (kid ? 0.8 : 1))), { gloss:true });
-  else if (O.gloves === "glove") P.add("leather", Dm(Dw([lerp(el, hand, 0.75), hand], [armW[2] + 1.6, armW[2] + 1.4]), De(hp[0], hp[1], 3.4, 3.8)));
-  else P.add("skin", De(hp[0], hp[1], 3.3 * (kid ? 0.8 : 1), 3.8 * (kid ? 0.8 : 1)));
-  if (L.rings && s === "F" && O.gloves !== "gauntlet") P.add("gold", De(hp[0] + 1, hp[1] + 1, 1, 1), { line:false });
-}
-function leg(P, L, J, s, thighW, calfW, legPts, shinPts) {
-  const O = L.out, an = J["an" + s], to = J["to" + s], kn = J["kn" + s];
-  const legM = O.legs === "stockings" ? "hose" : O.legs === "armor" ? "steel" : O.legs === "bare" ? "skin" : "pants";
-  const baggy = O.legs === "baggy" ? 4 : O.legs === "pants" ? 1.6 : 0.4;
-  P.add(legM === "pants" || legM === "steel" ? legM : legM, Dm(Dw(legPts(s), thighW.map(w => w + baggy)), Dw(shinPts(s), calfW.map((w, i) => w + baggy * (i === 2 ? 0.4 : 0.8)))), { gloss:legM === "hose" || legM === "steel" });
-  if (O.legs === "armor") P.add("steelD", De(kn[0], kn[1], 5, 4), { gloss:true });
-  // 신발
-  const foot = [[an[0] - 1, an[1] + 3], [lerp(an, to, 0.55)[0], to[1] - 2], [to[0], to[1] - 1]];
-  if (O.feet === "boots" || O.feet === "greaves") {
-    const m = O.feet === "greaves" ? "steel" : "boot", top = lerp(kn, an, 0.2);
-    P.add(m, Dm(Dw([top, calf2(kn, an), an], [calfW[0] + 1.4, calfW[1] + 1.6, calfW[2] + 2.4]), Dw(foot, [7.6, 6.2, 4])), { gloss:true });
-    if (O.feet === "boots") P.add("bootC", Dw([lerp(kn, an, 0.18), lerp(kn, an, 0.22)], [calfW[1] + 2.2, calfW[1] + 2]), { gloss:true });
-  } else if (O.feet === "heels") {
-    P.add("boot", Dm(Dw([lerp(kn, an, 0.55), an], [calfW[1] + 2, calfW[2] + 2.6]), Dw(foot, [7, 5.4, 3.4]), Dw([[an[0] - 1, an[1] + 4], [an[0] - 2, to[1] + 1]], [2.2, 1.8])), { gloss:true });
-  } else if (O.feet === "sandals") {
-    P.add("skin", Dw(foot, [6.5, 5, 3.6])); P.add("leather", Dm(Dw([[an[0] - 3, an[1] + 1], [an[0] + 3, an[1] + 1]], [1.4, 1.4]), Dw([[foot[0][0], to[1] + 1], [to[0] + 1, to[1] + 1]], [1.4, 1.4])), { line:false });
-  } else P.add("leather", Dw(foot, [7.4, 6, 4]), { gloss:true });
-}
-const calf2 = (kn, an) => lerp(kn, an, 0.38);
-function lower(P, L, J, O, sw, ks) {
-  const wa = J.waist, hp = J.hip, sb = J.shB[0], sf = J.shF[0], k = L.kid;
-  const t = O.lower; if (!t || t === "none") return;
-  const c = O.lowerC || "c1";
-  if (t === "skirtL" || t === "robe" || t === "gown") {
-    const hem = GY - 2, wl = (t === "robe" ? 4 : 10) * ks, wr = (t === "robe" ? 4 : 10) * ks;
-    P.add(c, Ds([[sb + 3, wa], [sf - 3, wa], [sf + 2, hp], [sf + wr - 2 + sw, hem - 2], [sf + wr - 6, hem + 1], [(sb + sf) / 2, hem + 2], [sb - wl + 6, hem + 1], [sb - wl + 2 - sw, hem - 2], [sb - 1, hp]]));
-    if (O.slit) P.add("skin", Ds([[J.hipF[0] + 1, hp + 10], [J.hipF[0] + 5, hp + 8], [J.anF[0] + 4, hem - 8], [J.anF[0] - 2, hem - 2]]));
-    if (O.slit) P.add(c === "c1" ? "c3" : "c1", Dw([[J.hipF[0] - 1, hp + 9], [J.anF[0] - 3, hem - 2]], [2, 2]), { line:false });
-    if (O.hemTrim) P.add("gold", Dw([[sb - wl + 3, hem - 1], [(sb + sf) / 2, hem + 1.5], [sf + wr - 3, hem - 1]], [2.2, 2.2, 2.2]), { line:false, gloss:true });
-    if (O.panel) P.add(O.panel, Ds([[(sb + sf) / 2 - 3, wa + 2], [(sb + sf) / 2 + 4, wa + 2], [(sb + sf) / 2 + 8, hem], [(sb + sf) / 2 - 4, hem + 1]]));
-    if (O.apron) P.add("cloth", Ds([[sb + 6, wa + 2], [sf - 4, wa + 2], [sf, hp + 34], [sb + 6, hp + 36]]));
-  } else if (t === "skirtS") {
-    P.add(c, Ds([[sb + 3, wa], [sf - 3, wa], [sf + 6, hp + 16], [(sb + sf) / 2 + 2, hp + 19], [sb - 5, hp + 16]]));
-    if (O.hemTrim) P.add("gold", Dw([[sb - 4, hp + 15], [(sb + sf) / 2, hp + 18.5], [sf + 5, hp + 15]], [2, 2, 2]), { line:false });
-  } else if (t === "tunic" && O.coat) {
-    P.add(c, Ds([[sb + 3, wa - 1], [sf - 3, wa - 1], [sf + 2, hp + 2], [sf + 2, hp + 9], [(sb + sf) / 2, hp + 11], [sb, hp + 8]]));
-  } else if (t === "tunic") {
-    P.add(c, Ds([[sb + 3, wa - 1], [sf - 3, wa - 1], [sf + 3, hp + 2], [sf + 4, hp + 16 * ks], [(sb + sf) / 2, hp + 19 * ks], [sb - 3, hp + 16 * ks], [sb, hp + 2]]));
-    if (O.hemTrim) P.add("gold", Dw([[sb - 2, hp + 15 * ks], [(sb + sf) / 2, hp + 18 * ks], [sf + 3, hp + 15 * ks]], [1.6, 1.6, 1.6]), { line:false });
-  } else if (t === "tabard") {
-    P.add(c, Ds([[(sb + sf) / 2 - 7, wa - 18], [(sb + sf) / 2 + 7, wa - 18], [(sb + sf) / 2 + 8, hp + 30], [(sb + sf) / 2 - 6, hp + 31]]));
-    P.add("gold", Dm(Dr((sb + sf) / 2 - 1, wa - 10, 3, 18), Dr((sb + sf) / 2 - 5, wa - 4, 11, 3)), { line:false, gloss:true });
-  }
-}
-function coat(P, L, J, O, sw, torso) {
-  const wa = J.waist, hp = J.hip, sb = J.shB[0], sf = J.shF[0], nk = J.neck, hem = hp + 10;
-  // 코트 앞판 (몸통과 엉덩이까지)
-  P.add("c1", Ds([[sb - 1, J.shB[1] + 2], [nk[0] - 2, nk[1]], [nk[0] + 2, nk[1] + 10], [nk[0] + 3, wa], [sf + 3, hp], [sf + 4, hem], [nk[0] + 4, hem + 2], [nk[0], hp], [sb + 2, hp + 2], [sb - 2, wa]]));
-  if (O.open) P.add("skin", Ds([[nk[0] - 3, nk[1]], [nk[0] + 5, nk[1]], [nk[0] + 5, wa + 2], [nk[0] - 1, wa + 4]]));
-  // 옷깃과 안감
-  P.add("c3", Ds([[nk[0] - 2, nk[1] + 1], [nk[0] + 3, nk[1] + 1], [nk[0] + 4, wa + 2], [nk[0] + 1, wa + 3]]), { flatX:true });
-  if (O.abs && O.open) P.add("skinD", Dm(Dw([[nk[0] + 1, J.chest + 2], [nk[0] + 1, wa]], [0.9, 0.9]), Dw([[nk[0] - 1, wa - 8], [nk[0] + 4, wa - 8]], [0.9, 0.9]), Dw([[nk[0] - 1, wa - 2], [nk[0] + 4, wa - 2]], [0.9, 0.9])), { line:false });
-  if (O.trim) P.add("gold", Dw([[nk[0] + 3, nk[1] + 2], [nk[0] + 4, wa + 2], [nk[0] + 5, hem + 1]], [1.4, 1.4, 1.4]), { line:false, gloss:true });
-}
-// ---- 머리카락 ----
-function backHair(P, L, hx, hy, rx, ry, sw, J) {
-  if (L.bald || L.out.hood || L.hat === "mitre") return;
-  const st = L.hs, kid = L.kid, s = kid ? 0.7 : 1;
-  const mass = (pts, grooves = [], shine = []) => {
-    P.add("hair", Ds(pts));
-    if (grooves.length) P.add("hairD", Dm(...grooves.map(g => Dw(g, g.map((_, i) => 1.1 - i * 0.15)))), { line:false });
-    if (shine.length) P.add("hairL", Dm(...shine.map(g => Dw(g, g.map(() => 1.1)))), { line:false });
-  };
-  P.add("hair", De(hx - 3, hy + 1, rx + 1.5, ry + 1));
-  if (L.fem) {
-    if (st === 0) {   // 허리까지 오는 생머리, 바람에 날린다
-      const len = 70 * s;
-      mass([[hx - 9, hy - 8], [hx + 2, hy - 10], [hx - 3, hy + 10], [hx - 6, hy + len * 0.5], [hx - 10 - sw, hy + len], [hx - 18 - sw * 2, hy + len + 4], [hx - 26 - sw * 2, hy + len - 4], [hx - 24, hy + len * 0.55], [hx - 19, hy + 12]],
-        [[[hx - 12, hy], [hx - 16, hy + len * 0.4], [hx - 20 - sw, hy + len - 2]], [[hx - 7, hy + 6], [hx - 9, hy + len * 0.5], [hx - 13 - sw, hy + len]], [[hx - 18, hy + 10], [hx - 22, hy + len * 0.5]]],
-        [[[hx - 14, hy - 2], [hx - 17, hy + 14], [hx - 18, hy + 28]]]);
-    } else if (st === 1) {   // 높이 묶은 포니테일과 리본
-      mass([[hx - 7, hy - 13], [hx - 18, hy - 15], [hx - 27 - sw, hy - 2], [hx - 30 - sw * 2, hy + 22], [hx - 24 - sw * 2, hy + 46 * s], [hx - 19, hy + 26], [hx - 15, hy + 4], [hx - 9, hy - 6]],
-        [[[hx - 14, hy - 12], [hx - 24 - sw, hy + 4], [hx - 26 - sw * 2, hy + 40 * s]]], [[[hx - 15, hy - 13], [hx - 22, hy - 8], [hx - 25, hy + 6]]]);
-      P.add("c3", Dm(De(hx - 9, hy - 13, 4, 3, -0.4), De(hx - 13, hy - 9, 3.4, 2.6, 0.5), Dw([[hx - 10, hy - 11], [hx - 14 - sw, hy - 2]], [2, 1.4])));
-    } else if (st === 2) {   // 물결치는 긴 머리와 옆으로 땋은 머리
-      mass([[hx - 9, hy - 8], [hx + 1, hy - 10], [hx - 3, hy + 14], [hx - 4, hy + 40 * s], [hx - 12 - sw, hy + 52 * s], [hx - 22 - sw, hy + 44 * s], [hx - 19, hy + 20], [hx - 18, hy + 4]],
-        [[[hx - 10, hy + 2], [hx - 14, hy + 24], [hx - 12 - sw, hy + 46 * s]], [[hx - 16, hy + 6], [hx - 18, hy + 30]]], [[[hx - 13, hy - 4], [hx - 15, hy + 12]]]);
-    } else {   // 단발 · 틀어 올린 머리
-      P.add("hair", Dm(De(hx - 9, hy - 9, 7, 6), De(hx - 12, hy - 3, 5.5, 5.5)));
-      P.add("hairL", Dw([[hx - 13, hy - 12], [hx - 8, hy - 14]], [1.1, 1.1]), { line:false });
-    }
-  } else if (st === 2) {   // 남자 긴 머리 (등까지)
-    mass([[hx - 9, hy - 8], [hx + 1, hy - 10], [hx - 3, hy + 10], [hx - 5, hy + 40 * s], [hx - 14 - sw, hy + 50 * s], [hx - 22 - sw * 2, hy + 40 * s], [hx - 18, hy + 14]],
-      [[[hx - 10, hy + 2], [hx - 13, hy + 26], [hx - 16 - sw, hy + 46 * s]]], [[[hx - 13, hy - 4], [hx - 15, hy + 14]]]);
-  } else if (st === 1) mass([[hx - 9, hy - 7], [hx - 15, hy + 2], [hx - 15 - sw, hy + 18], [hx - 9, hy + 18], [hx - 5, hy + 4]]);
-  else if (st === 3) mass([[hx - 10, hy], [hx - 17, hy + 6], [hx - 19 - sw, hy + 22], [hx - 15 - sw, hy + 23], [hx - 12, hy + 8], [hx - 7, hy + 4]]);
-}
-function frontHair(P, L, hx, hy, rx, ry, sw) {
-  if (L.out.hood || L.hat === "mitre") return;
-  if (L.bald) { P.add("hair", Dp(`M${hx - rx - 1} ${hy + 1} Q${hx - rx - 1} ${hy - 5} ${hx - rx + 3} ${hy - 7} L${hx - rx + 4} ${hy + 4} Z`)); return; }
-  P.add("hair", Dp(`M${hx - rx - 2} ${hy + 5} Q${hx - rx - 3} ${hy - ry - 2} ${hx + 1} ${hy - ry - 2} Q${hx + rx + 2} ${hy - ry - 1} ${hx + rx + 1} ${hy - 2} L${hx + 6} ${hy - 4} Q${hx - 1} ${hy - 6} ${hx - 5} ${hy - 1} Q${hx - 6} ${hy + 5} ${hx - rx} ${hy + 9} Z`));
-  const n = L.fem ? 5 : 4, spiky = !L.fem && L.hs === 1;
-  for (let k = 0; k < n; k++) P.add("hair", Dw([[hx - 4 + k * 3.2, hy - ry], [hx - 1 + k * 3.5, hy - 7], [hx + 1 + k * 3.2 + (k === n - 1 ? 2 : 0) + (spiky ? 2 : 0), hy - 1 - (k % 2) * 2 + (spiky ? 1 : 0)]], [4.4, 3, 1.2]));
-  if (spiky) for (let k = 0; k < 3; k++) P.add("hair", Dw([[hx - 6 + k * 5, hy - ry + 1], [hx - 8 + k * 5, hy - ry - 5]], [4, 1.2]));
-  if (L.fem) { P.add("hair", Dw([[hx - 4, hy - 6], [hx - 7, hy + 10], [hx - 4 - sw, hy + 28]], [4.6, 3.6, 1.6])); P.add("hair", Dw([[hx + 6, hy - 6], [hx + 8, hy + 4], [hx + 7, hy + 12]], [3.4, 2.6, 1.2])); }
-  if (L.fem && L.hs === 2) { P.add("hair", Dw([[hx - 5, hy + 6], [hx - 7, hy + 22], [hx - 6 - sw, hy + 38]], [5, 4.4, 3])); P.add("c3", De(hx - 6 - sw, hy + 38, 2.4, 2)); }
-  P.add("hairL", Dw([[hx - 8, hy - 8], [hx - 2, hy - 11], [hx + 4, hy - 10]], [1.3, 1.3, 1.1]), { line:false });
-}
-function headwear(P, L, hx, hy, rx, ry, sw) {
-  const band = (w, m = "gold") => P.add(m, Dw([[hx - rx - 1, hy - 4], [hx, hy - ry + 2], [hx + rx + 1, hy - 5]], [w, w, w]), { gloss:true });
-  if (L.flower) { P.add("rose", Dm(De(hx - 10, hy - 9, 3.4, 3), De(hx - 14, hy - 5, 2.8, 2.6), De(hx - 7, hy - 12, 2.4, 2.2))); P.add("gold", Dw([[hx - 13, hy - 11], [hx - 4, hy - 15]], [1.1, 1.1]), { line:false }); }
-  if (L.bandage) P.add("cloth", Dw([[hx - rx - 1, hy - 3], [hx, hy - 6], [hx + rx, hy - 1]], [3.2, 3.2, 3]));
-  const h = L.hat;
-  if (L.out.hood) P.add("hoodC", x => { const p = new Path2D(`M${hx - rx - 5} ${hy + 24} Q${hx - rx - 7} ${hy - 6} ${hx - 6} ${hy - ry - 4} Q${hx + 6} ${hy - ry - 7} ${hx + rx + 3} ${hy - 4} Q${hx + rx + 5} ${hy + 8} ${hx + rx + 3} ${hy + 24} Z M${hx - 4} ${hy - 6} Q${hx + 5} ${hy - 9} ${hx + rx + 1} ${hy - 1} L${hx + rx + 2} ${hy + 8} Q${hx + 5} ${hy + 14} ${hx - 2} ${hy + 12} Q${hx - 6} ${hy + 4} ${hx - 4} ${hy - 6} Z`); x.fill(p, "evenodd"); });
-  if (h === "coronet") { band(2.2); P.add("pearl", Dm(De(hx - 6, hy - 9, 1, 1), De(hx, hy - 11, 1, 1), De(hx + 6, hy - 9, 1, 1)), { line:false }); }
-  else if (h === "crown0") { band(2.8); P.add("gem", De(hx, hy - 9, 1.3, 1.3), { line:false }); }
-  else if (h === "crown1") { band(3); P.add("gold", Dm(Dp(`M${hx - 9} ${hy - 5} L${hx - 8} ${hy - 13} L${hx - 5} ${hy - 7} Z`), Dp(`M${hx - 3} ${hy - 8} L${hx} ${hy - 17} L${hx + 3} ${hy - 8} Z`), Dp(`M${hx + 5} ${hy - 7} L${hx + 8} ${hy - 14} L${hx + 9} ${hy - 5} Z`)), { gloss:true }); P.add("gem", Dm(De(hx, hy - 9, 1.3, 1.3), De(hx - 6, hy - 7, 1, 1)), { line:false }); }
-  else if (h === "crown2") {
-    P.add("velvet", De(hx, hy - 13, 9, 6)); band(3.4);
-    P.add("gold", Dm(Dw([[hx - 9, hy - 6], [hx - 6, hy - 18], [hx, hy - 20]], [1.6, 1.6, 1.6]), Dw([[hx + 9, hy - 6], [hx + 6, hy - 18], [hx, hy - 20]], [1.6, 1.6, 1.6]), Dw([[hx, hy - 8], [hx, hy - 20]], [1.6, 1.6]), De(hx, hy - 21, 2, 2), Dw([[hx, hy - 25], [hx, hy - 21]], [1.4, 1.4]), Dw([[hx - 2, hy - 24], [hx + 2, hy - 24]], [1.2, 1.2])), { gloss:true });
-    P.add("gem", Dm(De(hx - 5, hy - 7, 1.1, 1.1), De(hx, hy - 9, 1.4, 1.4), De(hx + 5, hy - 7, 1.1, 1.1)), { line:false });
-  } else if (h === "mitre") {
-    P.add("white", Dp(`M${hx - 9} ${hy - 4} Q${hx - 9} ${hy - 18} ${hx} ${hy - 28} Q${hx + 9} ${hy - 18} ${hx + 9} ${hy - 4} Z`));
-    P.add("gold", Dm(Dw([[hx, hy - 26], [hx, hy - 4]], [2.4, 2.4]), Dw([[hx - 9, hy - 5], [hx + 9, hy - 5]], [2.4, 2.4]), Dr(hx - 3, hy - 18, 6, 1.6)), { line:false, gloss:true });
-    P.add("hair", Dp(`M${hx - 10} ${hy - 3} Q${hx - 11} ${hy + 4} ${hx - 8} ${hy + 8} L${hx - 6} ${hy - 3} Z`));
-  } else if (h === "veil") {
-    P.add("white", Dp(`M${hx - rx - 3} ${hy + 26} Q${hx - rx - 5} ${hy - 4} ${hx - 4} ${hy - ry - 2} Q${hx + 6} ${hy - ry - 3} ${hx + rx + 1} ${hy - 4} L${hx + 5} ${hy - 6} Q${hx - 3} ${hy - 5} ${hx - 5} ${hy + 4} Q${hx - 6} ${hy + 16} ${hx - 2} ${hy + 26} Z`));
-    P.add("gold", Dw([[hx - rx, hy - 4], [hx + rx, hy - 6]], [1.6, 1.6]), { line:false });
-  } else if (h === "straw") {
-    P.add("straw", Dm(De(hx, hy - 8, 19, 4.2), De(hx, hy - 12, 9.5, 6))); P.add("c1", Dw([[hx - 9, hy - 9], [hx + 9, hy - 9]], [2, 2]), { line:false });
-  } else if (h === "scarf") {
-    P.add("c3", Dp(`M${hx - rx - 2} ${hy + 6} Q${hx - rx - 3} ${hy - ry - 1} ${hx} ${hy - ry - 2} Q${hx + rx + 2} ${hy - ry - 1} ${hx + rx + 1} ${hy - 3} L${hx + 4} ${hy - 6} Q${hx - 4} ${hy - 6} ${hx - 6} ${hy + 6} Z`));
-  }
-}
-// ---- 소지품 ----
-function heldItem(P, L, J, sw, phase) {
-  const it = L.item, w = J.wrF, el = J.elF, dir = [w[0] - el[0], w[1] - el[1]], dl = Math.hypot(...dir) || 1, h = [w[0] + dir[0] / dl * 3, w[1] + dir[1] / dl * 3];
-  if (phase === "behind") {
-    if (it === "sword") { const tip = L.pose === "ready" ? [h[0] + 30, h[1] - 28] : [h[0] + 12, h[1] + 48]; const ux = (tip[0] - h[0]), uy = (tip[1] - h[1]), ul = Math.hypot(ux, uy); const gx = -uy / ul * 6, gy = ux / ul * 6;
-      const nx2 = -uy / ul, ny2 = ux / ul, b0 = [h[0] + ux / ul * 4, h[1] + uy / ul * 4], b1 = lerp(b0, tip, 0.86);
-      P.add("blade", Dp(`M${b0[0] + nx2 * 2.2} ${b0[1] + ny2 * 2.2} L${b1[0] + nx2 * 1.9} ${b1[1] + ny2 * 1.9} L${tip[0]} ${tip[1]} L${b1[0] - nx2 * 1.9} ${b1[1] - ny2 * 1.9} L${b0[0] - nx2 * 2.2} ${b0[1] - ny2 * 2.2} Z`), { flatX:true });
-      P.add("bladeL", Dp(`M${b0[0] - nx2 * 0.2} ${b0[1] - ny2 * 0.2} L${b1[0] - nx2 * 0.2} ${b1[1] - ny2 * 0.2} L${b1[0] + nx2 * 0.8} ${b1[1] + ny2 * 0.8} L${b0[0] + nx2 * 0.8} ${b0[1] + ny2 * 0.8} Z`), { line:false });
-      P.add("gold", Dw([[h[0] + gx + ux / ul * 3, h[1] + gy + uy / ul * 3], [h[0] - gx + ux / ul * 3, h[1] - gy + uy / ul * 3]], [2.8, 2.8]), { gloss:true }); P.add("leather", Dw([h, [h[0] - ux / ul * 6, h[1] - uy / ul * 6]], [2.8, 2.6])); P.add("gold", De(h[0] - ux / ul * 7, h[1] - uy / ul * 7, 2.2, 2.2), { gloss:true }); }
-    else if (it === "greatsword") { const gx = h[0] + 2; P.add("blade", Dp(`M${gx - 3.5} ${h[1] + 7} L${gx + 3.5} ${h[1] + 7} L${gx + 3} ${GY - 10} L${gx} ${GY - 2} L${gx - 3} ${GY - 10} Z`), { flatX:true }); P.add("bladeL", Dr(gx - 1, h[1] + 10, 1, GY - 22 - h[1]), { line:false }); P.add("gold", Dw([[gx - 9, h[1] + 6], [gx + 9, h[1] + 6]], [3.4, 3.4]), { gloss:true }); P.add("leather", Dw([[gx, h[1] - 8], [gx, h[1] + 5]], [3.2, 3.2])); P.add("gold", De(gx, h[1] - 10, 3, 3), { gloss:true }); P.add("gem", De(gx, h[1] + 6, 1.4, 1.4), { line:false }); }
-    else if (it === "spear") { P.add("wood", Dw([[h[0] - 1, GY - 1], [h[0] + 2, 12]], [2.6, 2.4])); P.add("blade", Dp(`M${h[0] - 2} 16 L${h[0] + 2} -2 L${h[0] + 6} 16 Z`), { gloss:true }); P.add("gold", Dw([[h[0] - 1, 17], [h[0] + 5, 17]], [2.6, 2.6]), { gloss:true }); P.add("rose", Dw([[h[0] + 1, 19], [h[0] - 3 - sw, 28], [h[0] - 1 - sw * 2, 36]], [2.4, 1.8, 1]), { line:false }); }
-    else if (it === "crozier") { P.add("gold", Dm(Dw([[h[0], GY - 1], [h[0], 26]], [2.6, 2.6]), Dw([[h[0], 26], [h[0] + 7, 12], [h[0] + 14, 22], [h[0] + 10, 26]], [2.6, 2.6, 2.4, 2.2]), De(h[0], 46, 2.8, 3.4)), { gloss:true }); }
-    else if (it === "fork") { P.add("wood", Dw([[h[0] - 1, GY - 1], [h[0] + 3, 16]], [2.6, 2.4])); P.add("blade", Dm(Dw([[h[0] - 4, 20], [h[0] + 9, 17]], [1.8, 1.8]), Dw([[h[0] - 4, 20], [h[0] - 5, 4]], [1.6, 1.4]), Dw([[h[0] + 2, 18], [h[0] + 2, 2]], [1.6, 1.4]), Dw([[h[0] + 9, 17], [h[0] + 9, 2]], [1.6, 1.4]))); }
-    else if (it === "scepter") { P.add("gold", Dm(Dw([[h[0] - 2, h[1] + 8], [h[0] + 2, h[1] - 22]], [2.4, 2.2]), De(h[0] + 2, h[1] - 26, 3.6, 3.6), Dw([[h[0] + 2, h[1] - 31], [h[0] + 2, h[1] - 36]], [1.4, 1.4]), Dw([[h[0], h[1] - 34], [h[0] + 4, h[1] - 34]], [1.2, 1.2])), { gloss:true }); P.add("gem", De(h[0] + 1, h[1] - 27, 1.3, 1.3), { line:false }); }
-    else if (it === "dagger") { P.add("blade", Dw([[h[0] + 1, h[1] + 3], [h[0] + 3, h[1] + 15]], [2.6, 1]), { gloss:true }); P.add("gold", Dw([[h[0] - 3, h[1] + 2], [h[0] + 4, h[1] + 3]], [1.8, 1.8])); }
-    else if (it === "staff") { P.add("wood", Dw([[h[0], GY - 1], [h[0] + 1, 24]], [2.8, 2.4])); P.add("gold", De(h[0] + 1, 22, 3.4, 3.4), { gloss:true }); }
-  } else {
-    if (it === "book") { const b = [h[0] - 6, h[1] - 12]; P.add("leather", Dp(`M${b[0]} ${b[1]} L${b[0] + 14} ${b[1] - 3} L${b[0] + 16} ${b[1] + 12} L${b[0] + 2} ${b[1] + 15} Z`)); P.add("paper", Dw([[b[0] + 14, b[1] - 2], [b[0] + 16, b[1] + 11]], [1.6, 1.6]), { line:false }); P.add("gold", Dm(De(b[0] + 8, b[1] + 6, 2.2, 2.2), Dw([[b[0] + 1, b[1] + 1], [b[0] + 13, b[1] - 2]], [1.1, 1.1])), { line:false, gloss:true }); P.add(L.out.gloves === "gauntlet" ? "steel" : "skin", De(h[0] + 3, h[1] - 2, 3.2, 3.6)); }
-    else if (it === "scroll") { P.add("paper", Dw([[h[0] - 4, h[1] - 6], [h[0] + 12, h[1] - 11]], [5.2, 5.2])); P.add("wood", Dm(De(h[0] - 5, h[1] - 5.5, 1.8, 3), De(h[0] + 13, h[1] - 11.5, 1.8, 3))); P.add("rose", Dw([[h[0] + 3, h[1] - 10], [h[0] + 5, h[1] - 5]], [1.4, 1.4]), { line:false }); }
-    else if (it === "ledger") { P.add("c3", Dp(`M${h[0] - 4} ${h[1] - 10} L${h[0] + 8} ${h[1] - 12} L${h[0] + 9} ${h[1]} L${h[0] - 3} ${h[1] + 2} Z`)); P.add("gold", Dw([[h[0] - 2, h[1] - 6], [h[0] + 7, h[1] - 7]], [1.2, 1.2]), { line:false }); }
-    else if (it === "goblet") { P.add("gold", Dm(Dp(`M${h[0] - 4} ${h[1] - 13} L${h[0] + 6} ${h[1] - 13} L${h[0] + 4} ${h[1] - 6} L${h[0] - 2} ${h[1] - 6} Z`), Dw([[h[0] + 1, h[1] - 6], [h[0] + 1, h[1] - 2]], [1.6, 1.6])), { gloss:true }); P.add("wine", Dw([[h[0] - 3, h[1] - 12.5], [h[0] + 5, h[1] - 12.5]], [1.2, 1.2]), { line:false }); }
-    else if (it === "rose") { P.add("leaf", Dw([[h[0], h[1] + 2], [h[0] + 2, h[1] - 10]], [1.2, 1.2])); P.add("rose", Dm(De(h[0] + 2, h[1] - 12, 3, 2.6), De(h[0], h[1] - 10, 2, 1.8))); }
-    else if (it === "rosary") { P.add("wood", x => { for (let k = 0; k < 7; k++) { x.beginPath(); x.arc(h[0] - k * 0.3, h[1] + 3 + k * 2.2, 1, 0, 7); x.fill(); } }); P.add("gold", Dm(Dw([[h[0] - 1, h[1] + 17], [h[0] - 1, h[1] + 23]], [1.2, 1.2]), Dw([[h[0] - 3, h[1] + 19], [h[0] + 1, h[1] + 19]], [1.2, 1.2]))); }
-  }
-}
-// ---- 얼굴 ----
-function face3(img, ox, L, hx, hy, rx) {
-  const d = img.data, W = img.width;
-  const put = (x, y, c) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= SW || y >= SH) return; const [r, g, b] = hex(c), k = (y * W + x + ox) * 4; d[k] = r; d[k + 1] = g; d[k + 2] = b; d[k + 3] = 255; };
-  const get = (x, y) => { const k = (Math.round(y) * W + Math.round(x) + ox) * 4; return toHex([d[k], d[k + 1], d[k + 2]]); };
-  const blend = (x, y, c, t) => put(x, y, mixH(get(x, y), c, t));
-  hx = Math.round(hx); hy = Math.round(hy);
-  const sr = skinRamp(L.skinC), hairD = mixH(L.hair, "#0c0614", 0.72), lash = mixH(hairD, "#0c0614", 0.45);
-  const ir = L.eye, irD = mixH(ir, "#0c0614", 0.55), irL = mixH(ir, "#ffffff", 0.45), ex = L.expr, big = L.fem || L.kid ? 1 : 0;
-  const ey = hy, nearX = hx - 3, farX = hx + 5;
-  // 눈썹
-  const brow = (x0, w, inner) => { for (let k = 0; k < w; k++) { const lift = ex === "angry" ? (inner ? k : w - 1 - k) * 0.5 - 1 : ex === "gentle" || ex === "shy" ? -(k === 1 || k === 2 ? 1 : 0) : 0; put(x0 + k, ey - 3 - big + lift, hairD); } };
-  brow(nearX - 1, 5, true); brow(farX, 4, false);
-  // 눈 (아래로 긴 애니풍)
-  const eye = (x0, w, near) => {
-    const lid = ex === "smug" ? 1 : 0, look = ex === "shy" ? 1 : 0, rows = 4 + big;
-    for (let k = -1; k <= w; k++) put(x0 + k, ey + lid, k < 0 || k === w ? sr[1] : lash);
-    if (L.fem || L.kid || L.lashes) { put(near ? x0 - 2 : x0 + w + 1, ey - 1 + lid, lash); put(near ? x0 - 1 : x0 + w, ey + lid, lash); }
-    for (let r = 1; r < rows; r++) for (let k = 0; k < w; k++) {
-      if (r <= lid) continue;
-      const white = near ? k === 0 : k === w - 1;
-      put(x0 + k, ey + r, white ? "#f4f0ee" : r === 1 + look ? irD : r === rows - 1 ? irL : r === 2 + look && k === (near ? 2 : 1) ? irD : ir);
-    }
-    put(x0 + (near ? 1 : 0), ey + 1 + lid + look, "#ffffff");
-    if (big) put(x0 + (near ? 2 : 1), ey + rows - 1, "#ffffff");
-    for (let k = 0; k < w; k++) put(x0 + k, ey + rows, sr[2]);
-  };
-  eye(nearX, 4, true); eye(farX, 3, false);
-  if (L.mask) for (let x = hx - 5; x <= hx + rx + 1; x++) for (let y = hy + 5; y <= hy + 12; y++) { const k = (y * W + x + ox) * 4; if (d[k + 3]) put(x, y, y === hy + 5 ? "#16121c" : (x + y) % 6 ? "#2c2834" : "#383440"); }
-  // 코 · 입 · 볼
-  put(hx + rx - 1, hy + 5, sr[1]); put(hx + rx - 2, hy + 4, sr[2]);
-  const lip = L.fem ? "#c64c5a" : sr[1], my = hy + 9;
-  if (L.beard !== "full") {
-    const line = ex === "cheer" || ex === "gentle" ? [[2, -1], [3, 0], [4, 0], [5, 0], [6, -1]] : ex === "angry" ? [[2, 1], [3, 0], [4, 0], [5, 0], [6, 1]] : ex === "smug" ? [[3, 0], [4, 0], [5, 0], [6, -1]] : [[3, 0], [4, 0], [5, 0]];
-    for (const [dx, dy] of line) put(hx + dx, my + dy, lip);
-    if (L.fem) { put(hx + 3, my + 1, mixH(lip, "#ffffff", 0.3)); put(hx + 4, my + 1, mixH(lip, "#ffffff", 0.3)); }
-  } else for (const dx of [3, 4, 5]) put(hx + dx, my, hairD);
-  if (L.fem || L.kid || ex === "shy" || L.rednose) { const bc = L.rednose ? "#e04050" : "#ff7f8e", t = L.rednose ? 0.55 : 0.3; for (const x of [hx - 4, hx - 3]) blend(x, hy + 6, bc, t); for (const x of [hx + 6, hx + 7]) blend(x, hy + 6, bc, t); }
-  if (L.freckles) for (const [x, y] of [[-4, 5], [-2, 6], [6, 5], [7, 6]]) put(hx + x, hy + y, sr[2]);
-  if (L.rednose) { put(hx + rx, hy + 4, "#d84050"); put(hx + rx - 1, hy + 5, "#b83040"); }
-  if (L.elder) { put(nearX - 1, ey + 6, sr[2]); put(nearX, ey + 7, sr[2]); put(hx + 6, hy + 8, sr[2]); put(hx + 7, hy + 9, sr[2]); }
-  if (L.earring) { put(hx - rx + 4, hy + 6, "#f0c040"); put(hx - rx + 4, hy + 7, "#f8e080"); }
-  if (L.scar) { put(hx + 5, ey - 2, sr[0]); put(hx + 6, ey - 1, sr[0]); put(hx + 6, ey + 5, sr[0]); put(hx + 7, ey + 6, sr[0]); }
-}
-// ---- 조립 ----
-const SPRITES = new Map();
+let PID = 0;
 function makeSprite(L) {
   const key = JSON.stringify(L);
   if (SPRITES.has(key)) return SPRITES.get(key);
-  if (typeof Path2D === "undefined") { const sp = { u:"", top:0 }; SPRITES.set(key, sp); return sp; }
-  const sk = L.pale ? mixH(SKIN[L.skin], "#b8c4d4", 0.35) : SKIN[L.skin];
-  L = { ...L, skinC:sk };
-  const R6 = c => ramp6(c);
-  const pal = {
-    skin:skinRamp(sk), skinD:skinRamp(sk)[2], hair:R6(L.hair), hairL:mixH(L.hair, "#fff6e6", 0.55), hairD:mixH(L.hair, "#1a0c24", 0.45),
-    c1:R6(L.c1), c2:R6(L.c2), c3:R6(L.c3), cape:R6(mixH(L.c1, "#1a1428", 0.18)), lining:R6(L.c3), pants:R6(L.pantsC || mixH(L.c2, "#1a1a26", 0.55)), hose:R6("#2a2632"),
-    leather:R6("#6e4628"), boot:R6(L.bootC || "#4a2e22"), bootC:R6(mixH(L.bootC || "#4a2e22", "#e8c060", 0.35)), gold:R6("#e8b43a"),
-    fur:R6("#f6f2ea"), steel:R6("#b0b8ca"), steelD:R6("#7a8296"), blade:R6("#dfe5ef"), bladeL:"#ffffff", wood:R6("#8a5a2e"),
-    white:R6("#f0eadc"), cloth:R6("#f2ede4"), straw:R6("#dcb862"), velvet:R6("#b0202e"), gem:"#e8303e", pearl:"#fbf6ee", hoodC:R6(L.hoodC || L.c1),
-    rose:R6("#d8283a"), leaf:R6("#4a8a3a"), paper:R6("#efe2c0"), wine:"#7a1020", dark:R6("#2a2632"), halo:R6("#f4cc40"),
-  };
-  const cv = document.createElement("canvas"); cv.width = SW * 2; cv.height = SH;
-  const ctx = cv.getContext("2d"), img = ctx.createImageData(SW * 2, SH);
-  let head = null;
-  for (let f = 0; f < 2; f++) {
-    const P = newPainter(); head = figure(P, L, f);
-    shade3(P, pal, img, f * SW);
-    for (let x = 18; x <= 86; x++) for (const y of [GY - 1, GY, GY + 1]) {
-      const k = (y * SW * 2 + x + f * SW) * 4, dx = (x - 54) / 33, dy2 = (y - GY) / 2.4;
-      if (img.data[k + 3] === 0 && dx * dx + dy2 * dy2 <= 1) { img.data[k] = 12; img.data[k + 1] = 6; img.data[k + 2] = 20; img.data[k + 3] = 80; }
-    }
-    face3(img, f * SW, L, head.hx, head.hy, head.rx);
-  }
-  ctx.putImageData(img, 0, 0);
-  const sp = { u:cv.toDataURL(), top:Math.max(0, Math.round(head.hy) - (L.halo ? 30 : L.hat === "crown2" || L.hat === "mitre" ? 32 : 22)), kid:!!L.kid };
+  const svg = portraitSVG(L);
+  let u;
+  try { u = URL.createObjectURL(new Blob([svg], { type:"image/svg+xml" })); } catch (e) { u = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); }
+  const sp = { u, svg:true };
   SPRITES.set(key, sp);
   return sp;
 }
+const SPRITES = new Map();
+function portraitSVG(L) {
+  const id = "p" + (PID++), U = s => `${id}${s}`;
+  const sk = L.pale ? mixH(SKIN[L.skin], "#c4ccd8", 0.35) : SKIN[L.skin];
+  const skL = mixH(sk, "#fff6ee", 0.35), skD = mixH(sk, "#9a3a52", 0.26), skDD = mixH(sk, "#5a1a2a", 0.45);
+  const hr = L.hair, hrL = mixH(hr, "#fff8ec", 0.38), hrD = mixH(hr, "#1a0c24", 0.45), hrDD = mixH(hr, "#0c0614", 0.7);
+  const c1 = L.c1, c2 = L.c2, c3 = L.c3, ex = L.expr, fem = L.fem, kid = L.kid, O = L.out;
+  const broad = L.build === "broad", big = fem || kid;
+  const ky = kid ? 12 : 0, belly = L.belly ? 4 : 0;
+  const g = (n, a, b, x2 = 0, y2 = 1) => `<linearGradient id="${U(n)}" x1="0" y1="0" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+  const fill = n => `url(#${U(n)})`;
+  let defs = "", back = "", body = "", head = "", front = "", defsExtra = "";
+  // 바탕
+  const bgC = L.bg || c1;
+  defs += `<radialGradient id="${U("bg")}" cx="0.5" cy="0.38" r="0.75"><stop offset="0" stop-color="${mixH(bgC, "#fff2dc", 0.28)}"/><stop offset="0.55" stop-color="${mixH(bgC, "#1a1024", 0.35)}"/><stop offset="1" stop-color="${mixH(bgC, "#08040e", 0.78)}"/></radialGradient>`;
+  defs += g("sk", skL, skD, 1, 0.3) + g("hr", hrL, hrD) + g("c1", mixH(c1, "#fff4e0", 0.18), mixH(c1, "#1a1024", 0.45)) + g("c2", mixH(c2, "#fff4e0", 0.15), mixH(c2, "#1a1024", 0.45));
+  defs += g("c3", mixH(c3, "#ffffff", 0.2), mixH(c3, "#2a1a34", 0.3)) + g("gold", "#fff0a0", "#a8741c") + g("st", "#eef2f8", "#6a7488") + g("wh", "#ffffff", "#c8c0b4") + g("fur", "#ffffff", "#d8d0c4");
+  defs += `<pattern id="${U("pt")}" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" fill="#fff" opacity="0.05"/></pattern>`;
+  let svg = `<rect width="200" height="250" fill="${fill("bg")}"/><rect width="200" height="250" fill="url(#${U("pt")})"/>`;
+  // 후광
+  if (L.halo) {
+    const rays = Array.from({ length:16 }, (_, k) => { const a = k / 16 * Math.PI * 2, r1 = 52, r2 = k % 2 ? 66 : 76; return `M${100 + Math.cos(a - 0.06) * r1} ${88 + ky + Math.sin(a - 0.06) * r1} L${100 + Math.cos(a) * r2} ${88 + ky + Math.sin(a) * r2} L${100 + Math.cos(a + 0.06) * r1} ${88 + ky + Math.sin(a + 0.06) * r1}Z`; }).join("");
+    back += `<path d="${rays}" fill="#ffe27a" opacity="0.85"/><circle cx="100" cy="${88 + ky}" r="54" fill="none" stroke="${fill("gold")}" stroke-width="5"/><circle cx="100" cy="${88 + ky}" r="54" fill="none" stroke="#fff6c0" stroke-width="1.4" opacity="0.8"/>`;
+  }
+  // 등 뒤 소지품
+  back += itemBack(L, fill, ky);
+  // 뒷머리
+  back += hairBack(L, fill, hr, hrD, ky);
+  // 몸과 옷
+  body += clothes(L, fill, { sk, skD, skL, c1, c2, c3, ky, broad, belly });
+  // 목
+  head += `<path d="M86 ${148 + ky} L114 ${148 + ky} L116 ${186 + ky} Q100 ${194 + ky} 84 ${186 + ky} Z" fill="${fill("sk")}"/><path d="M86 ${150 + ky} Q100 ${172 + ky} 114 ${150 + ky} L114 ${160 + ky} Q100 ${176 + ky} 86 ${160 + ky} Z" fill="${skD}" opacity="0.55"/>`;
+  if (L.necklace) head += necklace(L, fill, ky);
+  // 얼굴
+  const face = kid ? `M64 ${108 + ky} C64 ${78 + ky} 82 ${62 + ky} 100 ${62 + ky} C118 ${62 + ky} 136 ${78 + ky} 136 ${108 + ky} C136 ${132 + ky} 124 ${150 + ky} 100 ${154 + ky} C76 ${150 + ky} 64 ${132 + ky} 64 ${108 + ky}Z`
+    : fem ? `M62 104 C62 74 80 58 100 58 C120 58 138 74 138 104 C138 126 130 142 118 152 C112 158 106 161 100 161 C94 161 88 158 82 152 C70 142 62 126 62 104Z`
+    : `M${broad ? 58 : 60} 104 C${broad ? 58 : 60} 72 80 56 100 56 C120 56 ${broad ? 142 : 140} 72 ${broad ? 142 : 140} 104 C${broad ? 142 : 140} ${128 + belly} ${broad ? 136 : 134} 146 122 156 C114 162 107 ${164 + belly / 2} 100 ${164 + belly / 2} C93 ${164 + belly / 2} 86 162 78 156 C66 146 ${broad ? 58 : 60} ${128 + belly} ${broad ? 58 : 60} 104Z`;
+  head += `<ellipse cx="${kid ? 63 : 60}" cy="${116 + ky}" rx="7" ry="11" fill="${skD}"/><ellipse cx="${kid ? 137 : 140}" cy="${116 + ky}" rx="7" ry="11" fill="${skD}"/><ellipse cx="${kid ? 63 : 60}" cy="${116 + ky}" rx="4" ry="7" fill="${sk}"/><ellipse cx="${kid ? 137 : 140}" cy="${116 + ky}" rx="4" ry="7" fill="${sk}"/>`;
+  head += `<path d="${face}" fill="${fill("sk")}"/>`;
+  head += `<path d="${face}" fill="none" stroke="${skDD}" stroke-width="1.2" opacity="0.45"/>`;
+  // 볼·이마 그늘
+  head += `<ellipse cx="100" cy="${78 + ky}" rx="36" ry="12" fill="${skD}" opacity="0.28"/>`;
+  if (L.fem || L.kid || ex === "shy" || L.lashes) head += `<ellipse cx="78" cy="${132 + ky}" rx="10" ry="4.5" fill="#ff8a9a" opacity="${ex === "shy" ? 0.55 : 0.32}"/><ellipse cx="122" cy="${132 + ky}" rx="10" ry="4.5" fill="#ff8a9a" opacity="${ex === "shy" ? 0.55 : 0.32}"/>`;
+  if (L.rednose) head += `<ellipse cx="100" cy="${130 + ky}" rx="7" ry="5" fill="#e04858" opacity="0.5"/><ellipse cx="78" cy="${132 + ky}" rx="9" ry="4" fill="#e04858" opacity="0.35"/><ellipse cx="122" cy="${132 + ky}" rx="9" ry="4" fill="#e04858" opacity="0.35"/>`;
+  if (L.freckles) head += [[76, 128], [80, 131], [84, 128], [116, 128], [120, 131], [124, 128]].map(([x, y]) => `<circle cx="${x}" cy="${y + ky}" r="1" fill="${skDD}" opacity="0.5"/>`).join("");
+  if (L.elder) head += `<g stroke="${skDD}" stroke-width="1.2" fill="none" opacity="0.4"><path d="M68 ${112 + ky} l-5 3 M68 ${117 + ky} l-5 1 M132 ${112 + ky} l5 3 M132 ${117 + ky} l5 1 M84 ${136 + ky} Q86 ${146 + ky} 90 ${150 + ky} M116 ${136 + ky} Q114 ${146 + ky} 110 ${150 + ky} M86 ${80 + ky} Q100 ${77 + ky} 114 ${80 + ky} M88 ${86 + ky} Q100 ${84 + ky} 112 ${86 + ky}"/></g>`;
+  head += eyes(L, U, null, ky);
+  head += mouthNose(L, ky, skD, skDD);
+  if (L.beard) head += beard(L, fill, hr, hrD);
+  if (L.scar) head += `<path d="M118 ${96 + ky} L126 ${124 + ky}" stroke="#8a3a3a" stroke-width="2" opacity="0.7"/><path d="M116 ${100 + ky} l5 -1 M119 ${108 + ky} l5 -1 M121 ${116 + ky} l5 -1" stroke="#8a3a3a" stroke-width="1.2" opacity="0.6"/>`;
+  if (L.mask && L.role === "bandit") head += `<path d="M58 ${124 + ky} Q100 ${118 + ky} 142 ${124 + ky} L140 ${150 + ky} Q120 ${170 + ky} 100 ${172 + ky} Q80 ${170 + ky} 60 ${150 + ky} Z" fill="#2c2834"/><path d="M60 ${126 + ky} Q100 ${120 + ky} 140 ${126 + ky}" stroke="#4a4654" stroke-width="2" fill="none"/>`;
+  else if (L.mask) head += `<path fill-rule="evenodd" d="M58 ${100 + ky} Q100 ${88 + ky} 142 ${100 + ky} L138 ${122 + ky} Q120 ${128 + ky} 104 ${118 + ky} Q100 ${114 + ky} 96 ${118 + ky} Q80 ${128 + ky} 62 ${122 + ky} Z M70 ${112 + ky} Q82 ${102 + ky} 94 ${112 + ky} Q82 ${120 + ky} 70 ${112 + ky} Z M106 ${112 + ky} Q118 ${102 + ky} 130 ${112 + ky} Q118 ${120 + ky} 106 ${112 + ky} Z" fill="#3a2048"/><path d="M58 ${100 + ky} Q100 ${88 + ky} 142 ${100 + ky}" stroke="${fill("gold")}" stroke-width="2" fill="none"/>`;
+  // 앞머리와 머리쓰개
+  head += hairFront(L, fill, hr, hrL, hrD, hrDD, ky);
+  head += headwear(L, fill, ky);
+  if (L.bandage) head += `<path d="M60 ${84 + ky} Q100 ${72 + ky} 140 ${86 + ky} L140 ${96 + ky} Q100 ${82 + ky} 60 ${94 + ky} Z" fill="${fill("wh")}"/><ellipse cx="124" cy="${86 + ky}" rx="5" ry="3" fill="#c03a3a" opacity="0.7"/>`;
+  front += itemFront(L, fill, { sk, skD });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" width="200" height="250"><defs>${defs}${defsExtra}</defs>${svg}${back}${body}${head}${front}<rect width="200" height="250" fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="6"/></svg>`;
+}
+function eyes(L, U, addDefs, ky) {
+  const ex = L.ex || L.expr, fem = L.fem, kid = L.kid, w = kid ? 25 : fem ? 24 : 22, h = kid ? 18 : fem ? 15 : 12;
+  const cy = 112 + ky + (kid ? 4 : 0), lash = mixH(L.hair, "#0c0614", 0.78), iris = L.eye, irisD = mixH(iris, "#0c0614", 0.6), irisL = mixH(iris, "#ffffff", 0.5);
+  const look = ex === "shy" ? 2 : 0, lid = ex === "smug" ? 0.42 : ex === "angry" ? 0.3 : ex === "gentle" ? 0.12 : 0;
+  let s = "";
+  for (const [cx, side] of [[kid ? 82 : 81, -1], [kid ? 118 : 119, 1]]) {
+    const L0 = cx - w / 2, R0 = cx + w / 2, top = cy - h * 0.78, bot = cy + h * 0.55;
+    const scl = `M${L0} ${cy} C${cx - w / 4} ${top} ${cx + w / 4} ${top} ${R0} ${cy - 1} C${cx + w / 4} ${bot} ${cx - w / 4} ${bot} ${L0} ${cy}Z`;
+    const cid = `e${side}${Math.round(cx)}`;
+    s += `<clipPath id="CL${cid}"><path d="${scl}"/></clipPath>`;
+    s += `<path d="${scl}" fill="#fbf7f4"/>`;
+    s += `<g clip-path="url(#CL${cid})"><ellipse cx="${cx + side * 0.5}" cy="${cy + look}" rx="${w * 0.29}" ry="${h * 0.6}" fill="${irisD}"/><ellipse cx="${cx + side * 0.5}" cy="${cy + 1.5 + look}" rx="${w * 0.25}" ry="${h * 0.5}" fill="${iris}"/><ellipse cx="${cx + side * 0.5}" cy="${cy + h * 0.3 + look}" rx="${w * 0.18}" ry="${h * 0.22}" fill="${irisL}" opacity="0.85"/><ellipse cx="${cx + side * 0.5}" cy="${cy + look}" rx="${w * 0.11}" ry="${h * 0.3}" fill="${mixH(irisD, "#000", 0.5)}"/>`;
+    s += `<ellipse cx="${cx - w * 0.1}" cy="${cy - h * 0.22 + look}" rx="${w * 0.08}" ry="${h * 0.14}" fill="#fff"/><circle cx="${cx + w * 0.12}" cy="${cy + h * 0.26 + look}" r="1.1" fill="#fff" opacity="0.9"/>`;
+    if (lid) s += `<path d="M${L0 - 2} ${top - 4} L${R0 + 2} ${top - 4} L${R0 + 2} ${top + h * lid * (ex === "angry" ? (side < 0 ? 0.6 : 1.4) : 1) + 2} L${L0 - 2} ${top + h * lid * (ex === "angry" ? (side < 0 ? 1.4 : 0.6) : 1) + 2}Z" fill="${mixH(SKIN[L.skin], "#9a3a52", 0.18)}"/>`;
+    s += `</g>`;
+    // 속눈썹
+    const lt = top + (lid ? h * lid : 0);
+    s += `<path d="M${L0 - 1} ${cy + 0.5} C${cx - w / 4} ${lt - 1} ${cx + w / 4} ${lt - 1} ${R0 + 1} ${cy - 1.5}" stroke="${lash}" stroke-width="${big(L) ? 3.2 : 2.6}" fill="none" stroke-linecap="round"/>`;
+    if (fem || kid || L.lashes) s += `<path d="M${side < 0 ? L0 : R0} ${cy - (side < 0 ? 0 : 1.5)} l${side * -1 * 0 + (side < 0 ? -4 : 4)} -3 M${side < 0 ? L0 + 2 : R0 - 2} ${cy - 2.5} l${side < 0 ? -3 : 3} -4" stroke="${lash}" stroke-width="1.6" stroke-linecap="round"/>`;
+    s += `<path d="M${L0 + 3} ${bot - 1} Q${cx} ${bot + (ex === "gentle" || ex === "cheer" ? -1.5 : 1)} ${R0 - 3} ${bot - 1.5}" stroke="${lash}" stroke-width="0.9" fill="none" opacity="0.55"/>`;
+    s += `<path d="M${L0 + 2} ${top - 2.5} Q${cx} ${top - 5} ${R0 - 1} ${top - 2}" stroke="${lash}" stroke-width="0.8" fill="none" opacity="0.35"/>`;
+    // 눈썹
+    const by = cy - h - (fem ? 7 : 6), inner = side < 0 ? R0 - 1 : L0 + 1, outer = side < 0 ? L0 - 1 : R0 + 1;
+    const dyIn = ex === "angry" ? 5 : ex === "shy" || ex === "gentle" ? -3 : ex === "smug" && side > 0 ? -3 : 0;
+    s += `<path d="M${outer} ${by + 2} Q${cx} ${by - 3 + (ex === "smug" && side > 0 ? -2 : 0)} ${inner} ${by + dyIn}" stroke="${mixH(L.hair, "#0c0614", 0.55)}" stroke-width="${fem || kid ? 2.4 : 3.6}" fill="none" stroke-linecap="round"/>`;
+  }
+  return s;
+}
+const big = L => L.fem || L.kid;
+function mouthNose(L, ky, skD, skDD) {
+  const ex = L.expr, fem = L.fem, my = 147 + ky + (L.kid ? -2 : 0), lip = fem ? "#c84c5c" : mixH(skDD, "#7a2a3a", 0.3);
+  let s = `<path d="M101 ${122 + ky} Q105 ${131 + ky} 100 ${134 + ky}" stroke="${skDD}" stroke-width="1.4" fill="none" opacity="0.55"/><path d="M96 ${134 + ky} Q100 ${136 + ky} 104 ${134 + ky}" stroke="${skDD}" stroke-width="1.2" fill="none" opacity="0.45"/>`;
+  if (L.beard === "full" || L.mask && L.role === "bandit") return s;
+  const d = ex === "cheer" ? `M89 ${my - 2} Q100 ${my + 9} 111 ${my - 2}` : ex === "gentle" ? `M91 ${my} Q100 ${my + 5} 109 ${my}` : ex === "angry" ? `M91 ${my + 3} Q100 ${my - 2} 109 ${my + 3}` : ex === "smug" ? `M92 ${my + 1} Q102 ${my + 3} 110 ${my - 3}` : ex === "shy" ? `M95 ${my + 1} Q100 ${my + 2} 105 ${my + 1}` : `M92 ${my} Q100 ${my + 2} 108 ${my}`;
+  if (ex === "cheer") s += `<path d="${d} Q100 ${my + 4} 89 ${my - 2}Z" fill="#7a2a3a"/><path d="M93 ${my + 1} Q100 ${my + 5} 107 ${my + 1}" fill="#e88a9a"/>`;
+  s += `<path d="${d}" stroke="${lip}" stroke-width="${fem ? 2.4 : 2}" fill="none" stroke-linecap="round"/>`;
+  if (fem) s += `<path d="M95 ${my + 3} Q100 ${my + 5} 105 ${my + 3}" stroke="${mixH(lip, "#ffffff", 0.35)}" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.7"/>`;
+  return s;
+}
+function beard(L, fill, hr, hrD) {
+  const b = L.beard;
+  if (b === "full") return `<path d="M62 118 C64 150 82 178 100 180 C118 178 136 150 138 118 C132 132 126 142 118 144 Q100 140 82 144 C74 142 68 132 62 118Z" fill="${fill("hr")}"/><path d="M84 144 Q100 136 116 144 Q100 150 84 144Z" fill="${hrD}"/><path d="M80 160 Q86 170 92 174 M108 174 Q114 170 120 160 M100 160 L100 176" stroke="${hrD}" stroke-width="1.2" fill="none" opacity="0.6"/>`;
+  if (b === "goatee") return `<path d="M88 146 Q100 140 112 146 Q110 150 100 148 Q90 150 88 146Z" fill="${fill("hr")}"/><path d="M92 154 Q100 152 108 154 Q106 168 100 170 Q94 168 92 154Z" fill="${fill("hr")}"/>`;
+  if (b === "mustache") return `<path d="M86 146 Q93 138 100 142 Q107 138 114 146 Q107 144 100 146 Q93 144 86 146Z" fill="${fill("hr")}"/>`;
+  return "";
+}
+function hairBack(L, fill, hr, hrD, ky) {
+  if (L.bald || L.out.hood || L.hat === "mitre" || L.hat === "veil") return "";
+  const st = L.hs;
+  if (L.fem) {
+    if (st === 0) return `<path d="M56 ${100 + ky} C48 ${56 + ky} 72 ${34 + ky} 100 ${34 + ky} C128 ${34 + ky} 152 ${56 + ky} 144 ${100 + ky} C152 150 160 200 166 250 L34 250 C40 200 48 150 56 ${100 + ky}Z" fill="${fill("hr")}"/><path d="M60 140 C56 180 52 210 48 248 M140 140 C144 180 150 210 154 248 M70 150 C68 190 66 220 64 248" stroke="${hrD}" stroke-width="1.6" fill="none" opacity="0.5"/>`;
+    if (st === 1) return `<path d="M60 ${96 + ky} C54 ${56 + ky} 74 ${36 + ky} 100 ${36 + ky} C126 ${36 + ky} 146 ${56 + ky} 140 ${96 + ky}Z" fill="${fill("hr")}"/><path d="M128 ${50 + ky} C168 ${60 + ky} 176 ${130 + ky} 160 ${200 + ky} C156 ${220 + ky} 146 ${232 + ky} 138 ${240 + ky} C150 ${200 + ky} 150 ${130 + ky} 126 ${74 + ky}Z" fill="${fill("hr")}"/><path d="M140 ${80 + ky} C156 ${120 + ky} 154 ${170 + ky} 146 ${220 + ky}" stroke="${hrD}" stroke-width="1.6" fill="none" opacity="0.5"/>`;
+    if (st === 2) return `<path d="M56 ${100 + ky} C48 ${56 + ky} 72 ${34 + ky} 100 ${34 + ky} C128 ${34 + ky} 152 ${56 + ky} 144 ${100 + ky} C156 140 146 170 158 200 C166 220 152 236 160 250 L40 250 C48 236 34 220 42 200 C54 170 44 140 56 ${100 + ky}Z" fill="${fill("hr")}"/>`;
+    return `<path d="M60 ${96 + ky} C54 ${56 + ky} 74 ${36 + ky} 100 ${36 + ky} C126 ${36 + ky} 146 ${56 + ky} 140 ${96 + ky}Z" fill="${fill("hr")}"/><ellipse cx="100" cy="${34 + ky}" rx="26" ry="18" fill="${fill("hr")}"/><path d="M80 ${30 + ky} Q100 ${20 + ky} 120 ${30 + ky}" stroke="${hrD}" stroke-width="1.4" fill="none" opacity="0.5"/>`;
+  }
+  if (st === 2) return `<path d="M58 ${100 + ky} C50 ${56 + ky} 72 ${34 + ky} 100 ${34 + ky} C128 ${34 + ky} 150 ${56 + ky} 142 ${100 + ky} C148 140 152 180 150 214 L50 214 C48 180 52 140 58 ${100 + ky}Z" fill="${fill("hr")}"/>`;
+  if (st === 3) return `<path d="M60 ${96 + ky} C54 ${56 + ky} 74 ${36 + ky} 100 ${36 + ky} C126 ${36 + ky} 146 ${56 + ky} 140 ${96 + ky}Z" fill="${fill("hr")}"/><path d="M132 ${110 + ky} C150 ${130 + ky} 150 ${160 + ky} 140 ${190 + ky} L132 ${186 + ky} C138 ${160 + ky} 136 ${136 + ky} 126 ${118 + ky}Z" fill="${fill("hr")}"/>`;
+  return `<path d="M60 ${100 + ky} C54 ${56 + ky} 74 ${36 + ky} 100 ${36 + ky} C126 ${36 + ky} 146 ${56 + ky} 140 ${100 + ky}Z" fill="${fill("hr")}"/>`;
+}
+function hairFront(L, fill, hr, hrL, hrD, hrDD, ky) {
+  if (L.out.hood || L.hat === "mitre" || L.hat === "veil") return "";
+  if (L.bald) return `<path d="M58 ${112 + ky} C56 ${92 + ky} 62 ${80 + ky} 70 ${74 + ky} L72 ${104 + ky}Z M142 ${112 + ky} C144 ${92 + ky} 138 ${80 + ky} 130 ${74 + ky} L128 ${104 + ky}Z" fill="${fill("hr")}"/><path d="M76 ${66 + ky} Q100 ${54 + ky} 124 ${66 + ky}" stroke="#fff" stroke-width="3" opacity="0.25" fill="none"/>`;
+  let s;
+  if (L.fem || L.kid && L.fem) {
+    s = `<path d="M58 ${108 + ky} C52 ${62 + ky} 76 ${42 + ky} 100 ${42 + ky} C124 ${42 + ky} 148 ${62 + ky} 142 ${108 + ky} C138 ${94 + ky} 134 ${84 + ky} 128 ${78 + ky} L124 ${100 + ky} L114 ${78 + ky} L106 ${102 + ky} L98 ${78 + ky} L88 ${100 + ky} L82 ${78 + ky} C74 ${86 + ky} 64 ${96 + ky} 58 ${108 + ky}Z" fill="${fill("hr")}"/>`;
+    s += `<path d="M60 ${100 + ky} C54 ${130 + ky} 58 ${160 + ky} 52 ${190 + ky} L60 ${186 + ky} C66 ${160 + ky} 66 ${130 + ky} 68 ${104 + ky}Z" fill="${fill("hr")}"/><path d="M140 ${100 + ky} C146 ${130 + ky} 142 ${160 + ky} 148 ${190 + ky} L140 ${186 + ky} C134 ${160 + ky} 134 ${130 + ky} 132 ${104 + ky}Z" fill="${fill("hr")}"/>`;
+  } else {
+    s = `<path d="M58 ${106 + ky} C52 ${60 + ky} 76 ${40 + ky} 100 ${40 + ky} C126 ${40 + ky} 150 ${60 + ky} 142 ${106 + ky} C138 ${90 + ky} 132 ${80 + ky} 124 ${74 + ky} L120 ${90 + ky} L110 ${74 + ky} L102 ${92 + ky} L94 ${74 + ky} L84 ${90 + ky} L80 ${74 + ky} C72 ${82 + ky} 64 ${92 + ky} 58 ${106 + ky}Z" fill="${fill("hr")}"/>`;
+    if (L.hs === 1) s += `<path d="M66 ${60 + ky} L58 ${40 + ky} L78 ${52 + ky} L82 ${30 + ky} L96 ${48 + ky} L106 ${28 + ky} L114 ${48 + ky} L128 ${34 + ky} L128 ${56 + ky} L146 ${50 + ky} L136 ${72 + ky}Z" fill="${fill("hr")}"/>`;
+  }
+  // 윤기와 결
+  s += `<path d="M72 ${62 + ky} Q100 ${50 + ky} 128 ${62 + ky}" stroke="#fff" stroke-width="4" opacity="0.28" fill="none" stroke-linecap="round"/><path d="M80 ${58 + ky} Q100 ${50 + ky} 118 ${57 + ky}" stroke="${hrL}" stroke-width="2" opacity="0.6" fill="none"/>`;
+  s += `<path d="M76 ${66 + ky} L84 ${92 + ky} M104 ${62 + ky} L104 ${90 + ky} M124 ${66 + ky} L118 ${90 + ky}" stroke="${hrDD}" stroke-width="1.2" opacity="0.4"/>`;
+  if (L.fem && L.hs === 1) s += `<path d="M126 ${44 + ky} l14 -8 l-2 14Z M126 ${44 + ky} l14 8 l-12 4Z" fill="${fill("c3")}"/><circle cx="126" cy="${46 + ky}" r="3.5" fill="${fill("c3")}"/>`;
+  if (L.fem && L.hs === 2) s += Array.from({ length:5 }, (_, k) => `<ellipse cx="${56 - k * 1.5}" cy="${130 + ky + k * 14}" rx="7" ry="8" fill="${fill("hr")}" stroke="${hrD}" stroke-width="1"/>`).join("") + `<circle cx="49" cy="${204 + ky}" r="4" fill="${fill("c3")}"/>`;
+  return s;
+}
+function headwear(L, fill, ky) {
+  const h = L.hat;
+  let s = "";
+  if (L.out.hood) s += `<path fill-rule="evenodd" d="M34 250 C34 180 40 120 52 ${84 + ky} C60 ${48 + ky} 80 ${30 + ky} 100 ${30 + ky} C120 ${30 + ky} 140 ${48 + ky} 148 ${84 + ky} C160 120 166 180 166 250 Z M66 ${108 + ky} C66 ${78 + ky} 82 ${62 + ky} 100 ${62 + ky} C118 ${62 + ky} 134 ${78 + ky} 134 ${108 + ky} C134 ${136 + ky} 120 ${156 + ky} 100 ${160 + ky} C80 ${156 + ky} 66 ${136 + ky} 66 ${108 + ky}Z" fill="${mixH(L.hoodC || L.c1, "#1a1024", 0.1)}"/><path d="M66 ${108 + ky} C66 ${78 + ky} 82 ${62 + ky} 100 ${62 + ky} C118 ${62 + ky} 134 ${78 + ky} 134 ${108 + ky}" stroke="#000" stroke-opacity="0.35" stroke-width="5" fill="none"/>`;
+  if (L.flower && !L.out.hood) s += `<g transform="translate(${L.hs === 1 ? 64 : 132} ${66 + ky})"><circle r="9" fill="#d8283a"/><circle r="6" fill="#ee4a5a"/><path d="M-3 -1 Q0 -5 3 -1 Q0 3 -3 -1Z" fill="#a01828"/><circle cx="-12" cy="8" r="6" fill="#e8b0c0"/><circle cx="-12" cy="8" r="3" fill="#f4d0dc"/><path d="M4 9 Q12 14 16 8 Q10 6 4 9Z" fill="#4a8a3a"/></g>`;
+  if (h === "coronet") s += `<path d="M62 ${78 + ky} Q100 ${66 + ky} 138 ${78 + ky} L138 ${84 + ky} Q100 ${72 + ky} 62 ${84 + ky}Z" fill="${fill("gold")}"/>` + [70, 85, 100, 115, 130].map(x => `<circle cx="${x}" cy="${72 + ky + Math.abs(x - 100) * 0.12}" r="3" fill="#fbf6ee" stroke="#a8741c" stroke-width="0.8"/>`).join("");
+  else if (h === "crown0") s += `<path d="M62 ${76 + ky} Q100 ${64 + ky} 138 ${76 + ky} L138 ${84 + ky} Q100 ${72 + ky} 62 ${84 + ky}Z" fill="${fill("gold")}"/><circle cx="100" cy="${73 + ky}" r="4" fill="#d82a3a" stroke="#fff0a0" stroke-width="1"/><circle cx="80" cy="${76 + ky}" r="2" fill="#3a6ae0"/><circle cx="120" cy="${76 + ky}" r="2" fill="#3a6ae0"/>`;
+  else if (h === "crown1") s += `<path d="M62 ${80 + ky} L64 ${56 + ky} L74 ${68 + ky} L82 ${48 + ky} L90 ${64 + ky} L100 ${42 + ky} L110 ${64 + ky} L118 ${48 + ky} L126 ${68 + ky} L136 ${56 + ky} L138 ${80 + ky} Q100 ${70 + ky} 62 ${80 + ky}Z" fill="${fill("gold")}" stroke="#7a5414" stroke-width="1"/>` + [[64, 56], [82, 48], [100, 42], [118, 48], [136, 56]].map(([x, y]) => `<circle cx="${x}" cy="${y + ky}" r="3.2" fill="#fbf6ee"/>`).join("") + `<circle cx="100" cy="${70 + ky}" r="4" fill="#d82a3a"/><circle cx="82" cy="${72 + ky}" r="2.6" fill="#2a9a5a"/><circle cx="118" cy="${72 + ky}" r="2.6" fill="#2a9a5a"/>`;
+  else if (h === "crown2") s += `<path d="M66 ${80 + ky} L66 ${50 + ky} Q100 ${38 + ky} 134 ${50 + ky} L134 ${80 + ky} Q100 ${70 + ky} 66 ${80 + ky}Z" fill="#a8202e"/><path d="M62 ${82 + ky} L62 ${50 + ky} L80 ${46 + ky} L80 ${78 + ky}Z M80 ${46 + ky} L100 ${42 + ky} L120 ${46 + ky} L120 ${76 + ky} Q100 ${72 + ky} 80 ${76 + ky}Z M120 ${46 + ky} L138 ${50 + ky} L138 ${82 + ky} L120 ${78 + ky}Z" fill="${fill("gold")}" stroke="#7a5414" stroke-width="1.2"/><path d="M100 ${42 + ky} C100 ${20 + ky} 84 ${18 + ky} 80 ${46 + ky} M100 ${42 + ky} C100 ${20 + ky} 116 ${18 + ky} 120 ${46 + ky}" stroke="${fill("gold")}" stroke-width="4" fill="none"/><path d="M100 ${24 + ky} L100 ${8 + ky} M93 ${14 + ky} L107 ${14 + ky}" stroke="${fill("gold")}" stroke-width="4"/>` + [[71, 60, "#2a6ad0"], [71, 72, "#d82a3a"], [100, 56, "#2a9a5a"], [92, 64, "#d82a3a"], [108, 64, "#d82a3a"], [100, 68, "#fbf6ee"], [129, 60, "#2a6ad0"], [129, 72, "#d82a3a"]].map(([x, y, c]) => `<circle cx="${x}" cy="${y + ky}" r="3" fill="${c}" stroke="#fff0a0" stroke-width="0.8"/>`).join("");
+  else if (h === "mitre") s += `<path d="M64 ${84 + ky} C62 ${50 + ky} 80 ${20 + ky} 100 ${4 + ky} C120 ${20 + ky} 138 ${50 + ky} 136 ${84 + ky} Q100 ${74 + ky} 64 ${84 + ky}Z" fill="${fill("wh")}"/><path d="M100 ${6 + ky} L100 ${80 + ky} M66 ${80 + ky} Q100 ${70 + ky} 134 ${80 + ky} M80 ${44 + ky} L120 ${44 + ky}" stroke="${fill("gold")}" stroke-width="5" fill="none"/><path d="M100 ${30 + ky} l0 10 M95 ${35 + ky} l10 0" stroke="#d82a3a" stroke-width="2.4"/>`;
+  else if (h === "veil") s += `<path fill-rule="evenodd" d="M30 250 C34 170 42 110 54 ${80 + ky} C62 ${48 + ky} 80 ${36 + ky} 100 ${36 + ky} C120 ${36 + ky} 138 ${48 + ky} 146 ${80 + ky} C158 110 166 170 170 250Z M64 ${108 + ky} C64 ${74 + ky} 82 ${62 + ky} 100 ${62 + ky} C118 ${62 + ky} 136 ${74 + ky} 136 ${108 + ky} C136 ${136 + ky} 120 ${158 + ky} 100 ${162 + ky} C80 ${158 + ky} 64 ${136 + ky} 64 ${108 + ky}Z" fill="${fill("wh")}"/><path d="M64 ${74 + ky} Q100 ${60 + ky} 136 ${74 + ky}" stroke="${fill("gold")}" stroke-width="3" fill="none"/>`;
+  else if (h === "straw") s += `<ellipse cx="100" cy="${70 + ky}" rx="70" ry="14" fill="#dcb862" stroke="#a07a30" stroke-width="1.4"/><path d="M68 ${70 + ky} C68 ${40 + ky} 84 ${30 + ky} 100 ${30 + ky} C116 ${30 + ky} 132 ${40 + ky} 132 ${70 + ky}Z" fill="#e6c672" stroke="#a07a30" stroke-width="1.4"/><path d="M68 ${62 + ky} Q100 ${54 + ky} 132 ${62 + ky} L132 ${68 + ky} Q100 ${60 + ky} 68 ${68 + ky}Z" fill="${L.c1}"/>`;
+  return s;
+}
+function clothes(L, fill, o) {
+  const { ky, broad, belly } = o, O = L.out, fem = L.fem, kid = L.kid, role = L.role;
+  const sil = kid ? `M44 250 C48 222 62 ${202 + ky / 2} 86 ${196 + ky / 2} L114 ${196 + ky / 2} C138 ${202 + ky / 2} 152 222 156 250Z`
+    : fem ? `M30 250 C34 218 54 196 82 186 L118 186 C146 196 166 218 170 250Z`
+    : broad ? `M6 250 C8 208 38 186 74 178 L126 178 C162 186 192 208 194 250Z` : `M18 250 C20 212 44 190 76 182 L124 182 C156 190 180 212 182 250Z`;
+  let s = "";
+  const tunic = (m) => `<path d="${sil}" fill="${fill(m)}"/>`;
+  const vneck = (m, deep = 0) => `<path d="M84 ${186 + ky} L100 ${214 + deep} L116 ${186 + ky} L124 250 L76 250Z" fill="${fill(m)}"/>`;
+  if (role === "clergy") {
+    s += tunic("wh") + `<path d="M58 250 L72 196 Q100 206 128 196 L142 250Z" fill="${fill("c1")}"/><path d="M100 200 L100 250 M78 214 Q100 226 122 214" stroke="${fill("gold")}" stroke-width="7" fill="none"/>`;
+  } else if (role === "monk") {
+    s += tunic("c1") + `<path d="M60 ${190 + ky} Q100 ${214 + ky} 140 ${190 + ky} Q130 ${222 + ky} 100 ${226 + ky} Q70 ${222 + ky} 60 ${190 + ky}Z" fill="${mixH(L.c1, "#1a1024", 0.25)}"/>`;
+  } else if (role === "peasant") {
+    s += tunic("wh") + (fem ? `<path d="M50 250 C58 222 70 212 84 208 L116 208 C130 212 142 222 150 250Z" fill="${fill("c1")}"/>` : `<path d="M30 250 C36 214 54 200 76 194 L86 250Z M170 250 C164 214 146 200 124 194 L114 250Z" fill="${fill("c2")}"/>`) + `<path d="M86 ${186 + ky} Q100 ${200 + ky} 114 ${186 + ky} L110 ${196 + ky} Q100 ${206 + ky} 90 ${196 + ky}Z" fill="${L.c1}"/>`;
+  } else if (role === "bandit") {
+    s += tunic("c2") + `<path d="M14 250 C18 200 40 178 70 172 L100 196 L130 172 C160 178 182 200 186 250Z" fill="${fill("c1")}"/>`;
+  } else if (role === "knight" || O.top === "armor") {
+    s += tunic("st") + `<path d="M74 196 L126 196 L132 250 L68 250Z" fill="${fill("c1")}"/><path d="M100 204 L100 244 M88 218 L112 218" stroke="${fill("gold")}" stroke-width="5"/>`;
+  } else if (fem) {
+    const deep = O.neckline >= 10 ? 26 : O.neckline >= 5 ? 14 : 4;
+    s += tunic("c1") + `<path d="M70 ${190} Q100 ${206 + deep} 130 ${190} L130 ${184} L70 ${184}Z" fill="${fill("sk")}"/>`;
+    if (O.sleeves === "puff") s += `<ellipse cx="44" cy="214" rx="22" ry="20" fill="${fill("wh")}"/><ellipse cx="156" cy="214" rx="22" ry="20" fill="${fill("wh")}"/><path d="M28 210 Q44 204 60 210 M140 210 Q156 204 172 210" stroke="#c8c0b4" stroke-width="1.4" fill="none"/>`;
+    s += `<path d="M70 190 Q100 ${206 + deep} 130 190" stroke="${fill("gold")}" stroke-width="3" fill="none"/>`;
+    if (O.collar === "high") s += `<path d="M78 ${178 + ky} L122 ${178 + ky} L126 196 Q100 206 74 196Z" fill="${fill("c2")}"/>`;
+  } else {
+    s += tunic(O.coat ? "c1" : "c2");
+    if (O.coat) s += O.open ? `<path d="M84 186 L100 250 L116 186 L130 250 L70 250Z" fill="${fill("sk")}"/><path d="M92 214 Q100 218 108 214 M94 230 Q100 233 106 230 M100 200 L100 246" stroke="${o.skD}" stroke-width="1.4" fill="none" opacity="0.6"/>` : vneck("c2");
+    if (O.trim) s += `<path d="M84 186 L100 214 L116 186 M100 214 L100 250" stroke="${fill("gold")}" stroke-width="3" fill="none"/>`;
+    if (O.cape === "short" || O.cape === "cape") s += `<path d="M24 230 C30 204 50 190 76 184 L84 196 C64 204 48 218 40 250Z M176 230 C170 204 150 190 124 184 L116 196 C136 204 152 218 160 250Z" fill="${fill("c1")}" opacity="0.95"/><circle cx="84" cy="196" r="5" fill="${fill("gold")}"/>`;
+    if (O.collar === "high") s += `<path d="M80 ${176 + ky} L120 ${176 + ky} L124 192 L76 192Z" fill="${fill("c1")}"/>`;
+  }
+  if (O.collar === "fur" || O.cape === "mantle") s += `<path d="M${fem ? 36 : 26} ${fem ? 212 : 206} C40 196 64 ${fem ? 186 : 182} 84 ${fem ? 188 : 184} Q100 ${fem ? 200 : 196} 116 ${fem ? 188 : 184} C136 ${fem ? 186 : 182} 160 196 ${fem ? 164 : 174} ${fem ? 212 : 206} C154 222 130 218 116 210 Q100 220 84 210 C70 218 46 222 ${fem ? 36 : 26} ${fem ? 212 : 206}Z" fill="${L.out.cape === "mantle" && L.item === "bow" ? "#8a6a4a" : fill("fur")}"/>` + (L.item === "bow" ? "" : [[48, 206], [66, 200], [134, 200], [152, 206], [100, 210]].map(([x, y]) => `<path d="M${x} ${y} l-2 6 l4 0Z" fill="#1a1420"/>`).join(""));
+  if (O.pauldron) s += `<ellipse cx="${fem ? 46 : 40}" cy="200" rx="${fem ? 22 : 28}" ry="16" fill="${fill("st")}" stroke="#4a5266" stroke-width="1.4"/><ellipse cx="${fem ? 154 : 160}" cy="200" rx="${fem ? 22 : 28}" ry="16" fill="${fill("st")}" stroke="#4a5266" stroke-width="1.4"/><path d="M${fem ? 30 : 18} 206 Q${fem ? 46 : 40} 196 ${fem ? 62 : 62} 206 M${fem ? 138 : 138} 206 Q${fem ? 154 : 160} 196 ${fem ? 170 : 182} 206" stroke="#fff" stroke-width="2" opacity="0.6" fill="none"/>`;
+  if (L.sash && !kid) s += `<path d="M${fem ? 56 : 46} 196 L${fem ? 74 : 66} 190 L${fem ? 162 : 170} 250 L${fem ? 138 : 144} 250Z" fill="${fill("c3")}"/><path d="M${fem ? 56 : 46} 196 L${fem ? 138 : 144} 250 M${fem ? 74 : 66} 190 L${fem ? 162 : 170} 250" stroke="${fill("gold")}" stroke-width="2"/>`;
+  return s;
+}
+function necklace(L, fill, ky) {
+  const y = 176 + ky;
+  let s = `<path d="M84 ${y - 6} Q100 ${y + 14} 116 ${y - 6}" stroke="${fill("gold")}" stroke-width="2" fill="none"/>`;
+  s += L.cross ? `<path d="M100 ${y + 6} L100 ${y + 22} M94 ${y + 11} L106 ${y + 11}" stroke="${fill("gold")}" stroke-width="3.4"/>` : `<circle cx="100" cy="${y + 9}" r="4.5" fill="#d82a3a" stroke="${fill("gold")}" stroke-width="1.6"/>`;
+  return s;
+}
+const hand = (x, y, sk, skD, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-9 4 C-10 -6 -4 -10 2 -9 L10 -6 C13 -4 13 2 10 4 L8 10 C2 13 -6 12 -9 4Z" fill="${sk}" stroke="${skD}" stroke-width="1.2"/><path d="M-2 -8 L-1 2 M3 -8 L4 2 M8 -6 L8 2" stroke="${skD}" stroke-width="1" opacity="0.7"/></g>`;
+function itemBack(L, fill, ky) {
+  const it = L.item;
+  if (it === "spear") return `<path d="M40 250 L172 30" stroke="#8a5a2e" stroke-width="5"/><path d="M172 30 L190 4 L178 38Z" fill="${fill("st")}" stroke="#4a5266" stroke-width="1"/><path d="M168 38 Q156 52 162 66" stroke="#d82a3a" stroke-width="4" fill="none"/>`;
+  if (it === "crozier") return `<path d="M168 250 L168 50" stroke="${fill("gold")}" stroke-width="6"/><path d="M168 52 C168 20 196 18 194 42 C192 56 176 56 178 44" stroke="${fill("gold")}" stroke-width="6" fill="none"/><circle cx="168" cy="92" r="7" fill="${fill("gold")}"/>`;
+  if (it === "staff") return `<path d="M170 250 L174 40" stroke="#8a5a2e" stroke-width="7"/><circle cx="174" cy="38" r="9" fill="${fill("gold")}"/>`;
+  if (it === "fork") return `<path d="M170 250 L176 40" stroke="#8a5a2e" stroke-width="6"/><path d="M160 42 L192 38 M160 42 L158 6 M176 40 L176 4 M192 38 L194 4" stroke="#b0b8ca" stroke-width="4"/>`;
+  if (it === "bow") return `<path d="M30 30 Q-6 130 34 236" stroke="#8a5a2e" stroke-width="6" fill="none"/><path d="M30 30 L34 236" stroke="#e8e0d0" stroke-width="1.4"/>`;
+  if (it === "sword" || it === "greatsword") { const gs = it === "greatsword"; return `<path d="M${gs ? 150 : 152} ${gs ? 196 : 200} L${gs ? 180 : 174} ${gs ? 64 : 92}" stroke="${fill("st")}" stroke-width="${gs ? 12 : 7}" stroke-linecap="round"/><path d="M${gs ? 160 : 160} ${gs ? 70 : 96} L${gs ? 196 : 188} ${gs ? 82 : 104}" stroke="${fill("gold")}" stroke-width="${gs ? 8 : 6}" stroke-linecap="round"/><path d="M${gs ? 180 : 174} ${gs ? 64 : 92} L${gs ? 190 : 182} ${gs ? 26 : 62}" stroke="#5a3a22" stroke-width="${gs ? 8 : 6}" stroke-linecap="round"/><circle cx="${gs ? 192 : 183}" cy="${gs ? 20 : 58}" r="${gs ? 7 : 5}" fill="${fill("gold")}"/>`; }
+  if (L.shield) return `<path d="M4 170 L60 170 Q60 220 32 250 L0 250Z" fill="${fill("c1")}" stroke="${fill("gold")}" stroke-width="4"/>`;
+  return "";
+}
+function itemFront(L, fill, o) {
+  const it = L.item, sk = o.sk, skD = o.skD;
+  if (it === "book") return `<path d="M108 206 L166 196 L174 250 L114 250Z" fill="#6e4628" stroke="#3a2214" stroke-width="2"/><path d="M114 210 L164 202" stroke="${fill("gold")}" stroke-width="3"/><circle cx="140" cy="226" r="7" fill="${fill("gold")}"/>` + hand(116, 232, sk, skD, -20);
+  if (it === "scroll") return `<rect x="104" y="212" width="66" height="16" rx="8" fill="#efe2c0" stroke="#a08a60" stroke-width="1.4" transform="rotate(-12 137 220)"/><path d="M134 210 L136 228" stroke="#c03a3a" stroke-width="3"/>` + hand(150, 226, sk, skD, 10);
+  if (it === "ledger") return `<path d="M112 210 L160 202 L166 250 L118 250Z" fill="${fill("c3")}" stroke="#3a2a34" stroke-width="2"/><circle cx="138" cy="228" r="6" fill="${fill("gold")}"/>` + hand(120, 232, sk, skD, -15);
+  if (it === "goblet") return `<path d="M128 186 L156 186 L150 208 L134 208Z" fill="${fill("gold")}" stroke="#7a5414" stroke-width="1.4"/><path d="M130 189 L154 189" stroke="#7a1020" stroke-width="3"/><path d="M142 208 L142 222 M134 224 L150 224" stroke="${fill("gold")}" stroke-width="4"/>` + hand(142, 230, sk, skD, 0);
+  if (it === "dagger") return `<path d="M150 160 L144 212" stroke="${fill("st")}" stroke-width="5" stroke-linecap="round"/><path d="M134 214 L156 210" stroke="${fill("gold")}" stroke-width="4" stroke-linecap="round"/>` + hand(146, 224, sk, skD, -8);
+  if (it === "rose") return `<path d="M140 250 L146 196" stroke="#4a8a3a" stroke-width="3"/><circle cx="146" cy="192" r="9" fill="#d8283a"/><circle cx="146" cy="192" r="5" fill="#ee4a5a"/>` + hand(140, 230, sk, skD, 0);
+  if (it === "rosary") return Array.from({ length:9 }, (_, k) => `<circle cx="${128 + Math.sin(k / 2) * 6}" cy="${196 + k * 6}" r="2.4" fill="#6e4628"/>`).join("") + `<path d="M130 248 l0 -10 M126 242 l8 0" stroke="${fill("gold")}" stroke-width="2.4"/>`;
+  if (it === "scepter") return `<path d="M150 250 L164 120" stroke="${fill("gold")}" stroke-width="5"/><circle cx="165" cy="112" r="10" fill="${fill("gold")}" stroke="#7a5414" stroke-width="1.4"/><path d="M165 102 L165 90 M159 96 L171 96" stroke="${fill("gold")}" stroke-width="3"/><circle cx="165" cy="112" r="4" fill="#d82a3a"/>` + hand(152, 226, sk, skD, -6);
+  if (it === "keys") return `<circle cx="52" cy="222" r="6" fill="none" stroke="${fill("gold")}" stroke-width="2.4"/><path d="M52 228 L50 248 M50 240 l5 0 M50 245 l5 0 M56 226 L64 246 M62 240 l4 -2" stroke="${fill("gold")}" stroke-width="2.6" fill="none"/>`;
+  return "";
+}
+// ---- 인물의 특성을 생김새·차림으로 (도트 시절의 lookOf 를 그대로 쓴다) ----
 
 // ---- 인물의 특성을 생김새·차림·자세로 ----
 const FRONT_ITEMS = new Set(["sword", "greatsword", "spear", "crozier", "fork", "scepter", "dagger", "staff", "book", "scroll", "ledger", "goblet", "rose", "rosary"]);
@@ -1050,14 +883,12 @@ function portrait(ch, hat, bg, cloth) { return makeSprite(lookOf(ch, hat.startsW
 // 화면에 그리기: big(2배 전신) · mid(1배 전신) · bust(1배 상반신)
 function chr(sp, size = "mid") {
   if (!sp) return "";
-  if (typeof sp === "string") return `<img class="px pf96 scene" src="${sp}" alt="">`;
-  const style = `background-image:url(${sp.u})` + (size === "bust" ? `;background-position-y:${-sp.top}px` : "");
-  return `<span class="chr ${size}" style="${style}" role="img" aria-label="인물"></span>`;
+  return `<span class="chr por ${size}" style="background-image:url('${sp.u}')" role="img" aria-label="인물 초상"></span>`;
 }
 
 // ================= 지도 =================
-const MW = 448, MH = 280;
-let CMAP, TER, SHORE, COAST, ADJ, BORDER, SEA_PTS, DECOR, baseCanvas, baseCtx, mapCtx, mapDirty = true, lastFrame = -1;
+const MW = GEO.MW, MH = GEO.MH;
+let CMAP, TER, SHORE, COAST, ADJ, BORDER, SEA_PTS, DECOR, FAREA, baseCanvas, baseCtx, mapCtx, mapDirty = true, lastFrame = -1;
 function noise(seed) {
   const rnd = mulberry(seed), N = 64, g = new Float32Array(N * N).map(() => rnd());
   return (x, y) => {
@@ -1068,71 +899,75 @@ function noise(seed) {
     return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
   };
 }
-function slotPos(c, si) { const o = [[0, 0], [-11, 7], [11, 7]][si]; return { x:c.x + o[0], y:c.y + o[1] }; }
+// 산맥 (위도, 경도, 위도 반지름, 경도 반지름): 알프스 · 아펜니노 · 하르츠 · 슈바르츠발트 · 보주 · 쥐라 · 에르츠 · 수데티 · 보헤미아 숲
+const MOUNTAINS = [[47.0,8.4,0.5,1.0],[46.55,9.7,0.5,0.9],[46.85,11.2,0.55,1.1],[47.2,12.9,0.4,1.0],[47.3,14.3,0.38,0.9],[46.45,13.7,0.28,0.7],[45.95,7.1,0.55,0.55],[45.0,6.6,0.75,0.4],[44.2,7.1,0.3,0.6],[44.25,10.3,0.22,0.9],[43.55,11.9,0.3,0.55],[42.85,13.2,0.5,0.45],[48.1,8.1,0.4,0.22],[48.2,7.0,0.45,0.18],[46.75,6.2,0.4,0.28],[51.78,10.6,0.12,0.28],[50.5,13.1,0.13,0.65],[50.65,15.9,0.2,0.65],[49.0,13.4,0.28,0.55],[50.6,10.7,0.18,0.45],[47.6,15.6,0.35,0.6]];
 function genMap() {
-  const n1 = noise(11), n2 = noise(23), n3 = noise(37), n4 = noise(41);
-  const fbm = (n, x, y) => n(x / 48, y / 48) * 0.55 + n(x / 20, y / 20) * 0.3 + n(x / 8, y / 8) * 0.15;
-  CMAP = new Int8Array(MW * MH); TER = new Uint8Array(MW * MH); SHORE = new Uint8Array(MW * MH); COAST = new Uint8Array(MW * MH);
+  const N = MW * MH, n2 = noise(23), n3 = noise(37), n4 = noise(41), n5 = noise(53);
+  CMAP = new Int16Array(N); TER = new Uint8Array(N); SHORE = new Uint8Array(N); COAST = new Uint8Array(N);
+  // 씨앗을 격자에 넣어 가까운 것만 찾는다
+  const seeds = COUNTY_DEFS.map((c, i) => ({ x:c.x, y:c.y, id:i })).concat(FOREIGN_SEEDS.map(s => ({ x:s.x, y:s.y, id:-2 - s.f })));
+  const CS = 24, GW = Math.ceil(MW / CS) + 1, GH = Math.ceil(MH / CS) + 1, grid = Array.from({ length:GW * GH }, () => []);
+  for (const s of seeds) { const gx = clamp(Math.floor(s.x / CS), 0, GW - 1), gy = clamp(Math.floor(s.y / CS), 0, GH - 1); grid[gy * GW + gx].push(s); }
+  const mtn = (x, y) => MOUNTAINS.some(([la, lo, rla, rlo]) => { const dx = (x - projX(lo)) / (rlo * GEO.COS * GEO.K), dy = (y - projY(la)) / (rla * GEO.K); return dx * dx + dy * dy <= 1 + (n5(x / 9, y / 9) - 0.5) * 0.5; });
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
-    const i = y * MW + x, e = fbm(n1, x, y);
-    let v = LANDMASK[i] ? 1 : 0;
-    const wx = x + (n2(x / 20, y / 20) - 0.5) * 24, wy = y + (n3(x / 20, y / 20) - 0.5) * 24;
-    let near = -1, nd = 1e9;
-    COUNTY_DEFS.forEach((d, k) => {
-      const dd = (wx - d.x) ** 2 + (wy - d.y) ** 2; if (dd < nd) { nd = dd; near = k; }
-      const rd = (x - d.x) ** 2 + (y - d.y) ** 2;
-      if (rd < 12 * 12) { v = 1; near = k; }
-    });
-    if (v < 0.56) { CMAP[i] = -1; continue; }
-    CMAP[i] = near;
-    const t = fbm(n4, x + 300, y);
-    TER[i] = e > 0.69 ? 2 : t > 0.57 ? 1 : 0;
+    const i = y * MW + x;
+    if (!LAND[i]) { CMAP[i] = -1; continue; }
+    const wx = x + (n2(x / 14, y / 14) - 0.5) * 14, wy = y + (n3(x / 14, y / 14) - 0.5) * 14;
+    const gx = Math.floor(wx / CS), gy = Math.floor(wy / CS);
+    let best = null, bd = 1e9;
+    for (let r = 1; r <= 6 && (!best || r <= 2); r++) for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) {
+      if (Math.max(Math.abs(ox), Math.abs(oy)) !== r && r > 1) continue;
+      const cx = gx + ox, cy = gy + oy; if (cx < 0 || cy < 0 || cx >= GW || cy >= GH) continue;
+      for (const s of grid[cy * GW + cx]) { const d = (s.x - wx) ** 2 + (s.y - wy) ** 2; if (d < bd) { bd = d; best = s; } }
+    }
+    CMAP[i] = !best ? -99 : best.id >= 0 && bd > 30 * 30 ? -99 : best.id;
+    TER[i] = mtn(x, y) ? 2 : n4(x / 11, y / 11) > 0.6 ? 1 : 0;
   }
-  // 고립된 작은 조각은 둘러싼 백작령에 붙인다
-  const seen = new Uint8Array(MW * MH);
-  for (let s = 0; s < MW * MH; s++) {
+  // 씨앗 바로 곁은 그 백작령 몫
+  COUNTY_DEFS.forEach((c, i) => { for (let oy = -3; oy <= 3; oy++) for (let ox = -3; ox <= 3; ox++) { if (ox * ox + oy * oy > 10) continue; const x = c.x + ox, y = c.y + oy; if (x >= 0 && y >= 0 && x < MW && y < MH && LAND[y * MW + x]) CMAP[y * MW + x] = i; } });
+  // 씨앗과 떨어진 조각은 이웃에 붙인다
+  const seen = new Uint8Array(N), seedAt = new Map(COUNTY_DEFS.map((c, i) => [c.y * MW + c.x, i]));
+  for (let s = 0; s < N; s++) {
     if (CMAP[s] < 0 || seen[s]) continue;
-    const k = CMAP[s], comp = [s], nb = {}; seen[s] = 1;
+    const k = CMAP[s], comp = [s], nb = {}; seen[s] = 1; let has = false;
     for (let q = 0; q < comp.length; q++) {
-      const i = comp[q], x = i % MW, y = (i / MW) | 0;
+      const i = comp[q], x = i % MW, y = (i / MW) | 0; if (seedAt.get(i) === k) has = true;
       for (const [ox, oy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const nx = x + ox, ny = y + oy; if (nx < 0 || ny < 0 || nx >= MW || ny >= MH) continue;
         const j = ny * MW + nx, b = CMAP[j];
-        if (b === k) { if (!seen[j]) { seen[j] = 1; comp.push(j); } } else if (b >= 0) nb[b] = (nb[b] || 0) + 1;
+        if (b === k) { if (!seen[j]) { seen[j] = 1; comp.push(j); } } else if (b !== -1) nb[b] = (nb[b] || 0) + 1;
       }
     }
-    const d = COUNTY_DEFS[k], hasSeed = comp.includes(d.y * MW + d.x);
-    if (!hasSeed) { const best = Object.entries(nb).sort((a, b) => b[1] - a[1])[0]; for (const i of comp) CMAP[i] = best ? +best[0] : -1; }
+    if (!has) { const bst = Object.entries(nb).sort((a, b) => b[1] - a[1])[0]; for (const i of comp) CMAP[i] = bst ? +bst[0] : -99; }
   }
   ADJ = COUNTY_DEFS.map(() => new Set()); BORDER = COUNTY_DEFS.map(() => []);
   const at = (x, y) => (x < 0 || y < 0 || x >= MW || y >= MH) ? -1 : CMAP[y * MW + x];
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
     const i = y * MW + x, a = CMAP[i];
     const nb = [at(x + 1, y), at(x, y + 1), at(x - 1, y), at(x, y - 1)];
-    if (a < 0) {
-      for (let oy = -2; oy <= 2 && !COAST[i]; oy++) for (let ox = -2; ox <= 2; ox++) if (at(x + ox, y + oy) >= 0) { COAST[i] = 1; break; }
-      continue;
-    }
-    if (nb.some(b => b < 0)) SHORE[i] = 1;
+    if (a === -1) { for (let oy = -2; oy <= 2 && !COAST[i]; oy++) for (let ox = -2; ox <= 2; ox++) if (at(x + ox, y + oy) !== -1) { COAST[i] = 1; break; } continue; }
+    if (nb.some(b => b === -1)) SHORE[i] = 1;
+    if (a < 0) continue;
     if (nb.some(b => b !== a)) BORDER[a].push(i);
     for (const b of nb.slice(0, 2)) if (b >= 0 && b !== a) { ADJ[a].add(b); ADJ[b].add(a); }
   }
   const rnd = mulberry(5);
   SEA_PTS = [];
-  for (let n = 0; n < 4000 && SEA_PTS.length < 80; n++) { const x = Math.floor(rnd() * (MW - 2)), y = Math.floor(rnd() * MH); if (CMAP[y * MW + x] < 0 && CMAP[y * MW + x + 1] < 0 && !COAST[y * MW + x]) SEA_PTS.push({ x, y }); }
-  const avoid = [];
-  COUNTY_DEFS.forEach(d => { for (let s = 0; s < 3; s++) avoid.push(slotPos(d, s)); avoid.push({ x:d.x, y:d.y - 22 }); });
+  for (let n = 0; n < 8000 && SEA_PTS.length < 140; n++) { const x = Math.floor(rnd() * (MW - 2)), y = Math.floor(rnd() * MH); if (CMAP[y * MW + x] === -1 && CMAP[y * MW + x + 1] === -1 && !COAST[y * MW + x]) SEA_PTS.push({ x, y }); }
   DECOR = [];
-  for (let y = 4; y < MH - 4; y += 6) for (let x = 3; x < MW - 4; x += 6) {
+  for (let y = 4; y < MH - 4; y += 7) for (let x = 3; x < MW - 6; x += 7) {
     const jx = x + Math.floor(rnd() * 4), jy = y + Math.floor(rnd() * 4), i = jy * MW + jx;
-    if (CMAP[i] < 0 || SHORE[i] || avoid.some(p => Math.abs(p.x - jx) < 14 && jy > p.y - 20 && jy < p.y + 8)) continue;
-    if (TER[i] === 1 && rnd() < 0.8) DECOR.push({ k:"tree", x:jx - 2, y:jy - 6 });
-    else if (TER[i] === 2 && rnd() < 0.55) DECOR.push({ k:"mount", x:jx - 4, y:jy - 5 });
+    if (CMAP[i] === -1 || SHORE[i] || RIVERS[i] || COUNTY_DEFS.some(c => Math.abs(c.x - jx) < 6 && jy > c.y - 7 && jy < c.y + 5)) continue;
+    if (TER[i] === 2 && rnd() < 0.7) DECOR.push({ k:"mountS", x:jx - 3, y:jy - 4 });
+    else if (TER[i] === 1 && rnd() < 0.5) DECOR.push({ k:"treeS", x:jx - 1, y:jy - 3 });
   }
   DECOR.sort((a, b) => a.y - b.y);
+  // 외국 이름표 위치
+  FAREA = FOREIGN.map(([name]) => { const p = FOREIGN_LABEL[name]; return p ? { name, x:projX(p[1]), y:projY(p[0]) } : null; }).filter(Boolean);
   baseCanvas = document.createElement("canvas"); baseCanvas.width = MW; baseCanvas.height = MH; baseCtx = baseCanvas.getContext("2d");
 }
 const ownerColor = c => c.owner === 0 ? PLAYER_COLOR : G.realms[c.owner].color;
+function slotPos(c) { return { x:c.x, y:c.y }; }
 function renderBase() {
   const img = baseCtx.createImageData(MW, MH), d = img.data;
   const duchyMode = G.mapMode === "duchy", dj = COUNTY_DEFS.map(c => c.d);
@@ -1140,29 +975,37 @@ function renderBase() {
   for (let i = 0; i < MW * MH; i++) {
     const x = i % MW, y = (i / MW) | 0, k = CMAP[i], dith = (x + y) & 1;
     let col;
-    if (k < 0) col = COAST[i] ? (dith ? [58, 98, 150] : [54, 92, 144]) : (dith ? [40, 68, 116] : [38, 64, 110]);
+    if (k === -1) col = COAST[i] ? (dith ? [62, 104, 156] : [58, 98, 150]) : (dith ? [40, 68, 116] : [37, 63, 108]);
     else {
       const t = TER[i];
-      col = t === 2 ? (dith ? [138, 130, 98] : [128, 120, 90]) : t === 1 ? (dith ? [62, 106, 50] : [56, 98, 46]) : (dith ? [108, 152, 72] : [100, 144, 66]);
-      if (SHORE[i]) col = [204, 186, 128];
-      col = mix(col, oc[k], duchyMode ? 0.45 : 0.3);
-      const nb = [x + 1 < MW ? CMAP[i + 1] : -1, y + 1 < MH ? CMAP[i + MW] : -1, x > 0 ? CMAP[i - 1] : -1, y > 0 ? CMAP[i - MW] : -1];
-      const diff = nb.filter(b => b >= 0 && b !== k);
-      if (diff.length) {
-        const otherDuchy = diff.some(b => dj[b] !== dj[k]), otherOwner = diff.some(b => G.counties[b].owner !== G.counties[k].owner);
-        if (duchyMode) col = otherDuchy ? [26, 20, 32] : mix(col, [20, 16, 24], 0.35);
-        else col = otherOwner ? (otherDuchy ? mix(oc[k], [26, 20, 32], 0.3) : mix(oc[k], [255, 255, 255], 0.15)) : otherDuchy ? [40, 32, 46] : mix(col, [20, 16, 24], 0.5);
+      col = t === 2 ? (dith ? [146, 138, 110] : [136, 128, 100]) : t === 1 ? (dith ? [64, 106, 52] : [58, 98, 48]) : (dith ? [110, 150, 74] : [102, 142, 68]);
+      if (SHORE[i]) col = [206, 190, 134];
+      if (k < 0) {   // 제국 밖: 빛바랜 땅
+        col = mix(col, [120, 112, 104], 0.55);
+        const nb = [x + 1 < MW ? CMAP[i + 1] : -1, y + 1 < MH ? CMAP[i + MW] : -1];
+        if (nb.some(b => b >= 0)) col = [30, 22, 34];
+        else if (nb.some(b => b < -1 && b !== k)) col = mix(col, [40, 34, 44], 0.45);
+      } else {
+        col = mix(col, oc[k], duchyMode ? 0.5 : 0.42);
+        const nb = [x + 1 < MW ? CMAP[i + 1] : -1, y + 1 < MH ? CMAP[i + MW] : -1, x > 0 ? CMAP[i - 1] : -1, y > 0 ? CMAP[i - MW] : -1];
+        const diff = nb.filter(b => b >= 0 && b !== k);
+        if (nb.some(b => b < -1)) col = [30, 22, 34];
+        else if (diff.length) {
+          const otherDuchy = diff.some(b => dj[b] !== dj[k]), otherOwner = diff.some(b => G.counties[b].owner !== G.counties[k].owner);
+          if (duchyMode) col = otherDuchy ? [26, 20, 32] : mix(col, [20, 16, 24], 0.3);
+          else col = otherOwner ? mix(oc[k], otherDuchy ? [26, 20, 32] : [255, 255, 255], otherDuchy ? 0.35 : 0.12) : otherDuchy ? [44, 36, 50] : mix(col, [20, 16, 24], 0.32);
+        }
       }
+      if (RIVERS[i] && !SHORE[i]) col = mix([84, 128, 190], col, 0.15);
     }
     d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255;
   }
   baseCtx.putImageData(img, 0, 0);
   for (const o of DECOR) baseCtx.drawImage(SPR[o.k], o.x, o.y);
-  for (const c of G.counties) for (let si = 0; si < 3; si++) {
-    const s = c.slots[si], p = slotPos(c, si);
-    if (s && si === 0) baseCtx.drawImage(SPR[s.under ? "scaffold" : s.type], p.x - 8, p.y - 12);
-    else if (s) { baseCtx.drawImage(SPR[(s.under ? "scaffold" : s.type) + "S"], p.x - 4, p.y - 6); if (s.vassal) { baseCtx.fillStyle = "#f0e6c8"; baseCtx.fillRect(p.x + 4, p.y - 7, 1, 3); baseCtx.fillStyle = G.vassals[s.vassal] && G.vassals[s.vassal].title === "viscount" ? "#e8b84a" : "#7fa8e8"; baseCtx.fillRect(p.x + 5, p.y - 7, 2, 2); } }
-    else if (c.owner === 0) baseCtx.drawImage(SPR.plot, p.x - 3, p.y - 3);
+  for (const c of G.counties) {   // 백작령 성채
+    const s = c.slots[0], k = s ? (s.under ? "scaffoldS" : s.type + "S") : "plotS";
+    baseCtx.drawImage(SPR[k], c.x - 4, c.y - 6);
+    if (c.owner === 0) { baseCtx.fillStyle = GOLD; baseCtx.fillRect(c.x - 4, c.y + 2, 9, 1); }
   }
 }
 function drawMap(t) {
@@ -1174,25 +1017,19 @@ function drawMap(t) {
   const x = mapCtx;
   x.drawImage(baseCanvas, 0, 0);
   if (!REDUCED) SEA_PTS.forEach((p, j) => { const ph = (fr + j * 5) % 16; if (ph < 2) { x.fillStyle = ph ? "#a8c8f0" : "#6f98cc"; x.fillRect(p.x, p.y, 2, 1); } });
-  const seen = new Set();
-  for (const c of G.counties) {
-    if (seen.has(c.owner) || !c.slots[0]) continue; seen.add(c.owner);
-    const p = slotPos(c, 0), wave = REDUCED ? 0 : fr % 2;
-    x.fillStyle = K; x.fillRect(p.x, p.y - 19, 1, 7);
-    x.fillStyle = ownerColor(c); x.fillRect(p.x + 1, p.y - 19 + wave, 4, 2); x.fillRect(p.x + 1, p.y - 17, 3 + wave, 1);
+  // 깃발: 플레이어와 황제의 수도
+  for (const id of [0, G.empire.realm]) {
+    const c = G.counties.find(cc => cc.owner === id); if (!c) continue;
+    const wave = REDUCED ? 0 : fr % 2;
+    x.fillStyle = K; x.fillRect(c.x, c.y - 12, 1, 6);
+    x.fillStyle = id === 0 ? PLAYER_COLOR : GOLD; x.fillRect(c.x + 1, c.y - 12 + wave, 4, 2); x.fillRect(c.x + 1, c.y - 10, 3 + wave, 1);
   }
-  if (!REDUCED) for (const c of G.counties) if (c.owner === 0) c.slots.forEach((s, si) => {
-    if (s && (s.under || s.q) && fr % 3 === 0) { const p = slotPos(c, si); x.fillStyle = "#fff2a0"; x.fillRect(p.x + 5, p.y - 13, 1, 1); x.fillRect(p.x + 6, p.y - 14, 1, 1); }
-  });
-  if (G.war) {   // 전장: 양측 병사와 공성 막대
-    const w = G.war, c = G.counties[w.county], r = realmOf(w.realm), p = slotPos(c, 0);
-    const bob = REDUCED ? 0 : fr % 2, mine = soldier(PLAYER_COLOR, false), foe = soldier(r.color, true);
-    const [lx, rx] = w.iAttack ? [mine, foe] : [foe, mine];
-    x.drawImage(lx, p.x - 14, p.y + 4 - bob); x.drawImage(lx, p.x - 19, p.y + 6);
-    x.drawImage(rx, p.x + 8, p.y + 4 - (1 - bob)); x.drawImage(rx, p.x + 13, p.y + 6);
-    if (!REDUCED && fr % 2) { x.fillStyle = "#fff6b0"; x.fillRect(p.x - 1, p.y + 6, 1, 1); x.fillRect(p.x + 1, p.y + 4, 1, 1); x.fillRect(p.x, p.y + 8, 1, 1); }
-    x.fillStyle = K; x.fillRect(p.x - 11, p.y + 15, 22, 4);
-    x.fillStyle = w.iAttack ? "#a4d474" : "#ee6b54"; x.fillRect(p.x - 10, p.y + 16, Math.round(20 * Math.min(100, w.siege) / 100), 2);
+  if (G.war) {
+    const w = G.war, c = G.counties[w.county], r = realmOf(w.realm), bob = REDUCED ? 0 : fr % 2;
+    const mine = soldier(PLAYER_COLOR, false), foe = soldier(r.color, true), [lx, rx] = w.iAttack ? [mine, foe] : [foe, mine];
+    x.drawImage(lx, c.x - 12, c.y - 2 - bob); x.drawImage(rx, c.x + 6, c.y - 2 - (1 - bob));
+    if (!REDUCED && fr % 2) { x.fillStyle = "#fff6b0"; x.fillRect(c.x, c.y, 1, 1); x.fillRect(c.x + 1, c.y - 2, 1, 1); }
+    x.fillStyle = K; x.fillRect(c.x - 9, c.y + 8, 18, 3); x.fillStyle = w.iAttack ? "#a4d474" : "#ee6b54"; x.fillRect(c.x - 8, c.y + 9, Math.round(16 * Math.min(100, w.siege) / 100), 1);
   }
   if (G.sel != null && (REDUCED || fr % 5 < 4)) { x.fillStyle = "#fff6d0"; for (const i of BORDER[G.sel]) x.fillRect(i % MW, (i / MW) | 0, 1, 1); }
 }
@@ -1420,14 +1257,14 @@ function candidates() {
   return list;
 }
 function realmStrength(id) {
-  if (id === 0) { const sm = summary(); return sm.maxLevy / 10 + own().length * 4 + G.prestige / 40; }
-  const r = realmOf(id); return aiArmy(r) / 10 + G.counties.filter(c => c.owner === id).length * 4;
+  if (id === 0) { const sm = summary(); return sm.maxLevy / 10 + own().length * 3 + G.prestige / 40; }
+  const r = realmOf(id); return aiArmy(r) / 10 + G.counties.filter(c => c.owner === id).length * 3;
 }
 const affinity = (a, b) => (a * 7 + b * 13) % 11;
 function electorScore(e, cand) {
   if (cand === e.id) return 1e6;
   let s = realmStrength(cand) + affinity(e.id, cand);
-  if (cand === G.empire.realm) s += 25;
+  if (cand === G.empire.realm) s += 40;
   if (cand === 0) s += (G.favor[e.id] || 0) + (isAlly(e) ? 30 : 0) - (e.hostile > 0 ? 40 : 0) + (e.theo ? G.piety / 8 : 0) + compat(e.ruler, G.ruler) * 8 + rs("dip") * 0.5;
   return s;
 }
@@ -1572,7 +1409,7 @@ function aiAggression() {
 }
 
 // ================= 음모 =================
-function schemeChance(type, r) { const d = rs("int") - stat(r.ruler, "int"), guard = G.empire.realm === r.id ? 0.5 : 1; const bonus = perk("int", 1) ? 0.1 : 0; return type === "kill" ? clamp(0.3 + d * 0.04 + bonus, 0.05, 0.9) * guard : clamp(0.55 + d * 0.04 + bonus, 0.1, 0.95); }
+function schemeChance(type, r) { const d = rs("int") - stat(r.ruler, "int"), guard = G.empire.realm === r.id ? 0.5 : 1; const bonus = perk("int", 1) ? 0.1 : 0; return type === "kill" ? (guard < 1 ? Math.min(0.12, clamp(0.3 + d * 0.04 + bonus, 0.05, 0.9) * guard) : clamp(0.3 + d * 0.04 + bonus, 0.05, 0.9)) : clamp(0.55 + d * 0.04 + bonus, 0.1, 0.95); }
 function discoverChance() { return clamp(0.6 - rs("int") * 0.03, 0.1, 0.6); }
 function schemeCost(type, r) { return SCHEMES[type].cost * (type === "kill" && r && G.empire.realm === r.id ? 3 : 1); }
 function startScheme(type, r) {
@@ -1613,9 +1450,11 @@ function schemeStep() {
   }
 }
 function aiSchemes() {
+  if ((G.plotCd || 0) > 0) { G.plotCd--; return; }
   for (const r of G.realms) {
     if (!r.id || r.dead || isAlly(r)) continue;
     if (R() >= (r.hostile > 0 ? 0.005 : 0.0015)) continue;
+    G.plotCd = 12;
     const heir = heirOf(), target = heir && R() < 0.4 ? heir : G.ruler;
     const who = target === G.ruler ? "영주" : target.name;
     if (R() < clamp(0.4 + rs("int") * 0.03 + (perk("int", 2) ? 0.2 : 0) + (hasTrait(G.ruler, "paranoid") ? 0.15 : 0), 0.4, 0.95)) {
@@ -2201,7 +2040,7 @@ function empireTab() {
   for (const b of t.ballots) {
     const c = G.counties[b.seat], mine = b.owner === 0, e = mine ? null : realmOf(b.owner);
     const fav = mine ? 0 : Math.round(G.favor[e.id] || 0), selfVote = !mine && b.vote === e.id;
-    h += `<div class="slot"><div class="card">${mine ? `<span class="chr bust" style="display:inline-flex;align-items:center;justify-content:center">${icon("crown", "i32")}</span>` : `${chr(charPortrait(e.ruler, e.id), "bust")}`}<div class="col" style="flex:1">
+    h += `<div class="slot"><div class="card">${mine ? `<span class="chr por bust" style="display:inline-flex;align-items:center;justify-content:center">${icon("crown", "i32")}</span>` : `${chr(charPortrait(e.ruler, e.id), "bust")}`}<div class="col" style="flex:1">
       <div>${icon("crown")} <b>${c.name}</b> <span class="dim">선제후 · ${mine ? "우리 영지" : `${e.ruler.name} (${e.name})`}</span></div>
       <div>투표: <b class="${b.vote === 0 ? "good" : ""}">${b.vote == null ? "기권" : b.vote === 0 ? "우리 가문" : realmOf(b.vote).name}</b>${selfVote ? ` <span class="dim">(스스로 후보)</span>` : ""}</div>
       ${mine ? "" : `<div class="row"><span class="dim">호의</span><span class="meter green"><i style="width:${fav}%"></i></span><span>${fav}</span>
@@ -2210,7 +2049,9 @@ function empireTab() {
     </div></div></div>`;
   }
   h += `<div class="sec">제후국</div>`;
+  h += `<div class="row"><button class="btn ${G.allDuchies ? "on" : ""}" data-a="allduchies">${G.allDuchies ? "가까운 제후국만 보기" : `모든 제후국 보기 (${DUCHY_DEFS.length})`}</button></div>`;
   DUCHY_DEFS.forEach((d, i) => {
+    if (!G.allDuchies && G.duchies[i].holder !== 0 && !DUCHY_COUNTIES[i].some(j => G.counties[j].owner === 0 || [...ADJ[j]].some(k => G.counties[k].owner === 0))) return;
     const g = G.duchies[i], own_ = duchyOwned(i), need = duchyNeed(i), usurp = g.holder != null && g.holder !== 0;
     const pc = usurp ? DUCHY_COST.usurp : DUCHY_COST.prestige, can = g.holder !== 0 && own_ >= need && G.gold >= DUCHY_COST.gold && G.prestige >= pc;
     h += `<div class="slot"><div><span style="color:${d.color}">■</span> <b>${dname(i)}</b> <span class="dim">· ${holderName(g.holder)}</span></div>
@@ -2220,15 +2061,29 @@ function empireTab() {
   return h;
 }
 function renderLabels() {
-  let h = G.counties.map(c => `<div class="lbl ${c.owner === 0 ? "mine" : ""} ${c.id === G.sel ? "sel" : ""}" style="left:${c.x / MW * 100}%;top:${(c.y - 13) / MH * 100}%">${COUNTY_DEFS[c.id].elector ? `<img class="px" src="${SURL.crown}" alt="선제후">` : ""}${c.name}</div>`).join("");
-  if (G.mapMode === "duchy") h += DUCHY_DEFS.map((d, i) => {
+  const z = G.zoom || 1;
+  let h = "";
+  for (const c of G.counties) {
+    if (!(z >= 2 || c.owner === 0 || c.id === G.sel || COUNTY_DEFS[c.id].elector)) continue;
+    h += `<div class="lbl ${c.owner === 0 ? "mine" : ""} ${c.id === G.sel ? "sel" : ""}" style="left:${c.x / MW * 100}%;top:${(c.y - 7) / MH * 100}%">${COUNTY_DEFS[c.id].elector ? `<img class="px" src="${SURL.crown}" alt="선제후">` : ""}${c.name}</div>`;
+  }
+  if (z === 1 || G.mapMode === "duchy") h += DUCHY_DEFS.map((d, i) => {
     const cs = DUCHY_COUNTIES[i].map(j => COUNTY_DEFS[j]), x = cs.reduce((s, c) => s + c.x, 0) / cs.length, y = cs.reduce((s, c) => s + c.y, 0) / cs.length;
-    return `<div class="dlbl" style="left:${x / MW * 100}%;top:${(y + 4) / MH * 100}%">${d.n}</div>`;
+    return `<div class="dlbl" style="left:${x / MW * 100}%;top:${(y + 6) / MH * 100}%">${d.n}</div>`;
   }).join("");
+  h += FAREA.map(f => `<div class="flbl" style="left:${f.x / MW * 100}%;top:${f.y / MH * 100}%">${f.name}</div>`).join("");
   setHTML($("labels"), h);
   setHTML($("mapbar"), [["realm", "세력"], ["duchy", "제후국"]].map(([k, n]) => `<button class="btn ${G.mapMode === k ? "on" : ""}" data-a="mapmode" data-k="${k}">${n}</button>`).join("") +
-    `<span class="dim">${icon("crown")} 선제후 자리 · 백작령을 누르면 장원과 군세를 볼 수 있습니다 · 스페이스바: 일시정지</span>`);
+    `<button class="btn" data-a="zoom" data-v="-1" ${z <= 1 ? "disabled" : ""} title="축소">－</button><button class="btn" data-a="zoom" data-v="1" ${z >= 4 ? "disabled" : ""} title="확대">＋</button><button class="btn" data-a="home">내 영지로</button>` +
+    `<span class="dim">${icon("crown")} 선제후 · 확대하면 모든 지명이 보입니다 · 끌어서 이동 · 스페이스바: 일시정지</span>`);
 }
+function setZoom(z, cx, cy) {
+  const v = $("mapview"), inn = $("mapin"); if (!v || !inn || !inn.style) return;
+  const fx = cx ?? (v.scrollLeft + v.clientWidth / 2) / inn.clientWidth, fy = cy ?? (v.scrollTop + v.clientHeight / 2) / inn.clientHeight;
+  G.zoom = clamp(z, 1, 4); inn.style.width = G.zoom * 100 + "%";
+  v.scrollLeft = fx * inn.clientWidth - v.clientWidth / 2; v.scrollTop = fy * inn.clientHeight - v.clientHeight / 2;
+}
+function scrollToCounty(i) { const c = COUNTY_DEFS[i]; setZoom(G.zoom || 1, c.x / MW, c.y / MH); }
 function renderLog() {
   const el = $("log"); const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
   setHTML(el, G.log.map(l => `<p class="${l.cls || ""}"><span class="d">${l.d}</span>${l.t}</p>`).join(""));
@@ -2285,6 +2140,9 @@ function act(d) {
     case "duchy": claimDuchy(+d.k); break;
     case "gift": gift(r); break;
     case "mapmode": G.mapMode = d.k; mapDirty = true; break;
+    case "zoom": setZoom((G.zoom || 1) + +d.v); break;
+    case "home": scrollToCounty(G.capital); break;
+    case "allduchies": G.allDuchies = !G.allDuchies; break;
     case "help": showHelp(false); break;
   }
   render();
@@ -2292,7 +2150,7 @@ function act(d) {
 function showHelp(first) {
   const saved = first && hasSave();
   popup({ title:"왕관과 장원", img:charPortrait(G.ruler, "player"),
-    text:`1066년, 당신은 ${EMPIRE}의 작은 백작령 <b>발란</b>을 물려받은 하르트 가문의 영주입니다. 제국에는 황제 아래 12개 제후국과 50개 백작령이 있습니다.<br><br>
+    text:`1066년, 당신은 알프스 북쪽 아르가우의 작은 백작 <b>베르너 폰 합스부르크</b>입니다. ${EMPIRE}에는 독일·이탈리아·부르군트 세 왕국과 보헤미아에 걸쳐 ${COUNTY_DEFS.length}개 백작령이 있고, 열다섯 살 황제 하인리히 4세 아래 공작과 주교들이 저마다 세력을 다툽니다.<br><br>
       · 지도에서 백작령을 눌러 <b>장원</b>(성·도시·교회)과 건물을 지으세요.<br>
       · 장원을 <b>남작</b>에게 하사하고, 같은 백작령의 장원을 하나 더 주면 <b>자작</b>이 됩니다. 봉신은 호감만큼 세금과 병력을 바치고, 호감이 바닥나면 반란을 일으킵니다.<br>
       · 영주는 늙고 죽습니다. <b>혼인</b>해 후계자를 남기세요. 기본 상속법인 <b>분할 상속</b>에서는 자녀가 많으면 영지가 쪼개집니다.<br>
@@ -2313,7 +2171,7 @@ document.addEventListener("keydown", e => {
 });
 
 // ================= 저장 =================
-const SAVE_KEY = "crown-holdings-v5";
+const SAVE_KEY = "crown-holdings-v6";
 function save() { try { const { queue, ...rest } = G; localStorage.setItem(SAVE_KEY, JSON.stringify({ ...rest, NEXT_ID })); } catch (e) {} }
 function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
 function loadGame() {
@@ -2328,26 +2186,26 @@ function loadGame() {
 // ================= 시작 =================
 function newGame(restart) {
   NEXT_ID = 1;
-  const ruler = mkChar({ name:"에드릭", sex:"m", age:24, st:{ dip:6, mar:6, stw:6, int:5, lrn:5, pro:9 }, traits:["brave", "diligent", "just", "ed_mar_3"], dna:{ s:0, h:1, e:0, b:2 } });
-  G = { y:1066, m:1, gold:200, prestige:50, piety:10, manpower:1, gen:1, dyn:"하르트", capital:0, law:"gavel", lawLock:false,
-        ruler, spouse:null, kids:[], sibs:[mkChar({ name:"마틸다", sex:"f", age:19 })],
+  const ruler = mkChar({ name:"베르너", sex:"m", age:41, st:{ dip:7, mar:6, stw:8, int:6, lrn:6, pro:7 }, traits:["ambitious", "diligent", "just", "ed_stw_3"], dna:{ s:0, h:0, e:0, b:1 } });
+  G = { y:1066, m:1, gold:200, prestige:50, piety:10, manpower:1, gen:1, dyn:"합스부르크", capital:0, law:"gavel", lawLock:false, zoom:1,
+        ruler, spouse:mkChar({ name:"레긴린데", sex:"f", age:36 }), kids:[mkChar({ name:"오토", sex:"m", age:8 }), mkChar({ name:"알브레히트", sex:"m", age:5 })], sibs:[],
         counties:COUNTY_DEFS.map((d, i) => ({ id:i, name:d.n, x:d.x, y:d.y, owner:0, dev:i === 0 ? 2 : ri(1, 3), control:i === 0 ? 70 : 80, slots:[null, null, null] })),
         realms:REALM_DEFS.map(d => ({ id:d.id, name:d.n, color:d.color, theo:!!d.theo, mul:1, morale:1, dead:false, hostile:0, kinId:null,
-          ruler:!d.id ? null : d.emperor ? mkChar({ name:"프리드리히", sex:"m", age:62, traits:["greedy", "zealous", "arrogant", "ed_stw_3"] }) : mkChar({ sex:"m", age:d.theo ? ri(40, 60) : ri(28, 55) }) })),
-        duchies:DUCHY_DEFS.map((_, i) => ({ holder:(REALM_DEFS.find(r => r.duchy === i) || { id:null }).id })),
+          ruler:!d.id ? null : d.ruler ? mkChar({ name:d.ruler[0], sex:d.ruler[1], age:d.ruler[2], traits:[...d.ruler[3], ...randomCongenital()] }) : mkChar({ sex:R() < 0.9 ? "m" : "f", age:d.theo ? ri(40, 60) : ri(22, 58) }) })),
+        duchies:DUCHY_DEFS.map((_, i) => ({ holder:(REALM_DEFS.find(r => r.duchies && r.duchies.includes(i)) || { id:null }).id })),
         empire:{ realm:REALM_DEFS.find(r => r.emperor).id }, favor:{}, mapMode:"realm",
         war:null, scheme:null, log:[], queue:[], speed:0, lastSpeed:1, sel:0, tab:"county", nextEvent:ri(4, 7), truce:18, cd:{ feast:0, pilgrim:0 }, won:false, over:false };
   G.vassals = {}; G.nextVid = 1; G.tyranny = 0; G.allRealms = false;
   G.counties[0].slots[0] = mkSlot("castle");
-  for (const d of REALM_DEFS) if (d.c) d.c.forEach(ci => { G.counties[ci].owner = d.id; START_HOLD[ci].forEach((hd, si) => { const s = mkSlot(hd[0]); s.b = [...hd[1]]; G.counties[ci].slots[si] = s; }); });
+  for (const d of REALM_DEFS) if (d.c && d.id) d.c.forEach(ci => { G.counties[ci].owner = d.id; START_HOLD[ci].forEach((hd, si) => { const s = mkSlot(hd[0]); s.b = [...hd[1]]; G.counties[ci].slots[si] = s; }); });
   for (const c of G.counties) if (c.owner) {   // 다른 백작령의 남작·자작
     const free = [1, 2].filter(si => c.slots[si]);
     if (free.length === 2 && R() < 0.3) { const v = mkVassal(c, free[0], c.owner); v.title = "viscount"; v.slots.push(free[1]); c.slots[free[1]].vassal = v.id; }
     else for (const si of free) if (R() < 0.5) mkVassal(c, si, c.owner);
   }
-  lsInit(G.ruler).focus = "mar";
+  lsInit(G.ruler).focus = "stw";
   mapDirty = true;
-  say(`1066년 1월, 에드릭 하르트가 ${EMPIRE}의 발란 백작령을 물려받았습니다.`);
+  say(`1066년 1월, 합스부르크 가문의 베르너가 ${EMPIRE}의 아르가우 백작령을 다스립니다. 황제 하인리히 4세는 아직 열다섯 살입니다.`);
   if (restart) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} G.speed = 1; }
   else showHelp(true);
   render();
@@ -2367,14 +2225,19 @@ function loop(t) {
 function boot() {
   buildSprites(); genWorld(); genMap();
   const cv = $("map"); mapCtx = cv.getContext("2d");
+  const view = $("mapview"); let drag = null, dragged = false;
+  view.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse" || e.button !== 0) return; drag = { x:e.clientX, y:e.clientY, sl:view.scrollLeft, st:view.scrollTop }; dragged = false; });
+  addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true; if (dragged) { view.scrollLeft = drag.sl - dx; view.scrollTop = drag.st - dy; } });
+  addEventListener("pointerup", () => { drag = null; });
   cv.addEventListener("click", e => {
+    if (dragged) { dragged = false; return; }
     const b = cv.getBoundingClientRect();
     const x = Math.floor((e.clientX - b.left) / b.width * MW), y = Math.floor((e.clientY - b.top) / b.height * MH);
     const k = CMAP[clamp(y, 0, MH - 1) * MW + clamp(x, 0, MW - 1)];
     if (k >= 0) { G.sel = k; G.tab = "county"; lastFrame = -1; render(); }
   });
   newGame(false);
-  if (!REDUCED && document.body) setInterval(() => document.body.classList.toggle("f1"), 650);
+  setTimeout(() => { G.zoom = G.zoom || 1; scrollToCounty(G.capital); }, 0);
   requestAnimationFrame(loop);
 }
 boot();
