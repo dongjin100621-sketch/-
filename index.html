@@ -882,8 +882,7 @@ function npc(kind) {
 // ---- 일러스트 (img/*.webp): 있으면 일러스트, 없으면 SVG 초상화 ----
 const ART_FAM = { "베르너":"fam_werner", "레긴린데":"fam_reginlinde", "오토":"fam_otto", "알브레히트":"fam_albrecht" };
 const ART_REAL = { "하인리히 4세":"heinrich", "마틸데 디 카노사":"mathilde", "오토 폰 노르트하임":"lord_otto", "루돌프 폰 라인펠덴":"lord_rudolf", "아델라이데 디 수사":"lord_adelheid", "브라티슬라프 2세":"lord_bratislav" };
-const ART_SEE = { "마인츠":"bp_mainz", "쾰른":"bp_hiltuk", "트리어":"bp_trier", "잘츠부르크":"bp_salzburg", "함부르크":"bp_bremen" };
-const ART_BP = ["bp_mainz", "bp_hiltuk", "bp_trier", "bp_salzburg", "bp_bremen", "rank_bishop", "rank_archbishop"];
+const abp = n => "abp" + String(n).padStart(2, "0"), lordN = n => "lord" + String(n).padStart(2, "0");
 const artSp = n => ({ u:`img/${n}.webp`, art:true });
 function artFor(ch, role, hat, who) {
   const t = ch.traits || [], has = k => t.includes(k), f = ch.sex === "f", h = Math.abs(((ch.id | 0) * 2654435761) >>> 0), age = ch.age;
@@ -894,10 +893,10 @@ function artFor(ch, role, hat, who) {
   if (typeof who === "number") {
     const r = realmOf(who);
     if (ART_REAL[ch.name] && !r.theo) return ART_REAL[ch.name];
-    if (r.theo) { for (const k in ART_SEE) if (r.name.startsWith(k)) return ART_SEE[k]; return ART_BP[h % ART_BP.length]; }
+    if (r.theo) return abp(G.realms.filter(x => x.theo).indexOf(r) % 23 + 1);
   }
-  if (role === "clergy") return f ? "trait_faith" : ART_BP[h % ART_BP.length];
-  if (!f && hat === "crown2") return "rank_emperor";
+  if (role === "clergy") return f ? "trait_faith" : abp(h % 23 + 1);
+  if (!f && hat === "crown2") return "otto8";
   if (!f && hat === "crown1") return "rank_duke";
   if (!f && hat === "crown0") return "rank_count";
   const T = f
@@ -905,6 +904,7 @@ function artFor(ch, role, hat, who) {
     : [["wrathful", "trait_wrath"], ["callous", "trait_cruel"], ["vengeful", "trait_cruel"], ["schemer", "trait_scheme"], ["greedy", "trait_greed"], ["ambitious", "trait_ambit"], ["theologian", "trait_wise"], ["brave", "trait_brave"], ["zealous", age >= 55 ? "trait_zeal" : null]];
   if (h % 3 !== 0) for (const [k, a] of T) if (a && has(k)) return a;
   const g = age < 31 ? "young" : age <= 50 ? "mid" : "old";
+  if (!f && g !== "old") return lordN(6 + h % 31);
   return `gen_${f ? "f" : "m"}_${g}`;
 }
 function mkP(ch, role, hat, c1, c2, who) {
