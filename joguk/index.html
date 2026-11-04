@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조국과 민족을 위하여 — 박정희 일대기</title>
+<meta name="description" content="1917년 상모리에서 1979년 궁정동까지. 한 사람의 선택과 한 시대의 대가를 따라가는 역사 시뮬레이션.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="bg" width="320" height="180"></canvas>
+    <div class="vignette"></div>
+    <div class="scan"></div>
+
+    <!-- 상단 지표 -->
+    <div id="hud" class="hidden">
+      <div id="hud-left">
+        <div id="hud-date"></div>
+        <div id="hud-chapter"></div>
+      </div>
+      <div id="meters"></div>
+      <button id="hud-menu" class="ghost" title="메뉴 (Esc)">≡</button>
+    </div>
+
+    <!-- 선택지 -->
+    <div id="choices" class="hidden"></div>
+
+    <!-- 대화창 -->
+    <div id="dialog" class="hidden">
+      <div id="name" class="hidden"></div>
+      <div id="text"></div>
+      <div id="next">▼</div>
+      <div id="dlg-btns">
+        <button data-act="log">기록</button>
+        <button data-act="auto">자동</button>
+        <button data-act="skip">빨리</button>
+      </div>
+    </div>
+
+    <!-- 역사 기록 카드 -->
+    <div id="note" class="hidden">
+      <div class="paper">
+        <div class="note-head"><span id="note-date"></span><span id="note-badge"></span></div>
+        <h2 id="note-title"></h2>
+        <div id="note-real"></div>
+        <p id="note-body"></p>
+        <div class="note-foot"><button id="note-ok" class="ink">계속 <small>Space</small></button></div>
+      </div>
+    </div>
+
+    <!-- 장 제목 카드 -->
+    <div id="card" class="hidden">
+      <div id="card-no"></div>
+      <div id="card-title"></div>
+      <div id="card-span"></div>
+      <div id="card-flow"></div>
+    </div>
+
+    <!-- 타이틀 -->
+    <div id="title" class="screen hidden">
+      <div class="title-box">
+        <div class="title-sub">박정희 일대기 · 1917 – 1979</div>
+        <h1>조국과 민족을 위하여</h1>
+        <div class="title-tag">한 사람의 선택, 한 시대의 대가</div>
+      </div>
+      <nav id="title-menu">
+        <button data-act="new">새로 시작</button>
+        <button data-act="continue">이어하기</button>
+        <button data-act="archive">기록 보관소</button>
+        <button data-act="endings">엔딩 목록</button>
+        <button data-act="achievements">업적</button>
+        <button data-act="settings">설정</button>
+        <button data-act="credits">만든 사람들</button>
+        <button data-act="quit" class="native-only">종료</button>
+      </nav>
+      <p class="disclaimer">이 게임은 역사적 사실을 바탕으로 한 교육용 시뮬레이션입니다. 특정 인물을 미화하거나 폄훼하려는 목적이 없으며, 각 사건에 대한 평가는 다양한 시각이 있습니다. 대사 일부와 ‘(가정)’으로 표시된 내용은 각색입니다.</p>
+    </div>
+
+    <!-- 엔딩 -->
+    <div id="ending" class="screen hidden">
+      <div class="end-box">
+        <div id="end-no"></div>
+        <h1 id="end-title"></h1>
+        <div id="end-badge"></div>
+        <p id="end-epi"></p>
+        <div id="end-stats"></div>
+        <div class="end-btns">
+          <button data-act="title">타이틀로</button>
+          <button data-act="endings">엔딩 목록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공용 패널 (설정·기록·엔딩·업적·로그·일시정지) -->
+    <div id="panel" class="hidden">
+      <div class="panel-box">
+        <div class="panel-head"><h2 id="panel-title"></h2><button id="panel-close" class="ghost">닫기 ✕</button></div>
+        <div id="panel-body"></div>
+      </div>
+    </div>
+
+    <canvas id="mg" class="hidden" width="640" height="360"></canvas>
+    <div id="toast"></div>
+    <div id="fader"></div>
+  </div>
+</div>
+<script src="js/audio.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/story.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+"AppBuild"
+{
+	// Steamworks에서 발급받은 App ID와 Depot ID로 바꾸세요.
+	"AppID"	"YOUR_APP_ID"
+	"Desc"	"조국과 민족을 위하여 1.0.0"
+	"ContentRoot"	"../dist/"
+	"BuildOutput"	"../steam_output/"
+	"SetLive"	""
+	"Depots"
+	{
+		"YOUR_WINDOWS_DEPOT_ID"
+		{
+			"FileMapping"
+			{
+				"LocalPath"	"win-unpacked/*"
+				"DepotPath"	"."
+				"Recursive"	"1"
+			}
+		}
+		"YOUR_LINUX_DEPOT_ID"
+		{
+			"FileMapping"
+			{
+				"LocalPath"	"linux-unpacked/*"
+				"DepotPath"	"."
+				"Recursive"	"1"
+			}
+		}
+		"YOUR_MAC_DEPOT_ID"
+		{
+			"FileMapping"
+			{
+				"LocalPath"	"mac-universal/*"
+				"DepotPath"	"."
+				"Recursive"	"1"
+			}
+		}
+	}
+}

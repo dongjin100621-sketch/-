@@ -1,0 +1,41 @@
+{
+  "name": "joguk-minjok",
+  "productName": "조국과 민족을 위하여",
+  "version": "1.0.0",
+  "description": "박정희 일대기 — 1917년 상모리에서 1979년 궁정동까지, 선택으로 따라가는 역사 시뮬레이션",
+  "main": "electron/main.js",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "web": "python3 -m http.server 8080",
+    "dist:win": "electron-builder --win --x64",
+    "dist:mac": "electron-builder --mac --universal",
+    "dist:linux": "electron-builder --linux --x64"
+  },
+  "devDependencies": {
+    "electron": "45.2.2",
+    "electron-builder": "26.18.0"
+  },
+  "optionalDependencies": {
+    "steamworks.js": "0.4.0"
+  },
+  "build": {
+    "appId": "com.joguk.minjok",
+    "productName": "조국과 민족을 위하여",
+    "artifactName": "joguk-${os}-${arch}.${ext}",
+    "directories": { "output": "dist" },
+    "files": [
+      "index.html",
+      "css/**",
+      "js/**",
+      "assets/**",
+      "electron/**",
+      "package.json"
+    ],
+    "asarUnpack": ["node_modules/steamworks.js/**"],
+    "win": { "target": [{ "target": "dir", "arch": ["x64"] }] },
+    "mac": { "target": [{ "target": "dir" }], "category": "public.app-category.simulation-games" },
+    "linux": { "target": [{ "target": "dir", "arch": ["x64"] }], "category": "Game" }
+  }
+}

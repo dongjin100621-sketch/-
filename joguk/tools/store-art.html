@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>스토어 이미지 생성기</title>
+<!-- 사용법: 로컬 서버로 연 뒤 각 .art 요소를 그 크기 그대로 캡처한다 (tools/README 참고). -->
+<style>
+  @font-face { font-family: 'Galmuri14'; src: url('../assets/fonts/Galmuri14.woff2') format('woff2'); }
+  @font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11.woff2') format('woff2'); }
+  body { margin: 0; background: #222; color: #efe6d2; font-family: 'Galmuri11', sans-serif; }
+  .art { position: relative; overflow: hidden; margin: 20px; background: #000; }
+  .art canvas { position: absolute; left: 0; top: 0; image-rendering: pixelated; }
+  .txt { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 6%; text-shadow: 0 0.06em 0 rgba(0,0,0,.6); }
+  .sub { color: #c8b8a0; letter-spacing: .08em; }
+  .ttl { font-family: 'Galmuri14', sans-serif; line-height: 1.12; color: #efe6d2; white-space: nowrap; }
+  .tag { color: #e0b84c; }
+  .logo { background: transparent !important; }
+</style>
+</head>
+<body>
+<div id="arts"></div>
+<script src="../js/scenes.js"></script>
+<script>
+  const SPECS = [
+    { id: 'header_capsule', w: 920, h: 430, scene: 'title', title: 72, sub: 22, tag: 22, ox: 0.5, oy: 0.55 },
+    { id: 'small_capsule', w: 462, h: 174, scene: 'title', title: 38, ox: 0.5, oy: 0.6 },
+    { id: 'main_capsule', w: 1232, h: 706, scene: 'title', title: 96, sub: 30, tag: 30, ox: 0.5, oy: 0.55 },
+    { id: 'vertical_capsule', w: 748, h: 896, scene: 'title', title: 92, sub: 26, tag: 26, ox: 0.62, oy: 0.5, stack: true },
+    { id: 'library_capsule', w: 600, h: 900, scene: 'title', title: 76, sub: 22, ox: 0.62, oy: 0.5, stack: true },
+    { id: 'library_header', w: 920, h: 430, scene: 'title', title: 72, sub: 22, ox: 0.5, oy: 0.55 },
+    { id: 'library_hero', w: 3840, h: 1240, scene: 'title', ox: 0.5, oy: 0.62 },
+    { id: 'page_background', w: 1438, h: 810, scene: 'dawn', ox: 0.5, oy: 0.5, dim: 0.55 },
+    { id: 'icon', w: 512, h: 512, scene: 'title', ox: 0.636, oy: 1, zoom: 1.37 },
+    { id: 'logo', w: 1280, h: 720, logo: true, title: 120, sub: 34 },
+  ];
+  const box = document.getElementById('arts');
+  for (const s of SPECS) {
+    const d = document.createElement('div');
+    d.className = 'art' + (s.logo ? ' logo' : ''); d.id = s.id;
+    d.style.width = s.w + 'px'; d.style.height = s.h + 'px';
+    if (!s.logo) {
+      const src = Scenes.snapshot(s.scene, 6);
+      const k = Math.max(s.w / 320, s.h / 180) * (s.zoom || 1);
+      const c = document.createElement('canvas');
+      c.width = s.w; c.height = s.h;
+      const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+      const dw = 320 * k, dh = 180 * k;
+      const x = -(dw - s.w) * s.ox, y = -(dh - s.h) * s.oy;
+      g.drawImage(src, Math.round(x), Math.round(y), Math.round(dw), Math.round(dh));
+      if (s.dim) { g.fillStyle = `rgba(0,0,0,${s.dim})`; g.fillRect(0, 0, s.w, s.h); }
+      const v = g.createRadialGradient(s.w / 2, s.h / 2, Math.min(s.w, s.h) * 0.3, s.w / 2, s.h / 2, Math.max(s.w, s.h) * 0.75);
+      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)');
+      g.fillStyle = v; g.fillRect(0, 0, s.w, s.h);
+      d.appendChild(c);
+    }
+    if (s.title) {
+      const t = document.createElement('div'); t.className = 'txt';
+      if (s.logo) t.style.alignItems = 'center';
+      if (s.stack) { t.style.justifyContent = 'flex-start'; t.style.paddingTop = '9%'; }
+      t.innerHTML = (s.sub ? `<div class="sub" style="font-size:${s.sub}px">박정희 일대기 · 1917–1979</div>` : '') +
+        `<div class="ttl" style="font-size:${s.title}px;margin:.12em 0">${s.stack ? '조국과<br>민족을<br>위하여' : '조국과 민족을 위하여'}</div>` +
+        (s.tag ? `<div class="tag" style="font-size:${s.tag}px">한 사람의 선택, 한 시대의 대가</div>` : '');
+      d.appendChild(t);
+    }
+    box.appendChild(d);
+  }
+  document.fonts.ready.then(() => { document.body.dataset.ready = '1'; });
+</script>
+</body>
+</html>
