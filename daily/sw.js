@@ -1,6 +1,6 @@
 'use strict';
 /* 오프라인에서도 열리도록 앱 파일을 보관한다. 파일을 고치면 VERSION을 올린다. */
-const VERSION = 'haru-v3';
+const VERSION = 'haru-v4';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/core.js', 'js/home.js', 'js/notes.js', 'js/todo.js', 'js/calendar.js', 'js/alarm.js',

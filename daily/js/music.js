@@ -81,6 +81,95 @@
     changed();
   }
 
+  /* ---------- 이퀄라이저 (31밴드 1/3 옥타브) ---------- */
+  const EQ_FREQS = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000];
+  const EQ_Q = 4.32;      // 1/3 옥타브 폭
+  const EQ_RANGE = 12;    // ±dB
+  const r05 = v => Math.round(v * 2) / 2;
+  const fmtF = f => (f >= 1000 ? `${+(f / 1000).toFixed(2)}k` : String(f));
+  const fmtDb = v => (v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : '0');
+  function shape(pts) {
+    return EQ_FREQS.map(f => {
+      if (!pts.length) return 0;
+      if (f <= pts[0][0]) return r05(pts[0][1]);
+      for (let k = 1; k < pts.length; k++) {
+        if (f <= pts[k][0]) {
+          const [f0, g0] = pts[k - 1], [f1, g1] = pts[k];
+          const t = (Math.log(f) - Math.log(f0)) / (Math.log(f1) - Math.log(f0));
+          return r05(g0 + (g1 - g0) * t);
+        }
+      }
+      return r05(pts[pts.length - 1][1]);
+    });
+  }
+  const EQ_PRESETS = {
+    flat: { label: '플랫 (원음)', pts: [] },
+    bass: { label: '저음 강조', pts: [[20, 6], [60, 6], [150, 3], [400, 0]] },
+    treble: { label: '고음 강조', pts: [[2000, 0], [5000, 3], [10000, 6], [20000, 6]] },
+    vocal: { label: '보컬 선명', pts: [[80, -3], [250, -1], [1000, 2], [3000, 4], [5000, 2], [10000, -1]] },
+    pop: { label: '팝', pts: [[20, -1], [100, 2], [400, 3], [1000, 3], [3000, 1], [10000, -1]] },
+    rock: { label: '록', pts: [[20, 4], [100, 4], [400, -2], [1000, -2], [3000, 2], [8000, 4], [16000, 4]] },
+    jazz: { label: '재즈', pts: [[20, 3], [100, 3], [500, 0], [2000, -1], [5000, 1], [12000, 3]] },
+    classical: { label: '클래식', pts: [[20, 2], [200, 2], [1000, 0], [5000, 0], [10000, 3], [20000, 4]] },
+    electronic: { label: '일렉트로닉', pts: [[20, 6], [60, 5], [200, 0], [800, -2], [3000, 1], [8000, 4], [16000, 5]] },
+    acoustic: { label: '어쿠스틱', pts: [[20, 2], [100, 3], [400, 1], [2000, 2], [5000, 3], [12000, 2]] },
+    quiet: { label: '작게 들을 때', pts: [[20, 5], [100, 4], [400, 0], [1000, -1], [3000, 0], [8000, 3], [16000, 5]] },
+    speech: { label: '말소리·팟캐스트', pts: [[20, -12], [80, -9], [150, -3], [300, 0], [1000, 2], [3000, 4], [6000, 1], [10000, -6], [20000, -12]] }
+  };
+  const E = Object.assign({ on: true, pre: 0, limiter: true, preset: 'flat', custom: [] }, A.data.eq || {});
+  if (!Array.isArray(E.gains) || E.gains.length !== EQ_FREQS.length) E.gains = EQ_FREQS.map(() => 0);
+  E.gains = E.gains.map(v => A.clamp(r05(Number(v) || 0), -EQ_RANGE, EQ_RANGE));
+  E.pre = A.clamp(r05(Number(E.pre) || 0), -EQ_RANGE, EQ_RANGE);
+  if (!Array.isArray(E.custom)) E.custom = [];
+  const persistEq = A.debounce(() => { A.data.eq = E; A.save('eq'); }, 250);
+
+  // 지정한 주파수에서 전체 이퀄라이저 곡선의 크기(dB). RBJ 피킹 필터 식을 그대로 쓴다.
+  function eqResponse(freq, gains) {
+    const fs = 48000, w = 2 * Math.PI * freq / fs, c1 = Math.cos(w), c2 = Math.cos(2 * w), s1 = Math.sin(w), s2 = Math.sin(2 * w);
+    let db = 0;
+    for (let i = 0; i < EQ_FREQS.length; i++) {
+      const g = gains[i];
+      if (!g) continue;
+      const A_ = Math.pow(10, g / 40), w0 = 2 * Math.PI * EQ_FREQS[i] / fs, al = Math.sin(w0) / (2 * EQ_Q), cw = Math.cos(w0);
+      const b0 = 1 + al * A_, b1 = -2 * cw, b2 = 1 - al * A_, a0 = 1 + al / A_, a1 = -2 * cw, a2 = 1 - al / A_;
+      const nr = b0 + b1 * c1 + b2 * c2, ni = -(b1 * s1 + b2 * s2);
+      const dr = a0 + a1 * c1 + a2 * c2, di = -(a1 * s1 + a2 * s2);
+      db += 10 * Math.log10((nr * nr + ni * ni) / (dr * dr + di * di));
+    }
+    return db;
+  }
+  function eqPeak() {
+    let m = 0;
+    for (let k = 0; k <= 240; k++) m = Math.max(m, eqResponse(20 * Math.pow(1000, k / 240), E.gains));
+    return m;
+  }
+  let eqNodes = null;
+  function buildEq(c) {
+    const pre = c.createGain();
+    const filters = EQ_FREQS.map(f => {
+      const n = c.createBiquadFilter();
+      n.type = 'peaking'; n.frequency.value = f; n.Q.value = EQ_Q; n.gain.value = 0;
+      return n;
+    });
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -2; comp.knee.value = 0; comp.ratio.value = 20; comp.attack.value = 0.003; comp.release.value = 0.25;
+    let last = pre;
+    filters.forEach(n => { last.connect(n); last = n; });
+    last.connect(comp);
+    eqNodes = { pre, filters, comp, out: comp };
+    applyEq(true);
+    return eqNodes;
+  }
+  function applyEq(now) {
+    if (!eqNodes) return;
+    const c = A.Sound.get();
+    const t = c ? c.currentTime : 0, tc = now ? 0.001 : 0.02;
+    eqNodes.pre.gain.setTargetAtTime(Math.pow(10, (E.on ? E.pre : 0) / 20), t, tc);
+    eqNodes.filters.forEach((n, i) => n.gain.setTargetAtTime(E.on ? E.gains[i] : 0, t, tc));
+    eqNodes.comp.ratio.setTargetAtTime(E.limiter ? 20 : 1, t, tc);
+    eqNodes.comp.threshold.setTargetAtTime(E.limiter ? -2 : 0, t, tc);
+  }
+
   function ensureGraph() {
     if (srcNode) return;
     const c = A.Sound.get();
@@ -88,11 +177,13 @@
     try {
       srcNode = c.createMediaElementSource(audio);
       analyser = c.createAnalyser();
-      analyser.fftSize = 256;
+      analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.8;
-      srcNode.connect(analyser);
+      const q = buildEq(c);
+      srcNode.connect(q.pre);
+      q.out.connect(analyser);
       analyser.connect(c.destination);
-    } catch (e) { srcNode = null; analyser = null; }
+    } catch (e) { srcNode = null; analyser = null; eqNodes = null; }
   }
   function setSource(i) {
     const t = P.tracks[i];
@@ -466,6 +557,7 @@
             <section class="panel now" id="mu-now"></section>
             <section class="panel" id="mu-list"></section>
           </div>
+          <section class="panel eq" id="mu-eq"></section>
           <section class="panel">
             <div class="panel-head"><h2 class="panel-title">집중 사운드</h2><span class="faint" style="font-size:13px">여러 개를 섞어 켤 수 있어요</span></div>
             <div class="amb-grid" id="mu-amb"></div>
@@ -623,9 +715,270 @@
         const d = $('#mu-dur'); if (d) d.textContent = fmtT(audio.duration);
       };
       audio.addEventListener('timeupdate', onTime);
+
+      /* ----- 이퀄라이저 화면 ----- */
+      const eqBox = $('#mu-eq');
+      const eqBands = i => (i < 0 ? E.pre : E.gains[i]);
+      eqBox.innerHTML = `
+        <div class="panel-head">
+          <h2 class="panel-title">이퀄라이저 · 31밴드</h2>
+          <div class="eq-switches">
+            <span class="eq-sw"><button type="button" class="switch" role="switch" id="eq-on" aria-checked="${E.on}" aria-label="이퀄라이저 켜기"></button><label for="eq-on">${'켜기'}</label></span>
+            <span class="eq-sw"><button type="button" class="switch" role="switch" id="eq-lim" aria-checked="${E.limiter}" aria-label="소리 찢김 방지"></button><label for="eq-lim">소리 찢김 방지</label></span>
+          </div>
+        </div>
+        <div class="eq-tools">
+          <select class="input" id="eq-preset" aria-label="프리셋"></select>
+          <button type="button" class="btn sm" data-eq="auto" title="가장 크게 올린 부분만큼 전체 음량을 낮춰 소리가 깨지지 않게 해요">자동 음량 보정</button>
+          <button type="button" class="btn sm" data-eq="save">내 프리셋으로 저장</button>
+          <button type="button" class="btn sm danger-text" data-eq="del" hidden>프리셋 삭제</button>
+          <button type="button" class="btn sm ghost" data-eq="reset">모두 0으로</button>
+        </div>
+        <canvas class="eq-curve" id="eq-curve" aria-hidden="true"></canvas>
+        <div class="eq-strip" id="eq-strip">
+          ${[-1, ...EQ_FREQS.keys()].map(i => `
+            <div class="eq-col ${i < 0 ? 'pre' : ''}" data-i="${i}" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="${-EQ_RANGE}" aria-valuemax="${EQ_RANGE}" aria-label="${i < 0 ? '프리앰프(전체 음량)' : fmtF(EQ_FREQS[i]) + ' 헤르츠'}">
+              <span class="eq-val"></span>
+              <div class="eq-track"><div class="eq-fill"></div><div class="eq-thumb"></div></div>
+              <span class="eq-f">${i < 0 ? '전체' : fmtF(EQ_FREQS[i])}</span>
+            </div>`).join('')}
+        </div>
+        <p class="faint eq-hint">밴드 위를 끌어서 올리고 내려요. 가로로 쭉 끌면 곡선을 그릴 수 있어요. 두 번 누르면 0dB, 방향키는 0.5dB씩(Shift는 3dB씩) 움직여요. 음악 재생에만 적용돼요.</p>`;
+      const strip = eqBox.querySelector('#eq-strip');
+      const cols = [...strip.querySelectorAll('.eq-col')];
+      const colOf = i => cols[i + 1];
+
+      function syncBand(i) {
+        const v = eqBands(i), col = colOf(i);
+        const pct = (0.5 - v / (2 * EQ_RANGE)) * 100;
+        const th = col.querySelector('.eq-thumb'), fl = col.querySelector('.eq-fill');
+        th.style.top = pct + '%';
+        fl.style.top = Math.min(pct, 50) + '%';
+        fl.style.height = Math.abs(pct - 50) + '%';
+        col.querySelector('.eq-val').textContent = fmtDb(v);
+        col.setAttribute('aria-valuenow', v);
+        col.setAttribute('aria-valuetext', `${v} 데시벨`);
+        col.classList.toggle('boost', v > 0);
+        col.classList.toggle('cut', v < 0);
+      }
+      function syncAll() {
+        for (let i = -1; i < EQ_FREQS.length; i++) syncBand(i);
+        eqBox.querySelector('#eq-on').setAttribute('aria-checked', E.on);
+        eqBox.querySelector('#eq-lim').setAttribute('aria-checked', E.limiter);
+        eqBox.classList.toggle('off', !E.on);
+        drawPresetSelect();
+        drawCurve();
+      }
+      function drawPresetSelect() {
+        const sel = eqBox.querySelector('#eq-preset');
+        sel.innerHTML = `${E.preset === 'custom' ? '<option value="custom" selected>직접 조정</option>' : ''}
+          <optgroup label="기본 프리셋">${Object.entries(EQ_PRESETS).map(([k, v]) => `<option value="${k}" ${E.preset === k ? 'selected' : ''}>${v.label}</option>`).join('')}</optgroup>
+          ${E.custom.length ? `<optgroup label="내 프리셋">${E.custom.map(c => `<option value="c:${c.id}" ${E.preset === 'c:' + c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</optgroup>` : ''}`;
+        eqBox.querySelector('[data-eq="del"]').hidden = !E.preset.startsWith('c:');
+      }
+      function setBand(i, v, keepPreset) {
+        v = A.clamp(r05(v), -EQ_RANGE, EQ_RANGE);
+        if (eqBands(i) === v) return;
+        if (i < 0) E.pre = v; else E.gains[i] = v;
+        if (!keepPreset && i >= 0 && E.preset !== 'custom') { E.preset = 'custom'; drawPresetSelect(); }
+        syncBand(i);
+        applyEq();
+        drawCurve();
+        persistEq();
+      }
+      function loadPreset(id) {
+        if (id.startsWith('c:')) {
+          const c = E.custom.find(x => 'c:' + x.id === id);
+          if (!c) return;
+          E.gains = c.gains.slice(); E.pre = c.pre || 0;
+        } else if (EQ_PRESETS[id]) { E.gains = shape(EQ_PRESETS[id].pts); E.pre = 0; }
+        else return;
+        E.preset = id;
+        applyEq(); syncAll(); persistEq();
+      }
+
+      // 끌어서 조절
+      let drag = null;
+      function pointAt(e) {
+        if (!drag) return;
+        const hit = drag.rects.find(c => e.clientX >= c.l && e.clientX < c.r);
+        if (!hit) return;
+        if (drag.pre !== (hit.i < 0)) return;
+        const f = A.clamp((e.clientY - hit.t) / hit.h, 0, 1);
+        setBand(hit.i, (0.5 - f) * 2 * EQ_RANGE);
+      }
+      strip.addEventListener('pointerdown', e => {
+        const tr = e.target.closest('.eq-track');
+        if (!tr) return;
+        const rects = cols.map(c => { const a = c.getBoundingClientRect(), t = c.querySelector('.eq-track').getBoundingClientRect(); return { i: Number(c.dataset.i), l: a.left, r: a.right, t: t.top, h: t.height }; });
+        drag = { rects, pre: tr.parentElement.dataset.i === '-1' };
+        try { strip.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        if (e.pointerType === 'mouse') e.preventDefault();
+        pointAt(e);
+      });
+      strip.addEventListener('pointermove', pointAt);
+      const endDrag = () => { drag = null; };
+      strip.addEventListener('pointerup', endDrag);
+      strip.addEventListener('pointercancel', endDrag);
+      strip.addEventListener('dblclick', e => {
+        const col = e.target.closest('.eq-col');
+        if (col) setBand(Number(col.dataset.i), 0);
+      });
+      strip.addEventListener('keydown', e => {
+        const col = e.target.closest('.eq-col');
+        if (!col) return;
+        const i = Number(col.dataset.i), v = eqBands(i);
+        const step = e.shiftKey ? 3 : 0.5;
+        const key = e.key;
+        let nv = null;
+        if (key === 'ArrowUp' || key === 'ArrowRight') nv = v + step;
+        else if (key === 'ArrowDown' || key === 'ArrowLeft') nv = v - step;
+        else if (key === 'PageUp') nv = v + 3;
+        else if (key === 'PageDown') nv = v - 3;
+        else if (key === 'Home') nv = 0;
+        if (nv == null) return;
+        e.preventDefault();
+        setBand(i, nv);
+      });
+
+      eqBox.addEventListener('click', async e => {
+        const sw = e.target.closest('.switch');
+        if (sw) {
+          if (sw.id === 'eq-on') E.on = !E.on; else if (sw.id === 'eq-lim') E.limiter = !E.limiter; else return;
+          applyEq(); syncAll(); persistEq();
+          return;
+        }
+        const b = e.target.closest('[data-eq]');
+        if (!b) return;
+        const act = b.dataset.eq;
+        if (act === 'reset') {
+          E.gains = EQ_FREQS.map(() => 0); E.pre = 0; E.preset = 'flat';
+          applyEq(); syncAll(); persistEq();
+        } else if (act === 'auto') {
+          const peak = eqPeak();
+          E.pre = A.clamp(-Math.ceil(peak * 2) / 2, -EQ_RANGE, 0);
+          applyEq(); syncAll(); persistEq();
+          A.toast(peak > 0.2 ? `가장 크게 올린 부분이 +${peak.toFixed(1)}dB라서 전체 음량을 ${E.pre}dB 낮췄어요` : '올린 부분이 없어서 보정할 게 없어요');
+        } else if (act === 'save') {
+          A.modal({
+            title: '내 프리셋으로 저장',
+            body: '<label class="field"><span>이름</span><input class="input" id="eq-name" maxlength="20" placeholder="예: 이어폰용" autocomplete="off"></label>',
+            actions: [{ label: '취소', kind: 'ghost' }, {
+              label: '저장', kind: 'primary',
+              onClick: api => {
+                const name = api.el.querySelector('#eq-name').value.trim();
+                if (!name) { A.toast('이름을 입력해 주세요'); return false; }
+                const same = E.custom.find(c => c.name === name);
+                const rec = same || { id: A.uid(), name };
+                rec.gains = E.gains.slice(); rec.pre = E.pre;
+                if (!same) E.custom.push(rec);
+                E.preset = 'c:' + rec.id;
+                syncAll(); persistEq();
+                A.toast(`"${name}" 프리셋을 저장했어요`);
+              }
+            }],
+            onMount(box) {
+              const inp = box.querySelector('#eq-name');
+              inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') box.querySelector('.modal-foot .btn.primary').click(); });
+            }
+          });
+        } else if (act === 'del') {
+          const c = E.custom.find(x => 'c:' + x.id === E.preset);
+          if (!c) return;
+          const ok = await A.confirm(`"${c.name}" 프리셋을 지울까요?`, { title: '프리셋 삭제', ok: '지우기', danger: true });
+          if (!ok) return;
+          E.custom = E.custom.filter(x => x !== c);
+          E.preset = 'custom';
+          syncAll(); persistEq();
+        }
+      });
+      eqBox.addEventListener('change', e => { if (e.target.id === 'eq-preset') loadPreset(e.target.value); });
+
+      // 주파수 응답 곡선 + 실시간 스펙트럼
+      let eqRaf = 0, eqBuf = null;
+      function drawCurve() {
+        const cv = eqBox.querySelector('#eq-curve');
+        if (!cv || !cv.isConnected) return;
+        const g = cv.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const w = cv.clientWidth, h = cv.clientHeight;
+        if (!w || !h) return;
+        if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.clearRect(0, 0, w, h);
+        const css = getComputedStyle(document.documentElement);
+        const accent = css.getPropertyValue('--accent').trim() || '#D97757';
+        const line = css.getPropertyValue('--line').trim() || '#3A3936';
+        const ink3 = css.getPropertyValue('--ink-3').trim() || '#7F7D76';
+        const L = 34, R = 10, T = 10, B = 20, pw = w - L - R, ph = h - T - B, VIEW = 15;
+        const X = f => L + (Math.log(f / 20) / Math.log(1000)) * pw;
+        const Y = db => T + (0.5 - A.clamp(db, -VIEW, VIEW) / (2 * VIEW)) * ph;
+        g.font = '10px "IBM Plex Mono", monospace';
+        g.textBaseline = 'middle';
+        g.lineWidth = 1;
+        [-12, -6, 0, 6, 12].forEach(db => {
+          g.strokeStyle = line; g.globalAlpha = db === 0 ? 1 : 0.55;
+          g.beginPath(); g.moveTo(L, Math.round(Y(db)) + 0.5); g.lineTo(L + pw, Math.round(Y(db)) + 0.5); g.stroke();
+          g.globalAlpha = 1; g.fillStyle = ink3; g.textAlign = 'right';
+          g.fillText(db > 0 ? '+' + db : db < 0 ? '−' + Math.abs(db) : '0', L - 6, Y(db));
+        });
+        g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+        [[20, '20'], [50, '50'], [100, '100'], [200, '200'], [500, '500'], [1000, '1k'], [2000, '2k'], [5000, '5k'], [10000, '10k'], [20000, '20k']].forEach(([f, t]) => {
+          g.strokeStyle = line; g.globalAlpha = 0.55;
+          g.beginPath(); g.moveTo(Math.round(X(f)) + 0.5, T); g.lineTo(Math.round(X(f)) + 0.5, T + ph); g.stroke();
+          g.globalAlpha = 1; g.fillStyle = ink3;
+          g.fillText(t, A.clamp(X(f), L + 8, L + pw - 8), h - 5);
+        });
+        // 실시간 스펙트럼 (이퀄라이저를 지난 뒤의 소리)
+        const live = analyser && !audio.paused;
+        if (live) {
+          if (!eqBuf || eqBuf.length !== analyser.frequencyBinCount) eqBuf = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(eqBuf);
+          const sr = (A.Sound.get() || { sampleRate: 44100 }).sampleRate, hz = sr / analyser.fftSize;
+          g.beginPath(); g.moveTo(L, T + ph);
+          for (let x = 0; x <= pw; x += 2) {
+            const f0 = 20 * Math.pow(1000, x / pw), f1 = 20 * Math.pow(1000, (x + 2) / pw);
+            let a = Math.max(1, Math.floor(f0 / hz)), b = Math.max(a, Math.ceil(f1 / hz)), m = 0;
+            for (let k = a; k <= b && k < eqBuf.length; k++) m = Math.max(m, eqBuf[k]);
+            g.lineTo(L + x, T + ph - (m / 255) * ph * 0.92);
+          }
+          g.lineTo(L + pw, T + ph); g.closePath();
+          g.fillStyle = ink3; g.globalAlpha = 0.28; g.fill(); g.globalAlpha = 1;
+        }
+        // 곡선
+        const on = E.on;
+        const pts = [];
+        for (let x = 0; x <= pw; x += 2) pts.push([L + x, Y(on ? eqResponse(20 * Math.pow(1000, x / pw), E.gains) : 0)]);
+        g.beginPath(); g.moveTo(pts[0][0], Y(0));
+        pts.forEach(p => g.lineTo(p[0], p[1]));
+        g.lineTo(pts[pts.length - 1][0], Y(0)); g.closePath();
+        g.fillStyle = accent; g.globalAlpha = on ? 0.16 : 0.05; g.fill(); g.globalAlpha = 1;
+        g.beginPath(); pts.forEach((p, k) => (k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
+        g.strokeStyle = on ? accent : ink3; g.lineWidth = 2; g.lineJoin = 'round'; g.stroke();
+        if (on) {
+          g.fillStyle = accent;
+          EQ_FREQS.forEach((f, i) => {
+            if (!E.gains[i]) return;
+            g.beginPath(); g.arc(X(f), Y(eqResponse(f, E.gains)), 2.5, 0, Math.PI * 2); g.fill();
+          });
+        }
+      }
+      function kickEq() {
+        cancelAnimationFrame(eqRaf);
+        const loop = () => {
+          if (!eqBox.isConnected) return;
+          drawCurve();
+          if (!audio.paused) eqRaf = requestAnimationFrame(loop);
+        };
+        loop();
+      }
+      const onResize = () => drawCurve();
+      window.addEventListener('resize', onResize);
+      syncAll();
+      kickEq();
       draw();
-      const off = A.on('music:change', draw);
-      return () => { off(); cancelAnimationFrame(raf); audio.removeEventListener('timeupdate', onTime); };
+      const off = A.on('music:change', () => { draw(); kickEq(); });
+      return () => { off(); cancelAnimationFrame(raf); cancelAnimationFrame(eqRaf); window.removeEventListener('resize', onResize); audio.removeEventListener('timeupdate', onTime); };
     }
   });
 

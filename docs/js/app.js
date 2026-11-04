@@ -118,7 +118,7 @@
   window.addEventListener('storage', e => {
     if (!e.key || !e.key.startsWith('haru.')) return;
     const k = e.key.slice(5);
-    if (!A.KEYS.includes(k) || ['timer', 'stopwatch', 'pomo', 'player', 'ui', 'weather'].includes(k)) return;
+    if (!A.KEYS.includes(k) || ['timer', 'stopwatch', 'pomo', 'player', 'eq', 'ui', 'weather'].includes(k)) return;
     try { A.data[k] = e.newValue == null ? A.clone(A.DEFAULTS[k]) : JSON.parse(e.newValue); } catch (err) { return; }
     if (k === 'prefs') A.applyTheme();
     const active = document.activeElement;

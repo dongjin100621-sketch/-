@@ -52,6 +52,7 @@ window.App = (function () {
     pomoLog: {},
     player: null,
     ambient: null,
+    eq: null,
     ui: {},
     weather: null
   };
