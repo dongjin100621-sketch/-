@@ -23,6 +23,10 @@
           '· 알람·타이머: 이 페이지가 열려 있는 동안 울려요. 처음엔 화면을 한 번 눌러 소리를 허용해 주세요.',
           '· 음악: 기기의 음악 파일을 넣으면 이 브라우저에 보관돼요. 빗소리·파도 같은 집중 사운드도 있어요.',
           '· 가계부: 홈에서 "점심 9000"처럼 쓰면 분류까지 알아서 기록돼요.',
+          '· 루틴: 아침·저녁에 할 일을 순서대로 체크하고, "따라 하기"로 단계별 타이머를 써요.',
+          '· 일기·건강: 기분, 감사한 일, 물, 식사, 운동, 약 알림, 체중을 하루 단위로 남겨요.',
+          '· 잠: 잠 모드를 켜고 자면 화면이 꺼지지 않아 알람이 울리고, 아침에 잔 시간과 오늘 일정을 알려 줘요.',
+          '· 찾기: 왼쪽 위 찾기(Ctrl+K)로 메모·할 일·일기·지출을 한 번에 찾아요.',
           '· 설정: 백업 파일로 내보내고 다른 기기에서 불러올 수 있어요.'
         ].join('\n')
       },
@@ -94,6 +98,9 @@
     const due = A.data.todos.filter(x => !x.done && x.due && x.due <= t).length;
     setBadge('todo', due ? String(due) : '');
     setBadge('timer', A.timerUtil.badge());
+    const h = A.healthUtil.day(t), now = new Date(), hm = `${A.pad(now.getHours())}:${A.pad(now.getMinutes())}`;
+    const meds = A.data.healthCfg.meds.filter(m => m.time && m.time <= hm && !(h && h.meds[m.id])).length;
+    setBadge('health', meds ? String(meds) : '');
   }
 
   /* ---------- 시작 ---------- */
@@ -106,6 +113,10 @@
   }
   A.applyTheme();
   buildNav();
+  const rs = document.getElementById('rail-search');
+  rs.addEventListener('click', () => A.search.open());
+  rs.querySelector('kbd').textContent = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘K' : 'Ctrl K';
+  if (A.data.prefs.keepAwake) A.Wake.hold('pref');
   window.addEventListener('hashchange', A.route);
   A.route();
   updateBadges();
@@ -118,7 +129,7 @@
   window.addEventListener('storage', e => {
     if (!e.key || !e.key.startsWith('haru.')) return;
     const k = e.key.slice(5);
-    if (!A.KEYS.includes(k) || ['timer', 'stopwatch', 'pomo', 'player', 'eq', 'ui', 'weather'].includes(k)) return;
+    if (!A.KEYS.includes(k) || ['timer', 'stopwatch', 'pomo', 'player', 'eq', 'ui', 'weather', 'sleepMode'].includes(k)) return;
     try { A.data[k] = e.newValue == null ? A.clone(A.DEFAULTS[k]) : JSON.parse(e.newValue); } catch (err) { return; }
     if (k === 'prefs') A.applyTheme();
     const active = document.activeElement;

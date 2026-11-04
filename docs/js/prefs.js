@@ -6,7 +6,7 @@
 
   function exportData() {
     const out = { app: 'haru-desk', version: 1, exportedAt: new Date().toISOString(), data: {} };
-    A.KEYS.forEach(k => { if (k !== 'weather') out.data[k] = A.data[k]; });
+    A.KEYS.forEach(k => { if (k !== 'weather' && k !== 'sleepMode') out.data[k] = A.data[k]; });
     return JSON.stringify(out, null, 2);
   }
 
@@ -43,6 +43,10 @@
                   <select class="input" id="pf-sound" style="width:160px" aria-label="기본 알람 소리">${Object.entries(A.Sound.PATTERNS).map(([k, p]) => `<option value="${k}" ${k === A.data.prefs.sound ? 'selected' : ''}>${p.label}</option>`).join('')}</select>
                   <button type="button" class="btn" data-act="preview">미리 듣기</button>
                 </div>
+              </div>
+              <div class="pref-row">
+                <div class="grow"><h3>화면 켜 두기</h3><p id="pf-awake-desc"></p></div>
+                <div class="pref-ctl"><button type="button" class="switch" role="switch" id="pf-awake" aria-label="화면 켜 두기"></button></div>
               </div>
               <div class="pref-row">
                 <div class="grow"><h3>이어폰·헤드셋으로만 울리기</h3><p id="pf-ear-desc"></p></div>
@@ -103,6 +107,21 @@
       }
 
 
+
+      function drawAwake() {
+        const on = !!A.data.prefs.keepAwake;
+        $('#pf-awake').setAttribute('aria-checked', on);
+        $('#pf-awake-desc').textContent = A.Wake.supported
+          ? '이 페이지가 열려 있는 동안 화면이 꺼지지 않게 해요. 알람·타이머는 페이지가 열려 있어야 울려요. 밤에는 "잠" 탭의 잠 모드를 쓰세요.'
+          : '이 브라우저는 화면 꺼짐 방지를 지원하지 않아요. 기기 설정에서 자동 잠금 시간을 늘려 주세요.';
+        $('#pf-awake').disabled = !A.Wake.supported;
+      }
+      drawAwake();
+      $('#pf-awake').addEventListener('click', () => {
+        A.data.prefs.keepAwake = !A.data.prefs.keepAwake; A.save('prefs');
+        if (A.data.prefs.keepAwake) A.Wake.hold('pref'); else A.Wake.release('pref');
+        drawAwake();
+      });
       function drawEar() {
         const P = A.data.prefs, ok = A.Sound.sinkOk();
         $('#pf-ear-desc').textContent = ok

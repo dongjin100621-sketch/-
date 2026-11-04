@@ -35,7 +35,7 @@ window.App = (function () {
 
   const clone = v => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const DEFAULTS = {
-    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime', earOnly: false, earSink: null },
+    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime', earOnly: false, earSink: null, keepAwake: false },
     notes: [],
     todoLists: [{ id: 'inbox', name: '할 일' }],
     todos: [],
@@ -53,6 +53,13 @@ window.App = (function () {
     player: null,
     ambient: null,
     eq: null,
+    routines: [],
+    routineLog: {},
+    journal: {},
+    health: {},
+    healthCfg: { waterGoal: 8, cupMl: 250, meds: [], bedtime: '23:30', bedRemind: false },
+    sleepLog: [],
+    sleepMode: null,
     ui: {},
     weather: null
   };
@@ -60,6 +67,7 @@ window.App = (function () {
   const data = {};
   for (const k of KEYS) data[k] = load(k, clone(DEFAULTS[k]));
   data.prefs = Object.assign(clone(DEFAULTS.prefs), data.prefs || {});
+  data.healthCfg = Object.assign(clone(DEFAULTS.healthCfg), data.healthCfg || {});
   if (!Array.isArray(data.todoLists) || !data.todoLists.length) data.todoLists = clone(DEFAULTS.todoLists);
 
   function save(key) { return persist(key, data[key]); }
@@ -211,7 +219,23 @@ window.App = (function () {
     flag: '<path d="M5 21V4M5 4.5h11l-2 4 2 4H5"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
     help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 16.8v.2"/>',
-    sparkle: '<path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6.5 6.5l2.3 2.3M15.2 15.2l2.3 2.3M6.5 17.5l2.3-2.3M15.2 8.8l2.3-2.3"/>'
+    sparkle: '<path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6.5 6.5l2.3 2.3M15.2 15.2l2.3 2.3M6.5 17.5l2.3-2.3M15.2 8.8l2.3-2.3"/>',
+    moon: '<path d="M19.5 14.6A7.8 7.8 0 1 1 9.4 4.5a6.3 6.3 0 0 0 10.1 10.1z"/>',
+    sunrise: '<path d="M3 17.5h18M6.8 14a5.2 5.2 0 0 1 10.4 0M12 3.5v4M5.3 7.3l1.6 1.6M18.7 7.3l-1.6 1.6M8 21h8"/>',
+    book: '<path d="M6.5 3.5h11a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-11A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5z"/><path d="M8.5 3.5v17M11.5 8h4M11.5 11.5h4"/>',
+    heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
+    drop: '<path d="M12 3.5s6 6.3 6 10.7a6 6 0 0 1-12 0C6 9.8 12 3.5 12 3.5z"/>',
+    pill: '<path d="M10.3 4.9a4.6 4.6 0 0 1 6.5 6.5l-5.4 5.4a4.6 4.6 0 0 1-6.5-6.5z"/><path d="m7.6 7.6 6.5 6.5"/>',
+    meal: '<path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M17.5 21V3c-2 0-3.5 2.5-3.5 6.5 0 2.6 1.2 3.5 3.5 3.5"/>',
+    dumbbell: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+    scale: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 10.5a4 4 0 0 1 7 0M12 10.5l1.6-2"/>',
+    bed: '<path d="M3 19V6M3 14h18v5M21 14v-1.5a3 3 0 0 0-3-3h-7.5V14"/><circle cx="6.8" cy="11" r="1.7"/>',
+    breath: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5" stroke-dasharray="2 3"/><circle cx="12" cy="12" r="9.5"/>',
+    mood1: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.3 16.6c1.1-1.5 2.3-2.1 3.7-2.1s2.6.6 3.7 2.1"/>',
+    mood2: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 16c1-.6 2-.9 3.2-.9s2.2.3 3.2.9"/>',
+    mood3: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 15.3h6.4"/>',
+    mood4: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 14.4c.9.9 2 1.4 3.2 1.4s2.3-.5 3.2-1.4"/>',
+    mood5: '<circle cx="12" cy="12" r="9"/><path d="M8.6 9.6c.4-.6.9-.9 1.4-.9M15.4 9.6c-.4-.6-.9-.9-1.4-.9"/><path d="M8 13.5h8c-.6 2-2.1 3.2-4 3.2s-3.4-1.2-4-3.2z"/>'
   };
   function icon(name, size = 20, cls = '') {
     return `<svg class="ico ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name] || ''}</svg>`;
@@ -458,7 +482,7 @@ window.App = (function () {
       stopSound = Sound.ring(ringKind, { force, onState: st => { ringState = st; if (el) render(); } });
     }
     function silence() { if (stopSound) { stopSound(); stopSound = null; } }
-    function dismiss() {
+    function dismiss(snoozed) {
       silence();
       clearTimeout(autoStop);
       clearInterval(titleTimer);
@@ -468,7 +492,7 @@ window.App = (function () {
       items = [];
       ringState = null;
       if (el) { el.remove(); el = null; }
-      emit('ringer:done');
+      emit('ringer:done', { snoozed: snoozed === true });
     }
     function render() {
       if (!el) {
@@ -489,15 +513,67 @@ window.App = (function () {
             <button type="button" class="btn primary" data-stop>끄기</button>
           </div>
         </div>`;
-      el.querySelector('[data-stop]').addEventListener('click', dismiss);
+      el.querySelector('[data-stop]').addEventListener('click', () => dismiss(false));
       const sp = el.querySelector('[data-speaker]');
       if (sp) sp.addEventListener('click', () => startSound(true));
       const sn = el.querySelector('[data-snooze]');
-      if (sn) sn.addEventListener('click', () => { items.forEach(i => i.snooze && i.snooze()); dismiss(); toast('5분 뒤에 다시 울려요'); });
+      if (sn) sn.addEventListener('click', () => { items.forEach(i => i.snooze && i.snooze()); dismiss(true); toast('5분 뒤에 다시 울려요'); });
       el.querySelector('[data-stop]').focus();
     }
     return { start, dismiss, active: () => !!el };
   })();
+
+  /* ---------- 화면 꺼짐 방지 (Screen Wake Lock) ---------- */
+  const Wake = (function () {
+    const holders = new Set();
+    let lock = null, busy = false;
+    const supported = 'wakeLock' in navigator;
+    async function sync() {
+      if (!supported || busy) return;
+      const want = holders.size > 0 && document.visibilityState === 'visible';
+      busy = true;
+      try {
+        if (want && !lock) {
+          lock = await navigator.wakeLock.request('screen');
+          lock.addEventListener('release', () => { lock = null; emit('wake:change'); });
+        } else if (!want && lock) {
+          const l = lock; lock = null; await l.release();
+        }
+      } catch (e) { lock = null; }
+      busy = false;
+      emit('wake:change');
+    }
+    document.addEventListener('visibilitychange', sync);
+    // 일부 브라우저는 사용자가 화면을 누른 뒤에만 허용해요
+    window.addEventListener('pointerdown', () => { if (holders.size && !lock) sync(); }, { passive: true, capture: true });
+    return {
+      supported,
+      hold(k) { holders.add(k); sync(); },
+      release(k) { holders.delete(k); sync(); },
+      active: () => !!lock
+    };
+  })();
+
+  /* ---------- 작은 막대 차트 (한 계열) ---------- */
+  function miniBars(items, { goal = null, label = '', max = null } = {}) {
+    const m = max || Math.max(goal || 0, ...items.map(i => i.value || 0)) || 1;
+    return `
+      <figure class="mbars" style="--n:${items.length}">
+        <div class="mbars-plot">
+          ${items.every(i => !i.value) ? '<p class="mbars-empty">기록이 쌓이면 그래프가 보여요</p>' : ''}
+          ${goal ? `<i class="mbars-goal" style="bottom:${Math.min(100, goal / m * 100)}%" aria-hidden="true"></i>` : ''}
+          ${items.map(i => `<div class="mbar ${i.now ? 'now' : ''}" tabindex="0" data-tip="${esc(i.tip)}" aria-label="${esc(i.tip)}"><i style="height:${i.value ? Math.max(3, Math.min(100, i.value / m * 100)) : 0}%"></i></div>`).join('')}
+        </div>
+        <div class="mbars-x" aria-hidden="true">${items.map(i => `<span class="${i.now ? 'now' : ''}">${esc(i.label)}</span>`).join('')}</div>
+        <table class="sr-only"><caption>${esc(label)}</caption><tbody>${items.map(i => `<tr><th>${esc(i.label)}</th><td>${esc(i.tip)}</td></tr>`).join('')}</tbody></table>
+      </figure>`;
+  }
+  /* 최근 n일 (오래된 날 → 오늘) */
+  function lastDays(n, end = new Date()) {
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) out.push(addDays(end, -i));
+    return out;
+  }
 
   /* ---------- 라우터 ---------- */
   const views = new Map();
@@ -556,7 +632,7 @@ window.App = (function () {
     fmtDate, fmtClock, fmtHM, fmtDur, untilText, relDay, relTime, won, num, debounce,
     lunar, lunarParts,
     icon, toast, modal, confirm: confirmBox,
-    Sound, Ringer, notify,
+    Sound, Ringer, notify, Wake, miniBars, lastDays,
     register, route, go, views, order, current: () => current,
     applyTheme
   };

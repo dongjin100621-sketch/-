@@ -1,5 +1,5 @@
 'use strict';
-/* 홈: 시계, 날씨, 오늘 할 일, 일정·알람, 디데이, 습관, 지출, 빠른 메모 */
+/* 홈: 시계, 날씨, 루틴, 물·약, 하루 마무리, 오늘 할 일, 일정·알람, 디데이, 습관, 지출, 빠른 메모 */
 (function () {
   const A = App;
   const { esc, icon } = A;
@@ -142,7 +142,16 @@
       }
     });
   }
-  A.weather = { openCityPicker, DEFAULT_CITY };
+  function brief(d) {
+    const [desc] = wmo(d.current.weather_code);
+    const pop = d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : null;
+    const city = (A.data.prefs.city || DEFAULT_CITY).name;
+    let tip = '';
+    if (pop != null && pop >= 50) tip = ' · 우산 챙기세요';
+    else if (Math.round(d.daily.temperature_2m_min[0]) <= 0) tip = ' · 따뜻하게 입으세요';
+    return `${city} ${desc} ${Math.round(d.current.temperature_2m)}° · 최고 ${Math.round(d.daily.temperature_2m_max[0])}° 최저 ${Math.round(d.daily.temperature_2m_min[0])}°${pop != null ? ` · 강수 ${pop}%` : ''}${tip}`;
+  }
+  A.weather = { openCityPicker, DEFAULT_CITY, load: getWeather, brief };
 
   /* ---------- 홈 화면 ---------- */
   A.register({
@@ -159,7 +168,10 @@
             <div class="weather" id="h-weather"></div>
           </section>
           <div id="h-sample"></div>
-          <section class="widgets">
+          <section class="widgets" id="h-widgets">
+            <article class="panel" id="w-routine"></article>
+            <article class="panel" id="w-night"></article>
+            <article class="panel" id="w-health"></article>
             <article class="panel" id="w-todo"></article>
             <article class="panel" id="w-plan"></article>
             <article class="panel" id="w-money"></article>
@@ -181,6 +193,7 @@
           const name = A.data.prefs.name ? `, ${A.data.prefs.name}님` : '';
           $('#h-greet').textContent = greeting(now.getHours()) + name;
           drawPlan();
+          if (lastPhase && phase(now.getHours()) !== lastPhase) { arrange(); drawRoutine(); }
         }
         const day = A.ymd(now);
         if (day !== lastDay) {
@@ -339,8 +352,79 @@
             <li class="list-row" style="cursor:pointer" data-act="open-note" data-id="${n.id}"><span class="dot ${n.color && n.color !== 'none' ? n.color : ''}"></span><span class="grow ellipsis">${esc(n.title || A.notesUtil.firstLine(n.body) || '제목 없음')}</span><span class="faint" style="font-size:12px">${A.relTime(n.updated)}</span></li>`).join('')}</ul>` : ''}`;
       }
 
+      /* 시간대에 맞춰 카드 순서를 바꾼다: 아침엔 루틴, 낮엔 할 일, 밤엔 하루 마무리 */
+      let lastPhase = '';
+      function phase(h = new Date().getHours()) { return h >= 4 && h < 11 ? 'morning' : h >= 11 && h < 19 ? 'day' : 'night'; }
+      function arrange() {
+        const p = phase();
+        if (p === lastPhase) return;
+        lastPhase = p;
+        const ORDER = {
+          morning: ['w-routine', 'w-plan', 'w-todo', 'w-health', 'w-habit', 'w-money', 'w-dday', 'w-memo', 'w-night'],
+          day: ['w-todo', 'w-plan', 'w-health', 'w-money', 'w-habit', 'w-memo', 'w-dday', 'w-routine', 'w-night'],
+          night: ['w-night', 'w-routine', 'w-plan', 'w-todo', 'w-habit', 'w-money', 'w-health', 'w-memo', 'w-dday']
+        }[p];
+        ORDER.forEach((id, i) => { const n = $('#' + id); if (n) n.style.order = i; });
+      }
+
+      /* 루틴 */
+      function drawRoutine() {
+        const box = $('#w-routine');
+        const r = A.routineUtil.current();
+        if (!r) { box.innerHTML = `<div class="panel-head"><h2 class="panel-title"><a href="#routine">루틴</a></h2></div><p class="empty-sm"><a href="#routine">아침·저녁 루틴 만들기</a></p>`; return; }
+        const p = A.routineUtil.progress(r), m = A.routineUtil.doneMap(r.id);
+        box.innerHTML = `
+          <div class="panel-head"><h2 class="panel-title"><a href="#routine">${esc(r.name)}</a></h2><span class="faint num">${p.done} / ${p.total}</span></div>
+          <div class="bar"><i style="width:${p.pct}%"></i></div>
+          <ul style="margin-top:4px">${r.steps.map(s => `
+            <li class="list-row ${m[s.id] ? 'done' : ''}">
+              <button type="button" class="check ${m[s.id] ? 'on' : ''}" data-act="rt-step" data-rid="${r.id}" data-sid="${s.id}" aria-pressed="${!!m[s.id]}" aria-label="${esc(s.text)} 완료">${icon('check', 14)}</button>
+              <span class="grow">${esc(s.text)}</span>${s.min ? `<span class="faint num" style="font-size:12px">${s.min}분</span>` : ''}
+            </li>`).join('')}</ul>
+          ${p.done === p.total && p.total ? '<p class="faint" style="font-size:13px">다 했어요. 잘했어요!</p>' : ''}`;
+      }
+
+      /* 물·약 */
+      function drawHealth() {
+        const box = $('#w-health');
+        const cfg = A.data.healthCfg, h = A.healthUtil.day() || { water: 0, meds: {} };
+        const w = h.water || 0;
+        const meds = cfg.meds.filter(m => !h.meds[m.id]).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
+        box.innerHTML = `
+          <div class="panel-head"><h2 class="panel-title"><a href="#health">물 · 건강</a></h2><a class="link-more" href="#health">기록 ${icon('chevronR', 14)}</a></div>
+          <div class="w-water">
+            ${icon('drop', 30)}
+            <p class="grow"><b class="big-number num">${w}</b> <span class="muted">/ ${cfg.waterGoal}잔</span></p>
+            <button type="button" class="btn" data-act="water-" aria-label="한 잔 빼기" ${w ? '' : 'disabled'}>−</button>
+            <button type="button" class="btn primary" data-act="water+">+ 1잔</button>
+          </div>
+          <div class="bar"><i style="width:${Math.min(100, Math.round(w / cfg.waterGoal * 100))}%"></i></div>
+          ${meds.length ? `<ul style="margin-top:6px">${meds.map(m => `
+            <li class="list-row"><button type="button" class="check" data-act="med" data-id="${m.id}" aria-label="${esc(m.name)} 먹음">${icon('check', 14)}</button><span class="grow">${icon('pill', 14)} ${esc(m.name)}</span>${m.time ? `<span class="faint num" style="font-size:12px">${A.fmtHM(m.time)}</span>` : ''}</li>`).join('')}</ul>`
+            : cfg.meds.length ? '<p class="faint" style="font-size:13px;margin-top:6px">오늘 약·영양제를 다 챙겼어요.</p>' : ''}`;
+      }
+
+      /* 하루 마무리: 기분, 일기, 잠 모드 */
+      function drawNight() {
+        const box = $('#w-night');
+        const t = A.today();
+        const e = A.journalUtil.entry(t);
+        const M = A.journalUtil.MOODS;
+        const bed = A.data.healthCfg.bedtime;
+        const next = A.alarmUtil ? A.alarmUtil.nextAlarm() : null;
+        box.innerHTML = `
+          <div class="panel-head"><h2 class="panel-title"><a href="#journal">하루 마무리</a></h2><a class="link-more" href="#sleep">잠 ${icon('chevronR', 14)}</a></div>
+          <p class="muted" style="font-size:14px">오늘 기분은 어땠나요?</p>
+          <div class="moods sm">${M.slice(1).map((m, k) => `<button type="button" class="mood ${e && e.mood === k + 1 ? 'on' : ''}" data-act="mood" data-m="${k + 1}" aria-label="${m.label}" aria-pressed="${!!(e && e.mood === k + 1)}">${icon(m.icon, 26)}</button>`).join('')}</div>
+          <a class="list-row" href="#journal" style="text-decoration:none;color:inherit">${icon('book', 18)}<span class="grow">${e && e.text.trim() ? `<span class="ellipsis" style="display:block">${esc(e.text.trim().split('\n')[0])}</span>` : '일기 쓰기'}</span>${icon('chevronR', 14)}</a>
+          <div class="w-sleep">
+            <span class="grow faint" style="font-size:13px">잘 시간 ${A.fmtHM(bed)}${next ? ` · 알람 ${A.fmtHM(next.alarm.time)}` : ''}</span>
+            <button type="button" class="btn primary" data-act="night">${icon('moon', 16)} 잠 모드</button>
+          </div>`;
+      }
+
       function drawAll() {
-        drawSample(); drawTodo(); drawPlan(); drawMoney(); drawHabit(); drawDday(); drawMemo();
+        arrange(); drawSample(); drawRoutine(); drawHealth(); drawNight(); drawTodo(); drawPlan(); drawMoney(); drawHabit(); drawDday(); drawMemo();
       }
 
       /* 이벤트 */
@@ -356,6 +440,17 @@
             setTimeout(drawTodo, 260);
             A.toast('완료했어요', { action: '되돌리기', onAction: () => { x.done = false; A.save('todos'); drawTodo(); } });
           }
+        } else if (act === 'rt-step') {
+          A.routineUtil.toggleStep(b.dataset.rid, b.dataset.sid); drawRoutine();
+        } else if (act === 'water+' || act === 'water-') {
+          const n = A.healthUtil.addWater(act === 'water+' ? 1 : -1); drawHealth();
+          if (act === 'water+' && n === A.data.healthCfg.waterGoal) A.toast('오늘 물 목표를 채웠어요');
+        } else if (act === 'med') {
+          A.healthUtil.takeMed(id); drawHealth();
+        } else if (act === 'mood') {
+          A.journalUtil.setMood(A.today(), Number(b.dataset.m)); drawNight();
+        } else if (act === 'night') {
+          A.night.open();
         } else if (act === 'habit') {
           A.habitUtil.toggle(id, A.today());
           drawHabit();
@@ -424,8 +519,11 @@
       drawWeather($('#h-weather'));
       const offTick = A.on('tick', drawClock);
       const offTimer = A.on('timer:change', drawPlan);
+      const offR = A.on('routine:change', drawRoutine);
+      const offH = A.on('health:change', drawHealth);
+      const offJ = A.on('journal:change', drawNight);
       const weatherTimer = setInterval(() => drawWeather($('#h-weather')), 30 * 60 * 1000);
-      return () => { offTick(); offTimer(); clearInterval(weatherTimer); };
+      return () => { offTick(); offTimer(); offR(); offH(); offJ(); clearInterval(weatherTimer); };
     }
   });
 })();

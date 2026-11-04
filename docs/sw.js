@@ -1,10 +1,11 @@
 'use strict';
 /* 오프라인에서도 열리도록 앱 파일을 보관한다. 파일을 고치면 VERSION을 올린다. */
-const VERSION = 'haru-v6';
+const VERSION = 'haru-v7';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/core.js', 'js/home.js', 'js/notes.js', 'js/todo.js', 'js/calendar.js', 'js/alarm.js',
   'js/timer.js', 'js/music.js', 'js/budget.js', 'js/habits.js', 'js/calc.js', 'js/prefs.js', 'js/app.js',
+  'js/routine.js', 'js/journal.js', 'js/health.js', 'js/sleep.js', 'js/search.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
 ];
 self.addEventListener('install', e => {
