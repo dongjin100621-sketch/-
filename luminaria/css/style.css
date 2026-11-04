@@ -15,7 +15,10 @@ body {
   background: #120e14; color: var(--ink);
   font-family: 'Noto Sans KR', system-ui, sans-serif; font-size: 15px;
   overflow: hidden; -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; touch-action: manipulation;
 }
+#scene, #bg, .screen { -webkit-user-select: none; user-select: none; }
+input { -webkit-user-select: text; user-select: text; }
 button { font: inherit; color: inherit; }
 .hidden { display: none !important; }
 
@@ -67,7 +70,8 @@ h3 { font-size: 14px; letter-spacing: .05em; }
 
 /* ── 메인 화면 ── */
 #hub {
-  display: grid; gap: 12px; padding: 14px;
+  display: grid; gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
   grid-template-columns: 290px 1fr 250px; grid-template-rows: 1fr auto;
   grid-template-areas: 'left center right' 'bottom bottom right';
 }
@@ -194,7 +198,7 @@ h3 { font-size: 14px; letter-spacing: .05em; }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 16px; }
 .seg .btn.on { border-color: var(--gold2); background: #4a3a2c; }
 
-#toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
+#toast { position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
 #toast div { background: rgba(20,16,24,.95); border: 1px solid var(--gold); padding: 8px 16px; border-radius: 20px; animation: toast 2.6s forwards; font-size: 14px; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
@@ -209,7 +213,7 @@ h3 { font-size: 14px; letter-spacing: .05em; }
 /* ── 모바일 ── */
 @media (max-width: 900px) {
   body { overflow: auto; }
-  #hub { position: relative; min-height: 100%; grid-template-columns: 1fr; grid-template-rows: auto; grid-template-areas: 'left' 'center' 'right' 'bottom'; padding: 12px 16px 24px; }
+  #hub { position: relative; min-height: 100%; grid-template-columns: 1fr; grid-template-rows: auto; grid-template-areas: 'left' 'center' 'right' 'bottom'; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); }
   .hub-left { overflow: visible; }
   .hub-center { min-height: 200px; }
   .idle img { width: 150px; }
