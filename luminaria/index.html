@@ -15,17 +15,19 @@
 <meta name="format-detection" content="telephone=no">
 <title>루미나리아: Eight Fates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div id="bg"></div>
+<body data-screen="title">
+<div id="bg"><div class="bgl"></div><div class="bgl"></div></div>
+<canvas id="fx" aria-hidden="true"></canvas>
 
 <!-- 타이틀 -->
 <section id="title" class="screen">
   <div class="title-art" id="titleArt"></div>
   <div class="title-box">
-    <div class="logo"><span class="star">✦</span>LUMINARIA<small>Eight Fates</small></div>
+    <div class="logo"><span class="star">✦</span><span class="shine">LUMINARIA</span><small>Eight Fates</small></div>
     <p class="tagline">별등이 고르는 여덟 개의 운명, 그리고 색이 없는 단 하나의 빛</p>
     <div class="title-menu">
       <button class="btn gold" id="btnNew">새로 시작</button>
@@ -34,11 +36,13 @@
       <button class="btn" id="btnSettingsT">설정</button>
     </div>
   </div>
+  <p class="tap-hint" id="tapHint">♪ 화면을 한 번 누르면 음악이 흘러나와요</p>
 </section>
 
 <!-- 이름 입력 -->
 <section id="naming" class="screen hidden">
   <div class="panel name-panel">
+    <div class="seal">✦</div>
     <h2>학원 입학 서류</h2>
     <p>루미나리아 아카데미 특별 청강생. 당신의 이름을 적어주세요.</p>
     <input id="nameInput" maxlength="8" placeholder="이름" value="유안" autocomplete="off">
@@ -70,12 +74,14 @@
   <div class="hub-center" id="hIdle"></div>
 
   <div class="hub-right">
+    <h3 class="loc-title">어디로 갈까?</h3>
     <div class="loc-list" id="hLocs"></div>
     <div class="sys-list">
-      <button class="btn sys" id="btnInv">🎒 소지품</button>
-      <button class="btn sys" id="btnAlbum">🖼️ 앨범</button>
-      <button class="btn sys" id="btnSettings">⚙️ 설정</button>
-      <button class="btn sys" id="btnToTitle">🏠 타이틀</button>
+      <button class="btn sys" id="btnInv">🎒<span>소지품</span></button>
+      <button class="btn sys" id="btnSave">💾<span>저장</span></button>
+      <button class="btn sys" id="btnAlbum">🖼️<span>앨범</span></button>
+      <button class="btn sys" id="btnSettings">⚙️<span>설정</span></button>
+      <button class="btn sys" id="btnToTitle">🏠<span>타이틀</span></button>
     </div>
   </div>
 
@@ -90,14 +96,22 @@
     <div id="sName"></div>
     <img id="sFace" alt="">
     <div id="sText"></div>
-    <div id="sNext">»</div>
+    <div id="sNext">▼</div>
+    <div id="sCtl">
+      <button data-c="log">LOG</button><button data-c="auto">AUTO</button><button data-c="skip">SKIP</button><button data-c="hide">HIDE</button><button data-c="menu">⚙</button>
+    </div>
   </div>
 </section>
 
+<div id="flash"></div>
+<button id="mute" aria-label="소리 켜기/끄기">♪</button>
 <div id="modal" class="hidden"><div class="modal-inner panel" id="modalInner"></div></div>
 <div id="toast"></div>
 
 <script src="js/data.js"></script>
+<script src="js/episodes.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
 <script src="js/game.js"></script>
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
