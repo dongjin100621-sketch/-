@@ -121,6 +121,8 @@
   E.gains = E.gains.map(v => A.clamp(r05(Number(v) || 0), -EQ_RANGE, EQ_RANGE));
   E.pre = A.clamp(r05(Number(E.pre) || 0), -EQ_RANGE, EQ_RANGE);
   if (!Array.isArray(E.custom)) E.custom = [];
+  E.cf = Object.assign({ on: false, amt: 0.4 }, E.cf || {});
+  E.cf.amt = A.clamp(Number(E.cf.amt) || 0, 0, 1);
   const persistEq = A.debounce(() => { A.data.eq = E; A.save('eq'); }, 250);
 
   // 지정한 주파수에서 전체 이퀄라이저 곡선의 크기(dB). RBJ 피킹 필터 식을 그대로 쓴다.
@@ -143,6 +145,33 @@
     for (let k = 0; k <= 240; k++) m = Math.max(m, eqResponse(20 * Math.pow(1000, k / 240), E.gains));
     return m;
   }
+  // 헤드폰 모드: 왼쪽 소리를 아주 조금 오른쪽 귀로(반대도 마찬가지) 섞어서, 이어폰으로 들을 때
+  // 소리가 머릿속 양쪽에 갈라져 들리는 피로감을 줄인다. 세기 0이면 원음 그대로다.
+  function buildCrossfeed(c) {
+    const input = c.createGain(), out = c.createGain();
+    input.channelCount = 2; input.channelCountMode = 'explicit'; input.channelInterpretation = 'speakers';
+    const sp = c.createChannelSplitter(2), mg = c.createChannelMerger(2);
+    const dL = c.createGain(), dR = c.createGain(), xL = c.createGain(), xR = c.createGain();
+    const mk = () => {
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 0.5;
+      const dl = c.createDelay(0.01); dl.delayTime.value = 0.0003;
+      lp.connect(dl);
+      return { lp, dl };
+    };
+    const a = mk(), b = mk();
+    input.connect(sp);
+    sp.connect(dL, 0); dL.connect(mg, 0, 0);
+    sp.connect(dR, 1); dR.connect(mg, 0, 1);
+    sp.connect(a.lp, 0); a.dl.connect(xL); xL.connect(mg, 0, 1);
+    sp.connect(b.lp, 1); b.dl.connect(xR); xR.connect(mg, 0, 0);
+    mg.connect(out);
+    const set = (amt, now) => {
+      const t = c.currentTime, tc = now ? 0.001 : 0.03;
+      xL.gain.setTargetAtTime(0.6 * amt, t, tc); xR.gain.setTargetAtTime(0.6 * amt, t, tc);
+      dL.gain.setTargetAtTime(1 - 0.25 * amt, t, tc); dR.gain.setTargetAtTime(1 - 0.25 * amt, t, tc);
+    };
+    return { in: input, out, set };
+  }
   let eqNodes = null;
   function buildEq(c) {
     const pre = c.createGain();
@@ -156,7 +185,9 @@
     let last = pre;
     filters.forEach(n => { last.connect(n); last = n; });
     last.connect(comp);
-    eqNodes = { pre, filters, comp, out: comp };
+    const cf = buildCrossfeed(c);
+    comp.connect(cf.in);
+    eqNodes = { pre, filters, comp, cf, out: cf.out };
     applyEq(true);
     return eqNodes;
   }
@@ -168,6 +199,7 @@
     eqNodes.filters.forEach((n, i) => n.gain.setTargetAtTime(E.on ? E.gains[i] : 0, t, tc));
     eqNodes.comp.ratio.setTargetAtTime(E.limiter ? 20 : 1, t, tc);
     eqNodes.comp.threshold.setTargetAtTime(E.limiter ? -2 : 0, t, tc);
+    eqNodes.cf.set(E.cf.on ? E.cf.amt : 0, now);
   }
 
   function ensureGraph() {
@@ -198,6 +230,7 @@
     if (!P.tracks.length) return;
     if (i != null && i !== P.index) setSource(i);
     else if (P.index < 0) setSource(0);
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* noop */ }
     ensureGraph();
     const c = A.Sound.get();
     if (c && c.state === 'suspended') c.resume().catch(() => {});
@@ -733,6 +766,7 @@
           <button type="button" class="btn sm" data-eq="save">내 프리셋으로 저장</button>
           <button type="button" class="btn sm danger-text" data-eq="del" hidden>프리셋 삭제</button>
           <button type="button" class="btn sm ghost" data-eq="reset">모두 0으로</button>
+          <button type="button" class="btn sm ghost" data-eq="guide">${icon('help', 16)} 사용법</button>
         </div>
         <canvas class="eq-curve" id="eq-curve" aria-hidden="true"></canvas>
         <div class="eq-strip" id="eq-strip">
@@ -743,7 +777,71 @@
               <span class="eq-f">${i < 0 ? '전체' : fmtF(EQ_FREQS[i])}</span>
             </div>`).join('')}
         </div>
-        <p class="faint eq-hint">밴드 위를 끌어서 올리고 내려요. 가로로 쭉 끌면 곡선을 그릴 수 있어요. 두 번 누르면 0dB, 방향키는 0.5dB씩(Shift는 3dB씩) 움직여요. 음악 재생에만 적용돼요.</p>`;
+        <p class="faint eq-hint">밴드 위를 끌어서 올리고 내려요. 가로로 쭉 끌면 곡선을 그릴 수 있어요. 두 번 누르면 0dB, 방향키는 0.5dB씩(Shift는 3dB씩) 움직여요. 음악 재생에만 적용돼요.</p>
+        <section class="eq-phones" aria-labelledby="eq-ph-t">
+          <h3 id="eq-ph-t" class="eq-sub">이어폰·헤드폰</h3>
+          <div class="eq-prow">
+            <div class="grow"><b>헤드폰 모드</b><p>이어폰으로 들을 때 왼쪽·오른쪽 소리가 너무 따로 놀아 피곤하면 켜 보세요. 소리가 더 자연스럽고 편하게 들려요.</p></div>
+            <button type="button" class="switch" role="switch" id="cf-on" aria-checked="${E.cf.on}" aria-label="헤드폰 모드"></button>
+          </div>
+          <div class="eq-prow" id="cf-row">
+            <label for="cf-amt" class="grow"><b>세기</b></label>
+            <input type="range" id="cf-amt" min="0" max="100" value="${Math.round(E.cf.amt * 100)}" aria-label="헤드폰 모드 세기">
+            <span class="eq-cfv" id="cf-val">${Math.round(E.cf.amt * 100)}%</span>
+          </div>
+          <div class="eq-prow" id="sink-row" hidden>
+            <div class="grow"><b>출력 장치</b><p id="sink-name">기기 기본 출력으로 나와요</p></div>
+            <button type="button" class="btn sm" data-eq="sink">장치 고르기</button>
+          </div>
+          <p class="faint eq-hint">유선·블루투스 이어폰을 연결하면 소리가 자동으로 그쪽으로 나와요. 이어폰 버튼으로 재생·일시정지·다음 곡도 돼요.</p>
+        </section>
+        <details class="eq-guide" id="eq-guide">
+          <summary>이퀄라이저 사용법</summary>
+          <div class="eq-guide-body">
+            <h4>이렇게 써 보세요</h4>
+            <ol>
+              <li><b>프리셋부터 골라요.</b> 위의 목록에서 고르면 바로 소리가 바뀌어요. 곡을 틀어 둔 채로 바꿔 가며 들어 보세요.</li>
+              <li><b>슬라이더를 위아래로 끌어요.</b> 위로 올리면 그 높낮이의 소리가 커지고, 내리면 작아져요. 가로로 쭉 끌면 곡선을 한 번에 그릴 수 있어요.</li>
+              <li><b>"켜기"로 비교해요.</b> 껐다 켜며 들으면 얼마나 달라졌는지 알 수 있어요. 끄면 원음이 나오고, 설정은 그대로 남아요.</li>
+              <li><b>많이 올렸다면 "자동 음량 보정"을 눌러요.</b> 올린 만큼 전체 음량이 내려가서 소리가 깨지지 않아요.</li>
+              <li><b>마음에 들면 "내 프리셋으로 저장"해요.</b> 이어폰용, 스피커용처럼 이름을 붙여 두고 골라 쓸 수 있어요.</li>
+            </ol>
+            <h4>높낮이별로 이런 소리예요</h4>
+            <table class="eq-table">
+              <tr><th>20~60Hz</th><td>가장 낮은 울림. 북소리의 묵직함. 너무 올리면 웅웅거려요. 작은 스피커는 이 소리를 못 내요.</td></tr>
+              <tr><th>60~250Hz</th><td>베이스와 킥 드럼의 힘. 올리면 따뜻하고 묵직해지고, 과하면 먹먹해져요.</td></tr>
+              <tr><th>250~500Hz</th><td>소리의 두께. 과하면 소리가 탁하고 답답해요.</td></tr>
+              <tr><th>500Hz~2kHz</th><td>목소리와 악기의 중심. 올리면 앞으로 나오고, 과하면 통에 대고 말하는 듯한 소리가 나요.</td></tr>
+              <tr><th>2~4kHz</th><td>말소리와 보컬의 또렷함. 과하면 귀가 쉽게 피곤해요.</td></tr>
+              <tr><th>4~8kHz</th><td>"ㅅ" 소리와 심벌. 과하면 쏘는 듯 날카로워요.</td></tr>
+              <tr><th>8~20kHz</th><td>공기감과 반짝임. 올리면 시원하고 탁 트인 느낌이에요.</td></tr>
+            </table>
+            <h4>이럴 땐 이렇게</h4>
+            <ul>
+              <li><b>소리가 답답해요</b> → 250~500Hz를 조금 내리거나 2~4kHz를 조금 올려요.</li>
+              <li><b>저음이 부족해요</b> → 60~120Hz를 올려요.</li>
+              <li><b>웅웅거리고 먹먹해요</b> → 100~250Hz를 내려요.</li>
+              <li><b>보컬이 안 들려요</b> → 1~3kHz를 올려요.</li>
+              <li><b>소리가 쏘고 귀가 아파요</b> → 4~8kHz를 내려요.</li>
+              <li><b>말소리(강의·팟캐스트)가 잘 안 들려요</b> → "말소리·팟캐스트" 프리셋을 써 보세요.</li>
+            </ul>
+            <h4>조작 팁</h4>
+            <ul>
+              <li>슬라이더를 <b>두 번 누르면 0dB</b>로 돌아가요. "모두 0으로"는 전체 초기화예요.</li>
+              <li>슬라이더를 선택하고 <b>방향키</b>를 누르면 0.5dB씩, <b>Shift+방향키</b>는 3dB씩 움직여요.</li>
+              <li>처음에는 −3~+3dB 안에서만 움직여 보세요. 작은 차이도 꽤 크게 들려요.</li>
+              <li>비교할 때는 음량이 같아야 정확해요. 올리면 더 좋게 들리는 건 소리가 커졌기 때문일 수도 있어요.</li>
+              <li>위 그래프의 주황 선이 지금 설정이에요. 뒤에서 움직이는 회색은 지금 나오는 소리의 실시간 모습이에요.</li>
+            </ul>
+            <h4>이어폰·헤드폰으로 들을 때</h4>
+            <ul>
+              <li>이어폰을 먼저 연결하고 재생하면 돼요. 아이폰은 무음 스위치가 켜져 있어도 음악은 나와요.</li>
+              <li>같은 설정이라도 이어폰마다 소리가 달라요. 이어폰별로 프리셋을 따로 저장해 두면 편해요.</li>
+              <li>큰 소리로 오래 들으면 귀에 무리가 가요. 이퀄라이저로 올릴수록 소리가 커지니 음량은 낮게 시작하세요.</li>
+              <li>이어폰을 꽂고 있으면 알람도 이어폰으로 울릴 수 있어요. 알람을 맞춰 둔 날은 뽑아 두세요.</li>
+            </ul>
+          </div>
+        </details>`;
       const strip = eqBox.querySelector('#eq-strip');
       const cols = [...strip.querySelectorAll('.eq-col')];
       const colOf = i => cols[i + 1];
@@ -766,6 +864,8 @@
         eqBox.querySelector('#eq-on').setAttribute('aria-checked', E.on);
         eqBox.querySelector('#eq-lim').setAttribute('aria-checked', E.limiter);
         eqBox.classList.toggle('off', !E.on);
+        eqBox.querySelector('#cf-on').setAttribute('aria-checked', E.cf.on);
+        eqBox.querySelector('#cf-row').classList.toggle('dim', !E.cf.on);
         drawPresetSelect();
         drawCurve();
       }
@@ -844,14 +944,19 @@
       eqBox.addEventListener('click', async e => {
         const sw = e.target.closest('.switch');
         if (sw) {
-          if (sw.id === 'eq-on') E.on = !E.on; else if (sw.id === 'eq-lim') E.limiter = !E.limiter; else return;
+          if (sw.id === 'eq-on') E.on = !E.on; else if (sw.id === 'eq-lim') E.limiter = !E.limiter; else if (sw.id === 'cf-on') E.cf.on = !E.cf.on; else return;
           applyEq(); syncAll(); persistEq();
           return;
         }
         const b = e.target.closest('[data-eq]');
         if (!b) return;
         const act = b.dataset.eq;
-        if (act === 'reset') {
+        if (act === 'guide') {
+          const gd = eqBox.querySelector('#eq-guide');
+          gd.open = !gd.open;
+          if (gd.open) gd.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (act === 'sink') pickSink();
+        else if (act === 'reset') {
           E.gains = EQ_FREQS.map(() => 0); E.pre = 0; E.preset = 'flat';
           applyEq(); syncAll(); persistEq();
         } else if (act === 'auto') {
@@ -893,6 +998,45 @@
         }
       });
       eqBox.addEventListener('change', e => { if (e.target.id === 'eq-preset') loadPreset(e.target.value); });
+      eqBox.addEventListener('input', e => {
+        if (e.target.id !== 'cf-amt') return;
+        E.cf.amt = Number(e.target.value) / 100;
+        eqBox.querySelector('#cf-val').textContent = `${e.target.value}%`;
+        if (!E.cf.on) { E.cf.on = true; syncAll(); }
+        applyEq(); persistEq();
+      });
+
+      // 출력 장치 고르기 (데스크톱 크롬·엣지 등 지원하는 브라우저에서만 보여요. 아이폰은 연결한 이어폰으로 자동 출력)
+      const sinkOk = typeof AudioContext !== 'undefined' && 'setSinkId' in AudioContext.prototype;
+      if (sinkOk) eqBox.querySelector('#sink-row').hidden = false;
+      async function pickSink() {
+        const c = A.Sound.get();
+        if (!c || !c.setSinkId) { A.toast('이 브라우저에서는 출력 장치를 고를 수 없어요. 기기 설정에서 바꿔 주세요.'); return; }
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.selectAudioOutput) {
+            const d = await navigator.mediaDevices.selectAudioOutput();
+            await c.setSinkId(d.deviceId);
+            eqBox.querySelector('#sink-name').textContent = d.label || '선택한 장치';
+            return;
+          }
+          const list = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput');
+          if (!list.length) { A.toast('연결된 출력 장치를 찾지 못했어요'); return; }
+          A.modal({
+            title: '출력 장치',
+            body: `<div class="sink-list">${list.map((d, n) => `<button type="button" class="btn sink-item" data-sink="${esc(d.deviceId)}" data-label="${esc(d.label || '출력 장치 ' + (n + 1))}">${esc(d.label || '출력 장치 ' + (n + 1))}</button>`).join('')}</div>`,
+            onMount(box, api) {
+              box.addEventListener('click', async ev => {
+                const b = ev.target.closest('[data-sink]');
+                if (!b) return;
+                try { await c.setSinkId(b.dataset.sink); eqBox.querySelector('#sink-name').textContent = b.dataset.label; api.close(); }
+                catch (err) { A.toast('이 장치로 바꾸지 못했어요'); }
+              });
+            }
+          });
+        } catch (err) {
+          if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') A.toast('출력 장치를 바꾸지 못했어요');
+        }
+      }
 
       // 주파수 응답 곡선 + 실시간 스펙트럼
       let eqRaf = 0, eqBuf = null;

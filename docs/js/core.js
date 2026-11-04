@@ -210,6 +210,7 @@ window.App = (function () {
     swap: '<path d="M7 4 4 7l3 3M4 7h12M17 14l3 3-3 3M20 17H8"/>',
     flag: '<path d="M5 21V4M5 4.5h11l-2 4 2 4H5"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 16.8v.2"/>',
     sparkle: '<path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6.5 6.5l2.3 2.3M15.2 15.2l2.3 2.3M6.5 17.5l2.3-2.3M15.2 8.8l2.3-2.3"/>'
   };
   function icon(name, size = 20, cls = '') {

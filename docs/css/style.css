@@ -978,6 +978,39 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .eq-col.pre .eq-f { writing-mode: horizontal-tb; transform: none; height: auto; }
 .eq-hint { font-size: 12.5px; }
 
+.eq-phones { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--sheet); }
+.eq-sub { font: 600 14px/1.2 var(--font-body); margin: 0; }
+.eq-prow { display: flex; align-items: center; gap: 12px; }
+.eq-prow .grow { flex: 1; min-width: 0; }
+.eq-prow b { font-weight: 600; font-size: 14px; }
+.eq-prow p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+.eq-prow input[type="range"] { flex: 2; min-width: 0; }
+.eq-prow.dim { opacity: .55; }
+.eq-cfv { font: 500 12px/1 var(--font-mono); color: var(--ink-2); width: 38px; text-align: right; }
+.eq-guide { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--sheet); }
+.eq-guide summary { cursor: pointer; padding: 14px 16px; font-weight: 600; font-size: 14px; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+.eq-guide summary::-webkit-details-marker { display: none; }
+.eq-guide summary::after { content: "+"; font: 400 20px/1 var(--font-mono); color: var(--ink-3); }
+.eq-guide[open] summary::after { content: "−"; }
+.eq-guide-body { padding: 0 16px 18px; display: grid; gap: 10px; font-size: 14px; line-height: 1.7; }
+.eq-guide-body h4 { margin: 10px 0 0; font: 600 13px/1.2 var(--font-body); color: var(--accent); letter-spacing: .02em; }
+.eq-guide-body ol, .eq-guide-body ul { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.eq-guide-body ol { list-style: decimal; }
+.eq-guide-body ul { list-style: disc; }
+.eq-guide-body li::marker { color: var(--accent); }
+.eq-table { width: 100%; border-collapse: collapse; }
+.eq-table th, .eq-table td { padding: 8px 10px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+.eq-table th { font: 500 12.5px/1.7 var(--font-mono); color: var(--ink-2); white-space: nowrap; width: 1%; }
+.sink-list { display: grid; gap: 8px; }
+.sink-item { justify-content: flex-start; text-align: left; }
+@media (max-width: 760px) {
+  .eq-prow { flex-wrap: wrap; }
+  .eq-table, .eq-table tbody, .eq-table tr, .eq-table th, .eq-table td { display: block; width: auto; }
+  .eq-table tr { padding: 8px 0; border-top: 1px solid var(--line); }
+  .eq-table th, .eq-table td { border: 0; padding: 0; white-space: normal; }
+  .eq-table th { color: var(--accent); }
+}
+
 /* ---------- 가계부 ---------- */
 .month-nav { display: flex; align-items: center; gap: 4px; }
 .month-nav h2 { font: 600 22px/1 var(--font-display); min-width: 136px; text-align: center; font-variant-numeric: tabular-nums; }
