@@ -35,7 +35,7 @@ window.App = (function () {
 
   const clone = v => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const DEFAULTS = {
-    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime' },
+    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime', earOnly: false, earSink: null },
     notes: [],
     todoLists: [{ id: 'inbox', name: '할 일' }],
     todos: [],
@@ -327,30 +327,104 @@ window.App = (function () {
       bell: { label: '맑은 종', period: 2.8, play: (c, t, d) => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(c, f, t + i * 0.16, 1.8, { type: 'triangle', gain: 0.2, dest: d })) },
       marimba: { label: '마림바', period: 1.8, play: (c, t, d) => [784, 988, 1175, 988, 1568].forEach((f, i) => tone(c, f, t + i * 0.14, 0.35, { gain: 0.28, dest: d })) }
     };
-    function ring(kind) {
+    /* 이어폰 전용: 고른 출력 장치가 연결돼 있을 때만 소리를 내요. 확인할 수 없으면 false */
+    const sinkOk = () => typeof AudioContext !== 'undefined' && 'setSinkId' in AudioContext.prototype;
+    async function listOutputs() {
+      try { return (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput'); } catch (e) { return []; }
+    }
+    async function earReady() {
+      const sink = data.prefs.earSink;
+      if (!sink || !sinkOk()) return false;
+      const list = await listOutputs();
+      return list.some(d => d.deviceId === sink.id);
+    }
+    async function setSink(c, id) { try { if (c.setSinkId) await c.setSinkId(id || ''); return true; } catch (e) { return false; } }
+    function earMode() { return !!data.prefs.earOnly; }
+    function ring(kind, { onState, force } = {}) {
       const c = get();
       if (!c) return () => {};
       const p = PATTERNS[kind] || PATTERNS.chime;
-      const master = c.createGain();
-      master.gain.value = 0.9;
-      master.connect(c.destination);
-      let next = c.currentTime + 0.05;
-      const pump = () => { while (next < c.currentTime + 2.5) { p.play(c, next, master); next += p.period; } };
-      pump();
-      const timer = setInterval(pump, 400);
+      let master = null, timer = null, stopped = false, watch = null;
+      function begin() {
+        if (stopped || master) return;
+        master = c.createGain();
+        master.gain.value = 0.9;
+        master.connect(c.destination);
+        let next = c.currentTime + 0.05;
+        const pump = () => { while (next < c.currentTime + 2.5) { p.play(c, next, master); next += p.period; } };
+        pump();
+        timer = setInterval(pump, 400);
+      }
+      async function route() {
+        if (force || !earMode()) {
+          if (sinkOk() && data.prefs.earSink) await setSink(c, '');
+          begin(); onState && onState('speaker'); return;
+        }
+        if (await earReady()) {
+          await setSink(c, data.prefs.earSink.id);
+          begin(); onState && onState('ear'); return;
+        }
+        onState && onState('blocked');
+        // 이어폰이 나중에 연결되면 그때부터 울려요
+        if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+          watch = async () => {
+            if (stopped || master || !(await earReady())) return;
+            await setSink(c, data.prefs.earSink.id);
+            begin(); onState && onState('ear');
+          };
+          navigator.mediaDevices.addEventListener('devicechange', watch);
+        }
+      }
+      route();
       return () => {
+        stopped = true;
         clearInterval(timer);
-        try { master.gain.setTargetAtTime(0, c.currentTime, 0.04); } catch (e) { /* noop */ }
-        setTimeout(() => { try { master.disconnect(); } catch (e) { /* noop */ } }, 500);
+        if (watch) navigator.mediaDevices.removeEventListener('devicechange', watch);
+        if (!master) return;
+        const m = master;
+        try { m.gain.setTargetAtTime(0, c.currentTime, 0.04); } catch (e) { /* noop */ }
+        setTimeout(() => { try { m.disconnect(); } catch (e) { /* noop */ } }, 500);
       };
     }
-    function preview(kind) {
+    async function preview(kind) {
       const c = get();
-      if (!c) return;
+      if (!c) return 'none';
+      let state = 'speaker';
+      if (earMode()) {
+        if (await earReady()) { await setSink(c, data.prefs.earSink.id); state = 'ear'; }
+        else { toast('이어폰이 연결되지 않아 소리를 내지 않았어요'); return 'blocked'; }
+      } else if (sinkOk() && data.prefs.earSink) await setSink(c, '');
       const p = PATTERNS[kind] || PATTERNS.chime;
       p.play(c, c.currentTime + 0.03, c.destination);
+      return state;
     }
-    return { get, ring, preview, PATTERNS, state: () => (ctx ? ctx.state : 'none') };
+    async function pickOutput() {
+      if (!sinkOk()) return null;
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.selectAudioOutput) {
+          const d = await navigator.mediaDevices.selectAudioOutput();
+          return { id: d.deviceId, label: d.label || '선택한 이어폰' };
+        }
+        const list = await listOutputs();
+        if (!list.length) { toast('연결된 출력 장치를 찾지 못했어요'); return null; }
+        return await new Promise(res => {
+          let done = false;
+          modal({
+            title: '이어폰·헤드셋 고르기',
+            body: `<div class="sink-list">${list.map((d, n) => `<button type="button" class="btn sink-item" data-sink="${esc(d.deviceId)}" data-label="${esc(d.label || '출력 장치 ' + (n + 1))}">${esc(d.label || '출력 장치 ' + (n + 1))}</button>`).join('')}</div>`,
+            onMount(box, api) {
+              box.addEventListener('click', ev => {
+                const b = ev.target.closest('[data-sink]');
+                if (!b) return;
+                done = true; res({ id: b.dataset.sink, label: b.dataset.label }); api.close();
+              });
+            }
+          });
+          setTimeout(function w() { if (!done && document.querySelector('.modal-wrap')) setTimeout(w, 500); else if (!done) res(null); }, 500);
+        });
+      } catch (e) { return null; }
+    }
+    return { get, ring, preview, pickOutput, sinkOk, earMode, PATTERNS, state: () => (ctx ? ctx.state : 'none') };
   })();
 
   /* ---------- 알림 ---------- */
@@ -364,10 +438,10 @@ window.App = (function () {
 
   /* ---------- 알람이 울릴 때 띄우는 창 ---------- */
   const Ringer = (function () {
-    let el = null, stopSound = null, items = [], autoStop = null, titleTimer = null, savedTitle = null;
+    let el = null, stopSound = null, ringKind = null, ringState = null, items = [], autoStop = null, titleTimer = null, savedTitle = null;
     function start({ title, sub = '', sound, snooze }) {
       items.push({ title, sub, snooze });
-      if (!stopSound) stopSound = Sound.ring(sound || data.prefs.sound);
+      if (!stopSound) { ringKind = sound || data.prefs.sound; startSound(false); }
       try { navigator.vibrate && navigator.vibrate([400, 200, 400, 200, 400]); } catch (e) { /* noop */ }
       notify(title, sub);
       clearTimeout(autoStop);
@@ -379,6 +453,10 @@ window.App = (function () {
       }
       render();
     }
+    function startSound(force) {
+      if (stopSound) stopSound();
+      stopSound = Sound.ring(ringKind, { force, onState: st => { ringState = st; if (el) render(); } });
+    }
     function silence() { if (stopSound) { stopSound(); stopSound = null; } }
     function dismiss() {
       silence();
@@ -388,6 +466,7 @@ window.App = (function () {
       if (savedTitle != null) document.title = savedTitle;
       savedTitle = null;
       items = [];
+      ringState = null;
       if (el) { el.remove(); el = null; }
       emit('ringer:done');
     }
@@ -403,6 +482,7 @@ window.App = (function () {
         <div class="ringer-card" role="alertdialog" aria-modal="true" aria-label="${esc(items[0].title)}">
           <div class="ringer-pulse">${icon('alarm', 36)}</div>
           <p class="ringer-time"><small>${c.ampm}</small> ${c.hm}</p>
+          ${ringState === 'blocked' ? '<p class="ringer-note">이어폰이 연결되지 않아 소리를 내지 않고 있어요. 연결하면 바로 울려요.<br><button type="button" class="btn sm" data-speaker>스피커로 듣기</button></p>' : ''}
           <ul class="ringer-list">${items.map(i => `<li><strong>${esc(i.title)}</strong>${i.sub ? `<span>${esc(i.sub)}</span>` : ''}</li>`).join('')}</ul>
           <div class="ringer-actions">
             ${canSnooze ? '<button type="button" class="btn" data-snooze>5분 뒤 다시</button>' : ''}
@@ -410,6 +490,8 @@ window.App = (function () {
           </div>
         </div>`;
       el.querySelector('[data-stop]').addEventListener('click', dismiss);
+      const sp = el.querySelector('[data-speaker]');
+      if (sp) sp.addEventListener('click', () => startSound(true));
       const sn = el.querySelector('[data-snooze]');
       if (sn) sn.addEventListener('click', () => { items.forEach(i => i.snooze && i.snooze()); dismiss(); toast('5분 뒤에 다시 울려요'); });
       el.querySelector('[data-stop]').focus();

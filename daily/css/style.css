@@ -1228,3 +1228,4 @@ input[type="checkbox"] { accent-color: var(--accent); }
   .amb-grid { grid-template-columns: minmax(0, 1fr); }
   .money-grid .form-row { flex-direction: column; align-items: stretch; }
 }
+.ringer-note { font-size: 14px; opacity: .9; display: grid; gap: 8px; justify-items: center; }

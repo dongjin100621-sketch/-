@@ -45,6 +45,10 @@
                 </div>
               </div>
               <div class="pref-row">
+                <div class="grow"><h3>이어폰·헤드셋으로만 울리기</h3><p id="pf-ear-desc"></p></div>
+                <div class="pref-ctl" id="pf-ear-ctl"></div>
+              </div>
+              <div class="pref-row">
                 <div class="grow"><h3>브라우저 알림</h3><p id="pf-notify"></p></div>
                 <div class="pref-ctl" id="pf-notify-ctl"></div>
               </div>
@@ -98,6 +102,27 @@
         ctl.innerHTML = p === 'default' ? '<button type="button" class="btn" data-act="notify">알림 켜기</button>' : `<span class="tag ${p === 'granted' ? 'green' : 'red'}">${p === 'granted' ? '켜짐' : '꺼짐'}</span>`;
       }
 
+
+      function drawEar() {
+        const P = A.data.prefs, ok = A.Sound.sinkOk();
+        $('#pf-ear-desc').textContent = ok
+          ? (P.earSink ? `고른 장치: ${P.earSink.label}. 켜 두면 이 장치가 연결됐을 때만 소리가 나요.` : '먼저 이어폰이나 헤드셋을 고르세요. 켜 두면 그 장치가 연결됐을 때만 소리가 나요.')
+          : '이 브라우저(아이폰 사파리 등)는 이어폰 연결을 확인할 수 없어요. 켜 두면 소리는 내지 않고 화면과 진동으로만 알려요. 알람 창에서 "스피커로 듣기"를 누르면 그때 울려요.';
+        $('#pf-ear-ctl').innerHTML = (ok ? '<button type="button" class="btn" data-act="ear-pick">장치 고르기</button>' : '')
+          + `<button type="button" class="btn ${P.earOnly ? 'primary' : ''}" data-act="ear-toggle" aria-pressed="${P.earOnly}">${P.earOnly ? '켜짐' : '꺼짐'}</button>`;
+      }
+      drawEar();
+      $('#pf-ear-ctl').addEventListener('click', async e => {
+        const b = e.target.closest('[data-act]');
+        if (!b) return;
+        if (b.dataset.act === 'ear-pick') {
+          const d = await A.Sound.pickOutput();
+          if (d) { A.data.prefs.earSink = d; A.save('prefs'); drawEar(); A.toast('고른 장치로 저장했어요'); }
+        } else {
+          if (!A.data.prefs.earOnly && A.Sound.sinkOk() && !A.data.prefs.earSink) { A.toast('먼저 장치를 골라 주세요'); return; }
+          A.data.prefs.earOnly = !A.data.prefs.earOnly; A.save('prefs'); drawEar();
+        }
+      });
       const saveName = A.debounce(() => { A.data.prefs.name = $('#pf-name').value.trim(); A.save('prefs'); }, 300);
       $('#pf-name').addEventListener('input', saveName);
       $('#pf-sound').addEventListener('change', e => {
