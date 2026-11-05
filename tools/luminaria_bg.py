@@ -7,7 +7,7 @@ Wikimedia Commons의 퍼블릭 도메인(일부 CC BY) 명화를 내려받아
     python3 tools/luminaria_bg.py [캐시 폴더]
 """
 import json, os, re, sys, time, urllib.parse, urllib.request
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance
 
 ROOT = os.path.join(os.path.dirname(__file__), '..', 'luminaria', 'img')
 CACHE = sys.argv[1] if len(sys.argv) > 1 else '/tmp/luminaria_bg_cache'
@@ -15,9 +15,9 @@ UA = {'User-Agent': 'LuminariaBuild/1.0 (game asset build script)'}
 
 # 배경 이름: (Commons 파일 이름, 여백 자르기 상자(1280px 기준) 또는 None, 초점 x 또는 (x, y), 0~1)
 PICK = {
-    'class':     ('Derbys First Exhibition 1839.jpg', None, .5),
+    'class':     ('Giovanni Paolo Panini – Ancient Rome.jpg', None, .5),
     'library':   ('Charlotte Bosanquet - The Library at Dingestow - Google Art Project.jpg', (80, 110, 1178, 836), .5),
-    'training':  ('Powis Castle, 1794.jpg', (10, 60, 661, 595), (.5, .8)),
+    'training':  ('Bellotto - The Fortress of Königstein Courtyard with the Magdalenenburg, 1756-1758, 1996.64.1.jpg', None, (.5, .7)),
     'outskirts': ('Hubert Robert - Landscape with the Ruins of the Round Temple, with a Statue of Venus and a Monument to Marcus Aurelius.jpg', None, .55),
     'lab':       ('An alchemist in his laboratory. Oil painting by James Nasmyt Wellcome V0017640.jpg', None, .5),
     'chapel':    ('Georg Pezolt Blick in den Klostergarten.jpg', None, .6),
@@ -28,7 +28,24 @@ PICK = {
     'festival':  ('Oswald Achenbach Feuerwerk in Toree dell Annunziata.jpg', None, .5),
     'sea':       ('Caspar David Friedrich - Mondaufgang am Meer - Google Art Project.jpg', None, .5),
 }
-W, H = 1280, 800
+W, H = 2400, 1500  # 고해상도 화면(레티나)용
+# Real-ESRGAN realesr-general-x4v3 가중치 경로 (같은 폴더에 realesr-general-wdn-x4v3.pth).
+# 주면 작은 원본을 AI로 4배 키운다 (없으면 단순 확대). 붓 질감을 남기려고 잡음 제거는 약하게(.2) 건다
+SR = os.environ.get('LUMI_SR')
+_up = None
+
+
+def enlarge(im):
+    global _up
+    if not SR:
+        return im
+    if _up is None:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from esrgan import Upscaler
+        _up = Upscaler(SR, compact=32, wdn=os.path.join(os.path.dirname(SR), 'realesr-general-wdn-x4v3.pth'), denoise=.2)
+    if im.width < W * .75:
+        im = _up(im)
+    return im
 
 
 def api(params):
@@ -44,15 +61,16 @@ def fetch(name, title):
     if os.path.exists(path) and os.path.exists(meta_path):
         return path, json.load(open(meta_path))
     d = api({'action': 'query', 'titles': 'File:' + title, 'prop': 'imageinfo',
-             'iiprop': 'url|size|extmetadata', 'iiurlwidth': 1280})
+             'iiprop': 'url|size|extmetadata', 'iiurlwidth': 1920})
     ii = next(iter(d['query']['pages'].values()))['imageinfo'][0]
     m = ii['extmetadata']
     clean = lambda k: re.sub(r'\s+', ' ', re.sub('<[^>]+>', ' ', m.get(k, {}).get('value', ''))).strip()
-    url = ii['thumburl'] if ii['width'] > 1280 else ii['url']
+    # 원본 직접 받기는 자주 막힌다(429). 표준 크기 1920px 썸네일을 받는다
+    url = ii['thumburl'] if ii['width'] > 1920 else ii['url']
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
         open(path, 'wb').write(r.read())
     artist = clean('Artist').replace('Details on Google Art Project', '').replace('– Artist', '').strip()
-    artist = re.sub(r'(Unknown author)+', 'Unknown author', artist)
+    artist = re.sub(r'(Unknown author\s*)+', 'Unknown author', artist).strip()
     meta = {'title': title, 'artist': artist[:60], 'license': clean('LicenseShortName'), 'source': ii['descriptionurl']}
     json.dump(meta, open(meta_path, 'w'), ensure_ascii=False)
     time.sleep(3)  # Wikimedia 요청 간격
@@ -71,11 +89,7 @@ def fit(im, focus):
         nh = round(im.width / r)
         y = round((im.height - nh) * fy)
         im = im.crop((0, y, im.width, y + nh))
-    small = im.width < W
-    im = im.resize((W, H), Image.LANCZOS)
-    if small:  # 확대한 그림은 살짝 부드럽게
-        im = im.filter(ImageFilter.GaussianBlur(.8))
-    return im
+    return im.resize((W, H), Image.LANCZOS)
 
 
 def main():
@@ -86,10 +100,10 @@ def main():
         if box:
             s = im.width / 1280
             im = im.crop(tuple(round(v * s) for v in box))
-        im = fit(im, focus)
+        im = fit(enlarge(im), focus)
         im = ImageEnhance.Contrast(im).enhance(1.06)
         im = ImageEnhance.Color(im).enhance(1.08)
-        im.save(os.path.join(ROOT, f'bg_{name}.jpg'), quality=80, optimize=True, progressive=True)
+        im.save(os.path.join(ROOT, f'bg_{name}.jpg'), quality=82, optimize=True, progressive=True)
         credits.append({'bg': name, **meta})
         print(name, meta['artist'], '|', meta['license'])
     json.dump(credits, open(os.path.join(ROOT, 'CREDITS.json'), 'w'), ensure_ascii=False, indent=1)

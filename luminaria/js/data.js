@@ -16,7 +16,7 @@ const CHARS = {
       ['성격', '냉철하고 이성적. 감정을 쉽게 드러내지 않지만 깊게 신뢰한 사람에게는 다정함'],
       ['좋아하는 것', '조용한 도서관, 희귀한 서적, 맑은 차'], ['싫어하는 것', '무의미한 대화, 가벼운 사람, 소란스러움']],
     quote: '감정은 변수일 뿐. …하지만, 그 변수가 답이 될 때도 있지.',
-    req: { stat: 'int', v: 40 }, likes: ['tea', 'book'], dislikes: ['skewer'],
+    req: { stat: 'int', v: 50 }, likes: ['tea', 'book'], dislikes: ['skewer'],
   },
   luna: {
     name: '루나', en: 'LUNA', color: '#e0b878', title: '세상을 알고 싶은, 자유로운 발걸음',
@@ -25,7 +25,7 @@ const CHARS = {
       ['성격', '활발하고 호기심이 많음. 솔직하고 거침없지만 의리가 깊음'],
       ['좋아하는 것', '새로운 장소, 맛있는 음식, 동물'], ['싫어하는 것', '답답한 규칙, 실내에만 있는 것']],
     quote: '지금이 아니면 못 가잖아? 세상은, 교실보다 훨씬 넓어!',
-    req: { stat: 'brave', v: 30 }, likes: ['skewer', 'map'], dislikes: ['book'],
+    req: { stat: 'brave', v: 40 }, likes: ['skewer', 'map'], dislikes: ['book'],
   },
   camilla: {
     name: '카밀라', en: 'CAMILLA', color: '#d0505a', title: '흔들리지 않는 검, 그러나 따뜻한 마음',
@@ -34,7 +34,7 @@ const CHARS = {
       ['성격', '냉정하고 책임감이 강함. 하지만 가까운 사람에게는 다정하고 따뜻함'],
       ['좋아하는 것', '훈련, 승마, 맛있는 식사, 동료와의 시간'], ['싫어하는 것', '나태함, 무책임한 태도, 거짓말']],
     quote: '…내가 지키고 싶은 사람들이 있어. 그래서, 더 강해질 거야.',
-    req: { stat: 'str', v: 30 }, likes: ['whetstone', 'skewer'], dislikes: ['wine'],
+    req: { stat: 'str', v: 40 }, likes: ['whetstone', 'skewer'], dislikes: ['wine'],
   },
   aria: {
     name: '아리아', en: 'ARIA', color: '#e8d6a8', title: '언제나 곁을 비추는, 조용한 빛',
@@ -43,7 +43,7 @@ const CHARS = {
       ['성격', '다정하고 차분함. 타인을 배려하는 마음이 강함'],
       ['좋아하는 것', '따뜻한 차, 하얀 꽃, 조용한 시간'], ['싫어하는 것', '불필요한 갈등, 혼자 남겨지는 것']],
     quote: '…누군가에게 작은 빛이 될 수 있다면, 그걸로 충분해요.',
-    req: { stat: 'charm', v: 35 }, likes: ['lily', 'tea'], dislikes: ['parts'],
+    req: { stat: 'charm', v: 45 }, likes: ['lily', 'tea'], dislikes: ['parts'],
   },
   lizette: {
     name: '리제트', en: 'LIZETTE', color: '#b4a6e0', title: '이성의 끝에서, 세상을 기록하는 눈',
@@ -52,7 +52,7 @@ const CHARS = {
       ['성격', '차갑고 이성적. 감정을 쉽게 드러내지 않음'],
       ['좋아하는 것', '책, 고요한 장소, 정확한 정보'], ['싫어하는 것', '무책임함, 소란스러움, 근거 없는 주장']],
     quote: '세상은 감정보다 이성이 움직여. …하지만, 네가 예외가 아니라는 보장은 없어.',
-    req: { stat: 'int', v: 25 }, likes: ['book', 'quill'], dislikes: ['skewer'],
+    req: { stat: 'int', v: 35 }, likes: ['book', 'quill'], dislikes: ['skewer'],
   },
   rose: {
     name: '로제', en: 'ROSE', color: '#e46a48', title: '미지의 것을 찾아 나서는, 불꽃 같은 호기심',
@@ -61,7 +61,7 @@ const CHARS = {
       ['능력', '연금 장치, 투척형 도구, 폭발·변환 마법'], ['성격', '적극적, 모험적, 호기심이 강함'],
       ['좋아하는 것', '새로운 장소, 미지의 유적, 실험, 야행'], ['싫어하는 것', '지루한 수업, 규칙만 따지는 사람']],
     quote: '가자! 아직 가보지 않은 곳이 더 많잖아. 세상은 넓고, 재밌는 건 지금부터야!',
-    req: { stat: 'brave', v: 25 }, likes: ['parts', 'map'], dislikes: ['lily'],
+    req: { stat: 'brave', v: 35 }, likes: ['parts', 'map'], dislikes: ['lily'],
   },
   noelle: {
     name: '노엘', en: 'NOELLE', color: '#8a7a90', title: '흩어진 세계를 손에 쥐는, 검은 날개',
@@ -70,7 +70,7 @@ const CHARS = {
       ['성격', '냉철하고 현실적. 감정을 쉽게 드러내지 않음'],
       ['좋아하는 것', '책, 조용한 공간, 정리된 정보, 비 오는 날, 홍차'], ['싫어하는 것', '소란, 무질서, 근거 없는 낙관']],
     quote: '…기록은 거짓말하지 않아. 다만, 해석하는 사람이 거짓말할 뿐.',
-    req: { stat: 'int', v: 35 }, likes: ['tea', 'quill'], dislikes: ['parts'],
+    req: { stat: 'int', v: 45 }, likes: ['tea', 'quill'], dislikes: ['parts'],
   },
   beatrix: {
     name: '베아트릭스', en: 'BEATRIX', color: '#b0703a', title: '세상을 움직이는 거래의 주인',
@@ -79,33 +79,40 @@ const CHARS = {
       ['성격', '자신감, 계산적, 재치, 다정함'],
       ['좋아하는 것', '이익 있는 거래, 흥미로운 사람, 좋은 술, 여행'], ['싫어하는 것', '무능, 감정적인 판단, 손해 보는 일']],
     quote: '가치 있는 건, 언제나 비싸게 팔리는 법이야.',
-    req: { stat: 'charm', v: 25 }, likes: ['wine', 'brooch'], dislikes: ['lily'],
+    req: { stat: 'charm', v: 35 }, likes: ['wine', 'brooch'], dislikes: ['lily'],
   },
 };
 const ORDER = ['serena', 'luna', 'camilla', 'aria', 'lizette', 'rose', 'noelle', 'beatrix'];
 
 const STATS = { int: '지력', str: '체력', brave: '용기', charm: '매력' };
 
-/* 장소: 하는 일, 오르는 능력치, 피로, 등장하는 히로인(가중치) */
+/* 행동(장소): 한 번에 능력치 하나만 +1. 요일(0=월 … 6=일)마다 열리는 곳이 다르다.
+ *   days: 학기 중 열리는 요일 / vdays: 방학 중 열리는 요일(없으면 방학엔 닫힘) / only: 'summer' 여름방학 전용
+ *   club: 동아리에 든 뒤 (수요일) / lock: 무색 마법을 익혀야 열림 */
+const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 const LOCS = {
-  class:     { name: '수업', place: '강의동', icon: '📖', bg: 'class', desc: '마법 이론 수업을 듣는다.', gain: { int: 3 }, fat: 12, weekday: true },
-  library:   { name: '도서관', place: '대도서관', icon: '📚', bg: 'library', desc: '조용히 자습한다.', gain: { int: 2 }, fat: 6 },
-  training:  { name: '훈련', place: '훈련장', icon: '⚔️', bg: 'training', desc: '검술과 체력 단련.', gain: { str: 3 }, fat: 15 },
-  outskirts: { name: '탐험', place: '교외 유적지', icon: '🧭', bg: 'outskirts', desc: '학원 밖 유적을 탐사한다.', gain: { brave: 3, str: 1 }, fat: 16, gold: [10, 40] },
-  lab:       { name: '공방', place: '연금 공방', icon: '⚗️', bg: 'lab', desc: '발명 동아리 실험을 돕는다.', gain: { int: 1, brave: 2 }, fat: 10 },
-  chapel:    { name: '성당', place: '성당 정원', icon: '🕊️', bg: 'chapel', desc: '정원에서 마음을 가다듬는다.', gain: { charm: 2 }, fat: -8 },
-  market:    { name: '상점가', place: '상인 길드 거리', icon: '🏪', bg: 'market', desc: '길드에서 아르바이트하고, 물건을 산다.', gain: { charm: 1 }, fat: 10, gold: [45, 55], shop: true },
-  dorm:      { name: '휴식', place: '기숙사', icon: '☕', bg: 'dorm', desc: '푹 쉬어 피로를 푼다.', gain: {}, fat: -35 },
+  class:     { name: '마법 이론 수업', place: '강의동', icon: '📖', bg: 'class', stat: 'int', days: [0, 2, 4], desc: '마법 이론 수업을 듣는다.' },
+  training:  { name: '검술 수업', place: '훈련장', icon: '⚔️', bg: 'training', stat: 'str', days: [1, 3], vdays: [1, 3], vname: '방학 검술 특강', desc: '검술 수업에서 땀을 흘린다.', outdoor: true },
+  library:   { name: '도서관', place: '대도서관', icon: '📚', bg: 'library', stat: 'int', days: [0, 1, 2, 3, 4, 5], vdays: [0, 1, 2, 3, 4, 5], desc: '조용히 자습한다.' },
+  lab:       { name: '연금 공방', place: '연금 공방', icon: '⚗️', bg: 'lab', stat: 'brave', days: [1, 3, 5], vdays: [1, 3, 5], desc: '발명 동아리의 아슬아슬한 실험을 거든다.' },
+  club:      { name: '동아리 활동', place: '동아리방', icon: '🎪', bg: 'class', stat: null, club: true, days: [2], desc: '동아리 부원들과 활동한다.' },
+  outskirts: { name: '유적 탐험', place: '교외 유적지', icon: '🧭', bg: 'outskirts', stat: 'brave', days: [5, 6], vdays: WEEKDAYS, gold: [10, 30], desc: '학원 밖 유적을 탐사한다. 학기 중엔 주말에만 외출 허가가 나온다.', outdoor: true },
+  chapel:    { name: '봉사 활동', place: '성당 정원', icon: '🕊️', bg: 'chapel', stat: 'charm', days: [5], vdays: [5], desc: '토요일, 성당 정원을 가꾸고 찾아온 사람들을 돕는다.', outdoor: true },
+  church:    { name: '성당 예배', place: '대성당', icon: '⛪', bg: 'church', stat: 'charm', days: [6], vdays: [6], desc: '일요일 예배에서 성가를 부른다.' },
+  market:    { name: '상점가', place: '상인 길드 거리', icon: '🏪', bg: 'market', stat: 'charm', days: [4, 5, 6], vdays: WEEKDAYS, gold: [30, 45], shop: true, desc: '길드에서 아르바이트하고, 물건을 산다.' },
+  sea:       { name: '해변', place: '은빛 해변', icon: '🌊', bg: 'sea', stat: 'str', only: 'summer', vdays: WEEKDAYS, desc: '여름 바다에서 헤엄친다.', outdoor: true },
+  dorm:      { name: '기숙사', place: '기숙사', icon: '🛏️', bg: 'dorm', stat: null, days: WEEKDAYS, vdays: WEEKDAYS, desc: '편지를 쓰거나, 방에서 쉰다.' },
 };
+/* 히로인이 그 장소에 나타날 확률(%) — 가도 매번 만나지는 못한다 (10~30%) */
 const HAUNTS = {
-  serena:  { class: 5, library: 3 },
-  luna:    { outskirts: 5, training: 2, market: 1 },
-  camilla: { training: 6, class: 2 },
-  aria:    { chapel: 7, library: 1 },
-  lizette: { library: 4, class: 3, lab: 1 },
-  rose:    { lab: 5, outskirts: 3, market: 1 },
-  noelle:  { library: 8, chapel: 1 },
-  beatrix: { market: 7 },
+  serena:  { class: 30, library: 20 },
+  luna:    { outskirts: 30, training: 15, market: 10, sea: 30 },
+  camilla: { training: 30, class: 10, church: 10 },
+  aria:    { church: 30, chapel: 30, library: 10 },
+  lizette: { library: 25, class: 20, lab: 10 },
+  rose:    { lab: 30, outskirts: 20, market: 10, sea: 20 },
+  noelle:  { library: 30, church: 10 },
+  beatrix: { market: 30, sea: 15 },
 };
 
 const ITEMS = {
@@ -114,14 +121,14 @@ const ITEMS = {
   skewer:    { name: '고기 꼬치', icon: '🍢', price: 15 },
   lily:      { name: '하얀 백합', icon: '🤍', price: 25 },
   whetstone: { name: '고급 숫돌', icon: '🪨', price: 40 },
-  parts:     { name: '정밀 기계 부품', icon: '⚙️', price: 45 },
+  parts:     { name: '정밀 기계 부품', icon: '🔩', price: 45 },
   map:       { name: '고대 지도 조각', icon: '🗺️', price: 50 },
   quill:     { name: '별빛 깃펜', icon: '🪶', price: 35 },
   wine:      { name: '고급 와인', icon: '🍷', price: 80 },
   brooch:    { name: '금빛 브로치', icon: '✨', price: 70 },
 };
 
-const LAST_DAY = 24; // 별빛 축제
+const LAST_DAY = 309; // 별빛 축제 (이듬해 2월 3일, 입춘 전야) — 날짜 계산은 school.js
 
 /* ───────────────────────── 공통 시나리오 ───────────────────────── */
 const COMMON = {
@@ -135,7 +142,7 @@ const COMMON = {
     ['학원장', '……{P} 군. 자네의 마력은 어느 속성으로도 분류되지 않았네. 불도, 물도, 빛도 아닌 — 「무색」이지.'],
     ['me', '무색… 그럼 저는 어느 학과에도 들어갈 수 없는 건가요?'],
     ['학원장', '반대일세. 어디에든 들어갈 수 있다는 뜻이지. 오늘부터 자네는 모든 학과를 자유롭게 오가는 「특별 청강생」이네.'],
-    ['학원장', '이번 학기 끝, 4월 24일에는 별빛 축제가 열리네. 그때까지… 자네가 무엇을 비추게 될지, 지켜보겠네.'],
+    ['학원장', '한 해의 끝, 겨울이 물러가는 입춘 전야에 별빛 축제가 열리네. 그때까지… 자네가 무엇을 비추게 될지, 지켜보겠네.'],
     { bg: 'library', fade: true },
     ['', '안내를 맡았다는 학생이 도서관 앞에서 기다리고 있었다. 은빛 머리카락이 창으로 들어온 빛을 받아 반짝였다.'],
     { show: 'serena' },
@@ -146,21 +153,27 @@ const COMMON = {
     ['serena', 'cold', '여긴 강의동, 저쪽은 훈련장, 성당, 연금 공방. 정문 밖이 상인 길드 거리. 끝.'],
     { hide: 1 },
     ['', '그녀는 그 말만 남기고 도서관 안으로 사라졌다.'],
-    ['', '──이렇게 나의 루미나리아에서의 한 학기가 시작되었다.'],
+    ['', '──이렇게 나의 루미나리아에서의 일 년이 시작되었다.'],
     { met: 'serena' },
   ],
   tutorial: [
-    ['', '【안내】 하루는 「오전」과 「오후」로 나뉩니다. 장소를 골라 능력치를 올리고, 그곳에 있는 히로인과 이야기하세요.'],
-    ['', '호감도가 오르면 히로인의 이야기가 진행됩니다. 마지막 이야기에는 히로인마다 필요한 능력치가 있어요.'],
-    ['', '피로가 쌓이면 효율이 떨어집니다. 상점가에서 산 선물로 마음을 전할 수도 있어요.'],
-    ['', '주말에는 이야기를 하나 이상 본 히로인에게 데이트를 신청할 수 있어요. 학원 행사가 있는 날도 놓치지 마세요.'],
+    ['', '【안내】 하루에 한 가지 일을 할 수 있습니다. 장소를 고르면 그 장소의 능력치 하나가 +1 오르고, 하루가 지나갑니다.'],
+    ['', '요일마다 열리는 곳이 다릅니다. 마법 이론은 월·수·금, 검술은 화·목, 성당 예배는 일요일. 유적 탐험은 주말, 상점가는 금·토·일에만 외출 허가가 나옵니다. 방학엔 둘 다 매일 열려요.'],
+    ['', '히로인은 자주 가는 장소가 있지만, 간다고 매번 만날 수 있는 건 아닙니다. 만날 확률은 10~30%. 장소 버튼의 얼굴은 「자주 오는 사람」입니다.'],
+    ['', '호감도는 한 번에 최대 3까지 오릅니다. 무례한 대답, 싫어하는 선물, 약속을 저버리는 행동은 호감도를 깎아요.'],
+    ['', '호감도가 오르면 히로인의 이야기가 진행됩니다. 이야기는 시기가 되어야 열리고, 마지막 이야기에는 히로인마다 필요한 능력치가 있어요.'],
+    ['', '1학기 중간·기말고사, 여름방학, 2학기 중간·기말고사, 겨울방학. 일 년 동안 학원 행사가 이어집니다. 주말엔 이야기를 하나 이상 본 히로인에게 데이트를 신청할 수 있어요.'],
+    ['', '【연애】 호감도 70 이상, 이야기 2편을 본 히로인에게는 「고백하기」로 마음을 전할 수 있습니다(하루 행동). 연인이 되면 「연애」를 하루 행동으로 고를 수 있어요. 연인을 2주 넘게 내버려 두거나 다른 사람과 데이트하면 호감도가 깎이고, 45 아래로 떨어지면 헤어집니다.'],
+    ['', '【성장】 무색 마법을 하나 각성할 때마다 「별의 탑」에서 한 번 수련할 수 있습니다(모든 능력치 +2). 🌟성장 버튼에서 시간표와 진행 상황을 확인하세요.'],
+    ['', '【히든】 히로인 목록을 아래로 내리면 ???로 가려진 네 사람이 있습니다. 어떤 조건을 채우면, 그쪽에서 먼저 찾아올지도 몰라요.'],
+    ['', '〔용기 25〕처럼 조건이 붙은 선택지는 능력치 판정입니다. 조건을 넘으면 ✓ 표시가 붙어요.'],
     ['', '대사창 위의 LOG · AUTO · SKIP 버튼으로 지난 대사 보기, 자동 진행, 빨리 넘기기를 할 수 있습니다.'],
-    ['', '4월 24일 별빛 축제까지, 누구와 함께할지는 당신에게 달렸습니다.'],
+    ['', '이듬해 2월 3일, 입춘 전야의 별빛 축제까지. 누구와 함께할지, 그리고 어떤 빛이 될지는 당신에게 달렸습니다.'],
   ],
-  // 12일: 별등의 흔들림
+  // 7월 7일 칠석 밤: 별등의 흔들림
   flicker: [
     { bg: 'tower', tint: 'night', pt: 'stars' },
-    ['', '그날 밤, 학원 전체에 종이 울렸다.'],
+    ['', '칠석 밤. 별이 가장 가까워진다는 그 밤, 학원 전체에 종이 울렸다.'],
     { fx: 'flash' }, { fx: 'shake' },
     ['', '천 년 동안 한 번도 흔들린 적 없다는 별등이 — 꺼질 듯이 깜빡이고 있었다.'],
     { show: 'noelle' },
@@ -172,12 +185,12 @@ const COMMON = {
     ['me', '색이 없는 빛… 설마, 나?'],
     ['noelle', 'smile', '…그건 네가 정할 일이야. 기록은 결말까지 적어주지 않거든.'],
     { hide: 1 },
-    ['', '별등은 곧 다시 안정을 되찾았다. 하지만 남은 날은 열이틀. 축제의 밤, 누구의 곁에 서 있을지──.'],
+    ['', '별등은 곧 다시 안정을 되찾았다. 하지만 입춘 전야의 축제까지, 그 불이 버텨 줄지는 아무도 모른다. 축제의 밤, 누구의 곁에 서 있을지──.'],
     { pt: null },
   ],
   festivalOpen: [
     { bg: 'festival', tint: null, pt: 'fireworks' },
-    ['', '4월 24일. 별빛 축제의 밤.'],
+    ['', '2월 3일, 입춘 전야. 별빛 축제의 밤.'],
     ['', '학원 곳곳에 등불이 걸리고, 학생들은 저마다 소중한 사람과 함께 별등이 있는 탑으로 향한다.'],
     ['', '별등에 불이 다시 붙는 순간, 곁에 있는 사람과 이어진다는 이야기가 있었다.'],
     ['', '나는 ── 약속한 사람을 만나러 갔다.'],
@@ -187,7 +200,7 @@ const COMMON = {
     ['', '…하지만 그 밤, 내 곁에 특별한 누군가는 없었다.'],
     ['', '별등은 여덟 개의 빛을 모아 조용히 타올랐다. 내 무색의 빛도 그 안에 섞여, 모두를 고르게 비추었다.'],
     ['', '세레나는 책을, 카밀라는 검을, 루나는 지도를 들고 — 모두 각자의 자리에서 웃고 있었다.'],
-    ['', '나쁘지 않은 학기였다. 다음 축제에는, 조금 더 용기를 내볼까.'],
+    ['', '나쁘지 않은 일 년이었다. 다음 축제에는, 조금 더 용기를 내볼까.'],
     ['', '── NORMAL END 「모두를 비추는 빛」'],
   ],
 };
@@ -332,8 +345,9 @@ const STORY = {
         ['', '북쪽 유적 탐사 중, 무너진 바닥에 루나의 발이 빠졌다.'],
         ['luna', 'fluster', '윽…! 괜찮아, 이 정도는… 아야야.'],
         ['me', '괜찮긴. 업혀.'],
-        ['luna', 'fluster', '야, 나 173이야! 무겁다고!'],
-        ['', '등 뒤에서 루나가 한참 조용하더니, 작게 말했다.'],
+        ['luna', 'fluster', '어, 업히라고?! 아냐 아냐, 혼자 걸을 수 있어…! 아얏.'],
+        ['', '결국 루나는 귀 끝까지 빨개진 채 내 등에 업혔다. 꼬리가 어쩔 줄 모르고 살랑거렸다.'],
+        ['', '한참 조용하던 루나가, 등 뒤에서 작게 말했다.'],
         ['luna', 'serious', '…나, 무리를 떠나온 거야. 세상이 보고 싶어서. 근데 혼자 다니면… 가끔 무서워.'],
         ['luna', 'soft', '늑대는 혼자서는 못 살거든.'],
         { choice: [
@@ -392,7 +406,7 @@ const STORY = {
       ] },
       { q: [['camilla', 'normal', '붉은 머리는 우리 가문의 상징이야. 학생일 동안은 리본으로 단정하게 묶고 있지만.']], c: [
         ['푼 모습도 보고 싶다.', 4, [['camilla', 'fluster', '…! 그, 그건 나중에. 아주 나중에.']]],
-        ['잘 어울려.', 3, [['camilla', 'smile', '…고마워. 형이 골라준 리본이야.']]],
+        ['잘 어울려.', 3, [['camilla', 'smile', '…고마워. 오빠가 골라준 리본이야.']]],
         ['관리하기 힘들겠다.', 1, [['camilla', 'normal', '매일 아침 30분. 수련이라고 생각하고 있어.']]],
       ] },
     ],
@@ -413,12 +427,12 @@ const STORY = {
         { bg: 'training', tint: 'night' }, { show: 'camilla' },
         ['', '밤늦은 훈련장. 카밀라가 오른팔을 감싸 쥔 채 혼자 검을 휘두르고 있었다.'],
         ['me', '팔, 다쳤잖아! 그만해!'],
-        ['camilla', 'angry', '놔! 지금 멈추면… 형의 자리를 채울 수 없어!'],
+        ['camilla', 'angry', '놔! 지금 멈추면… 오빠의 자리를 채울 수 없어!'],
         ['', '그녀의 손에서 목검이 떨어졌다.'],
-        ['camilla', 'soft', '…우리 형, 기사였어. 마을 사람들을 지키다가 돌아오지 못했지.'],
-        ['camilla', 'serious', '그날부터 내가 형 몫까지 강해져야 한다고 생각했어. 쉬면, 형을 배신하는 것 같아서.'],
+        ['camilla', 'soft', '…우리 오빠, 기사였어. 마을 사람들을 지키다가 돌아오지 못했지.'],
+        ['camilla', 'serious', '그날부터 내가 오빠 몫까지 강해져야 한다고 생각했어. 쉬면, 오빠를 배신하는 것 같아서.'],
         { choice: [
-          { t: '형도 네가 다치는 건 원하지 않았을 거야.', aff: { camilla: 5 }, go: [['camilla', 'soft', '……. 알아. 알고 있었어. 누가 말해주길 기다렸나 봐.']] },
+          { t: '네 오빠도 네가 다치는 건 원하지 않았을 거야.', aff: { camilla: 5 }, go: [['camilla', 'soft', '……. 알아. 알고 있었어. 누가 말해주길 기다렸나 봐.']] },
           { t: '이제 혼자 짊어지지 마. 나도 같이 짊어질게.', aff: { camilla: 6 }, go: [['camilla', 'fluster', '……바보. 그런 말 들으면, 기대고 싶어지잖아.']] },
         ] },
       ],
@@ -589,7 +603,7 @@ const STORY = {
     ],
     end: [
       { show: 'lizette' },
-      ['lizette', 'normal', '…기록. 4월 24일, 별빛 축제. 날씨 맑음. {P}, 정시 도착.'],
+      ['lizette', 'normal', '…기록. 2월 3일, 별빛 축제. 날씨 맑음. {P}, 정시 도착.'],
       { cg: 'lizette' },
       ['', '별등이 타오른다. 보랏빛 룬의 빛과 무색의 빛이 하나로 엮여, 그녀의 마도서 위에 내려앉았다.'],
       ['lizette', 'soft', '세상은 감정보다 이성이 움직인다고 생각했어. …하지만 네가 예외였어.'],

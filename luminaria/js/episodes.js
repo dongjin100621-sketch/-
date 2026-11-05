@@ -30,9 +30,24 @@ const VISIT_LINES = {
 
 const DAY_NEWS = {
   welcome: '목요일 저녁, 입학 환영회가 열린다',
-  exam: '월요일엔 중간 시험! 지력을 올려두자',
-  field: '화요일, 유적 합동 실습. 체력과 용기가 필요하다',
-  prep: '토요일, 축제 준비 위원회가 꾸려진다',
+  club: '토요일, 동아리 박람회가 열린다. 동아리는 수요일마다 활동한다',
+  ghost: '토요일 밤, 대도서관에 귀신이 나온다는 소문이…',
+  exam: '1학기 중간고사! 지력을 올려두자',
+  field: '유적 합동 실습. 체력과 용기가 필요하다',
+  flicker: '칠석 밤. 별이 가장 가까워지는 밤이라고 한다',
+  finals: '1학기 기말고사. 필기에 실기까지',
+  term1End: '1학기 종업식. 다음 날부터 여름방학!',
+  camp: '여름 합숙! 은빛 해변으로 떠난다',
+  summerFest: '여름 축제의 밤, 불꽃놀이가 열린다',
+  term2Start: '2학기 개학식',
+  contest: '학과 대항 마법제! 능력치를 골고루 올려두자',
+  exam2: '2학기 중간고사. 필기와 표적 실기',
+  schoolFest: '학원제! 부스를 돕고, 밤엔 후야제 포크댄스',
+  finals2: '2학기 기말고사. 2인 1조 종합 실기',
+  term2End: '2학기 종업식. 다음 날부터 겨울방학',
+  xmas: '성야제의 밤, 대성당에서 촛불 미사가 열린다',
+  newYear: '제야의 밤. 탑 위에서 새해 첫 해를 기다린다',
+  prep: '축제 준비 위원회가 꾸려진다',
 };
 
 const IDLE_LINES = {
@@ -53,7 +68,7 @@ for (const [k, d] of Object.entries(ITEM_DESC)) ITEMS[k].desc = d;
 
 /* ───────────────────────── 공통 이벤트 ───────────────────────── */
 Object.assign(COMMON, {
-  // 4일(목) 저녁: 입학 환영회
+  // 4월 4일(목) 저녁: 입학 환영회
   welcome: [
     { bgm: 'market', bg: 'market', tint: 'pm' },
     ['', '목요일 저녁. 상인 길드가 후원하는 신입생·청강생 환영회가 광장에서 열렸다.'],
@@ -88,13 +103,13 @@ Object.assign(COMMON, {
     ['', '여덟 개의 빛. 그때의 나는 아직, 그 말의 무게를 알지 못했다.'],
   ],
 
-  // 8일(월): 중간 시험
+  // 1학기 중간고사 — school.js 의 examRun 으로 다시 정의된다
   exam: [
     { bgm: 'calm', bg: 'class', tint: 'am' },
-    ['', '월요일 아침, 중간 시험. 강의동에는 펜 긁히는 소리만 가득했다.'],
+    ['', '수요일 아침, 중간 시험. 강의동에는 펜 긁히는 소리만 가득했다.'],
     ['serena', 'normal', '…시작 전에 손이 떨리는 사람은 지금 나가는 게 좋아. 시험관은 그런 걸 다 봐.'],
     ['', '시험지가 넘어왔다. 첫 문제는 「무색 마력의 공명 조건을 서술하시오」.'],
-    { if: (S) => S.stats.int >= 30, go: [
+    { if: (S) => S.stats.int >= 34, go: [
       ['', '…알고 있다. 도서관에서 밤새 읽은 내용이 그대로 떠오른다. 펜이 멈추지 않는다.'],
       { sfx: 'event' },
       ['', '【 결과: 학년 상위 5위 이내 】'],
@@ -102,7 +117,7 @@ Object.assign(COMMON, {
       { aff: { serena: 3 }, stats: { gold: 80, charm: 2 } },
       ['', '장학금 80골드를 받았다. 복도에서 다른 학생들이 수군거린다. 「무색인데 상위권이래.」'],
     ], else: [
-      { if: (S) => S.stats.int >= 18, go: [
+      { if: (S) => S.stats.int >= 20, go: [
         ['', '아는 문제와 모르는 문제가 반반. 어떻게든 답안지를 채웠다.'],
         ['', '【 결과: 학년 중간 】'],
         ['lizette', 'normal', '평균 근처. 데이터로서는 가장 흔한 결과야. 나쁘지 않아.'],
@@ -117,7 +132,7 @@ Object.assign(COMMON, {
     ] },
   ],
 
-  // 16일(화): 유적 합동 실습
+  // 6월 14일(금): 유적 합동 실습
   field: [
     { bgm: 'battle', bg: 'outskirts', tint: 'am' },
     ['', '기사학과·탐험학과·마법학과 합동 실습. 목적지는 북쪽 유적의 원형 신전.'],
@@ -126,7 +141,7 @@ Object.assign(COMMON, {
     ['교관', '전원 2인 1조로 흩어져! 핵을 노려라!'],
     { run: async (G) => {
       const S = G.S;
-      const ids = G.replay ? [] : ORDER.filter((id) => S.intro[id]);
+      const ids = G.replay ? [] : ALL.filter((id) => S.intro[id]);
       let who = null;
       if (ids.length) {
         await G.say('', null, '함께 싸울 사람은──');
@@ -138,19 +153,19 @@ Object.assign(COMMON, {
         await G.play([{ show: who }, [who, a[0], a[1]]]);
       } else await G.say('me', null, '…혼자서라도, 해내야 해.');
       await G.play([{ fx: 'shake' }, ['', '골렘의 주먹이 땅을 내리친다. 흙먼지 속에서 핵의 빛이 번쩍였다!']]);
-      const ok = S.stats.str + S.stats.brave >= 45;
+      const ok = S.stats.str + S.stats.brave + (S.skills.insight ? 5 : 0) >= 46;
       if (ok) await G.play([{ fx: 'flash' }, { sfx: 'event' }, ['', '무색의 마력을 담은 일격이 핵을 꿰뚫었다. 골렘이 천천히 무너져 내린다.'], ['', '【 실습 결과: 최우수 조 】'], { stats: { brave: 2, gold: 60 } }]);
       else await G.play([['', '핵에 닿지 못했다. 교관의 결계 덕분에 간신히 물러났지만, 둘 다 무사했다.'], ['', '【 실습 결과: 통과 】'], { stats: { brave: 1 } }]);
-      if (who) { await G.play([{ show: who }, [who, FIELD_LINES[who][1][0], FIELD_LINES[who][1][1]]]); G.addAff(who, ok ? 7 : 5); }
+      if (who) { await G.play([{ show: who }, [who, FIELD_LINES[who][1][0], FIELD_LINES[who][1][1]]]); G.addAff(who, ok ? 3 : 2); }
     } },
     { hide: 1 },
     ['', '돌아오는 길, 무너진 골렘의 핵이 희미하게 별등과 같은 빛을 내고 있었다.'],
   ],
 
-  // 20일(토): 축제 준비 위원회
+  // 1월 25일(토): 축제 준비 위원회
   prep: [
     { bgm: 'market', bg: 'market', tint: 'pm' },
-    ['', '별빛 축제까지 나흘. 광장에 축제 준비 위원회 모집 게시판이 붙었다.'],
+    ['', '별빛 축제까지 아흐레. 눈 덮인 광장에 축제 준비 위원회 모집 게시판이 붙었다.'],
     ['', '청강생인 나는 어느 위원회든 들어갈 수 있다. 어디를 도울까?'],
     { choice: [
       { t: '🎆 장식·불꽃 담당 (로제, 루나)', aff: { rose: 5, luna: 5 }, stats: { brave: 2 }, go: [
@@ -177,7 +192,7 @@ Object.assign(COMMON, {
 
   eveAlone: [
     { bg: 'dorm', tint: 'night' },
-    ['', '4월 23일, 축제 전날 밤.'],
+    ['', '2월 2일, 축제 전날 밤.'],
     ['', '기숙사 창밖으로 탑 위의 별등이 보인다. 내일 밤, 저 불빛은 다시 타오를 것이다.'],
     ['', '…나는 누구의 곁에 서 있게 될까. 대답은 아직 오지 않았다.'],
   ],
@@ -255,10 +270,10 @@ const DATES = {
     ['camilla', 'smile', '말 타본 적 없다고 했지? 오늘은 내가 가르쳐줄게. 이 애는 얌전하니까 겁먹지 마.'],
     ['', '카밀라의 말은 유적 너머 들판을 가볍게 달렸다. 나는 그 뒤를 비틀비틀 따라갔다.'],
     ['camilla', 'serious', '고삐를 너무 당기지 마. 말은 기수의 긴장을 그대로 느껴.'],
-    ['camilla', 'soft', '…형이랑 자주 이 길을 달렸어. 다시 올 수 있을 거라곤 생각 못 했는데.'],
+    ['camilla', 'soft', '…오빠랑 자주 이 길을 달렸어. 다시 올 수 있을 거라곤 생각 못 했는데.'],
     { choice: [
       { t: '그럼 이제 우리 길로 하자.', go: [['camilla', 'fluster', '…우리 길. 응. 그거, 좋다.']] },
-      { t: '형도 기뻐하실 거야.', go: [['camilla', 'smile', '…그래. 분명 웃고 있을 거야. 「드디어 쉬는 법을 배웠냐」면서.']] },
+      { t: '오빠분도 기뻐하실 거야.', go: [['camilla', 'smile', '…그래. 분명 웃고 있을 거야. 「드디어 쉬는 법을 배웠냐」면서.']] },
     ] },
     ['', '돌아오는 길, 그녀는 처음으로 리본을 반쯤 풀고 바람에 머리카락을 맡겼다.'],
   ],
@@ -276,7 +291,7 @@ const DATES = {
   ],
   lizette: [
     { bg: 'tower', tint: 'night', pt: 'stars' }, { show: 'lizette' },
-    ['lizette', 'normal', '천체 관측. 오늘은 4월 중 대기가 가장 맑은 밤이야. 확률 87%.'],
+    ['lizette', 'normal', '천체 관측. 오늘은 이번 달 중 대기가 가장 맑은 밤이야. 확률 87%.'],
     ['', '언덕 위에 천구의를 놓고, 그녀는 별의 위치를 하나하나 마도서에 적어 나갔다.'],
     ['lizette', 'blank', '……. 별똥별.'],
     ['', '펜을 쥔 손이 멈췄다. 그녀는 처음으로, 적지 않고 하늘을 올려다보았다.'],
@@ -385,7 +400,7 @@ const EVE = {
 
 /* 노멀 엔딩에서 멀리서 건네는 한마디 */
 const FRIEND_LINES = {
-  serena: '…다음 학기에도, 질문은 정리해서 가져와.', luna: '다음 탐험 땐 꼭 같이 가자! 약속이다!', camilla: '좋은 축제였어. …내일 훈련, 늦지 마.',
+  serena: '…새 학년에도, 질문은 정리해서 가져와.', luna: '다음 탐험 땐 꼭 같이 가자! 약속이다!', camilla: '좋은 축제였어. …내일 훈련, 늦지 마.',
   aria: '오늘도 무사해서 다행이에요. 또 정원에 놀러 오세요.', lizette: '오늘의 기록에, 너도 적어 둘게.', rose: '내년 불꽃은 더 크게 터뜨릴 거야! 기대해!',
   noelle: '…좋은 밤이네. 기록할 가치가 있어.', beatrix: '내년에도 길드 아르바이트, 잘 부탁해.',
 };
@@ -396,8 +411,9 @@ const END_TITLES = {
   lizette: '세상을 기록하는 눈', rose: '불꽃 같은 호기심의 끝에서', noelle: '흩어진 세계를 손에 쥐는 검은 날개', beatrix: '세상을 움직이는 거래의 주인',
 };
 const END_HINTS = {
-  normal: '특별한 누군가 없이 축제를 맞이한다',
-  true: '여덟 명 모두를 만나고, 모두의 호감도를 40 이상으로',
+  normal: '특별한 누군가 없이, 무색의 빛 5장을 마치지 못한 채 축제를 맞이한다',
+  true: '여덟 명 모두를 만나고 모두의 호감도를 35 이상으로. 그리고 무색의 빛 5장까지',
+  solo: '무색의 빛 이야기를 5장까지 마치고, 축제의 밤 혼자 탑에 오른다',
   ...Object.fromEntries(ORDER.map((id) => [id, `이야기 3개를 모두 보고 호감도 80 이상 (${STATS[CHARS[id].req.stat]} ${CHARS[id].req.v} 필요)`])),
 };
 
@@ -456,7 +472,7 @@ const MORE_TALKS = {
     { q: [['camilla', 'normal', '검 손질하는 중이야. 날을 세우는 소리를 들으면 마음이 차분해져.']], c: [
       ['옆에서 들어도 돼?', 4, [['camilla', 'smile', '…조용히만 있으면. 아니, 가끔은 말 걸어도 돼.']]],
       ['나한테도 가르쳐줘.', 4, [['camilla', 'serious', '좋아. 숫돌 각도는 이십 도. 손목은 고정.']]],
-      ['그 검 이름 있어?', 3, [['camilla', 'soft', '…「여명」. 형이 붙인 이름이야.']]],
+      ['그 검 이름 있어?', 3, [['camilla', 'soft', '…「여명」. 오빠가 붙인 이름이야.']]],
     ] },
     { q: [['camilla', 'fluster', '어제 고양이한테 말 거는 거, 봤어?']], c: [
       ['귀여웠어.', 5, [['camilla', 'fluster', '귀, 귀엽다니! 기사한테 할 말이야?! …잊어. 당장.']]],
@@ -583,4 +599,4 @@ const MORE_TALKS = {
 for (const [id, list] of Object.entries(MORE_TALKS)) STORY[id].talks.push(...list);
 
 /* 배경 그림 출처 — tools/luminaria_bg.py 가 만든 img/CREDITS.json 과 같은 내용 */
-const CREDITS_BG = /*CREDITS*/[{"bg": "class", "title": "Derbys First Exhibition 1839.jpg", "artist": "Samuel Rayner", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Derbys_First_Exhibition_1839.jpg"}, {"bg": "library", "title": "Charlotte Bosanquet - The Library at Dingestow - Google Art Project.jpg", "artist": "Charlotte Bosanquet (1790 - 1852)", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Charlotte_Bosanquet_-_The_Library_at_Dingestow_-_Google_Art_Project.jpg"}, {"bg": "training", "title": "Powis Castle, 1794.jpg", "artist": "John Ingleby", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Powis_Castle,_1794.jpg"}, {"bg": "outskirts", "title": "Hubert Robert - Landscape with the Ruins of the Round Temple, with a Statue of Venus and a Monument to Marcus Aurelius.jpg", "artist": "Hubert Robert", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Hubert_Robert_-_Landscape_with_the_Ruins_of_the_Round_Temple,_with_a_Statue_of_Venus_and_a_Monument_to_Marcus_Aurelius.jpg"}, {"bg": "lab", "title": "An alchemist in his laboratory. Oil painting by James Nasmyt Wellcome V0017640.jpg", "artist": "James Nasmyth", "license": "CC BY 4.0", "source": "https://commons.wikimedia.org/wiki/File:An_alchemist_in_his_laboratory._Oil_painting_by_James_Nasmyt_Wellcome_V0017640.jpg"}, {"bg": "chapel", "title": "Georg Pezolt Blick in den Klostergarten.jpg", "artist": "Georg Pezolt", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Georg_Pezolt_Blick_in_den_Klostergarten.jpg"}, {"bg": "church", "title": "Neeffs, Peeter the elder - Interior of a Gothic Church - Google Art Project.jpg", "artist": "Neeffs, Peeter the elder", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Neeffs,_Peeter_the_elder_-_Interior_of_a_Gothic_Church_-_Google_Art_Project.jpg"}, {"bg": "market", "title": "Domenico Quaglio Braunschweig Altstadtmarkt 1834.jpg", "artist": "Domenico Quaglio the Younger", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Domenico_Quaglio_Braunschweig_Altstadtmarkt_1834.jpg"}, {"bg": "dorm", "title": "Interior of a Library - Google Art Project.jpg", "artist": "Unknown author", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Interior_of_a_Library_-_Google_Art_Project.jpg"}, {"bg": "tower", "title": "Abraham Pether (1756-1812) - View of Pendragon Castle by Moonlight - 960239 - National Trust.jpg", "artist": "Abraham Pether", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Abraham_Pether_(1756-1812)_-_View_of_Pendragon_Castle_by_Moonlight_-_960239_-_National_Trust.jpg"}, {"bg": "festival", "title": "Oswald Achenbach Feuerwerk in Toree dell Annunziata.jpg", "artist": "Oswald Achenbach", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Oswald_Achenbach_Feuerwerk_in_Toree_dell_Annunziata.jpg"}, {"bg": "sea", "title": "Caspar David Friedrich - Mondaufgang am Meer - Google Art Project.jpg", "artist": "Caspar David Friedrich", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Mondaufgang_am_Meer_-_Google_Art_Project.jpg"}]/*END*/;
+const CREDITS_BG = /*CREDITS*/[{"bg": "class", "title": "Giovanni Paolo Panini – Ancient Rome.jpg", "artist": "Giovanni Paolo Panini", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Giovanni_Paolo_Panini_%E2%80%93_Ancient_Rome.jpg"}, {"bg": "library", "title": "Charlotte Bosanquet - The Library at Dingestow - Google Art Project.jpg", "artist": "Charlotte Bosanquet (1790 - 1852)", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Charlotte_Bosanquet_-_The_Library_at_Dingestow_-_Google_Art_Project.jpg"}, {"bg": "training", "title": "Bellotto - The Fortress of Königstein Courtyard with the Magdalenenburg, 1756-1758, 1996.64.1.jpg", "artist": "Bernardo Bellotto", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Bellotto_-_The_Fortress_of_K%C3%B6nigstein_Courtyard_with_the_Magdalenenburg,_1756-1758,_1996.64.1.jpg"}, {"bg": "outskirts", "title": "Hubert Robert - Landscape with the Ruins of the Round Temple, with a Statue of Venus and a Monument to Marcus Aurelius.jpg", "artist": "Hubert Robert", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Hubert_Robert_-_Landscape_with_the_Ruins_of_the_Round_Temple,_with_a_Statue_of_Venus_and_a_Monument_to_Marcus_Aurelius.jpg"}, {"bg": "lab", "title": "An alchemist in his laboratory. Oil painting by James Nasmyt Wellcome V0017640.jpg", "artist": "James Nasmyth", "license": "CC BY 4.0", "source": "https://commons.wikimedia.org/wiki/File:An_alchemist_in_his_laboratory._Oil_painting_by_James_Nasmyt_Wellcome_V0017640.jpg"}, {"bg": "chapel", "title": "Georg Pezolt Blick in den Klostergarten.jpg", "artist": "Georg Pezolt", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Georg_Pezolt_Blick_in_den_Klostergarten.jpg"}, {"bg": "church", "title": "Neeffs, Peeter the elder - Interior of a Gothic Church - Google Art Project.jpg", "artist": "Neeffs, Peeter the elder", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Neeffs,_Peeter_the_elder_-_Interior_of_a_Gothic_Church_-_Google_Art_Project.jpg"}, {"bg": "market", "title": "Domenico Quaglio Braunschweig Altstadtmarkt 1834.jpg", "artist": "Domenico Quaglio the Younger", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Domenico_Quaglio_Braunschweig_Altstadtmarkt_1834.jpg"}, {"bg": "dorm", "title": "Interior of a Library - Google Art Project.jpg", "artist": "Unknown author", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Interior_of_a_Library_-_Google_Art_Project.jpg"}, {"bg": "tower", "title": "Abraham Pether (1756-1812) - View of Pendragon Castle by Moonlight - 960239 - National Trust.jpg", "artist": "Abraham Pether", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Abraham_Pether_(1756-1812)_-_View_of_Pendragon_Castle_by_Moonlight_-_960239_-_National_Trust.jpg"}, {"bg": "festival", "title": "Oswald Achenbach Feuerwerk in Toree dell Annunziata.jpg", "artist": "Oswald Achenbach", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Oswald_Achenbach_Feuerwerk_in_Toree_dell_Annunziata.jpg"}, {"bg": "sea", "title": "Caspar David Friedrich - Mondaufgang am Meer - Google Art Project.jpg", "artist": "Caspar David Friedrich", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Mondaufgang_am_Meer_-_Google_Art_Project.jpg"}]/*END*/;

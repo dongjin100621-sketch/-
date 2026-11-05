@@ -9,7 +9,7 @@ files = ['./', 'index.html', 'manifest.webmanifest', 'css/style.css']
 files += sorted('js/' + f for f in os.listdir(f'{src}/js') if f.endswith('.js'))
 files += sorted('icons/' + f for f in os.listdir(f'{src}/icons') if f.endswith('.png'))
 # 설정 자료(sheet)는 용량이 커서 처음 열 때 받지 않고, 볼 때 보관한다.
-files += sorted('img/' + f for f in os.listdir(f'{src}/img') if '_sheet' not in f and f.endswith(('.jpg', '.png')))
+files += sorted('img/' + f for f in os.listdir(f'{src}/img') if '_sheet' not in f and f.endswith(('.jpg', '.png', '.webp')))
 
 h = hashlib.sha1()
 for f in files:
