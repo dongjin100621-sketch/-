@@ -149,7 +149,7 @@ const GROWTH = [
     ['', '눈을 떴을 땐 기숙사 침대 위였다. 오른손에 붕대가 감겨 있었다.'],
     { run: async (G) => {
       const S = G.S;
-      const best = G.replay ? null : ORDER.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
+      const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
       if (best) {
         const [a, b] = CH3_LINES[best];
         await G.play([{ show: best }, [best, a[0], a[1]], [best, b[0], b[1]], { hide: 1 }]);
@@ -323,7 +323,7 @@ async function contestRun(G) {
     S.flags.contest = result;
     G.addStats(result === 'win' ? { gold: 200, charm: 1 } : result === 'lose' ? { gold: 80, brave: 1 } : { gold: 20, brave: 1 }, true);
   }
-  const best = G.replay ? null : ORDER.filter((id) => S.intro[id] && S.aff[id] >= 20).sort((a, b) => S.aff[b] - S.aff[a])[0];
+  const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 20).sort((a, b) => S.aff[b] - S.aff[a])[0];
   if (best) {
     const [ex, line] = CONTEST_CHEER[best][result === 'win' ? 0 : 1];
     await G.play([{ pt: null }, ['', '무대에서 내려오자, 누군가 달려왔다.'], { show: best }, [best, ex, line], { hide: 1 }]);
