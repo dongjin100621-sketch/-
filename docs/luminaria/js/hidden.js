@@ -598,14 +598,14 @@ Object.assign(EVE, {
   ],
 });
 Object.assign(FRIEND_LINES, {
-  elise: '2학기에도 공동 연구, 잊으면 안 돼!', sia: '내일 아침 수련, 늦지 마. 하하…!',
+  elise: '3학년에도 공동 연구, 잊으면 안 돼!', sia: '내일 아침 수련, 늦지 마. 하하…!',
   elin: '…조수 자리는 계속 비워 둘게.', rena: '…또 보지, 학생. 이 도시 어딘가에서.',
 });
 Object.assign(END_TITLES, {
   elise: '조금 더 멀리, 조금 더 궁금하게', sia: '끝까지 지켜내는 힘', elin: '하나로 이어진 진실', rena: '예외가 된 단 한 사람',
 });
 Object.assign(END_HINTS, {
-  elise: `지력 ${HIDDEN_RULE.elise} 이상, 무색 마법 다섯 가지를 모두 익히면 찾아온다. 이야기 3개 · 호감도 80 (지력 70)`,
+  elise: `지력 ${HIDDEN_RULE.elise} 이상, 무색 마법을 「별잇기」까지 모두 익히면 찾아온다. 이야기 3개 · 호감도 80 (지력 70)`,
   sia: `체력 ${HIDDEN_RULE.sia} 이상이면 찾아온다. 이야기 3개 · 호감도 80 (체력 60)`,
   elin: `골드 ${HIDDEN_RULE.gold} 이상이면 열리는 밤의 사건에서 「진실」을 고른다. 이야기 3개 · 호감도 80 (지력 55)`,
   rena: `골드 ${HIDDEN_RULE.gold} 이상이면 열리는 밤의 사건에서 「질서」를 고른다. 이야기 3개 · 호감도 80 (용기 55)`,
