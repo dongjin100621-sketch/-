@@ -30,13 +30,24 @@ const VISIT_LINES = {
 
 const DAY_NEWS = {
   welcome: '목요일 저녁, 입학 환영회가 열린다',
-  club: '토요일, 동아리 박람회가 열린다',
-  exam: '수요일엔 중간 시험! 지력을 올려두자',
+  club: '토요일, 동아리 박람회가 열린다. 동아리는 수요일마다 활동한다',
   ghost: '토요일 밤, 대도서관에 귀신이 나온다는 소문이…',
-  field: '금요일, 유적 합동 실습. 체력과 용기가 필요하다',
-  contest: '목요일, 학과 대항 마법제! 능력치를 골고루 올려두자',
-  prep: '토요일, 축제 준비 위원회가 꾸려진다',
-  finals: '목요일, 기말 실기 평가. 학원 평가 등급이 결과를 가른다',
+  exam: '1학기 중간고사! 지력을 올려두자',
+  field: '유적 합동 실습. 체력과 용기가 필요하다',
+  flicker: '칠석 밤. 별이 가장 가까워지는 밤이라고 한다',
+  finals: '1학기 기말고사. 필기에 실기까지',
+  term1End: '1학기 종업식. 다음 날부터 여름방학!',
+  camp: '여름 합숙! 은빛 해변으로 떠난다',
+  summerFest: '여름 축제의 밤, 불꽃놀이가 열린다',
+  term2Start: '2학기 개학식',
+  contest: '학과 대항 마법제! 능력치를 골고루 올려두자',
+  exam2: '2학기 중간고사. 필기와 표적 실기',
+  schoolFest: '학원제! 부스를 돕고, 밤엔 후야제 포크댄스',
+  finals2: '2학기 기말고사. 2인 1조 종합 실기',
+  term2End: '2학기 종업식. 다음 날부터 겨울방학',
+  xmas: '성야제의 밤, 대성당에서 촛불 미사가 열린다',
+  newYear: '제야의 밤. 탑 위에서 새해 첫 해를 기다린다',
+  prep: '축제 준비 위원회가 꾸려진다',
 };
 
 const IDLE_LINES = {
@@ -57,7 +68,7 @@ for (const [k, d] of Object.entries(ITEM_DESC)) ITEMS[k].desc = d;
 
 /* ───────────────────────── 공통 이벤트 ───────────────────────── */
 Object.assign(COMMON, {
-  // 4일(목) 저녁: 입학 환영회
+  // 4월 4일(목) 저녁: 입학 환영회
   welcome: [
     { bgm: 'market', bg: 'market', tint: 'pm' },
     ['', '목요일 저녁. 상인 길드가 후원하는 신입생·청강생 환영회가 광장에서 열렸다.'],
@@ -92,7 +103,7 @@ Object.assign(COMMON, {
     ['', '여덟 개의 빛. 그때의 나는 아직, 그 말의 무게를 알지 못했다.'],
   ],
 
-  // 10일(수): 중간 시험
+  // 1학기 중간고사 — school.js 의 examRun 으로 다시 정의된다
   exam: [
     { bgm: 'calm', bg: 'class', tint: 'am' },
     ['', '수요일 아침, 중간 시험. 강의동에는 펜 긁히는 소리만 가득했다.'],
@@ -121,7 +132,7 @@ Object.assign(COMMON, {
     ] },
   ],
 
-  // 19일(금): 유적 합동 실습
+  // 6월 14일(금): 유적 합동 실습
   field: [
     { bgm: 'battle', bg: 'outskirts', tint: 'am' },
     ['', '기사학과·탐험학과·마법학과 합동 실습. 목적지는 북쪽 유적의 원형 신전.'],
@@ -142,19 +153,19 @@ Object.assign(COMMON, {
         await G.play([{ show: who }, [who, a[0], a[1]]]);
       } else await G.say('me', null, '…혼자서라도, 해내야 해.');
       await G.play([{ fx: 'shake' }, ['', '골렘의 주먹이 땅을 내리친다. 흙먼지 속에서 핵의 빛이 번쩍였다!']]);
-      const ok = S.stats.str + S.stats.brave + (S.skills.insight ? 10 : 0) >= 60;
+      const ok = S.stats.str + S.stats.brave + (S.skills.insight ? 5 : 0) >= 46;
       if (ok) await G.play([{ fx: 'flash' }, { sfx: 'event' }, ['', '무색의 마력을 담은 일격이 핵을 꿰뚫었다. 골렘이 천천히 무너져 내린다.'], ['', '【 실습 결과: 최우수 조 】'], { stats: { brave: 2, gold: 60 } }]);
       else await G.play([['', '핵에 닿지 못했다. 교관의 결계 덕분에 간신히 물러났지만, 둘 다 무사했다.'], ['', '【 실습 결과: 통과 】'], { stats: { brave: 1 } }]);
-      if (who) { await G.play([{ show: who }, [who, FIELD_LINES[who][1][0], FIELD_LINES[who][1][1]]]); G.addAff(who, ok ? 7 : 5); }
+      if (who) { await G.play([{ show: who }, [who, FIELD_LINES[who][1][0], FIELD_LINES[who][1][1]]]); G.addAff(who, ok ? 3 : 2); }
     } },
     { hide: 1 },
     ['', '돌아오는 길, 무너진 골렘의 핵이 희미하게 별등과 같은 빛을 내고 있었다.'],
   ],
 
-  // 27일(토): 축제 준비 위원회
+  // 1월 25일(토): 축제 준비 위원회
   prep: [
     { bgm: 'market', bg: 'market', tint: 'pm' },
-    ['', '별빛 축제까지 여드레. 광장에 축제 준비 위원회 모집 게시판이 붙었다.'],
+    ['', '별빛 축제까지 아흐레. 눈 덮인 광장에 축제 준비 위원회 모집 게시판이 붙었다.'],
     ['', '청강생인 나는 어느 위원회든 들어갈 수 있다. 어디를 도울까?'],
     { choice: [
       { t: '🎆 장식·불꽃 담당 (로제, 루나)', aff: { rose: 5, luna: 5 }, stats: { brave: 2 }, go: [
@@ -181,7 +192,7 @@ Object.assign(COMMON, {
 
   eveAlone: [
     { bg: 'dorm', tint: 'night' },
-    ['', '5월 4일, 축제 전날 밤.'],
+    ['', '2월 2일, 축제 전날 밤.'],
     ['', '기숙사 창밖으로 탑 위의 별등이 보인다. 내일 밤, 저 불빛은 다시 타오를 것이다.'],
     ['', '…나는 누구의 곁에 서 있게 될까. 대답은 아직 오지 않았다.'],
   ],
@@ -280,7 +291,7 @@ const DATES = {
   ],
   lizette: [
     { bg: 'tower', tint: 'night', pt: 'stars' }, { show: 'lizette' },
-    ['lizette', 'normal', '천체 관측. 오늘은 4월 중 대기가 가장 맑은 밤이야. 확률 87%.'],
+    ['lizette', 'normal', '천체 관측. 오늘은 이번 달 중 대기가 가장 맑은 밤이야. 확률 87%.'],
     ['', '언덕 위에 천구의를 놓고, 그녀는 별의 위치를 하나하나 마도서에 적어 나갔다.'],
     ['lizette', 'blank', '……. 별똥별.'],
     ['', '펜을 쥔 손이 멈췄다. 그녀는 처음으로, 적지 않고 하늘을 올려다보았다.'],
@@ -389,7 +400,7 @@ const EVE = {
 
 /* 노멀 엔딩에서 멀리서 건네는 한마디 */
 const FRIEND_LINES = {
-  serena: '…다음 학기에도, 질문은 정리해서 가져와.', luna: '다음 탐험 땐 꼭 같이 가자! 약속이다!', camilla: '좋은 축제였어. …내일 훈련, 늦지 마.',
+  serena: '…새 학년에도, 질문은 정리해서 가져와.', luna: '다음 탐험 땐 꼭 같이 가자! 약속이다!', camilla: '좋은 축제였어. …내일 훈련, 늦지 마.',
   aria: '오늘도 무사해서 다행이에요. 또 정원에 놀러 오세요.', lizette: '오늘의 기록에, 너도 적어 둘게.', rose: '내년 불꽃은 더 크게 터뜨릴 거야! 기대해!',
   noelle: '…좋은 밤이네. 기록할 가치가 있어.', beatrix: '내년에도 길드 아르바이트, 잘 부탁해.',
 };
@@ -401,7 +412,7 @@ const END_TITLES = {
 };
 const END_HINTS = {
   normal: '특별한 누군가 없이, 무색의 빛 5장을 마치지 못한 채 축제를 맞이한다',
-  true: '여덟 명 모두를 만나고 모두의 호감도를 40 이상으로. 그리고 무색의 빛 5장까지',
+  true: '여덟 명 모두를 만나고 모두의 호감도를 35 이상으로. 그리고 무색의 빛 5장까지',
   solo: '무색의 빛 이야기를 5장까지 마치고, 축제의 밤 혼자 탑에 오른다',
   ...Object.fromEntries(ORDER.map((id) => [id, `이야기 3개를 모두 보고 호감도 80 이상 (${STATS[CHARS[id].req.stat]} ${CHARS[id].req.v} 필요)`])),
 };

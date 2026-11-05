@@ -50,6 +50,15 @@ const MODES = {
       g.globalAlpha = .35; g.strokeStyle = '#cfe0ff'; g.lineWidth = 1; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + p.l * .18, p.y + p.l); g.stroke();
     },
   },
+  snow: {
+    n: 70,
+    make: (init) => ({ x: R(-40, W), y: init ? R(0, H) : R(-40, -6), r: R(1, 3.2), v: R(28, 70), a: R(0, 6.28), w: R(.6, 1.6) }),
+    step(p, dt) {
+      p.a += dt * p.w; p.x += Math.sin(p.a) * 18 * dt + 8 * dt; p.y += p.v * dt;
+      if (p.y > H + 6) Object.assign(p, MODES.snow.make(false));
+      g.globalAlpha = .75; g.fillStyle = '#f4f8ff'; dot(p.x, p.y, p.r);
+    },
+  },
   fireworks: {
     n: 40,
     make: () => ({ x: R(0, W), y: R(0, H * .6), r: R(.4, 1.4), a: R(0, 6.28), s: R(.5, 2) }),

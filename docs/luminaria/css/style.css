@@ -129,7 +129,6 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 .stat { display: grid; grid-template-columns: 44px 1fr 34px; gap: 8px; align-items: center; font-size: 13px; margin: 5px 0; }
 .bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
 .bar i { display: block; height: 100%; background: linear-gradient(90deg, #a98647, var(--gold2)); border-radius: 4px; transition: width .6s; }
-.bar.fat i { background: linear-gradient(90deg, #6a9a6a, #e0a050, #e05a5a); }
 .stat b { text-align: right; font-weight: 500; }
 .gold-line { margin-top: 8px; color: var(--gold2); font-size: 14px; }
 /* 학원 평가 · 성장 */
@@ -409,3 +408,23 @@ body[data-screen=hub] #mute { right: calc(290px + env(safe-area-inset-right)); }
 @media (prefers-reduced-motion: reduce) {
   .bgl.on, .title-art img, .compass, .idle { animation: none; }
 }
+
+/* 하루 넘김 (평범한 날) */
+.day-flip { position: fixed; left: 50%; top: 18%; z-index: 25; transform: translateX(-50%); pointer-events: none; text-align: center;
+  padding: 10px 26px; border: 1px solid var(--line); border-radius: 999px; background: rgba(12,10,24,.82); backdrop-filter: blur(6px);
+  animation: flipIn .8s ease both; box-shadow: 0 6px 30px rgba(0,0,0,.45); }
+.day-flip b { display: block; font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--gold2); letter-spacing: .04em; }
+.day-flip small { color: var(--dim); font-size: 12px; }
+@keyframes flipIn { 0% { opacity: 0; transform: translate(-50%, -10px); } 20%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 6px); } }
+/* 오늘 닫힌 장소 */
+.loc.shut { opacity: .38; }
+.loc.shut .nm small { color: var(--dim); }
+.loc .who img { opacity: .8; }
+/* 주간 시간표 */
+.tt-wrap { overflow-x: auto; margin: 0 0 6px; }
+.tt { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 460px; }
+.tt th, .tt td { padding: 5px 8px; border-bottom: 1px solid var(--line2); text-align: left; white-space: nowrap; }
+.tt th { font-weight: 500; }
+.tt tr:first-child td { color: var(--dim); font-size: 11px; }
+.dim { color: var(--dim); }
+@media (prefers-reduced-motion: reduce) { .day-flip { animation: none; opacity: 0; } }
