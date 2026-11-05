@@ -2,6 +2,8 @@
 가중치 (Real-ESRGAN 릴리스):
   캐릭터(애니풍) 4배: v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth   → Upscaler(path)
   배경(회화)   2배: v0.2.1/RealESRGAN_x2plus.pth              → Upscaler(path, scale=2, nb=23)
+  범용 4배(질감 보존): v0.2.5.0/realesr-general-x4v3.pth + realesr-general-wdn-x4v3.pth
+                       → Upscaler(path, compact=32, wdn=wdn_path, denoise=.5)
 """
 import numpy as np
 import torch
@@ -60,12 +62,41 @@ class RRDBNet(nn.Module):
         return self.conv_last(self.lrelu(self.conv_hr(feat)))
 
 
+class SRVGGNetCompact(nn.Module):
+    """realesr-general-x4v3 / realesr-animevideov3 구조 (가벼운 VGG식 네트워크)"""
+    def __init__(self, nf=64, nc=32, scale=4):
+        super().__init__()
+        self.scale = scale
+        body = [nn.Conv2d(3, nf, 3, 1, 1), nn.PReLU(nf)]
+        for _ in range(nc):
+            body += [nn.Conv2d(nf, nf, 3, 1, 1), nn.PReLU(nf)]
+        body.append(nn.Conv2d(nf, 3 * scale * scale, 3, 1, 1))
+        self.body = nn.ModuleList(body)
+        self.up = nn.PixelShuffle(scale)
+
+    def forward(self, x):
+        out = x
+        for m in self.body:
+            out = m(out)
+        return self.up(out) + F.interpolate(x, scale_factor=self.scale, mode='nearest')
+
+
+def _sd(path):
+    sd = torch.load(path, map_location='cpu', weights_only=True)
+    return sd.get('params_ema', sd.get('params', sd))
+
+
 class Upscaler:
-    def __init__(self, weights, tile=320, pad=16, scale=4, nb=6):
-        self.net = RRDBNet(nb=nb, scale=scale)
+    def __init__(self, weights, tile=320, pad=16, scale=4, nb=6, compact=0, wdn=None, denoise=.5):
+        """compact>0: SRVGGNetCompact(합성곱 compact개). wdn: 잡음 제거를 덜 하는 짝 가중치 —
+        denoise(0~1) 비율로 두 가중치를 섞는다 (0 이면 원본 질감을 가장 많이 남긴다)."""
+        self.net = SRVGGNetCompact(nc=compact, scale=scale) if compact else RRDBNet(nb=nb, scale=scale)
         self.k = scale
-        sd = torch.load(weights, map_location='cpu', weights_only=True)
-        self.net.load_state_dict(sd.get('params_ema', sd.get('params', sd)))
+        sd = _sd(weights)
+        if wdn:
+            sw = _sd(wdn)
+            sd = {k: denoise * v + (1 - denoise) * sw[k] for k, v in sd.items()}
+        self.net.load_state_dict(sd)
         self.net.eval()
         self.tile, self.pad = tile, pad
 

@@ -20,6 +20,7 @@ EMOJI = {
     '😪': 'bed-single', '🎯': 'target', '🐟': 'fish', '💪': 'biceps-flexed', '☕': 'coffee', '👻': 'ghost',
     '🔭': 'telescope', '🎆': 'party-popper', '☀': 'sun', '☁': 'cloud', '🌧': 'cloud-rain', '❄': 'snowflake',
     '💞': 'heart-handshake', '💔': 'heart-crack', '💗': 'message-circle-heart',
+    '♟': 'crown', '🍬': 'candy', '🔍': 'search',
 }
 # 이모지 없이 코드에서 직접 쓰는 아이콘
 EXTRA = ['music', 'volume-x', 'heart', 'footprints', 'sandwich', 'shopping-bag', 'star', 'x']

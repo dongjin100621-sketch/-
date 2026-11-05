@@ -120,7 +120,19 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 .hub-center { grid-area: center; position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 0; }
 .hub-right { grid-area: right; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
 .loc-title { margin: 2px 4px 2px; }
-.hub-bottom { grid-area: bottom; padding: 10px; display: flex; gap: 8px; overflow-x: auto; }
+.hub-bottom { grid-area: bottom; padding: 10px; display: block; overflow: hidden auto; max-height: 172px; scroll-snap-type: y proximity; overscroll-behavior: contain; scrollbar-width: thin; }
+/* 히로인 목록: 첫 줄은 여덟 명, 아래로 내리면 히든 히로인 */
+.girls-row { display: flex; gap: 8px; scroll-snap-align: start; overflow-x: auto; }
+.girls-hidden { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line2); }
+.girls-more { flex: none; width: 66px; margin-left: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-style: dashed; border-radius: 9px; font-size: 11px; color: var(--gold2); padding: 6px 2px; }
+.girls-more .ico { width: 20px; height: 20px; animation: twinkle 2.4s ease-in-out infinite; }
+.girls-more b { display: block; font-size: 13px; color: var(--ink); font-weight: 500; }
+@keyframes twinkle { 50% { opacity: .45; transform: scale(.85); } }
+.girls-tag { flex: none; width: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  color: var(--gold); font-family: var(--latin); font-size: 11px; letter-spacing: .3em; }
+.girls-tag span { writing-mode: vertical-rl; }
+.girls-tag .ico { width: 16px; height: 16px; }
 
 .date-card { display: flex; gap: 12px; align-items: center; }
 .compass { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; font-size: 26px; color: var(--gold2); flex: none;
@@ -180,6 +192,7 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 .loc .nm small { color: var(--dim); font-size: 11px; letter-spacing: -.01em; }
 .loc .who { display: flex; }
 .loc .who img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: 50% 30%; border: 1px solid var(--gold); margin-left: -8px; background: var(--paper); }
+.loc .who .more { width: 30px; height: 30px; border-radius: 50%; margin-left: -8px; display: grid; place-items: center; font-size: 11px; color: var(--gold2); background: var(--paper); border: 1px solid var(--gold); }
 .loc.love { --c: var(--heart); border-color: color-mix(in srgb, var(--c) 70%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--c) 22%, rgba(30,20,28,.92)), rgba(22,16,24,.9)); }
 .loc.love .ic { color: #fff; border-color: color-mix(in srgb, var(--c) 80%, #fff 20%); background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--c) 75%, #fff 25%), color-mix(in srgb, var(--c) 60%, #000 40%)); }
 .loc.love .ic .ico { fill: rgba(255,255,255,.18); }
@@ -216,6 +229,18 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 .girl .badge.love { color: #fff; background: var(--heart); border-color: #ffd0dc; }
 .girl .badge.love .ico { fill: currentColor; }
 .girl.lover { box-shadow: 0 0 0 1px var(--c), 0 0 16px color-mix(in srgb, var(--c) 45%, transparent); }
+/* 히든: 만나기 전엔 꼬마 캐릭터 실루엣 + ??? */
+.girl.secret, .girl.secret:disabled { opacity: 1; cursor: default; border-top-color: var(--line2);
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--c) 26%, transparent), transparent 70%), rgba(8,8,16,.6); }
+.girl.secret img { object-fit: contain; object-position: 50% 85%; padding: 8px 6px 0; box-sizing: border-box;
+  filter: brightness(0) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 75%, transparent)); }
+.girl.secret .gn { letter-spacing: .3em; color: var(--gold2); }
+.girl.secret .rl { font-size: 9px; line-height: 1.3; padding: 1px 4px 0; min-height: 24px; }
+.girl.secret.foe img { filter: grayscale(1) brightness(.4); }
+.girl.secret.foe .gn { letter-spacing: 0; color: var(--dim); }
+.girl.hid::before { content: '✦'; position: absolute; top: 3px; left: 6px; color: var(--c); font-size: 12px; text-shadow: 0 0 6px var(--c); z-index: 1; }
+.album .secret img, .end.secret img { object-fit: contain; filter: brightness(0) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 75%, transparent)); }
+.end.secret img { border-radius: 0; }
 
 /* ── 대화 장면 ── */
 #scene { z-index: 5; cursor: pointer; user-select: none; }
@@ -410,7 +435,12 @@ body[data-screen=hub] #mute { right: calc(290px + env(safe-area-inset-right)); }
   .hub-left { overflow: visible; }
   .hub-center { min-height: 200px; }
   .idle img { width: 170px; }
-  .hub-bottom { display: grid; grid-template-columns: repeat(4, 1fr); overflow: visible; }
+  .hub-bottom { max-height: none; overflow: visible; }
+  .girls-row { display: grid; grid-template-columns: repeat(4, 1fr); overflow: visible; }
+  .girls-more { display: none; }
+  .girls-tag { grid-column: 1 / -1; width: auto; flex-direction: row; justify-content: flex-start; gap: 6px; padding: 0 2px; }
+  .girls-tag span { writing-mode: horizontal-tb; }
+  .girl.secret img { aspect-ratio: 1; }
   .girl { width: auto; }
   .girl img { height: auto; aspect-ratio: 1; }
   .title-box { margin-right: 0; }
@@ -420,7 +450,7 @@ body[data-screen=hub] #mute { right: calc(290px + env(safe-area-inset-right)); }
   .loc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .loc { padding: 8px; gap: 6px; }
   .loc .nm small { font-size: 10px; }
-  .loc .who img { width: 24px; height: 24px; }
+  .loc .who img, .loc .who .more { width: 24px; height: 24px; }
   .profile { grid-template-columns: 1fr; }
   .album { grid-template-columns: repeat(2, 1fr); }
   body[data-screen=hub] #mute { top: auto; right: calc(12px + env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom)); }

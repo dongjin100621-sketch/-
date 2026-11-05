@@ -35,7 +35,7 @@ const EV_DAY = [1, dayOf(6, 1), dayOf(10, 1)];
 
 const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xac00; return (c >= 0 && c % 28) ? a : b; };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const bestOf = (S, min) => ORDER.filter((id) => S.intro[id] && S.aff[id] >= min).sort((a, b) => S.aff[b] - S.aff[a])[0];
+const bestOf = (S, min) => ALL.filter((id) => S.intro[id] && S.aff[id] >= min).sort((a, b) => S.aff[b] - S.aff[a])[0];
 
 /* ───── 새 장소의 풍경 ───── */
 Object.assign(VISIT_LINES, {
@@ -173,7 +173,7 @@ async function examRun(G, n) {
     await G.play(P.intro);
     let who = null, bonus = 0;
     if (n === 4) {
-      const ids = G.replay ? [] : ORDER.filter((id) => S.intro[id]);
+      const ids = G.replay ? [] : ALL.filter((id) => S.intro[id]);
       if (ids.length) {
         await G.say('', null, '파트너로 고를 사람은──');
         const i = await G.choose([...ids.map((id) => ({ t: `${CHARS[id].name}${jo(CHARS[id].name, '과', '와')} 조를 짠다` })), { t: '혼자 치른다' }]);
@@ -278,7 +278,7 @@ const FOLK_LINES = {
 };
 async function folkDance(G) {
   const S = G.S;
-  const ids = G.replay ? [pick(ORDER)] : ORDER.filter((id) => S.intro[id] && S.aff[id] >= 15);
+  const ids = G.replay ? [pick(ORDER)] : ALL.filter((id) => S.intro[id] && S.aff[id] >= 15);
   if (!ids.length) { await G.play([['', '모닥불 너머로 춤추는 사람들을 구경했다. 불꽃이 탁탁 튀었다.'], ['', '…다음 학원제엔, 손을 내밀 용기를 내 봐야지.']]); return; }
   await G.say('', null, '마지막 곡이 시작된다. 누구에게 손을 내밀까?');
   const i = await G.choose([...ids.map((id) => ({ t: `${CHARS[id].name}에게 춤을 청한다` })), { t: '구경만 한다' }]);
