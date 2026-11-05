@@ -1,17 +1,18 @@
 /* 루미나리아: Eight Fates — 학사 일정 (1학년 → 2학년 1학기)
  * 4월 1일 입학 → 1학기(중간·기말고사) → 여름방학 → 2학기(중간·기말고사) → 겨울방학 → 2월 3일 입춘 별빛 축제(반전)
- * → 학년말 학기 → 봄방학 → 2학년 1학기 → 7월 7일 칠석, 백 년의 별빛 축제(엔딩). 2학년 이벤트는 year2.js.
+ * → 학년말 학기 → 봄방학 → 2학년 1학기(7월 7일 칠석, 백 년의 별빛 축제 — 별등이 다시 타오른다) → 2학년 여름방학
+ * → 2학년 2학기 → 2학년 겨울방학 → 이듬해 2월 3일 입춘 전야, 마지막 별빛 축제(엔딩). 2학년 이벤트는 year2.js · year2b.js.
  * 하루 = 한 턴. 달력 이벤트 · 시험 · 방학 이벤트 · 짧은 데이트 · 편지가 여기에 있다.
  * 이벤트 종류: 아침(그날 시작할 때) / 밤(NIGHT: 그날 행동을 마친 뒤) / 하루 종일(FULLDAY: 그날은 따로 행동하지 않는다)
  */
 
 /* ───── 달력 ───── */
-const MONTHS = [[4, 30], [5, 31], [6, 30], [7, 31], [8, 31], [9, 30], [10, 31], [11, 30], [12, 31], [1, 31], [2, 28], [3, 31], [4, 30], [5, 31], [6, 30], [7, 31]];
+const MONTHS = [[4, 30], [5, 31], [6, 30], [7, 31], [8, 31], [9, 30], [10, 31], [11, 30], [12, 31], [1, 31], [2, 28], [3, 31], [4, 30], [5, 31], [6, 30], [7, 31], [8, 31], [9, 30], [10, 31], [11, 30], [12, 31], [1, 31], [2, 28]];
 const YEAR1 = 365; // 1학년(4월 1일~3월 31일)의 날 수. 그 뒤가 2학년
 /* 1학년의 m월 d일 (2학년은 dayOf2) */
 const dayOf = (m, d) => { let n = 0; for (const [mm, len] of MONTHS) { if (mm === m) return n + d; n += len; } return n; };
-const dayOf2 = (m, d) => YEAR1 + dayOf(m, d);
-function mdOf(day) { let d = day; for (const [m, len] of MONTHS) { if (d <= len) return [m, d]; d -= len; } return [7, 31]; }
+const dayOf2 = (m, d) => YEAR1 + dayOf(m, d); // 2학년 4월 ~ 이듬해 3월
+function mdOf(day) { let d = day; for (const [m, len] of MONTHS) { if (d <= len) return [m, d]; d -= len; } return [2, 28]; }
 const gradeOf = (day) => (day > YEAR1 ? 2 : 1);
 const TERMS = [
   { key: 't1', name: '1학기', from: 1, to: dayOf(7, 19) },
@@ -20,7 +21,10 @@ const TERMS = [
   { key: 'winter', name: '겨울방학', from: dayOf(12, 21), to: dayOf(2, 7), vac: true },
   { key: 't3', name: '학년말 학기', from: dayOf(2, 8), to: dayOf(3, 18) },
   { key: 'spring', name: '봄방학', from: dayOf(3, 19), to: YEAR1, vac: true },
-  { key: 'y2t1', name: '2학년 1학기', from: YEAR1 + 1, to: 999 },
+  { key: 'y2t1', name: '2학년 1학기', from: YEAR1 + 1, to: dayOf2(7, 19) },
+  { key: 'summer', name: '2학년 여름방학', from: dayOf2(7, 20), to: dayOf2(8, 25), vac: true },
+  { key: 'y2t2', name: '2학년 2학기', from: dayOf2(8, 26), to: dayOf2(12, 20) },
+  { key: 'y2winter', name: '2학년 겨울방학', from: dayOf2(12, 21), to: 9999, vac: true },
 ];
 const termOf = (day) => TERMS.find((t) => day >= t.from && day <= t.to) || TERMS[TERMS.length - 1];
 
