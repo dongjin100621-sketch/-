@@ -222,7 +222,7 @@ function choose(opts) {
   skipOn = false; ctlUi(); clearTimeout(autoT);
   if (boxHidden) toggleHide();
   return new Promise((res) => {
-    const box = $('#sChoices'); box.innerHTML = '';
+    const box = $('#sChoices'); box.innerHTML = ''; box.classList.toggle('many', opts.length > 6); box.scrollTop = 0;
     opts.forEach((o, i) => {
       const b = document.createElement('button'); b.className = 'btn choice'; b.innerHTML = iconize(esc(fmt(o.t)));
       if (o.need) { const n = document.createElement('span'); n.className = 'need ' + (passes(o.need) ? 'ok' : 'no'); n.textContent = `〔${needLabel(o.need)}〕`; b.prepend(n); }
