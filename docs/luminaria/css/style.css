@@ -297,7 +297,12 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 #sChoices {
   position: absolute; left: 50%; transform: translateX(-50%); bottom: 200px; width: min(580px, calc(100vw - 24px));
   display: flex; flex-direction: column; gap: 9px; z-index: 2;
+  /* 히로인이 많아 선택지가 길어지면 화면 위로 넘치지 않고 안에서 스크롤된다 */
+  max-height: calc(100% - 200px - 12px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
 }
+#sChoices > .choice { flex: none; }
+#sChoices.many { gap: 6px; }
+#sChoices.many .choice { padding-top: 9px; padding-bottom: 9px; }
 .choice { text-align: left; padding: 13px 18px 13px 40px; position: relative; background: linear-gradient(90deg, rgba(36,26,40,.95), rgba(20,15,24,.92)); animation: chIn .35s ease-out both; }
 .choice::before { content: '◆'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 10px; transition: color .2s; }
 .choice:hover:not(:disabled)::before { color: var(--heart); }
@@ -464,7 +469,7 @@ body[data-screen=hub] #mute { right: calc(290px + env(safe-area-inset-right)); }
   #sCtl { top: 4px; right: 6px; }
   #sCtl button { font-size: 11px; padding: 3px 5px; }
   #sName { min-width: 80px; padding: 3px 14px; left: 14px; }
-  #sChoices { bottom: 168px; }
+  #sChoices { bottom: 168px; max-height: calc(100% - 168px - 56px - env(safe-area-inset-top)); } /* 위쪽 소리 버튼을 피한다 */
   .slotrow { grid-template-columns: 64px 1fr; }
   .slotrow img, .slotrow .noimg { width: 64px; height: 44px; }
   .slotrow .btn { grid-column: span 2; }
