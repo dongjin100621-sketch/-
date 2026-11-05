@@ -9,7 +9,9 @@
 const HIDDEN = ['elise', 'sia', 'elin', 'rena'];
 const ALL = [...ORDER, ...HIDDEN];
 const HIDDEN_RULE = { elise: 60, sia: 50, gold: 500, bid: 200 }; // 엘리제 지력 · 시아 체력 · 암시장 골드 · 경매 대금
-const HIDDEN_START = 20; // 만났을 때의 호감도 (늦게 만나는 만큼 바로 첫 이야기를 볼 수 있게)
+// 만났을 때의 호감도 (늦게 만나는 만큼 바로 첫 이야기를 볼 수 있게).
+// 엘리제는 별잇기(11월 말) 이후에야 오고, 보고서로 이미 주인공에게 푹 빠져 있어서 더 높게 시작한다
+const HIDDEN_START = { elise: 45, sia: 20, elin: 20, rena: 20 };
 const HIDDEN_CAP = 40;   // 자주 가는 곳에서 마주칠 확률 상한 (일반 히로인은 30)
 const HIDDEN_HINT = { elise: '별을 모두 이은 지혜에게', sia: '단련된 주먹에게', elin: '두둑한 지갑, 그리고 밤', rena: '두둑한 지갑, 그리고 밤' };
 Object.assign(NPCS, { 경매인: '#cdbb8e', 마르코: '#a08a8a', 단장: '#e07a5a', 수집가: '#8fa3b8' });

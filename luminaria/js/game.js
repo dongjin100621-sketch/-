@@ -697,7 +697,7 @@ function hiddenRumors() {
 }
 function meetHidden(id) {
   if (REPLAY) return;
-  meet(id); S.intro[id] = true; S.aff[id] = Math.max(S.aff[id], HIDDEN_START);
+  meet(id); S.intro[id] = true; S.aff[id] = Math.max(S.aff[id], HIDDEN_START[id]);
   AUDIO.sfx('event');
   toast(`✦ 히든 히로인 ${CHARS[id].name}${josa(CHARS[id].name, '을', '를')} 만났다!`);
 }
