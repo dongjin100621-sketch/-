@@ -28,7 +28,23 @@ PICK = {
     'festival':  ('Oswald Achenbach Feuerwerk in Toree dell Annunziata.jpg', None, .5),
     'sea':       ('Caspar David Friedrich - Mondaufgang am Meer - Google Art Project.jpg', None, .5),
 }
-W, H = 1280, 800
+W, H = 2400, 1500  # 고해상도 화면(레티나)용
+# Real-ESRGAN x2plus 가중치 경로. 주면 작은 원본을 AI로 2배씩 키운다 (없으면 단순 확대)
+SR = os.environ.get('LUMI_SR')
+_up = None
+
+
+def enlarge(im):
+    global _up
+    if not SR:
+        return im
+    if _up is None:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from esrgan import Upscaler
+        _up = Upscaler(SR, scale=2, nb=23)
+    while im.width < W * .9:
+        im = _up(im)
+    return im
 
 
 def api(params):
@@ -44,11 +60,11 @@ def fetch(name, title):
     if os.path.exists(path) and os.path.exists(meta_path):
         return path, json.load(open(meta_path))
     d = api({'action': 'query', 'titles': 'File:' + title, 'prop': 'imageinfo',
-             'iiprop': 'url|size|extmetadata', 'iiurlwidth': 1280})
+             'iiprop': 'url|size|extmetadata', 'iiurlwidth': 2560})
     ii = next(iter(d['query']['pages'].values()))['imageinfo'][0]
     m = ii['extmetadata']
     clean = lambda k: re.sub(r'\s+', ' ', re.sub('<[^>]+>', ' ', m.get(k, {}).get('value', ''))).strip()
-    url = ii['thumburl'] if ii['width'] > 1280 else ii['url']
+    url = ii['thumburl'] if ii['width'] > 2560 else ii['url']
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
         open(path, 'wb').write(r.read())
     artist = clean('Artist').replace('Details on Google Art Project', '').replace('– Artist', '').strip()
@@ -71,7 +87,7 @@ def fit(im, focus):
         nh = round(im.width / r)
         y = round((im.height - nh) * fy)
         im = im.crop((0, y, im.width, y + nh))
-    small = im.width < W
+    small = im.width < W * .9
     im = im.resize((W, H), Image.LANCZOS)
     if small:  # 확대한 그림은 살짝 부드럽게
         im = im.filter(ImageFilter.GaussianBlur(.8))
@@ -86,10 +102,10 @@ def main():
         if box:
             s = im.width / 1280
             im = im.crop(tuple(round(v * s) for v in box))
-        im = fit(im, focus)
+        im = fit(enlarge(im), focus)
         im = ImageEnhance.Contrast(im).enhance(1.06)
         im = ImageEnhance.Color(im).enhance(1.08)
-        im.save(os.path.join(ROOT, f'bg_{name}.jpg'), quality=80, optimize=True, progressive=True)
+        im.save(os.path.join(ROOT, f'bg_{name}.jpg'), quality=82, optimize=True, progressive=True)
         credits.append({'bg': name, **meta})
         print(name, meta['artist'], '|', meta['license'])
     json.dump(credits, open(os.path.join(ROOT, 'CREDITS.json'), 'w'), ensure_ascii=False, indent=1)

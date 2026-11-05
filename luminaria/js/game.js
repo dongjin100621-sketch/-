@@ -17,7 +17,8 @@ const EVENT_RATE = .18; // 장소 돌발 사건이 일어날 확률 (별의 탑�
 const AFF_CAP = 3; // 호감도는 한 번에 최대 ±3
 const REL = [[80, '운명의 상대'], [65, '두근두근'], [45, '특별한 친구'], [25, '친구'], [10, '아는 사이'], [0, '낯선 사이']];
 
-const img = (id, kind) => `img/${id}_${kind}.${kind === 'chibi' ? 'png' : 'jpg'}`;
+const EXT = { chibi: 'webp', stand: 'webp' }; // 투명 배경 그림은 WebP
+const img = (id, kind) => `img/${id}_${kind}.${EXT[kind] || 'jpg'}`;
 const face = (id, ex) => img(id, 'e' + (CHARS[id].ex[ex] ?? 0));
 const fmt = (t) => t.replaceAll('{P}', S ? S.name : '');
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -50,6 +51,7 @@ function newState(name) {
     stats: { int: 5, str: 5, brave: 5, charm: 5 }, gold: 100,
     aff: o(0), met: o(false), intro: o(false), ev: o(0), talk: o(0), gifted: {}, dated: {}, letters: {}, inv: {},
     growth: 0, skills: {}, club: null, creed: null, rank: 0, rev: {}, flags: {}, tower: 0,
+    lover: null, love: null, confess: {},
   };
 }
 function fixState(s) { // 예전 저장 데이터 보정
@@ -63,6 +65,7 @@ function fixState(s) { // 예전 저장 데이터 보정
   for (const [k, v] of Object.entries(s.gifted)) if (typeof v !== 'number') delete s.gifted[k];
   if (s.tower == null) s.tower = Object.keys(s.skills).filter((k) => SKILLS[k] && SKILLS[k].ch).length;
   delete s.slot; delete s.fat; delete s.presence;
+  s.lover = s.lover || null; s.love = s.lover ? s.love : null; s.confess = s.confess || {};
   return s;
 }
 
@@ -70,7 +73,7 @@ function fixState(s) { // 예전 저장 데이터 보정
 function applyVolume() {
   AUDIO.setVol('bgm', META.muted ? 0 : META.bgm);
   AUDIO.setVol('sfx', META.muted ? 0 : META.sfx);
-  $('#mute').textContent = META.muted ? '🔇' : '♪';
+  $('#mute').innerHTML = icon(META.muted ? 'volume-x' : 'music');
   $('#mute').classList.toggle('off', META.muted);
 }
 AUDIO.onHeard((id) => { if (!META.heard[id]) { META.heard[id] = 1; saveMeta(); } });
@@ -94,7 +97,7 @@ function setBg(name) {
   ls[bgLayer].classList.add('on'); ls[1 - bgLayer].classList.remove('on');
 }
 function setTint(t) { document.body.dataset.tint = t || ''; }
-function toast(msg) { const d = document.createElement('div'); d.textContent = msg; $('#toast').append(d); setTimeout(() => d.remove(), 2700); }
+function toast(msg) { const d = document.createElement('div'); d.innerHTML = iconize(esc(msg)); $('#toast').append(d); setTimeout(() => d.remove(), 2700); }
 function pop(text, down) {
   const d = document.createElement('div'); d.className = 'heart-pop' + (down ? ' down' : ''); d.textContent = text;
   const r = $('#sBox').getBoundingClientRect(); d.style.left = (r.left + 30) + 'px'; d.style.top = (r.top - 40) + 'px';
@@ -104,7 +107,7 @@ function banner(big, small, icon) {
   AUDIO.sfx('day');
   return new Promise((res) => {
     const d = document.createElement('div'); d.className = 'day-banner';
-    d.innerHTML = `<div class="db-in"><div class="db-ic">${icon || '✦'}</div><div class="db-big">${big}</div><div class="db-line"></div><small>${small || ''}</small></div>`;
+    d.innerHTML = `<div class="db-in"><div class="db-ic">${iconize(icon || '✦')}</div><div class="db-big">${big}</div><div class="db-line"></div><small>${small || ''}</small></div>`;
     document.body.append(d); setTimeout(() => { d.remove(); res(); }, 2300);
   });
 }
@@ -169,8 +172,8 @@ $('#sCtl').addEventListener('click', (e) => {
 });
 
 function charShow(id, cg) {
-  const el = $('#sChar');
-  if (spriteId !== id) { el.classList.remove('on'); void el.offsetWidth; el.src = img(id, 'key'); }
+  const el = $('#sChar'), src = img(id, cg ? 'key' : 'stand');
+  if (spriteId !== id || el.dataset.src !== src) { el.classList.remove('on'); void el.offsetWidth; el.src = src; el.dataset.src = src; }
   spriteId = id; spriteCg = !!cg;
   el.style.setProperty('--c', CHARS[id].color);
   el.classList.toggle('cg', !!cg); el.classList.remove('dim');
@@ -220,7 +223,7 @@ function choose(opts) {
   return new Promise((res) => {
     const box = $('#sChoices'); box.innerHTML = '';
     opts.forEach((o, i) => {
-      const b = document.createElement('button'); b.className = 'btn choice'; b.textContent = fmt(o.t);
+      const b = document.createElement('button'); b.className = 'btn choice'; b.innerHTML = iconize(esc(fmt(o.t)));
       if (o.need) { const n = document.createElement('span'); n.className = 'need ' + (passes(o.need) ? 'ok' : 'no'); n.textContent = `〔${needLabel(o.need)}〕`; b.prepend(n); }
       b.style.animationDelay = (i * 60) + 'ms';
       if (o.disabled) b.disabled = true;
@@ -519,7 +522,7 @@ async function afterTalk(id) {
     const canDate = canDateNow(id);
     if (!canGift && !canDate) return;
     const opts = [];
-    if (canDate) opts.push({ t: `💕 ${CHARS[id].name}에게 주말 데이트를 신청한다`, k: 'date' });
+    if (canDate) opts.push({ t: `💕 ${CHARS[id].name}에게 주말 데이트를 신청한다${S.lover && S.lover !== id ? `  (${CHARS[S.lover].name}${josa(CHARS[S.lover].name, '이', '가')} 알면 서운해할 텐데…)` : ''}`, k: 'date' });
     if (canGift) opts.push({ t: '🎁 선물을 건넨다', k: 'gift' });
     opts.push({ t: '이야기를 마친다', k: 'end' });
     const k = opts[await choose(opts)].k;
@@ -551,7 +554,134 @@ async function dateScene(id) {
   S.dated[id] = S.day;
   if (first) seen(`${id}_date`);
   toast(`💕 ${CHARS[id].name}${josa(CHARS[id].name, '과', '와')} 데이트를 했다`);
+  if (S.lover && S.lover !== id && !REPLAY) { // 연인이 있는데 다른 사람과 데이트
+    const lv = CHARS[S.lover];
+    addAff(S.lover, -3);
+    toast(`💔 소문이 ${lv.name}의 귀에 들어간 것 같다… (${lv.name} 호감도 -3)`);
+  }
   if (back) charShow(id);
+}
+
+/* ───── 고백과 연애 ───── */
+const canConfess = (id) => !S.lover && S.intro[id] && S.aff[id] >= CONFESS_AT && S.ev[id] >= CONFESS_EV && S.day >= (S.confess[id] || 0);
+const confessCands = () => ORDER.filter(canConfess);
+const freeDay = () => isWeekend() || isVac();
+const loveActs = () => Object.entries(LOVE_ACTS).filter(([, a]) => a.when === (freeDay() ? 'free' : 'school'));
+function loveCard() {
+  if (S.lover) {
+    const c = CHARS[S.lover];
+    return `<button class="btn loc love" data-love style="--c:${c.color}"><span class="ic">${icon('heart')}</span><span class="nm"><b>${c.name}${josa(c.name, '과', '와')} 연애</b><small>연인 ${S.day - S.love.since + 1}일째 · ${freeDay() ? '데이트' : '방과 후'} · 호감도 최대 +3</small></span><span class="who"><img src="${img(S.lover, 'chibi')}" alt=""></span></button>`;
+  }
+  const cs = confessCands();
+  if (!cs.length) return '';
+  return `<button class="btn loc love" data-love><span class="ic">${icon('message-circle-heart')}</span><span class="nm"><b>고백하기</b><small>${cs.map((id) => CHARS[id].name).join('·')}에게 마음을 전한다</small></span><span class="who">${cs.map((id) => `<img src="${img(id, 'chibi')}" alt="">`).join('')}</span></button>`;
+}
+/* 연애/고백 메뉴: 고르면 하루를 쓴다. 닫으면 아무 일도 없다. */
+function loveMenu() {
+  return new Promise((res) => {
+    let pick = null;
+    if (S.lover) {
+      const id = S.lover, c = CHARS[id], nx = LOVE_MILES.find((n) => n > S.love.n);
+      modal(`<h2>${icon('heart')} ${c.name}${josa(c.name, '과', '와')}의 연애</h2>
+        <div class="love-head" style="--c:${c.color}"><img src="${img(id, 'e1')}" alt=""><div><b>${c.name} · 연인 ${S.day - S.love.since + 1}일째</b>
+          <small>${md(S.love.since)}부터 · 연애 ${S.love.n}회 · 호감도 ${S.aff[id]}</small>
+          <small>${nx ? `다음 특별한 순간 「${LOVE_MILE_TITLES[LOVE_MILES.indexOf(nx)]}」까지 ${nx - S.love.n}회` : '세 가지 특별한 순간을 모두 함께했다'}</small></div></div>
+        <p class="sub">오늘 ${freeDay() ? '(주말·방학) 하루를 함께 보낸다' : '(학기 중 평일) 수업이 끝나고 함께한다'}. 하루 행동을 씁니다.</p>
+        <div class="love-acts">${loveActs().map(([k, a]) => `<button class="btn" data-act="${k}">${icon(a.icon)}<b>${a.name}</b><small>${STATS[a.stat]} +1 · 호감도 최대 +3</small></button>`).join('')}</div>
+        <p class="sub">연애를 2주 넘게 쉬거나 다른 사람과 데이트하면 호감도가 깎이고, ${BREAK_AT} 아래로 떨어지면 헤어집니다.</p>`, true, () => res(pick));
+    } else {
+      const cs = confessCands();
+      modal(`<h2>${icon('message-circle-heart')} 고백하기</h2>
+        <p class="sub">마음을 전할 사람을 고르세요. 그녀를 불러내 고백하는 데 하루를 씁니다. 어떤 말로 전하느냐에 따라 대답이 달라져요.</p>
+        <div class="love-acts">${cs.map((id) => `<button class="btn" data-who="${id}" style="--c:${CHARS[id].color}"><img src="${img(id, 'e5')}" alt=""><b>${CHARS[id].name}</b><small>호감도 ${S.aff[id]} · ${rel(S.aff[id])}</small></button>`).join('')}</div>`, true, () => res(pick));
+    }
+    $('#modalInner').onclick = (e) => {
+      const b = e.target.closest('[data-act],[data-who]'); if (!b) return;
+      pick = b.dataset.act ? ['act', b.dataset.act] : ['who', b.dataset.who];
+      closeModal();
+    };
+  }).then(async (pick) => {
+    if (!pick) return;
+    if (pick[0] === 'who') await confessTo(pick[1]); else await loverDay(pick[1]);
+    charHide();
+    await endDay();
+  });
+}
+async function confessTo(id) {
+  const c = CHARS[id], C = CONFESS[id];
+  let res = 'yes';
+  S.bg = C.spot[0];
+  await runScene([{ bgm: 'romance' }, { tint: 'pm' }, { pt: null }, { show: id },
+    ['', `${C.spot[1]}. ${c.name}${josa(c.name, '을', '를')} 이곳으로 불러냈다.`],
+    [id, ...C.call],
+    ['me', '…할 말이 있어. 끝까지 들어 줄래?'],
+    { choice: [
+      { t: `${C.best}  — 진심을 그대로 전한다`, go: [{ run: () => { res = 'yes'; } }] },
+      { t: `${CONFESS_SOFT}  — 돌려서 말한다`, go: [{ run: () => { res = S.aff[id] >= CONFESS_SURE ? 'yes' : 'wait'; } }] },
+      { t: `${CONFESS_PUSH}  — 자신만만하게 밀어붙인다`, go: [{ run: () => { res = 'no'; } }] },
+    ] },
+    { run: async (g) => {
+      if (res === 'yes') {
+        await g.play([{ fx: 'flash' }, ...C.yes]);
+        addAff(id, 3);
+        S.lover = id; S.love = { since: S.day, n: 0, last: S.day, warn: 0 };
+        FX.burst(innerWidth / 2, innerHeight * .4, 'heart', c.color);
+        seen(`${id}_confess`);
+      } else if (res === 'wait') {
+        await g.say(id, C.wait[0], C.wait[1]);
+        S.confess[id] = S.day + 7;
+      } else {
+        await g.say(id, C.no[0], C.no[1]);
+        addAff(id, -3);
+        S.confess[id] = S.day + 14;
+      }
+    } },
+  ], C.spot[0], { keepTint: true });
+  if (res === 'yes') toast(`💞 ${c.name}${josa(c.name, '과', '와')} 연인이 되었다!`);
+  else if (res === 'wait') toast(`${c.name}${josa(c.name, '은', '는')} 대답을 미뤘다… ${md(S.confess[id])}부터 다시 고백할 수 있다`);
+  else toast(`💔 고백이 거절당했다… ${md(S.confess[id])}부터 다시 고백할 수 있다`);
+}
+async function loverDay(k) {
+  const id = S.lover, c = CHARS[id], A = LOVE_ACTS[k], [m] = mdOf(S.day), R = LOVE_REPLY[id];
+  const spot = k === 'season' ? LOVE_SEASON(m) : [A.bg, ''];
+  const N = c.name + josa(c.name, '과', '와');
+  let got = 'mid';
+  S.bg = spot[0];
+  await runScene([{ bgm: 'romance' }, { tint: A.tint || dayTint() }, { pt: A.pt || ambient(A.outdoor) || null }, { show: id },
+    ['', A.intro.replace('{N}', N).replace('{S}', spot[1])],
+    [id, ...LOVE_LINES[id][k]],
+    { choice: [
+      { t: A.good, aff: { [id]: 3 }, go: [[id, ...R.good], { run: () => { got = 'good'; } }] },
+      { t: A.mid, aff: { [id]: 1 }, go: [[id, ...R.mid]] },
+      { t: A.bad, aff: { [id]: -3 }, go: [[id, ...R.bad], { run: () => { got = 'bad'; } }] },
+    ] },
+  ], spot[0], { keepTint: true });
+  S.stats[A.stat] += 1;
+  S.love.last = S.day;
+  if (got !== 'bad') S.love.n++;
+  toast(`💕 ${A.name} · ${STATS[A.stat]} +1`);
+  const mi = LOVE_MILES.indexOf(S.love.n);
+  if (got !== 'bad' && mi >= 0) {
+    await banner(LOVE_MILE_TITLES[mi], `${c.name}${josa(c.name, '과', '와')}의 특별한 순간`, '💕');
+    await runScene([{ bgm: 'romance' }, { show: id }, ...LOVE_MILE[id][mi]], null, { keepTint: true });
+    seen(`${id}_love${mi}`);
+  }
+}
+/* 아침마다: 연인을 오래 내버려 두면 서운해하고, 호감도가 너무 낮으면 헤어진다 */
+async function loveCheck() {
+  if (!S.lover) return;
+  const id = S.lover, c = CHARS[id];
+  if (S.aff[id] < BREAK_AT) {
+    await runScene([{ bgm: 'sad' }, { tint: 'pm' }, { show: id }, ['', `${c.name}${josa(c.name, '이', '가')} 굳은 얼굴로 찾아왔다.`], [id, ...BREAKUP[id]], { hide: 1 }, ['', '…연인 관계가 끝났다.']], S.bg);
+    S.lover = null; S.love = null; S.confess[id] = S.day + 30;
+    toast(`💔 ${c.name}${josa(c.name, '과', '와')} 헤어졌다`);
+    return;
+  }
+  if (S.day - Math.max(S.love.last, S.love.warn || 0) >= NEGLECT_GAP) {
+    S.love.warn = S.day;
+    S.aff[id] = Math.max(0, S.aff[id] - 2);
+    toast(`💔 ${c.name}: “${LOVE_NEGLECT[id]}” (호감도 -2)`);
+  }
 }
 
 /* 하루를 마친다: 밤 이벤트 → 날짜 넘김 → 다음 날 시작 */
@@ -583,27 +713,28 @@ async function startDay() {
     await runScene(g.steps);
     S.growth++; seen(g.key);
   }
+  await loveCheck();
   saveGame(); hub();
 }
 function flip(big, small) {
   AUDIO.sfx('page');
   return new Promise((res) => {
     const d = document.createElement('div'); d.className = 'day-flip';
-    d.innerHTML = `<b>${big}</b><small>${small}</small>`;
+    d.innerHTML = `<b>${big}</b><small>${iconize(small)}</small>`;
     document.body.append(d); setTimeout(() => { d.remove(); res(); }, 800);
   });
 }
 
 async function festival() {
-  const best = ORDER.filter((id) => S.intro[id]).sort((a, b) => S.aff[b] - S.aff[a])[0];
+  const best = S.lover || ORDER.filter((id) => S.intro[id]).sort((a, b) => S.aff[b] - S.aff[a])[0];
   if (best && S.aff[best] >= 30 && EVE[best]) { await runScene([{ bgm: 'calm' }, ...EVE[best]]); seen(`${best}_eve`); }
   else await runScene([{ bgm: 'calm' }, ...COMMON.eveAlone]);
   S.weather = '맑음';
   await banner(dateStr(LAST_DAY), '별빛 축제의 밤', '✦');
   await runScene([{ bgm: 'festival' }, ...COMMON.festivalOpen]);
-  const cand = ORDER.filter((id) => S.ev[id] >= 3 && S.aff[id] >= END_AT).sort((a, b) => S.aff[b] - S.aff[a]);
+  const cand = ORDER.filter((id) => S.ev[id] >= 3 && S.aff[id] >= END_AT).sort((a, b) => (b === S.lover) - (a === S.lover) || S.aff[b] - S.aff[a]);
   const trueOK = S.growth >= GROWTH.length && ORDER.every((id) => S.intro[id] && S.aff[id] >= TRUE_AT);
-  const opts = cand.map((id) => ({ t: `${CHARS[id].name}에게 간다`, k: id }));
+  const opts = cand.map((id) => ({ t: `${id === S.lover ? '💕 ' : ''}${CHARS[id].name}에게 간다${id === S.lover ? ' (연인)' : ''}`, k: id }));
   if (trueOK) opts.push({ t: '✦ 여덟 사람 모두와 함께 별등 앞에 선다', k: 'true' });
   if (S.growth >= GROWTH.length) opts.push({ t: '🕯️ 혼자 탑 꼭대기, 별등 곁으로 간다', k: 'solo' });
   let who = opts[0]?.k;
@@ -614,7 +745,10 @@ async function festival() {
   let key;
   if (who === 'true') { await play([{ bgm: 'ending' }, ...COMMON.trueEnd]); key = 'true'; }
   else if (who === 'solo') { await play([{ bgm: 'ending' }, ...COMMON.soloEnd]); key = 'solo'; }
-  else if (who) { await play([{ bgm: 'romance' }, ...STORY[who].end]); key = who; }
+  else if (who) {
+    const lov = who === S.lover ? [['', `${md(S.love.since)}, 연인이 된 그날로부터 ${S.day - S.love.since}일. 둘이 함께 맞는 첫 별빛 축제의 밤이다.`]] : [];
+    await play([{ bgm: 'romance' }, ...lov, ...STORY[who].end]); key = who;
+  }
   else {
     const fr = ORDER.filter((id) => S.intro[id] && S.aff[id] >= 35).sort((a, b) => S.aff[b] - S.aff[a])[0];
     const ne = [...COMMON.normalEnd];
@@ -642,7 +776,8 @@ function rollCredits(key) {
       <h4>CAST</h4>${ORDER.map((id) => `<p><b style="color:${CHARS[id].color}">${CHARS[id].name}</b> <small>${CHARS[id].en}</small><br><small>${CHARS[id].title}</small></p>`).join('')}
       <h4>MUSIC</h4>${Object.values(AUDIO.tracks).map((t) => `<p>${esc(t.name)} <small>${esc(t.ko)}</small></p>`).join('')}<p><small>Web Audio로 실시간 합성</small></p>
       <h4>BACKGROUND ART</h4>${bg}
-      <h4>CHARACTER ART</h4><p>LUMINARIA: Eight Fates 캐릭터 시트</p>
+      <h4>CHARACTER ART</h4><p>LUMINARIA: Eight Fates 캐릭터 시트</p><p><small>고해상도화 Real-ESRGAN · 배경 분리 isnet-anime</small></p>
+      <h4>ICONS</h4><p>Lucide <small>(ISC License)</small></p>
       <h4>STORY · PROGRAM</h4><p>Claude</p>
       <div class="roll-end">Thank you for playing.</div></div>
       <button class="btn roll-skip">건너뛰기 ▸▸</button>`;
@@ -676,7 +811,7 @@ function hub() {
   FX.set(S.weather === '비' ? 'rain' : S.weather === '눈' ? 'snow' : m === 4 ? 'petals' : null);
   const t = termOf(S.day), wd = wdOf(S.day);
   $('#hDate').textContent = dateStr(S.day);
-  $('#hSlot').textContent = `${t.name}${t.vac ? '' : ` ${Math.floor((S.day - t.from) / 7) + 1}주차`} · ${WEATHER[S.weather]} ${S.weather}`;
+  $('#hSlot').innerHTML = iconize(`${t.name}${t.vac ? '' : ` ${Math.floor((S.day - t.from) / 7) + 1}주차`} · ${WEATHER[S.weather]} ${S.weather}`);
 
   const news = [`🌟 별빛 축제까지 D-${LAST_DAY - S.day}`];
   const today = CALENDAR[S.day];
@@ -692,22 +827,29 @@ function hub() {
     const k = pendingEvent(id);
     if (k >= 0) news.push(`💌 ${CHARS[id].name}${josa(CHARS[id].name, '과', '와')}의 이야기가 기다리고 있다. 만나러 가 보자`);
   }
+  if (S.lover) {
+    const c = CHARS[S.lover], nx = LOVE_MILES.find((n) => n > S.love.n);
+    news.push(`💕 ${c.name}${josa(c.name, '과', '와')} 연인 ${S.day - S.love.since + 1}일째 · 연애 ${S.love.n}회${nx ? ` · 「${LOVE_MILE_TITLES[LOVE_MILES.indexOf(nx)]}」까지 ${nx - S.love.n}회` : ''}`);
+  } else {
+    const cs = confessCands();
+    if (cs.length) news.push(`💗 ${cs.map((id) => CHARS[id].name).join('·')}에게 마음을 전할 수 있을 것 같다 (고백하기)`);
+  }
   const g = GROWTH[S.growth];
   if (g) {
     const tt = total(S.stats);
     news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 내일 아침, 무색의 빛에 변화가 찾아올 것 같다` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${g.need} (지금 ${tt})`);
   }
-  $('#hNews').innerHTML = news.map((n) => `<li>${n}</li>`).join('');
+  $('#hNews').innerHTML = news.map((n) => `<li>${iconize(n)}</li>`).join('');
 
   const st = Object.entries(STATS).map(([k, n]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, S.stats[k])}%"></i></div><b>${S.stats[k]}</b></div>`).join('');
   const tt = total(S.stats), nx = RANKS[S.rank + 1];
-  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${tt} · 다음 등급 ${nx[0]}` : `총 ${tt} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">💰 ${S.gold} G</div>`;
+  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${tt} · 다음 등급 ${nx[0]}` : `총 ${tt} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">${iconize('💰')} ${S.gold} G</div>`;
 
-  $('#hLocs').innerHTML = Object.keys(LOCS).map((k) => [k, locState(k)]).filter(([, s]) => !s.hide).map(([k, s]) => {
+  $('#hLocs').innerHTML = loveCard() + Object.keys(LOCS).map((k) => [k, locState(k)]).filter(([, s]) => !s.hide).map(([k, s]) => {
     const L = LOCS[k], stat = locStat(k);
-    const who = encounterOdds(k).filter(([id]) => S.met[id]).map(([id]) => `<img src="${img(id, 'chibi')}" title="${CHARS[id].name} (자주 온다)" alt="">`).join('');
+    const who = encounterOdds(k).filter(([id]) => S.met[id]).map(([id]) => `<img src="${img(id, 'e0')}" title="${CHARS[id].name} (자주 온다)" alt="">`).join('');
     const gain = [L.ticket ? `모든 능력치 +2 · ${S.tower}회` : stat ? `${STATS[stat]} +1` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
-    return `<button class="btn loc ${s.ok ? '' : 'shut'}" data-loc="${k}" ${s.ok ? '' : 'disabled'}><span class="ic">${L.icon}</span><span class="nm"><b>${locName(k)}</b><small>${s.ok ? gain : `🔒 ${s.why}`}</small></span><span class="who">${s.ok ? who : ''}</span></button>`;
+    return `<button class="btn loc ${s.ok ? '' : 'shut'}" data-loc="${k}" ${s.ok ? '' : 'disabled'}><span class="ic">${iconize(L.club && S.club ? CLUBS[S.club].icon : L.icon)}</span><span class="nm"><b>${locName(k)}</b><small>${s.ok ? gain : iconize(`🔒 ${s.why}`)}</small></span><span class="who">${s.ok ? who : ''}</span></button>`;
   }).join('');
 
   const known = ORDER.filter((id) => S.met[id]);
@@ -720,12 +862,17 @@ function hub() {
 
   $('#hGirls').innerHTML = ORDER.map((id) => {
     const met = S.met[id];
-    const ev = pendingEvent(id) >= 0 ? '<span class="badge">💌</span>' : '';
-    return `<button class="btn girl ${met ? '' : 'locked'}" data-girl="${id}" style="--c:${CHARS[id].color}">${ev}<img src="${img(id, 'e0')}" alt=""><div class="gn">${met ? CHARS[id].name : '???'}</div><div class="rl">${met ? rel(S.aff[id]) : ''}</div><div class="hb"><i style="width:${S.aff[id]}%"></i></div></button>`;
+    const ev = S.lover === id ? `<span class="badge love">${icon('heart')}</span>` : pendingEvent(id) >= 0 ? `<span class="badge">${icon('mail')}</span>` : '';
+    return `<button class="btn girl ${met ? '' : 'locked'} ${S.lover === id ? 'lover' : ''}" data-girl="${id}" style="--c:${CHARS[id].color}">${ev}<img src="${img(id, 'e0')}" alt=""><div class="gn">${met ? CHARS[id].name : '???'}</div><div class="rl">${!met ? '' : S.lover === id ? '연인' : rel(S.aff[id])}</div><div class="hb"><i style="width:${S.aff[id]}%"></i></div></button>`;
   }).join('');
 }
 let busy = false;
 $('#hLocs').addEventListener('click', async (e) => {
+  if (e.target.closest('[data-love]') && !busy) {
+    busy = true;
+    try { await loveMenu(); } finally { busy = false; }
+    return;
+  }
   const b = e.target.closest('[data-loc]');
   if (!b || b.disabled || busy) return;
   busy = true;
@@ -736,7 +883,7 @@ $('#hGirls').addEventListener('click', (e) => { const b = e.target.closest('[dat
 /* ───── 모달 ───── */
 let onModalClose = null;
 function modal(html, closable = true, onClose = null) {
-  $('#modalInner').innerHTML = (closable ? '<button class="btn modal-close" data-close>✕</button>' : '') + html;
+  $('#modalInner').innerHTML = (closable ? '<button class="btn modal-close" data-close>✕</button>' : '') + iconize(html);
   $('#modalInner').onclick = null;
   const was = $('#modal').classList.contains('hidden');
   $('#modal').classList.remove('hidden');
@@ -747,7 +894,7 @@ function closeModal() { $('#modal').classList.add('hidden'); const f = onModalCl
 $('#modal').addEventListener('click', (e) => { if (e.target.closest('[data-close]') || e.target.id === 'modal') closeModal(); });
 
 function showLog() {
-  modal(`<h2>대사 기록</h2><div class="log">${LOG.slice(-120).map((l) => `<div class="ll">${l.n ? `<b style="color:${l.c}">${esc(l.n)}</b>` : ''}<p class="${l.n ? '' : 'narr'}">${esc(l.t)}</p></div>`).join('') || '<p style="color:var(--dim)">아직 기록이 없습니다.</p>'}</div>`);
+  modal(`<h2>대사 기록</h2><div class="log">${LOG.slice(-120).map((l) => `<div class="ll">${l.n ? `<b style="color:${l.c}">${esc(l.n)}</b>` : ''}<p class="${l.n ? '' : 'narr'}">${iconize(esc(l.t))}</p></div>`).join('') || '<p style="color:var(--dim)">아직 기록이 없습니다.</p>'}</div>`);
   const lg = $('#modalInner .log'); if (lg) lg.scrollTop = lg.scrollHeight;
 }
 
@@ -756,8 +903,8 @@ function shop() {
     const draw = () => {
       $('#modalInner').innerHTML = `<button class="btn modal-close" data-close>✕</button>
         <div class="shop-head"><img src="${img('beatrix', 'e2')}" alt=""><div><h2>상인 길드 상점</h2><p style="color:var(--dim);margin:0">「좋은 물건엔 좋은 값을. 선물이라면 상대 취향을 잘 생각해 봐.」 — 베아트릭스</p></div></div>
-        <div class="purse">💰 ${S.gold} G</div>
-        <div class="grid-items">${Object.entries(ITEMS).map(([k, it]) => `<button class="btn item" data-buy="${k}" ${S.gold < it.price ? 'disabled' : ''}><span class="ic">${it.icon}</span><span>${it.name}<small>${it.price} G · 보유 ${S.inv[k] || 0}</small><em>${it.desc || ''}</em></span></button>`).join('')}</div>
+        <div class="purse">${iconize('💰')} ${S.gold} G</div>
+        <div class="grid-items">${Object.entries(ITEMS).map(([k, it]) => `<button class="btn item" data-buy="${k}" ${S.gold < it.price ? 'disabled' : ''}><span class="ic">${iconize(it.icon)}</span><span>${it.name}<small>${it.price} G · 보유 ${S.inv[k] || 0}</small><em>${it.desc || ''}</em></span></button>`).join('')}</div>
         <div class="row"><button class="btn gold" data-close>나가기</button></div>`;
     };
     modal('', true, res); draw();
@@ -821,6 +968,7 @@ function profile(id, fromAlbum) {
         <tr><th>이야기</th><td>${'●'.repeat(ev)}${'○'.repeat(3 - ev)} ${ev < 3 ? `(다음: 호감도 ${EV_AT[ev]}${EV_DAY[ev] > 1 ? ` · ${md(EV_DAY[ev])} 이후` : ''}${ev === 2 ? ` · ${STATS[c.req.stat]} ${c.req.v}` : ''})` : '완료'}</td></tr>
         <tr><th>자주 가는 곳</th><td>${Object.entries(HAUNTS[id]).map(([l, p]) => `${LOCS[l].place} ${p}%`).join(', ')}</td></tr>
         <tr><th>좋아하는 선물</th><td>${likes}</td></tr>
+        <tr><th>연애</th><td>${S.lover === id ? `${icon('heart')} 연인 (${md(S.love.since)}부터 · 연애 ${S.love.n}회)` : S.lover ? `${CHARS[S.lover].name}${josa(CHARS[S.lover].name, '과', '와')} 사귀는 중` : canConfess(id) ? '지금 고백할 수 있다 (고백하기)' : `호감도 ${CONFESS_AT} · 이야기 ${CONFESS_EV}편 이후 고백${(S.confess[id] || 0) > S.day ? ` · ${md(S.confess[id])}부터 다시` : ''}`}</td></tr>
         <tr><th>데이트</th><td>${ev < 1 ? '이야기 1 이후' : canDateNow(id) ? '오늘 신청할 수 있다 (주말)' : S.dated[id] && S.day - S.dated[id] < DATE_GAP ? `${md(S.dated[id] + DATE_GAP)} 이후 주말` : '주말에 만나면 신청할 수 있다'}</td></tr>` : ''}
         ${META.endings[id] ? '<tr><th>엔딩</th><td>✦ 달성</td></tr>' : ''}
       </table>
@@ -844,6 +992,8 @@ function replayList() {
     L.push({ g: CHARS[id].name, c: CHARS[id].color, items: [
       ...st.ev.map((e, k) => [`${id}_ev${k}`, `이야기 ${k + 1}`, [{ bgm: EV_BGM[k] }, ...e]]),
       [`${id}_date`, '주말 데이트', [{ bgm: 'romance' }, ...DATES[id]]],
+      [`${id}_confess`, '고백', confessReplay(id)],
+      ...LOVE_MILE_TITLES.map((t, k) => [`${id}_love${k}`, `연인 · ${t}`, mileReplay(id, k)]),
       [`${id}_eve`, '축제 전야', [{ bgm: 'calm' }, ...EVE[id]]],
       [`${id}_end`, '엔딩', [{ bg: 'festival' }, { bgm: 'romance' }, ...st.end]],
     ] });
@@ -946,7 +1096,8 @@ function creditsInfo() {
     <h3>배경 그림</h3><p class="sub">Wikimedia Commons의 퍼블릭 도메인·CC BY 작품을 잘라 쓰고 색을 보정했습니다.</p>
     <ul class="cred">${(CREDITS_BG || []).map((c) => `<li><a href="${esc(c.source)}" target="_blank" rel="noopener">${esc(c.artist)} — ${esc(c.title.replace(/\.(jpg|png)$/i, ''))}</a> <small>(${esc(c.license)})</small></li>`).join('')}</ul>
     <h3>음악 · 효과음</h3><p class="sub">외부 음원 없이 Web Audio API로 실시간 합성한 자작곡 ${Object.keys(AUDIO.tracks).length}곡.</p>
-    <h3>캐릭터</h3><p class="sub">LUMINARIA: Eight Fates 캐릭터 시트</p>`, true, () => settings());
+    <h3>캐릭터</h3><p class="sub">LUMINARIA: Eight Fates 캐릭터 시트. Real-ESRGAN(BSD-3-Clause)으로 고해상도화하고 isnet-anime로 배경을 분리했습니다.</p>
+    <h3>아이콘</h3><p class="sub"><a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> 선 아이콘 (ISC License)</p>`, true, () => settings());
 }
 
 $('#btnInv').onclick = inventory;
@@ -957,10 +1108,22 @@ $('#btnSettings').onclick = settings;
 $('#btnToTitle').onclick = () => { saveGame(); title(); };
 
 /* ───── 타이틀 ───── */
+let titleT = 0;
 function title() {
   screen('title'); setBg('tower'); setTint(null);
   AUDIO.bgm('title'); FX.set('stars');
-  $('#titleArt').innerHTML = ORDER.map((id) => `<img src="${img(id, 'key')}" alt="">`).join('');
+  // 히로인 스탠딩이 차례로 바뀐다 (보일 때 불러온다)
+  $('#titleArt').innerHTML = ORDER.map((id) => `<img data-src="${img(id, 'stand')}" alt="">`).join('') + '<div class="title-name"></div>';
+  let i = rand(0, ORDER.length - 1);
+  const show = () => {
+    const ims = document.querySelectorAll('#titleArt img'), nm = $('#titleArt .title-name');
+    if (!ims.length || document.body.dataset.screen !== 'title') return;
+    for (const k of [i, (i + 1) % ims.length]) if (!ims[k].src) ims[k].src = ims[k].dataset.src;
+    ims.forEach((m, j) => m.classList.toggle('on', j === i));
+    if (nm) nm.textContent = CHARS[ORDER[i]].en;
+    i = (i + 1) % ims.length;
+  };
+  clearInterval(titleT); show(); titleT = setInterval(show, 6000);
   const any = load(SAVE_KEY) || [1, 2, 3].some((i) => load(slotKey(i)));
   $('#btnLoad').disabled = !any;
 }
@@ -982,5 +1145,7 @@ $('#nameOk').onclick = async () => {
   saveGame(); hub();
 };
 
+// 정적 버튼의 이모지도 선 아이콘으로
+for (const el of document.querySelectorAll('.sys-list .btn, #sCtl [data-c=menu]')) el.innerHTML = iconize(el.innerHTML);
 title();
 })();
