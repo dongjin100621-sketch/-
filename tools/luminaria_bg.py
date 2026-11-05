@@ -4,7 +4,7 @@ Wikimedia Commons의 퍼블릭 도메인(일부 CC BY) 명화를 내려받아
 여백을 자르고 16:10으로 맞춘 뒤 luminaria/img/bg_*.jpg 로 저장한다.
 출처는 luminaria/img/CREDITS.json 에 기록된다.
 
-    python3 tools/luminaria_bg.py [캐시 폴더]
+    python3 tools/luminaria_bg.py [캐시 폴더] [배경 이름…]   (이름을 주면 그 배경만 다시 만든다)
 """
 import json, os, re, sys, time, urllib.parse, urllib.request
 from PIL import Image, ImageEnhance
@@ -27,6 +27,11 @@ PICK = {
     'tower':     ('Abraham Pether (1756-1812) - View of Pendragon Castle by Moonlight - 960239 - National Trust.jpg', None, .45),
     'festival':  ('Oswald Achenbach Feuerwerk in Toree dell Annunziata.jpg', None, .5),
     'sea':       ('Caspar David Friedrich - Mondaufgang am Meer - Google Art Project.jpg', None, .5),
+    # 2학년 1학기 (year2.js)
+    'blossom':   ('Camille Pissarro, Orchard in Bloom, Louveciennes, 1872, NGA 52195.jpg', None, .5),
+    'north':     ('Pieter Bruegel the Elder - Hunters in the Snow (Winter) - Google Art Project.jpg', None, .55),
+    'aurora':    ('Frederic Edwin Church - Aurora Borealis - Google Art Project.jpg', None, (.5, .35)),
+    'rain':      ('Gustave Caillebotte - Paris Street; Rainy Day - Google Art Project.jpg', None, .5),
 }
 W, H = 2400, 1500  # 고해상도 화면(레티나)용
 # Real-ESRGAN realesr-general-x4v3 가중치 경로 (같은 폴더에 realesr-general-wdn-x4v3.pth).
@@ -93,8 +98,14 @@ def fit(im, focus):
 
 
 def main():
+    only = sys.argv[2:]
+    old = {c['bg']: c for c in json.load(open(os.path.join(ROOT, 'CREDITS.json')))} if only else {}
     credits = []
     for name, (title, box, focus) in PICK.items():
+        if only and name not in only:
+            if name in old:
+                credits.append(old[name])
+            continue
         path, meta = fetch(name, title)
         im = Image.open(path).convert('RGB')
         if box:
