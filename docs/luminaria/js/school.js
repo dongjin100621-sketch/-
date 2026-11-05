@@ -1,18 +1,26 @@
-/* 루미나리아: Eight Fates — 1년 학사 일정
- * 4월 1일 입학 → 1학기(중간·기말고사) → 여름방학 → 2학기(중간·기말고사) → 겨울방학 → 이듬해 2월 3일 입춘 전야 별빛 축제.
+/* 루미나리아: Eight Fates — 학사 일정 (1학년 → 2학년 1학기)
+ * 4월 1일 입학 → 1학기(중간·기말고사) → 여름방학 → 2학기(중간·기말고사) → 겨울방학 → 2월 3일 입춘 별빛 축제(반전)
+ * → 학년말 학기 → 봄방학 → 2학년 1학기 → 7월 7일 칠석, 백 년의 별빛 축제(엔딩). 2학년 이벤트는 year2.js.
  * 하루 = 한 턴. 달력 이벤트 · 시험 · 방학 이벤트 · 짧은 데이트 · 편지가 여기에 있다.
  * 이벤트 종류: 아침(그날 시작할 때) / 밤(NIGHT: 그날 행동을 마친 뒤) / 하루 종일(FULLDAY: 그날은 따로 행동하지 않는다)
  */
 
 /* ───── 달력 ───── */
-const MONTHS = [[4, 30], [5, 31], [6, 30], [7, 31], [8, 31], [9, 30], [10, 31], [11, 30], [12, 31], [1, 31], [2, 28]];
+const MONTHS = [[4, 30], [5, 31], [6, 30], [7, 31], [8, 31], [9, 30], [10, 31], [11, 30], [12, 31], [1, 31], [2, 28], [3, 31], [4, 30], [5, 31], [6, 30], [7, 31]];
+const YEAR1 = 365; // 1학년(4월 1일~3월 31일)의 날 수. 그 뒤가 2학년
+/* 1학년의 m월 d일 (2학년은 dayOf2) */
 const dayOf = (m, d) => { let n = 0; for (const [mm, len] of MONTHS) { if (mm === m) return n + d; n += len; } return n; };
-function mdOf(day) { let d = day; for (const [m, len] of MONTHS) { if (d <= len) return [m, d]; d -= len; } return [2, 28]; }
+const dayOf2 = (m, d) => YEAR1 + dayOf(m, d);
+function mdOf(day) { let d = day; for (const [m, len] of MONTHS) { if (d <= len) return [m, d]; d -= len; } return [7, 31]; }
+const gradeOf = (day) => (day > YEAR1 ? 2 : 1);
 const TERMS = [
   { key: 't1', name: '1학기', from: 1, to: dayOf(7, 19) },
   { key: 'summer', name: '여름방학', from: dayOf(7, 20), to: dayOf(8, 25), vac: true },
   { key: 't2', name: '2학기', from: dayOf(8, 26), to: dayOf(12, 20) },
-  { key: 'winter', name: '겨울방학', from: dayOf(12, 21), to: 999, vac: true },
+  { key: 'winter', name: '겨울방학', from: dayOf(12, 21), to: dayOf(2, 7), vac: true },
+  { key: 't3', name: '학년말 학기', from: dayOf(2, 8), to: dayOf(3, 18) },
+  { key: 'spring', name: '봄방학', from: dayOf(3, 19), to: YEAR1, vac: true },
+  { key: 'y2t1', name: '2학년 1학기', from: YEAR1 + 1, to: 999 },
 ];
 const termOf = (day) => TERMS.find((t) => day >= t.from && day <= t.to) || TERMS[TERMS.length - 1];
 
@@ -52,7 +60,7 @@ const CLUB_LINES = {
 };
 const SEASON_LINES = {
   4: '벚꽃이 흩날린다.', 5: '신록이 짙어진다.', 6: '초여름 바람이 분다.', 7: '매미가 울기 시작했다.', 8: '한여름 햇볕이 따갑다.', 9: '바람에 가을 냄새가 섞였다.',
-  10: '단풍이 학원을 물들였다.', 11: '낙엽이 바스락거린다.', 12: '입김이 하얗게 피어오른다.', 1: '눈이 소복이 쌓였다.', 2: '얼음 밑으로 봄이 흐르는 소리가 들린다.',
+  10: '단풍이 학원을 물들였다.', 11: '낙엽이 바스락거린다.', 12: '입김이 하얗게 피어오른다.', 1: '눈이 소복이 쌓였다.', 2: '얼음 밑으로 봄이 흐르는 소리가 들린다.', 3: '매화 향기가 바람에 섞였다.',
 };
 
 /* ───── 장소별 돌발 사건 추가분 ───── */
@@ -144,10 +152,11 @@ async function examRun(G, n) {
   const S = G.S, E = EXAMS[n], max = n === 1 ? 3 : 4;
   let score = 0;
   // 부정행위의 유혹 (1학기 중간 · 2학기 중간)
-  if (n === 1 || n === 3) {
+  if (n === 1 || n === 3 || E.cheat) {
     await G.say('', null, n === 1 ? '시험지가 넘어오기 직전, 주머니 속에서 종이 쪽지가 손끝에 닿았다. 어젯밤 누군가 몰래 건넨 「커닝 페이퍼」다.'
-      : '시험 도중, 옆자리 학생의 답안지가 훤히 보였다. 감독관은 창밖을 보고 있다.');
-    if (await G.choose([{ t: '정정당당하게 푼다' }, { t: n === 1 ? '커닝 페이퍼를 슬쩍 펼친다' : '옆자리 답안지를 훔쳐본다' }]) === 1) {
+      : n === 3 ? '시험 도중, 옆자리 학생의 답안지가 훤히 보였다. 감독관은 창밖을 보고 있다.'
+        : '시험 도중, 뒷자리에서 쪽지가 날아왔다. 「답 좀 알려 줘」 ── 1학년 때 같은 반이던 녀석이다.');
+    if (await G.choose([{ t: '정정당당하게 푼다' }, { t: n === 1 ? '커닝 페이퍼를 슬쩍 펼친다' : n === 3 ? '옆자리 답안지를 훔쳐본다' : '쪽지에 답을 적어 뒤로 넘긴다' }]) === 1) {
       await G.play([{ fx: 'shake' }, { sfx: 'down' }, ['교수', '거기, 청강생! 지금 뭘 보고 있나!'], ['', '답안지를 빼앗겼다. 강의동이 술렁였다.'], ['', '【 결과: 부정행위 · 0점 】']]);
       if (!G.replay) {
         S.flags[`exam${n}`] = -1; S.flags.cheat = (S.flags.cheat || 0) + 1;
@@ -172,7 +181,7 @@ async function examRun(G, n) {
     const P = PRACTICAL[n];
     await G.play(P.intro);
     let who = null, bonus = 0;
-    if (n === 4) {
+    if (n === 4 || P.partner) {
       const ids = G.replay ? [] : ALL.filter((id) => S.intro[id]);
       if (ids.length) {
         await G.say('', null, '파트너로 고를 사람은──');
