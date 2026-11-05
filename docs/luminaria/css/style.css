@@ -455,7 +455,13 @@ body[data-screen=hub] #mute { right: calc(290px + env(safe-area-inset-right)); }
   .loc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .loc { padding: 8px; gap: 6px; }
   .loc .nm small { font-size: 10px; }
-  .loc .who img, .loc .who .more { width: 24px; height: 24px; }
+  /* 폰: 자주 오는 얼굴은 버튼 오른쪽 아래 구석에 작게 — 장소 이름이 한 글자씩 꺾이지 않게 */
+  .loc { position: relative; }
+  .loc .who { position: absolute; right: 6px; bottom: 5px; padding-left: 7px; }
+  .loc .who img, .loc .who .more { width: 20px; height: 20px; margin-left: -7px; font-size: 10px; }
+  .loc-list > .loc.love { grid-column: 1 / -1; } /* 고백·연애 카드는 한 줄을 다 쓴다 */
+  .loc.love .who { position: static; flex: none; padding-left: 10px; }
+  .loc.love .who img, .loc.love .who .more { width: 30px; height: 30px; margin-left: -10px; }
   .profile { grid-template-columns: 1fr; }
   .album { grid-template-columns: repeat(2, 1fr); }
   body[data-screen=hub] #mute { top: auto; right: calc(12px + env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom)); }

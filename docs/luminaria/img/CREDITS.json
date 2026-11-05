@@ -82,5 +82,33 @@
   "artist": "Caspar David Friedrich",
   "license": "Public domain",
   "source": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Mondaufgang_am_Meer_-_Google_Art_Project.jpg"
+ },
+ {
+  "bg": "blossom",
+  "title": "Camille Pissarro, Orchard in Bloom, Louveciennes, 1872, NGA 52195.jpg",
+  "artist": "Camille Pissarro",
+  "license": "CC0",
+  "source": "https://commons.wikimedia.org/wiki/File:Camille_Pissarro,_Orchard_in_Bloom,_Louveciennes,_1872,_NGA_52195.jpg"
+ },
+ {
+  "bg": "north",
+  "title": "Pieter Bruegel the Elder - Hunters in the Snow (Winter) - Google Art Project.jpg",
+  "artist": "Pieter Brueghel the Elder",
+  "license": "Public domain",
+  "source": "https://commons.wikimedia.org/wiki/File:Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_(Winter)_-_Google_Art_Project.jpg"
+ },
+ {
+  "bg": "aurora",
+  "title": "Frederic Edwin Church - Aurora Borealis - Google Art Project.jpg",
+  "artist": "Frederic Edwin Church",
+  "license": "Public domain",
+  "source": "https://commons.wikimedia.org/wiki/File:Frederic_Edwin_Church_-_Aurora_Borealis_-_Google_Art_Project.jpg"
+ },
+ {
+  "bg": "rain",
+  "title": "Gustave Caillebotte - Paris Street; Rainy Day - Google Art Project.jpg",
+  "artist": "Gustave Caillebotte",
+  "license": "Public domain",
+  "source": "https://commons.wikimedia.org/wiki/File:Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg"
  }
 ]
