@@ -329,12 +329,7 @@ Object.assign(COMMON, {
   ],
 });
 
-/* 엔딩 조건: 무색의 빛이 7장이 되었다 */
-Object.assign(END_HINTS, {
-  normal: '특별한 누군가 없이, 무색의 빛 7장을 마치지 못한 채 칠석의 축제를 맞이한다',
-  true: '여덟 명 모두를 만나고 모두의 호감도를 35 이상으로. 그리고 무색의 빛 7장까지',
-  solo: '무색의 빛 이야기를 7장까지 마치고, 칠석의 밤 혼자 탑에 오른다',
-});
+/* 엔딩 조건은 year2b.js (무색의 빛 9장 · 마지막 별빛 축제) */
 
 /* ───── 2학년 1학기 ───── */
 // 수학여행 오로라: 학원 밖 사람은 우연히 노르하임에 와 있었다
@@ -649,6 +644,8 @@ GROWTH.push(
  * 이야기 3편을 다 보고 호감도 Y2_AT 이상인 히로인을 2학년(4월 1일~)에 만나면 열린다. 한 번만 (호감도 +3, 선택지 보너스) */
 const Y2_AT = 60;
 const y2Ready = (S, id) => S.day > YEAR1 && S.ev[id] >= 3 && S.aff[id] >= Y2_AT && !S.flags[`y2_${id}`] && !!Y2_STORY[id];
+/* 곁이야기 목록 (game.js 가 대화·회상·프로필에서 쓴다). 가을 이야기는 year2b.js 에서 덧붙인다 */
+const SIDE_STORIES = [{ key: 'y2', title: '2학년 이야기', icon: '🌸', ready: (S, id) => y2Ready(S, id), story: null, hint: `이야기 3편 · 호감도 ${Y2_AT} · 2학년이 되면` }];
 const Y2_STORY = {
   serena: [
     { bg: 'library', tint: 'night', pt: 'motes' }, { show: 'serena' },
@@ -902,3 +899,4 @@ const Y2_STORY = {
     ['', '돌아가는 길, 아이들이 대문 앞에서 오래도록 손을 흔들었다. 레나는 한 번도 뒤돌아보지 않았지만, 귀 끝이 붉었다.'],
   ],
 };
+SIDE_STORIES[0].story = Y2_STORY;
