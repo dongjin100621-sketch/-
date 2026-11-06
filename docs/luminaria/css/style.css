@@ -280,7 +280,7 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
 #sChar.shake { animation: shake .4s; }
 @keyframes hop { 40% { translate: 0 -12px; } }
 #sChar.cg {
-  transform: translateX(-50%); bottom: auto; top: calc(3vh + env(safe-area-inset-top)); max-height: min(calc(100% - var(--boxh) - 7vh - env(safe-area-inset-top)), 760px); max-width: 92vw;
+  transform: translateX(-50%); bottom: auto; top: calc(3vh + env(safe-area-inset-top)); max-height: min(calc(100% - var(--boxh) - max(7vh, 3vh + 36px) - env(safe-area-inset-top)), 760px); max-width: 92vw; /* 낮은 화면에서도 대사창과 겹치지 않게 */
   border-radius: 12px; border: 1px solid var(--gold2); box-shadow: 0 0 0 6px rgba(10,8,14,.6), 0 0 0 7px var(--c), 0 0 70px rgba(243,217,154,.35);
   filter: none; opacity: 1; animation: cgIn .9s ease-out;
 }
@@ -291,7 +291,7 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
   position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
   width: min(1000px, calc(100vw - 24px)); min-height: 156px;
   background: linear-gradient(180deg, rgba(24,18,30,.84), rgba(10,8,14,.95)); border: 1px solid rgba(217,181,108,.55); border-radius: 14px;
-  padding: 30px 28px 24px 174px; box-shadow: 0 12px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  padding: 30px 28px 24px 160px; box-shadow: 0 12px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
   transition: opacity .25s;
 }
 #sBox::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(217,181,108,.16); border-radius: 10px; pointer-events: none; }
@@ -305,7 +305,8 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
   box-shadow: 0 0 14px rgba(0,0,0,.4), inset 0 -2px 0 var(--nc);
 }
 #sName:empty { display: none; }
-#sFace { position: absolute; left: 18px; top: 24px; width: 134px; height: 134px; object-fit: cover; border-radius: 10px; border: 2px solid var(--nc); box-shadow: 0 0 0 3px rgba(0,0,0,.35); }
+/* 얼굴 그림은 대사창 안쪽 테두리(아래 5px) 안에 들어가야 한다: 20 + 120 + 그림자 3 < 156 - 2 - 5 */
+#sFace { position: absolute; left: 18px; top: 20px; width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid var(--nc); box-shadow: 0 0 0 3px rgba(0,0,0,.35); }
 #sBox.noface #sFace { display: none; }
 #sText { font-size: 17px; line-height: 1.8; white-space: pre-wrap; min-height: 92px; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 #sText.narr { color: #eadfca; font-family: var(--serif); }
