@@ -323,6 +323,12 @@ h3::before { content: '✦ '; font-size: 10px; vertical-align: 2px; color: var(-
   max-height: calc(100% - 200px - 12px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
 }
 #sChoices > .choice { flex: none; }
+/* 직접 입력 (선물에 곁들이는 말) */
+.ask { flex: none; display: flex; gap: 8px; padding: 10px; border-radius: 12px; background: linear-gradient(90deg, rgba(36,26,40,.96), rgba(20,15,24,.94)); border: 1px solid rgba(217,181,108,.55); animation: chIn .35s ease-out both; }
+.ask input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: #fff8ea; background: rgba(0,0,0,.35); border: 1px solid rgba(217,181,108,.35); border-radius: 8px; padding: 10px 12px; outline: none; }
+.ask input::placeholder { color: rgba(234,223,202,.45); }
+.ask input:focus { border-color: var(--gold2); box-shadow: 0 0 0 2px rgba(243,217,154,.18); }
+.ask .btn { flex: none; padding: 10px 16px; }
 #sChoices.many { gap: 6px; }
 #sChoices.many .choice { padding-top: 9px; padding-bottom: 9px; }
 .choice { text-align: left; padding: 13px 18px 13px 40px; position: relative; background: linear-gradient(90deg, rgba(36,26,40,.95), rgba(20,15,24,.92)); animation: chIn .35s ease-out both; }

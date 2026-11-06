@@ -75,7 +75,7 @@ function newState(name) {
     stats: { int: 5, str: 5, brave: 5, charm: 5 }, gold: 100,
     aff: o(0), met: o(false), intro: o(false), ev: o(0), talk: o(0), gifted: {}, dated: {}, letters: {}, inv: {},
     growth: 0, skills: {}, club: null, creed: null, rank: 0, rev: {}, flags: {}, tower: 0,
-    lover: null, love: null, confess: {}, foe: null, ap: AP_MAX,
+    lover: null, love: null, confess: {}, foe: null, ap: AP_MAX, seenAt: {}, mail: [],
   };
 }
 function fixState(s) { // 예전 저장 데이터 보정
@@ -90,6 +90,7 @@ function fixState(s) { // 예전 저장 데이터 보정
   if (s.tower == null) s.tower = Object.keys(s.skills).filter((k) => SKILLS[k] && SKILLS[k].ch).length;
   delete s.slot; delete s.fat; delete s.presence;
   s.lover = s.lover || null; s.love = s.lover ? s.love : null; s.confess = s.confess || {}; s.foe = s.foe || null;
+  s.seenAt = s.seenAt || {}; s.mail = s.mail || [];
   if (!(s.ap > 0)) s.ap = apFix(s.day); // 하루 턴 시절 저장 데이터: 그 주에 남은 행동치
   s.ap = Math.min(AP_MAX, s.ap);
   return s;
@@ -160,7 +161,7 @@ const sceneEl = $('#scene');
 sceneEl.addEventListener('click', (e) => { if (!e.target.closest('#sChoices, #sCtl')) step(); });
 document.addEventListener('keydown', (e) => {
   if (!$('#modal').classList.contains('hidden')) { if (e.key === 'Escape') closeModal(); return; }
-  if (sceneEl.classList.contains('hidden')) return;
+  if (sceneEl.classList.contains('hidden') || e.target.closest('input, textarea')) return;
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); step(); }
   else if (e.key === 'a') toggleAuto();
   else if (e.key === 'h') toggleHide();
@@ -259,9 +260,30 @@ function choose(opts) {
   });
 }
 
+/* 직접 입력: 선택지 자리에 입력칸을 띄우고, 쓴 말을 돌려준다 */
+function ask(ph) {
+  skipOn = false; ctlUi(); clearTimeout(autoT);
+  if (boxHidden) toggleHide();
+  return new Promise((res) => {
+    const box = $('#sChoices'); box.innerHTML = ''; box.classList.remove('many');
+    const f = document.createElement('form'); f.className = 'ask';
+    f.innerHTML = `<input type="text" maxlength="40" placeholder="${esc(ph)}" autocomplete="off" enterkeyhint="send" aria-label="직접 할 말"><button class="btn" type="submit">말한다</button>`;
+    const inp = f.querySelector('input');
+    f.addEventListener('click', (e) => e.stopPropagation());
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      const v = inp.value.trim();
+      if (!v) { inp.focus(); return; }
+      AUDIO.sfx('select'); inp.blur(); box.innerHTML = ''; res(v);
+    };
+    box.append(f);
+    setTimeout(() => inp.focus(), 60);
+  });
+}
+
 /* 장면 연출 도우미 — 시나리오의 {run} 에서 쓸 수 있다 */
 const G = {
-  get S() { return S; }, say, choose, play, addAff, addStats, charShow, charHide, setBg, toast, josa, sleep, learn, passes, total, giveItem,
+  get S() { return S; }, say, choose, ask, meet, play, addAff, addStats, charShow, charHide, setBg, toast, josa, sleep, learn, passes, total, giveItem,
   get replay() { return REPLAY; },
 };
 
@@ -386,7 +408,7 @@ function locState(l) {
   if (locked(l)) return { hide: true };
   if (L.only && !days.some((d) => onlyIn(L, termOf(d).key))) return { hide: true };
   if (L.club && !S.club) return { hide: true };
-  if (L.ticket) return S.tower > 0 ? { ok: true } : { ok: false, why: '다음 마법을 각성하면' };
+  if (L.ticket) return S.tower > 0 || resLessonNow(S) >= 0 ? { ok: true } : { ok: false, why: '다음 마법을 각성하면' };
   return days.some((d) => openOn(L, d)) ? { ok: true } : { ok: false, why: t.vac ? `${t.name} 중 휴강` : '이번 주는 쉰다' };
 }
 const locStat = (l) => (LOCS[l].club ? (S.club ? CLUBS[S.club].stat : null) : LOCS[l].stat);
@@ -431,11 +453,12 @@ async function visit(locId) {
   COSTUME = SUMMER_SPOTS.includes(locId) && termOf(S.day).key === 'summer' ? 'summer' : null;
   AUDIO.bgm(L.bgm || 'daily');
   const parts = [];
-  if (L.ticket) {
+  const lesson = L.ticket ? resLessonNow(S) : -1; // 공명 이론 강의 (detail.js) — 수련 횟수를 쓰지 않는다
+  if (L.ticket && lesson < 0) {
     for (const k of Object.keys(STATS)) S.stats[k] += 2;
     S.tower--; parts.push(`모든 능력치 +${statTxt(2)}`);
   } else {
-    const k = locStat(locId);
+    const k = lesson >= 0 ? 'int' : locStat(locId);
     if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${statTxt(n)}`); }
   }
   if (L.gold) {
@@ -445,7 +468,7 @@ async function visit(locId) {
     if (isVac() && locId === 'market') g += 10; // 방학 성수기
     S.gold += g; parts.push(`골드 +${g}`);
   }
-  const pool = club ? CLUB_LINES[S.club] : VISIT_LINES[locId] || [L.desc];
+  const pool = lesson >= 0 ? ['나선 계단 꼭대기. 별등 아래에 등잔 하나와 의자 두 개가 놓여 있었다. 학원장이 먼저 와 기다리고 있었다.'] : club ? CLUB_LINES[S.club] : VISIT_LINES[locId] || [L.desc];
   const [m] = mdOf(S.day);
   const lines = [{ pt: ambient(L.outdoor) || L.pt || null }, ['', `${locName(locId)}. ${pool[rand(0, pool.length - 1)]}${L.outdoor || locId === 'dorm' ? ` ${SEASON_LINES[m]}` : ''}`]];
   setTint(dayTint());
@@ -453,7 +476,18 @@ async function visit(locId) {
   await runScene(lines, bg, { keepTint: true });
   const sub = L.sub && await playSub(L.sub);
   if (sub) setBg(bg);
-  const rev = !sub && Math.random() < (L.ticket ? .6 : EVENT_RATE) && pickEvent(locId);
+  if (lesson >= 0) {
+    await runScene(RES_LESSONS[lesson], null, { keepTint: true });
+    S.flags[`res${lesson}`] = 1; seen(`res${lesson}`);
+    toast(`🎐 공명 이론 ${lesson + 1}/3 을(를) 들었다`);
+  }
+  const study = locId === 'class' ? studyNow(S) : 0; // 시험 3주 전: 시험 범위 강의 (detail.js)
+  if (study) {
+    await runScene([{ sfx: 'page' }, ['', `── 📖 시험 범위 강의 「${EXAM_STUDY[study].topic}」 ──`], ...EXAM_STUDY[study].steps], null, { keepTint: true });
+    S.flags[`study${study}`] = 1;
+    toast('📖 시험 범위를 들었다');
+  }
+  const rev = !sub && lesson < 0 && !study && Math.random() < (L.ticket ? .6 : EVENT_RATE) && pickEvent(locId);
   if (rev) {
     S.rev[rev.id] = 1; META.found[rev.id] = 1; saveMeta();
     await runScene([{ sfx: 'page' }, ['', `── ✧ ${rev.title} ✧ ──`], ...rev.steps], null, { keepTint: true });
@@ -462,8 +496,11 @@ async function visit(locId) {
   if (locId === 'dorm') await dormMenu();
   if (L.shop) await shop();
 
-  const here = rollEncounter(locId);
-  if (here.length) {
+  const sit = !L.club && ENCOUNTER_SIT[locId] ? await ENCOUNTER_SIT[locId](G) : null; // detail.js
+  let here = rollEncounter(locId);
+  if (sit) here = [...sit.with, ...here.filter((id) => !sit.skip.includes(id) && !sit.with.includes(id))].slice(0, 2);
+  if (here.length && sit && sit.with.length && here.length === 1) await talkTo(here[0]); // 상황이 이어 준 만남은 바로 이야기한다
+  else if (here.length) {
     const opts = here.map((id) => {
       const c = CHARS[id];
       const ev = pendingEvent(id);
@@ -520,13 +557,16 @@ async function dormMenu() {
   if (i >= ids.length) return;
   const id = ids[i];
   S.letters[id] = week;
-  await say('', null, `${CHARS[id].name}에게 짧은 편지를 썼다. 요즘 있었던 일, 그리고 고마웠던 일을 적었다.`);
-  addAff(id, 0.3, true);
+  await say('', null, `${CHARS[id].name}에게 무엇을 적을까?`);
+  await letterRun(G, id); // 내용 · 호감도 · 답장은 detail.js
 }
 
 async function talkTo(id) {
   const st = STORY[id], c = CHARS[id];
+  const hello = S.intro[id] && pendingEvent(id) < 0 && !sideReady(id) ? talkGreeting(S, id) : null;
+  if (!REPLAY) S.seenAt[id] = S.day;
   charShow(id);
+  if (hello) await say(id, hello[0], hello[1]);
   if (!S.intro[id]) {
     meet(id); S.intro[id] = true; await play(st.meet); addAff(id, 2);
   } else {
@@ -547,7 +587,8 @@ async function talkTo(id) {
       charShow(id);
     } else {
       S.talk[id] = S.talk[id] || 0;
-      const t = st.talks[S.talk[id] % st.talks.length];
+      const ti = S.talk[id] % st.talks.length, t0 = st.talks[ti];
+      const t = (t0.vary && t0.vary(S)) || t0; // 방학 · 장소에 따라 다른 판 (detail.js)
       const repeat = S.talk[id] >= st.talks.length;
       S.talk[id]++;
       await play(t.q);
@@ -555,6 +596,8 @@ async function talkTo(id) {
       const [, d, reply] = t.c[i];
       addAff(id, talkGain(d, repeat), true);
       await play(reply.map((r) => (r.length === 3 ? r : [id, ...r])));
+      const more = d >= 3 && (t.more || (TALK_MORE[id] && TALK_MORE[id][ti])); // 좋은 대답 뒤엔 한 번 더 주고받는다
+      if (more) await play([['me', more[0]], [id, more[1], more[2]]]);
       if (k === -2) {
         const r = c.req;
         await say('', null, `(${c.name}${josa(c.name, '은', '는')} 무언가 털어놓고 싶은 눈치다. …${STATS[r.stat]}${josa(STATS[r.stat], '이', '가')} ${statTxt(r.v)} 이상이라면 마음을 열어줄지도 모른다.)`);
@@ -603,16 +646,12 @@ async function giftMenu(id) {
   if (i >= items.length) return;
   const key = items[i][0];
   S.inv[key]--; S.gifted[id] = S.day;
-  let line, gain;
-  if (c.likes.includes(key)) { line = GIFT_LINES.like[id]; gain = 1; }
-  else if (c.dislikes.includes(key)) { line = GIFT_LINES.dislike; gain = -0.6; }
-  else { line = GIFT_LINES.normal; gain = S.skills.grace ? 0.6 : 0.3; }
-  await say(id, line[0], line[1]);
-  addAff(id, gain, true);
+  await giftRun(G, id, key); // 반응 · 대답 · 상황에 따른 효과는 detail.js
 }
 async function dateScene(id) {
   const back = $('#sChar').classList.contains('on');
   const first = !S.dated[id];
+  if (!REPLAY) S.seenAt[id] = S.day;
   await play([{ bgm: 'romance' }, ...(first ? DATES[id] : shortDate(id, S.day))]);
   if (first) addAff(id, 3);
   S.dated[id] = S.day;
@@ -710,7 +749,7 @@ async function loverDay(k) {
   const spot = k === 'season' ? LOVE_SEASON(m) : [A.bg, ''];
   const N = c.name + josa(c.name, '과', '와');
   let got = 'mid';
-  S.bg = spot[0];
+  S.bg = spot[0]; S.seenAt[id] = S.day;
   await runScene([{ bgm: 'romance' }, { tint: A.tint || dayTint() }, { pt: A.pt || ambient(A.outdoor) || null }, { show: id },
     ['', A.intro.replace('{N}', N).replace('{S}', spot[1])],
     [id, ...LOVE_LINES[id][k]],
@@ -827,12 +866,14 @@ async function morningOf(kind) {
 /* 매일 아침의 성장·히든·연애 확인 */
 async function dawn() {
   const g = GROWTH[S.growth];
-  if (g && S.day >= g.day && total(S.stats) >= g.need) {
+  if (g && S.day >= g.day && total(S.stats) >= g.need && !(g.term && isVac())) {
     screen('hub'); hub();
     await banner(`무색의 빛 · ${S.growth + 1}장`, g.title, '✦');
     await runScene(g.steps);
     S.growth++; seen(g.key);
   } else await hiddenMorning();
+  const mail = mailScene(S); // 지난주에 보낸 편지의 답장 (detail.js)
+  if (mail) { screen('hub'); hub(); await runScene(mail, 'dorm'); }
   await loveCheck();
 }
 function flip(big, small) {
@@ -947,6 +988,7 @@ function hub() {
   if (t.vac) news.push(`🏖 ${t.name}! 수업이 없다. 탐험·상점가가 매일 열리고, ${t.key === 'summer' ? '「해변」·「해변 구조대」' : '「눈꽃 마을 봉사」'}에도 갈 수 있다`);
   if (S.weather === '비' || S.weather === '눈') news.push(`${WEATHER[S.weather]} ${S.weather}${josa(S.weather, '이', '가')} 온다. 밖에서 사람을 만나기는 어려울 것 같다`);
   if (S.tower > 0 && !locked('tower')) news.push(`🕯️ 별의 탑에서 수련할 수 있다 (${S.tower}회 · 모든 능력치 +${statTxt(2)})`);
+  news.push(...detailNews(S)); // 공명 이론 강의 · 시험 범위 · 생일 (detail.js)
   for (const id of ALL) {
     const k = pendingEvent(id);
     if (k >= 0) news.push(`💌 ${CHARS[id].name}${josa(CHARS[id].name, '과', '와')}의 이야기가 기다리고 있다. 만나러 가 보자`);
@@ -962,7 +1004,7 @@ function hub() {
   const g = GROWTH[S.growth];
   if (g) {
     const tt = total(S.stats);
-    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 곧, 무색의 빛에 변화가 찾아올 것 같다` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${statTxt(g.need)} (지금 ${statTxt(tt)})`);
+    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 곧, 무색의 빛에 변화가 찾아올 것 같다${g.term && isVac() ? ' (방학이 끝나고 수업이 시작되면)' : ''}` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${statTxt(g.need)} (지금 ${statTxt(tt)})`);
   }
   $('#hNews').innerHTML = news.map((n) => `<li>${iconize(n)}</li>`).join('');
 
@@ -974,7 +1016,7 @@ function hub() {
     const L = LOCS[k], stat = locStat(k);
     const ws = encounterOdds(k).filter(([id]) => S.met[id]); // 얼굴은 세 명까지, 나머지는 +n
     const who = ws.slice(0, 3).map(([id]) => `<img src="${img(id, 'e0')}" title="${CHARS[id].name} (자주 온다)" alt="">`).join('') + (ws.length > 3 ? `<span class="more" title="${ws.slice(3).map(([id]) => CHARS[id].name).join(', ')}">+${ws.length - 3}</span>` : '');
-    const gain = [L.ticket ? `모든 능력치 +${statTxt(2)} · ${S.tower}회` : stat ? `${STATS[stat]} +${statTxt(1)}~${statTxt(2)}` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
+    const gain = [L.ticket ? (resLessonNow(S) >= 0 ? `🎐 공명 이론 강의 · 지력 +${statTxt(1)}~${statTxt(2)}` : `모든 능력치 +${statTxt(2)} · ${S.tower}회`) : stat ? `${STATS[stat]} +${statTxt(1)}~${statTxt(2)}` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
     return `<button class="btn loc ${s.ok ? '' : 'shut'}" data-loc="${k}" ${s.ok ? '' : 'disabled'}><span class="ic">${iconize(L.club && S.club ? CLUBS[S.club].icon : L.icon)}</span><span class="nm"><b>${locName(k)}</b><small>${s.ok ? gain : iconize(`🔒 ${s.why}`)}</small></span><span class="who">${s.ok ? who : ''}</span></button>`;
   }).join('');
 
@@ -1135,7 +1177,8 @@ function replayList() {
     { g: '2학년 여름방학', items: ['tanabata', 'afterglow', 'term1End2', 'farewell', 'beach2', 'delve', 'lantern', 'dare'].map(ev) },
     { g: '2학년 2학기', items: ['term2Start2', 'career', 'contest2', 'exam4', 'schoolFest2', 'firstSnow', 'finals4', 'term2End2'].map(ev) },
     { g: '2학년 겨울방학 · 마지막 축제', items: [...['xmas2', 'newYear2', 'raid', 'prep3'].map(ev), ['solo', '나만의 색', [{ bgm: 'ending' }, ...COMMON.soloEnd]], ['true', '아홉 번째 빛', [{ bg: 'festival' }, { bgm: 'ending' }, ...COMMON.trueEnd]]] },
-    { g: '무색의 빛', c: '#e8d9a8', items: GROWTH.map((g, i) => [g.key, `${i + 1}장 ${g.title}`, g.steps]) },
+    { g: '무색의 빛', c: '#e8d9a8', items: [...GROWTH.map((g, i) => [g.key, `${i + 1}장 ${g.title}`, g.steps]),
+      ...RES_LESSONS.map((st, i) => [`res${i}`, `공명 이론 ${i + 1} 「${['듣기', '겹치기', '이끌기'][i]}」`, [{ bgm: 'calm', bg: 'tower', tint: 'night', pt: 'stars' }, ...st]])] },
     ...Object.entries(VAC_SUB).map(([k, x]) => ({ g: `${x.icon} ${x.title}`, c: '#9fc9d8', items: x.ch.map((c, i) => [`sub_${k}${i}`, `${i + 1}장 ${c.title}`, c.steps]) }))];
   for (const id of ALL) {
     const st = STORY[id], hid = CHARS[id].hidden;
