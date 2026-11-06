@@ -450,6 +450,7 @@ async function visit(locId) {
   const bg = club ? club.bg : L.bg;
   S.bg = bg;
   S.at = locId; // 여름 해변 이야기(summer.js)는 해변에서만 열린다
+  hiddenTally(S, locId); // 훈련장 땀 · 길드 거리 단골 (히든 해금 조건)
   COSTUME = SUMMER_SPOTS.includes(locId) && termOf(S.day).key === 'summer' ? 'summer' : null;
   AUDIO.bgm(L.bgm || 'daily');
   const parts = [];
@@ -789,11 +790,11 @@ async function loveCheck() {
 }
 
 /* ───── 히든 히로인: 조건을 채우면 찾아온다 ───── */
-function hiddenRumors() {
+function hiddenRumors() { // 조건에 가까워지면 흐릿한 소문만 (정확한 조건은 앨범 엔딩 목록의 힌트)
   const r = [];
-  if (!S.met.sia && S.stats.str >= HIDDEN_RULE.sia - 12) r.push('⚔️ 성 밖에 유랑 무인단이 들어왔다는 소문. 강한 상대를 찾고 있다나…');
-  if (!S.met.elise && S.growth >= 4) r.push('🔭 북쪽 왕국 노르하임에서 교환 연구원이 온다는 소문…');
-  if (!S.flags.bm && S.gold >= HIDDEN_RULE.gold - 200) r.push('🎭 길드 거리 지하에 밤에만 열리는 시장이 있다는 소문…');
+  if (!S.met.sia && S.day >= SIA_FROM - 30 && S.day < SIA_UNTIL && S.stats.str >= HIDDEN_RULE.sia - 20) r.push('⚔️ 성 밖에 유랑 무인단이 들어왔다는 소문. 학과 대항전에서 이름을 떨친, 단단한 주먹을 찾고 있다나…');
+  if (!S.met.elise && S.growth >= 4) r.push('🔭 북쪽 왕국 노르하임에서 교환 연구원이 온다는 소문. 시험마다 수석을 다투는 학생의 성적표를 모으고 있다나…');
+  if (!S.flags.bm && S.day >= BM_FROM && S.gold >= HIDDEN_RULE.gold - 500 && (S.flags.mkt || 0) >= HIDDEN_RULE.market / 2) r.push('🎭 길드 거리 지하에 밤에만 열리는 시장이 있다는 소문. 거리의 단골에게만 초대장이 온다나…');
   return r;
 }
 function meetHidden(id) {
@@ -803,8 +804,7 @@ function meetHidden(id) {
   toast(`✦ 히든 히로인 ${CHARS[id].name}${josa(CHARS[id].name, '을', '를')} 만났다!`);
 }
 async function hiddenMorning() {
-  const id = !S.met.elise && S.skills.bind && S.stats.int >= HIDDEN_RULE.elise ? 'elise'
-    : !S.met.sia && S.stats.str >= HIDDEN_RULE.sia ? 'sia' : null;
+  const id = !S.met.elise && HIDDEN_READY.elise(S) ? 'elise' : !S.met.sia && HIDDEN_READY.sia(S) ? 'sia' : null;
   if (!id) return;
   await banner('운명 밖의 빛', '누군가 찾아왔다', '✦');
   await runScene(ARRIVE[id]);
@@ -842,7 +842,7 @@ async function endAction() {
 async function nightOf() {
   const nightEv = CALENDAR[S.day];
   if (nightEv && NIGHT_EVENTS.has(nightEv)) { await runScene(COMMON[nightEv]); seen(nightEv); }
-  else if (!S.flags.bm && S.gold >= HIDDEN_RULE.gold && S.day < LAST_DAY - 1) await blackMarket();
+  else if (!S.flags.bm && HIDDEN_READY.bm(S) && S.day < LAST_DAY - 1) await blackMarket();
 }
 /* 날이 밝는다. kind: 'week' 새 주의 첫 행동 / 'slot' 이번 주 다음 행동 / 'pass' 행동 없이 지나가는 날 */
 async function morningOf(kind) {
@@ -1032,7 +1032,7 @@ function hub() {
     const met = S.met[id], c = CHARS[id];
     if (c.hidden && !met) { // 히든: 만나기 전엔 실루엣과 ???
       const foe = S.foe === id;
-      return `<button class="btn girl secret ${foe ? 'foe' : ''}" disabled style="--c:${c.color}"><img src="${img(id, 'chibi')}" alt=""><div class="gn">${foe ? c.name : '???'}</div><div class="rl">${foe ? '등을 돌렸다' : HIDDEN_HINT[id]}</div><div class="hb"></div></button>`;
+      return `<button class="btn girl secret ${foe ? 'foe' : ''}" disabled style="--c:${c.color}"><img src="${img(id, 'chibi')}" alt=""><div class="gn">${foe ? c.name : '???'}</div><div class="rl">${foe ? '등을 돌렸다' : hiddenHint(S, id)}</div><div class="hb"></div></button>`;
     }
     const ev = S.lover === id ? `<span class="badge love">${icon('heart')}</span>` : pendingEvent(id) >= 0 ? `<span class="badge">${icon('mail')}</span>` : '';
     return `<button class="btn girl ${met ? '' : 'locked'} ${S.lover === id ? 'lover' : ''} ${c.hidden ? 'hid' : ''}" data-girl="${id}" style="--c:${c.color}">${ev}<img src="${img(id, 'e0')}" alt=""><div class="gn">${met ? c.name : '???'}</div><div class="rl">${!met ? '' : S.lover === id ? '연인' : rel(S.aff[id])}</div><div class="hb"><i style="width:${S.aff[id]}%"></i></div></button>`;

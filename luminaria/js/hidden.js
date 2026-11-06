@@ -1,19 +1,38 @@
 /* 루미나리아: Eight Fates — 히든 히로인
  * 여덟 운명 밖에서 찾아오는 네 사람. 만나기 전에는 히로인 목록 아래에 ???로만 보인다.
- *   엘리제: 지력 60(화면 12) 이상 + 무색 마법 다섯 가지(등불·공명·고요한 호흡·색 읽기·별잇기)를 모두 익히면 아침에 찾아온다
- *   시아:   체력 50(화면 10) 이상이면 아침에 도전장을 들고 찾아온다
- *   엘린·레나: 골드 500 이상이면 그날 밤 암시장 사건. 둘 중 한 사람 편에 서서 해결한다
- *             (고른 사람과 이어지고, 다른 한 사람은 이번 회차엔 등을 돌린다)
+ * 히든답게 한 가지만 키워서는 열리지 않는다. 한쪽으로 꾸준히 몰아야 닿는 조건 몇 개를 함께 채워야 한다.
+ *   엘리제: 무색 마법 다섯 가지(별잇기까지) + 지력 90(화면 18) + 시험 만점(수석) 2번 → 아침에 찾아온다
+ *   시아:   1학년 학과 대항 마법제(9/26) 우승 + 체력 80(화면 16) · 용기 50(화면 10) + 훈련장(검술 수업·검술부)에서 24번 땀 흘리기
+ *           → 아침에 도전장을 들고 찾아온다. 홍염이 떠나는 2학년 7월 26일이 지나면 다시는 오지 않는다
+ *   엘린·레나: 2학기(8/26)부터, 골드 1500을 모은 채 + 길드 거리(상점가) 20번 드나든 단골이면 그날 밤 암시장 사건(경매 대금 600).
+ *             둘 중 한 사람 편에 서서 해결한다 (고른 사람과 이어지고, 다른 한 사람은 이번 회차엔 등을 돌린다)
  * 만난 뒤에는 대화 · 이야기 3편 · 데이트 · 고백 · 연애 · 축제 엔딩까지 다른 히로인과 똑같다.
  */
 const HIDDEN = ['elise', 'sia', 'elin', 'rena'];
 const ALL = [...ORDER, ...HIDDEN];
-const HIDDEN_RULE = { elise: 60, sia: 50, gold: 500, bid: 200 }; // 엘리제 지력 · 시아 체력 · 암시장 골드 · 경매 대금
+const HIDDEN_RULE = { elise: 90, aces: 2, sia: 80, siaBrave: 50, drill: 24, gold: 1500, market: 20, bid: 600 }; // 내부 값 (화면 = ÷5)
+/* 시험 만점(수석) 횟수: 1학기 중간은 3점, 나머지는 4점 만점 */
+const examAces = (S) => Object.keys(EXAMS).filter((n) => S.flags[`exam${n}`] === (+n === 1 ? 3 : 4)).length;
+const SIA_FROM = dayOf(9, 27), SIA_UNTIL = dayOf2(7, 26); // 대항전 다음 날부터 · 홍염이 떠나는 날 전까지
+const BM_FROM = dayOf(8, 26);
+const HIDDEN_READY = {
+  elise: (S) => !!S.skills.bind && S.stats.int >= HIDDEN_RULE.elise && examAces(S) >= HIDDEN_RULE.aces,
+  sia: (S) => S.day >= SIA_FROM && S.day < SIA_UNTIL && S.flags.contest === 'win' && S.stats.str >= HIDDEN_RULE.sia
+    && S.stats.brave >= HIDDEN_RULE.siaBrave && (S.flags.drill || 0) >= HIDDEN_RULE.drill,
+  bm: (S) => S.day >= BM_FROM && S.gold >= HIDDEN_RULE.gold && (S.flags.mkt || 0) >= HIDDEN_RULE.market,
+};
+/* 장소에 다녀간 횟수: 훈련장 땀(시아) · 길드 거리 단골(암시장) */
+function hiddenTally(S, locId) {
+  if (locId === 'training' || (locId === 'club' && S.club === 'sword')) S.flags.drill = (S.flags.drill || 0) + 1;
+  if (locId === 'market') S.flags.mkt = (S.flags.mkt || 0) + 1;
+}
+/* 메인 화면의 실루엣 아래 한 줄 */
+const hiddenHint = (S, id) => (id === 'sia' && !S.met.sia && S.day >= SIA_UNTIL ? '남쪽으로 떠난 붉은 술' : HIDDEN_HINT[id]);
 // 만났을 때의 호감도 (늦게 만나는 만큼 바로 첫 이야기를 볼 수 있게).
 // 엘리제는 별잇기(11월 말) 이후에야 오지만, 게임이 2학년 1학기 칠석까지 이어지므로 시간은 충분하다
 const HIDDEN_START = { elise: 20, sia: 20, elin: 20, rena: 20 };
 const HIDDEN_CAP = 40;   // 자주 가는 곳에서 마주칠 확률 상한 (일반 히로인은 30)
-const HIDDEN_HINT = { elise: '별을 모두 이은 지혜에게', sia: '단련된 주먹에게', elin: '두둑한 지갑, 그리고 밤', rena: '두둑한 지갑, 그리고 밤' };
+const HIDDEN_HINT = { elise: '별을 모두 이은, 수석의 지혜에게', sia: '대항전을 제패한 단련된 주먹에게', elin: '길드 거리 단골의 두둑한 지갑, 그리고 밤', rena: '길드 거리 단골의 두둑한 지갑, 그리고 밤' };
 Object.assign(NPCS, { 경매인: '#cdbb8e', 마르코: '#a08a8a', 단장: '#e07a5a', 수집가: '#8fa3b8' });
 
 /* 새 선물 */
@@ -93,7 +112,7 @@ const ARRIVE = {
     ['me', '어, 응…. 누구세요?'],
     ['elise', 'smile', '노르하임 왕립 아카데미 마법학과, 엘리제! 탐구 마법 전공이야. 교환 연구원 자격으로 어제 도착했어!'],
     ['elise', 'think', '등불, 공명, 고요한 호흡, 색 읽기, 그리고 별잇기…. 백 년 동안 아무도 재현 못 한 마법을 혼자 전부라니. 보고서 읽고 사흘 밤을 못 잤다니까?'],
-    ['elise', 'serious', '그런데 이론이 한 줄도 없더라. 「감으로 했다」니, 그게 말이 돼? …그래서 직접 확인하러 왔어.'],
+    ['elise', 'serious', '성적표엔 시험 수석이 몇 번이나 찍혀 있는데, 무색 마법 보고서엔 이론이 한 줄도 없더라. 「감으로 했다」니, 그게 말이 돼? …그래서 직접 확인하러 왔어.'],
     { choice: [
       { t: '그럼 같이 이론을 만들어 볼래?', go: [['elise', 'surprise', '…!'], ['elise', 'smile', '좋아, 좋아! 바로 그거야! 모르는 게 많을수록 재밌는 법이거든!']] },
       { t: '…진짜 감으로 했어. 설명은 못 해.', go: [['elise', 'wink', '후후, 그럼 내가 설명해 줄게. 너를 관찰해서!']] },
@@ -106,8 +125,9 @@ const ARRIVE = {
     ['', '아침 훈련장. 문기둥에 붉은 술이 달린 쪽지 한 장이 칼처럼 꽂혀 있었다.'],
     ['', '「학원에서 제일 단단한 주먹에게. 오늘 아침, 한 판. ── 홍염의 시아」'],
     { show: 'sia' },
-    ['sia', 'normal', '…네가 그 「무색」이구나. 기사학과 녀석들이 그러더라. 요즘 훈련장에서 제일 늦게까지 버티는 놈이 있다고.'],
-    ['sia', 'serious', '유랑 무인단 「홍염」의 시아. 내년 여름까지 이 도시에 머물러. 그동안 제대로 된 상대가 필요해.'],
+    ['sia', 'normal', '…네가 그 「무색」이구나. 대항전에서 레온 아드라를 꺾은 청강생. 기사학과 녀석들이 그러더라, 요즘 훈련장에서 제일 늦게까지 버티는 놈도 너라고.'],
+    { if: (S) => S.day > YEAR1, go: [['sia', 'serious', '유랑 무인단 「홍염」의 시아. 이번 여름이 오면 남쪽으로 떠나. 그 전에, 제대로 된 상대가 필요해.']],
+      else: [['sia', 'serious', '유랑 무인단 「홍염」의 시아. 내년 여름까지 이 도시에 머물러. 그동안 제대로 된 상대가 필요해.']] },
     ['sia', 'smile', '하하…! 말은 됐고. 덤벼!'],
     { fx: 'shake' },
     ['', '권갑이 공기를 찢었다. 피하고, 막고, 또 피했다. 열 합째에 그녀의 주먹이 내 코앞에서 멈췄다.'],
@@ -123,7 +143,7 @@ const ARRIVE = {
 const BLACK_MARKET = [
   { bgm: 'mystery', bg: 'market', tint: 'night', pt: null },
   ['', '밤. 기숙사로 돌아가는 길에 누군가 내 주머니에 검은 봉투를 찔러 넣고 사라졌다.'],
-  ['', '「지갑이 두둑한 학생에게. 오늘 밤 자정, 길드 거리 지하에서 경매가 열린다. ── B」'],
+  ['', '「길드 거리의 단골이자, 지갑이 두둑한 학생에게. 오늘 밤 자정, 길드 거리 지하에서 경매가 열린다. ── B」'],
   ['', '소문으로만 듣던 루미나리아의 암시장. 호기심을 이기지 못하고 뒷골목 계단을 내려갔다.'],
   { bg: 'church', fade: true, tint: 'night' },
   ['', '촛불이 늘어선 지하 회당. 가면을 쓴 사람들 사이, 경매대 위에 유리관 하나가 놓여 있었다.'],
@@ -151,7 +171,7 @@ const BLACK_MARKET = [
   { choice: [
     { t: '🔍 엘린과 함께 증거를 쫓는다 (진실)', go: [
       { run: (G) => { if (!G.replay) G.S.flags.bm = 'elin'; } },
-      ['', '나는 경매에 손을 들었다. 낙찰가는 금화 이백 닢. 엘린이 대금 상자에 몰래 추적 가루를 뿌렸다.'],
+      ['', '나는 경매에 손을 들었다. 낙찰가는 금화 육백 닢. 엘린이 대금 상자에 몰래 추적 가루를 뿌렸다.'],
       { stats: { gold: -HIDDEN_RULE.bid } },
       { bg: 'sea', fade: true, tint: 'night' },
       ['', '가루의 흔적은 항구 창고로 이어졌다. 그곳에서 학원 보물고의 야간 관리인이 외국 수집가에게 돈을 받고 있었다.'],
@@ -166,7 +186,7 @@ const BLACK_MARKET = [
     ] },
     { t: '♟️ 레나의 방식에 맡긴다 (질서)', go: [
       { run: (G) => { if (!G.replay) G.S.flags.bm = 'rena'; } },
-      ['', '나는 레나가 정해 준 대로 경매에 손을 들었다. 낙찰가는 금화 이백 닢. 미끼였다.'],
+      ['', '나는 레나가 정해 준 대로 경매에 손을 들었다. 낙찰가는 금화 육백 닢. 미끼였다.'],
       { stats: { gold: -HIDDEN_RULE.bid } },
       ['', '돈을 받은 판매자가 뒷문으로 빠져나가는 순간, 레나의 부하들이 소리 없이 길을 막았다.'],
       { show: 'rena' },
@@ -605,10 +625,10 @@ Object.assign(END_TITLES, {
   elise: '조금 더 멀리, 조금 더 궁금하게', sia: '끝까지 지켜내는 힘', elin: '하나로 이어진 진실', rena: '예외가 된 단 한 사람',
 });
 Object.assign(END_HINTS, {
-  elise: `지력 ${statTxt(HIDDEN_RULE.elise)} 이상, 무색 마법을 「별잇기」까지 모두 익히면 찾아온다. 이야기 3개 · 호감도 60 (지력 ${statTxt(70)})`,
-  sia: `체력 ${statTxt(HIDDEN_RULE.sia)} 이상이면 찾아온다. 이야기 3개 · 호감도 60 (체력 ${statTxt(60)})`,
-  elin: `골드 ${HIDDEN_RULE.gold} 이상이면 열리는 밤의 사건에서 「진실」을 고른다. 이야기 3개 · 호감도 60 (지력 ${statTxt(55)})`,
-  rena: `골드 ${HIDDEN_RULE.gold} 이상이면 열리는 밤의 사건에서 「질서」를 고른다. 이야기 3개 · 호감도 60 (용기 ${statTxt(55)})`,
+  elise: `무색 마법을 「별잇기」까지 모두 익히고, 지력 ${statTxt(HIDDEN_RULE.elise)} 이상, 시험 만점(수석) ${HIDDEN_RULE.aces}번이면 찾아온다. 이야기 3개 · 호감도 60 (지력 ${statTxt(70)})`,
+  sia: `1학년 학과 대항 마법제 우승, 체력 ${statTxt(HIDDEN_RULE.sia)} · 용기 ${statTxt(HIDDEN_RULE.siaBrave)} 이상, 훈련장에서 ${HIDDEN_RULE.drill}번 땀 흘리면 찾아온다(2학년 7월 26일 전까지). 이야기 3개 · 호감도 60 (체력 ${statTxt(60)})`,
+  elin: `2학기부터, 골드 ${HIDDEN_RULE.gold}을 모은 채 길드 거리에 ${HIDDEN_RULE.market}번 드나든 단골이면 열리는 밤의 사건에서 「진실」을 고른다. 이야기 3개 · 호감도 60 (지력 ${statTxt(55)})`,
+  rena: `2학기부터, 골드 ${HIDDEN_RULE.gold}을 모은 채 길드 거리에 ${HIDDEN_RULE.market}번 드나든 단골이면 열리는 밤의 사건에서 「질서」를 고른다. 이야기 3개 · 호감도 60 (용기 ${statTxt(55)})`,
 });
 
 /* ───────────────────────── 공통 행사 대사 ───────────────────────── */
