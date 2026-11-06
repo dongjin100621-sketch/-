@@ -532,7 +532,8 @@ const CAMILLA_MISS = [
   '줄은 해가 질 때까지 줄어들지 않았다. 카밀라는 마지막 한 명까지 붙잡고 자세를 고쳐 주었다.',
 ];
 const ENCOUNTER_SIT = {
-  /* 카밀라는 검술 수업 조교라 늘 훈련장에 있다 — 원정 주간 · 첫 수업 · 비 · 시범 대련 · 신입생 지도 */
+  /* 카밀라는 검술 수업 조교라 늘 훈련장에 있다 — 원정 주간 · 첫 수업 · 비 · 시범 대련 · 신입생 지도
+   * 실제로 이야기할 수 있는 확률은 다른 히로인(최대 30%)과 비슷하게: 대련 10~15%, 기다림 15~30%, 비 오는 날 뒷정리 45% */
   training: async (G) => {
     const S = G.S, out = { with: [], skip: ['camilla'] };
     if (G.replay) return out;
@@ -549,18 +550,18 @@ const ENCOUNTER_SIT = {
       await G.play([['', `${S.weather === '눈' ? '눈' : '비'} 때문에 검술 수업이 실내 강당으로 옮겨졌다. 좁은 강당 안에 카밀라의 구령이 쩌렁쩌렁 울렸다.`],
         ['', '수업이 끝나자 다들 우르르 빠져나갔다. 카밀라 혼자 흩어진 목검을 줍고 있다.']]);
       if (await G.choose([{ t: '목검 정리를 돕는다' }, { t: '먼저 돌아간다' }]) === 1) return out;
-      if (Math.random() < 0.6 + bonus) { await G.say('', null, '말없이 옆에서 목검을 주워 담았다. 카밀라가 고개를 들었다.'); out.with.push('camilla'); }
+      if (Math.random() < 0.45 + bonus) { await G.say('', null, '말없이 옆에서 목검을 주워 담았다. 카밀라가 고개를 들었다.'); out.with.push('camilla'); }
       else await G.say('', null, '돕기 시작하자마자 교관이 카밀라를 불렀다. 「원정 보고서, 오늘까지다!」 그녀는 내게 짧게 고개를 숙이고 뛰어갔다.');
       return out;
     }
-    if (Math.random() < 0.15 + (S.stats.str >= 30 ? 0.1 : 0)) {
+    if (Math.random() < 0.1 + (S.stats.str >= 30 ? 0.05 : 0)) {
       await G.play([['', '「오늘 시범 대련 상대는── 거기, 청강생.」 카밀라의 목검 끝이 나를 가리켰다.'],
         ['', S.stats.str >= 30 ? '여섯 합을 버텼다. 마지막 합에서 그녀의 목검이 내 어깨 위에 멈췄다. 훈련장 여기저기서 감탄이 새어 나왔다.' : '두 합 만에 목검이 손을 떠났다. 그래도 카밀라는 쓰러진 내 자세를 하나하나 짚어 주었다.']]);
       out.with.push('camilla'); return out;
     }
     await G.say('', null, '카밀라는 오늘도 조교석에서 신입생들의 자세를 봐 주고 있었다. 질문하려는 줄이 끝도 없이 이어진다.');
     if (await G.choose([{ t: '줄이 줄어들 때까지 기다린다' }, { t: '다음 기회에 말을 걸기로 한다' }]) === 1) return out;
-    if (Math.random() < 0.25 + (S.aff.camilla >= 20 ? 0.2 : 0) + bonus) {
+    if (Math.random() < 0.15 + (S.aff.camilla >= 20 ? 0.15 : 0) + bonus) {
       await G.say('', null, S.aff.camilla >= 20 ? '줄 너머로 눈이 마주쳤다. 카밀라가 신입생들에게 「잠깐 쉬어」라고 하고는, 이쪽으로 걸어왔다.' : '해가 기울 무렵, 마지막 신입생이 인사를 하고 떠났다. 카밀라가 그제야 나를 알아보았다.');
       out.with.push('camilla');
     } else await G.say('', null, pick(CAMILLA_MISS));
