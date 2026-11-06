@@ -189,7 +189,7 @@ const RAIN_LINES = {
 /* 함께할 사람을 고르는 장면 (입춘 축제 · 답례의 날) */
 const metIds = (S, min) => ALL.filter((id) => S.intro[id] && S.aff[id] >= min).sort((a, b) => (b === S.lover) - (a === S.lover) || S.aff[b] - S.aff[a]);
 async function springWalk(G) {
-  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 30);
+  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 21);
   if (!ids.length) { await G.play([['', '함께 걸을 사람은 없었다. 등불 사이를 혼자 걸으며, 탑 위의 별등만 올려다보았다.'], ['', '…다음 축제엔, 누군가의 손을 잡고 있을 수 있을까.']]); return; }
   await G.say('', null, '등불 거리 어귀. 누구와 함께 자정을 기다릴까?');
   const i = await G.choose([...ids.map((id) => ({ t: `${id === S.lover ? '💕 ' : ''}${CHARS[id].name}${jo(CHARS[id].name, '과', '와')} 함께 걷는다` })), { t: '혼자 걷는다' }]);
@@ -201,7 +201,7 @@ async function springWalk(G) {
   if (!G.replay) S.flags.spring = id;
 }
 async function candyRun(G) {
-  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 45);
+  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 32);
   if (!ids.length) { await G.play([['', '…이름을 부른 건 과자점 주인이었다. 「청강생, 오늘 남은 별사탕 떨이야. 한 알은 덤이고.」'], ['', '올해 받은 별사탕은, 그 덤 한 알이 전부였다. …달았다.']]); return; }
   for (const id of ids) {
     await G.play([{ show: id }, [id, ...CANDY_LINES[id]], { hide: 1 }]);
@@ -215,7 +215,7 @@ async function candyRun(G) {
 }
 async function whiteRun(G) {
   const S = G.S, got = (!G.replay && S.flags.candy) || [];
-  const ids = G.replay ? [pick(ORDER)] : got.length ? got.filter((id) => S.intro[id]) : metIds(S, 35);
+  const ids = G.replay ? [pick(ORDER)] : got.length ? got.filter((id) => S.intro[id]) : metIds(S, 25);
   if (!ids.length) { await G.play([['', '답례할 사람이 없다. 과자점 앞을 그냥 지나쳤다.'], ['', '…내년 별사탕의 날엔, 조금 더 다정한 사람이 되어 있자.']]); return; }
   await G.say('', null, got.length ? '한 달 전에 받은 별사탕. 오늘은 답례하는 날이다. 특별한 답례를 누구에게 건넬까?' : '별사탕은 받지 못했지만… 먼저 마음을 전해 보는 것도 괜찮겠지. 누구에게 건넬까?');
   const i = await G.choose([...ids.map((id) => ({ t: `🎀 ${CHARS[id].name}에게 답례를 건넨다` })), { t: '답례는 다음에 한다' }]);
@@ -227,7 +227,7 @@ async function whiteRun(G) {
   if (got.length > 1) await G.say('', null, '다른 사람들에게도 작은 사탕 상자를 하나씩 돌렸다. 다들 웃으며 받아 주었다.');
 }
 async function promoLines(G) {
-  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 20).slice(0, 3);
+  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 14).slice(0, 3);
   for (const id of ids) await G.play([{ show: id }, [id, ...PROMO_LINES[id]], { hide: 1 }]);
 }
 
@@ -339,7 +339,7 @@ const TRIP_WHY = {
   rena: '북부 거래처를 둘러보러 왔다며, 레나가 언덕 위에 혼자 서 있었다. …정말 우연일까.',
 };
 async function tripNight(G) {
-  const id = G.replay ? pick(ORDER) : bestOf(G.S, 20);
+  const id = G.replay ? pick(ORDER) : bestOf(G.S, 14);
   if (!id) {
     await G.play([['', '언덕 위엔 아무도 없었다. 혼자 올려다본 하늘은, 소리 없이 일렁이는 초록빛 강이었다.'], ['', '…칠석의 은하수도 이렇게 맑을까. 그때는 누군가와 함께 보고 싶다.']]);
     return;
@@ -386,7 +386,7 @@ const RECRUIT_LINES = {
 async function sportsCheer(G) {
   const S = G.S, win = G.replay || !!S.flags.sports;
   await G.play([{ bgm: 'festival' }, ['', win ? '【 결과: 2학년 종합 우승! 은빛 띠들이 훈련장 한가운데로 쏟아져 나왔다. 】' : '【 결과: 2학년 종합 2위. 그래도 마지막까지 함성이 끊이지 않았다. 】']]);
-  const id = G.replay ? pick(ORDER) : bestOf(S, 20);
+  const id = G.replay ? pick(ORDER) : bestOf(S, 14);
   if (!id) { await G.say('', null, '피오가 물통을 들고 달려왔다. 「선배, 최고였어요!」 …1학년 응원은 반칙 아닌가.'); return; }
   if (win) await G.play([{ show: id }, [id, ...CONTEST_CHEER[id][0]], { hide: 1 }]);
   else await G.play([{ show: id }, ['', `${CHARS[id].name}${jo(CHARS[id].name, '이', '가')} 말없이 수건을 건네주었다. 「…수고했어. 멋있었어.」`], { hide: 1 }]);
@@ -586,7 +586,7 @@ const G7_LINES = {
   rena: ['serious', '이 도시의 불이 꺼지는 건, 내가 허락하지 않는다.'],
 };
 async function g7Friends(G) {
-  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 50).slice(0, 4);
+  const S = G.S, ids = G.replay ? [pick(ORDER)] : metIds(S, 35).slice(0, 4);
   if (!ids.length) {
     await G.play([['', '계단 아래에서 발소리가 들렸다. 숨을 헐떡이며 올라온 건, 레온과 피오였다.'], ['레온', '…또 혼자 하려고 했지, 무색. 내 불꽃도 써.'], ['피오', '저, 저도요! 「흐림」이라도 빛은 빛이에요!'],
       ['', '세 개의 손이 불씨 위에 겹쳐졌다.']]);
@@ -642,7 +642,7 @@ GROWTH.push(
 
 /* ───── 히로인별 2학년 이야기 ─────
  * 이야기 3편을 다 보고 호감도 Y2_AT 이상인 히로인을 2학년(4월 1일~)에 만나면 열린다. 한 번만 (호감도 +3, 선택지 보너스) */
-const Y2_AT = 60;
+const Y2_AT = 45;
 const y2Ready = (S, id) => S.day > YEAR1 && S.ev[id] >= 3 && S.aff[id] >= Y2_AT && !S.flags[`y2_${id}`] && !!Y2_STORY[id];
 /* 곁이야기 목록 (game.js 가 대화·회상·프로필에서 쓴다). 가을 이야기는 year2b.js 에서 덧붙인다 */
 const SIDE_STORIES = [{ key: 'y2', title: '2학년 이야기', icon: '🌸', ready: (S, id) => y2Ready(S, id), story: null, hint: `이야기 3편 · 호감도 ${Y2_AT} · 2학년이 되면` }];

@@ -268,7 +268,7 @@ const NEWYEAR_LINES = {
 /* 호감도가 가장 높은 히로인(20 이상)과의 장면. 회상에서는 아무나 한 사람 */
 function bestScene(table, choice, alone) {
   return async (G) => {
-    const id = G.replay ? pick(ORDER) : bestOf(G.S, 20);
+    const id = G.replay ? pick(ORDER) : bestOf(G.S, 14);
     if (!id) { await G.play(alone); return; }
     const [a, b, good, bad] = table[id];
     await G.play([{ show: id }, [id, ...a], [id, ...b]]);
@@ -291,7 +291,7 @@ const FOLK_LINES = {
 };
 async function folkDance(G) {
   const S = G.S;
-  const ids = G.replay ? [pick(ORDER)] : ALL.filter((id) => S.intro[id] && S.aff[id] >= 15);
+  const ids = G.replay ? [pick(ORDER)] : ALL.filter((id) => S.intro[id] && S.aff[id] >= 10);
   if (!ids.length) { await G.play([['', '모닥불 너머로 춤추는 사람들을 구경했다. 불꽃이 탁탁 튀었다.'], ['', '…다음 학원제엔, 손을 내밀 용기를 내 봐야지.']]); return; }
   await G.say('', null, '마지막 곡이 시작된다. 누구에게 손을 내밀까?');
   const i = await G.choose([...ids.map((id) => ({ t: `${CHARS[id].name}에게 춤을 청한다` })), { t: '구경만 한다' }]);

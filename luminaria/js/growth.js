@@ -14,23 +14,23 @@ const RANKS = [[0, 'F'], [50, 'E'], [85, 'D'], [125, 'C'], [170, 'B'], [220, 'A'
 
 /* 무색 마법 */
 const SKILLS = {
-  lumen:   { name: '등불', icon: '🕯️', ch: 1, desc: '「별의 탑」이 열린다. 무색 마법을 각성할 때마다 탑에서 한 번 수련할 수 있다 (모든 능력치 +2)' },
-  echo:    { name: '공명', icon: '🎐', ch: 2, desc: '히로인과 대화할 때 호감도 +1 (한 번에 최대 3)' },
+  lumen:   { name: '등불', icon: '🕯️', ch: 1, desc: '「별의 탑」이 열린다. 무색 마법을 각성할 때마다 탑에서 한 번 수련할 수 있다 (모든 능력치 +0.4)' },
+  echo:    { name: '공명', icon: '🎐', ch: 2, desc: '히로인과 대화할 때 호감도 +0.1 (한 번에 최대 1)' },
   breath:  { name: '고요한 호흡', icon: '🌬️', ch: 3, desc: '기척에 민감해져, 히로인과 마주칠 확률 +5% (최대 30%)' },
-  insight: { name: '색 읽기', icon: '👁️', ch: 4, desc: '모든 능력치 판정에 +5 보정' },
+  insight: { name: '색 읽기', icon: '👁️', ch: 4, desc: '모든 능력치 판정에 +1 보정' },
   bind:    { name: '별잇기', icon: '✦', ch: 5, desc: '흩어진 빛을 잇는다. 성장 엔딩·트루 엔딩의 열쇠' },
-  speed:   { name: '속독', icon: '📖', stat: ['int', 40], desc: '시험 필기 판정 +5' },
+  speed:   { name: '속독', icon: '📖', stat: ['int', 40], desc: '시험 필기 판정 +1' },
   iron:    { name: '강철 체력', icon: '🛡️', stat: ['str', 40], desc: '해변·탐험에서 찾는 골드 +10' },
   scout:   { name: '모험가의 감', icon: '🧭', stat: ['brave', 40], desc: '탐험에서 버는 골드 1.5배' },
-  grace:   { name: '다정한 말씨', icon: '💐', stat: ['charm', 40], desc: '평범한 선물도 호감도 +2 (좋아하는 선물은 그대로 +3)' },
+  grace:   { name: '다정한 말씨', icon: '💐', stat: ['charm', 40], desc: '평범한 선물도 호감도 +0.6 (좋아하는 선물은 그대로 +1)' },
 };
 
 /* 동아리 (4월 6일 박람회에서 고른다) — 수요일마다 「동아리 활동」. 부원은 30% 확률로 만난다 */
 const CLUBS = {
-  magic:   { name: '마도 연구회', icon: '🔮', stat: 'int', bg: 'library', members: ['serena', 'lizette'], desc: '수요일 활동 · 지력 +1 · 세레나·리제트' },
-  sword:   { name: '검술부', icon: '⚔️', stat: 'str', bg: 'training', members: ['camilla'], desc: '수요일 활동 · 체력 +1 · 카밀라' },
-  explore: { name: '탐험부', icon: '🧭', stat: 'brave', bg: 'outskirts', members: ['luna', 'rose'], desc: '수요일 활동 · 용기 +1 · 루나·로제' },
-  stage:   { name: '성가·연극부', icon: '🎭', stat: 'charm', bg: 'church', members: ['aria', 'beatrix'], desc: '수요일 활동 · 매력 +1 · 아리아·베아트릭스' },
+  magic:   { name: '마도 연구회', icon: '🔮', stat: 'int', bg: 'library', members: ['serena', 'lizette'], desc: '매주 활동 · 지력 +0.2~0.4 · 세레나·리제트' },
+  sword:   { name: '검술부', icon: '⚔️', stat: 'str', bg: 'training', members: ['camilla'], desc: '매주 활동 · 체력 +0.2~0.4 · 카밀라' },
+  explore: { name: '탐험부', icon: '🧭', stat: 'brave', bg: 'outskirts', members: ['luna', 'rose'], desc: '매주 활동 · 용기 +0.2~0.4 · 루나·로제' },
+  stage:   { name: '성가·연극부', icon: '🎭', stat: 'charm', bg: 'church', members: ['aria', 'beatrix'], desc: '매주 활동 · 매력 +0.2~0.4 · 아리아·베아트릭스' },
 };
 const CREEDS = { guard: '🛡️ 지키는 빛', bond: '🤝 잇는 빛', seek: '🧭 찾는 빛' };
 
@@ -149,7 +149,7 @@ const GROWTH = [
     ['', '눈을 떴을 땐 기숙사 침대 위였다. 오른손에 붕대가 감겨 있었다.'],
     { run: async (G) => {
       const S = G.S;
-      const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
+      const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 18).sort((a, b) => S.aff[b] - S.aff[a])[0];
       if (best) {
         const [a, b] = CH3_LINES[best];
         await G.play([{ show: best }, [best, a[0], a[1]], [best, b[0], b[1]], { hide: 1 }]);
@@ -279,7 +279,7 @@ async function contestRun(G) {
   await G.play([['교수', '두 번째! 남의 마력에 자기 마력을 겹쳐, 그 흐름을 바꾸는 기술의 이름은?']]);
   if (await G.choose([{ t: '반사' }, { t: '공명' }, { t: '흡수' }]) === 1) { ok++; await G.play([{ sfx: 'heart' }, ['교수', '정답! …어째 자네가 답하니 묘하게 설득력이 있군.']]); }
   else await G.play([{ sfx: 'down' }, ['교수', '아쉽군. 정답은 「공명」일세.']]);
-  if (ok < 2 && G.passes({ int: 40 })) { ok++; await G.play([['', '마지막 계산 문제. 지력 덕분에 누구보다 빨리 답을 적어 냈다. 〔지력 40 ✓〕']]); }
+  if (ok < 2 && G.passes({ int: 40 })) { ok++; await G.play([['', '마지막 계산 문제. 지력 덕분에 누구보다 빨리 답을 적어 냈다. 〔지력 8 ✓〕']]); }
   if (ok >= 2) { pass++; await G.play([{ sfx: 'event' }, ['', '【 1라운드 통과 】']]); }
   else await G.play([['', '【 1라운드 탈락… 다음 라운드에서 만회해야 한다 】']]);
 
@@ -323,7 +323,7 @@ async function contestRun(G) {
     S.flags.contest = result;
     G.addStats(result === 'win' ? { gold: 200, charm: 1 } : result === 'lose' ? { gold: 80, brave: 1 } : { gold: 20, brave: 1 }, true);
   }
-  const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 20).sort((a, b) => S.aff[b] - S.aff[a])[0];
+  const best = G.replay ? null : ALL.filter((id) => S.intro[id] && S.aff[id] >= 14).sort((a, b) => S.aff[b] - S.aff[a])[0];
   if (best) {
     const [ex, line] = CONTEST_CHEER[best][result === 'win' ? 0 : 1];
     await G.play([{ pt: null }, ['', '무대에서 내려오자, 누군가 달려왔다.'], { show: best }, [best, ex, line], { hide: 1 }]);
