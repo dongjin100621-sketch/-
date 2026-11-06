@@ -12,7 +12,7 @@
   rest.forEach(([k]) => delete SKILLS[k]);
   Object.assign(SKILLS, {
     trace: { name: '빛 좇기', icon: '🔥', ch: 8, desc: '흩어진 빛의 자취를 좇는다. 히로인과 마주칠 확률 +5% (최대 35% · 히든 45%)' },
-    oath: { name: '별의 맹세', icon: '💫', ch: 9, desc: '마음을 정한 빛. 모든 능력치 판정에 +5 보정 (「색 읽기」와 겹친다)' },
+    oath: { name: '별의 맹세', icon: '💫', ch: 9, desc: '마음을 정한 빛. 모든 능력치 판정에 +1 보정 (「색 읽기」와 겹친다)' },
   });
   rest.forEach(([k, v]) => { SKILLS[k] = v; });
 }
@@ -140,7 +140,7 @@ async function choosePartner(G, prompt, min, verb) {
   return ids[i] || null;
 }
 async function tanabataWalk(G) {
-  const id = await choosePartner(G, '등불 거리 어귀. 은하수가 탑과 겹치는 자정, 누구 곁에 서 있을까?', 30, '함께 별등을 올려다본다');
+  const id = await choosePartner(G, '등불 거리 어귀. 은하수가 탑과 겹치는 자정, 누구 곁에 서 있을까?', 21, '함께 별등을 올려다본다');
   if (!id) { await G.play([['', '혼자 광장 한가운데 섰다. 수천 명의 사람들 사이에서, 탑 꼭대기의 불씨만 바라보았다.']]); return; }
   await G.play([{ show: id }, [id, ...TANABATA_LINES[id][0]], { hide: 1 }]);
   if (!G.replay) G.S.flags.tanabata = id;
@@ -152,7 +152,7 @@ async function tanabataGlow(G) {
   G.addAff(id, 3);
 }
 async function delveRun(G) {
-  const who = await choosePartner(G, '지하 5층으로 함께 내려갈 사람은──', 20, '조를 짠다');
+  const who = await choosePartner(G, '지하 5층으로 함께 내려갈 사람은──', 14, '조를 짠다');
   if (!G.replay) G.S.flags.delveWith = who;
   if (who) await G.play([{ show: who }, [who, ...FIELD_LINES[who][0]], { hide: 1 }]);
   else await G.say('me', null, '…혼자서도 갈 수 있어. 등불 하나면 충분해.');
@@ -163,7 +163,7 @@ async function delveEnd(G) {
   if (who && CHARS[who]) { await G.play([{ show: who }, [who, ...FIELD_LINES[who][1]], { hide: 1 }]); G.addAff(who, 3); }
 }
 async function dareRun(G) {
-  const id = await choosePartner(G, '짝을 정할 시간. 촛불 하나를 나눠 들 사람은──', 20, '짝이 된다');
+  const id = await choosePartner(G, '짝을 정할 시간. 촛불 하나를 나눠 들 사람은──', 14, '짝이 된다');
   if (!id) {
     await G.play([['', '혼자 촛불을 들고 구관에 들어섰다. 삐걱, 삐걱. 내 발소리만 복도를 따라왔다.'], { fx: 'shake' }, ['', '…아니었다. 뒤에서 피오가 울면서 따라오고 있었다. 「선배애! 레온 선배가 먼저 도망쳤어요!」']]);
     return;
@@ -346,7 +346,7 @@ const XMAS2_LINES = {
 const setFlag = (k, v) => ({ run: (G) => { if (!G.replay) G.S.flags[k] = v; } });
 async function contestCheer2(G) {
   const S = G.S, win = G.replay || !!S.flags.champion;
-  const id = G.replay ? pick(ORDER) : bestOf(S, 20);
+  const id = G.replay ? pick(ORDER) : bestOf(S, 14);
   if (!id) { await G.say('', null, win ? '관중석에서 피오가 깃발을 흔들며 울고 있었다. 「선배가 학원 대표래요오!」' : '피오가 물통을 들고 달려왔다. 「선배, 그래도 최고였어요!」'); return; }
   if (win) await G.play([{ show: id }, [id, ...CONTEST_CHEER[id][0]], { hide: 1 }]);
   else await G.play([{ show: id }, ['', `${CHARS[id].name}${jo(CHARS[id].name, '이', '가')} 말없이 다가와 어깨를 툭 쳤다. 「…다음엔 이길 거잖아. 알아.」`], { hide: 1 }]);
@@ -474,7 +474,7 @@ async function raidAlly(G) {
     await G.play([{ show: 'rena' }, ['rena', 'smirk', '내 구역 지하에서 감히 별등 불꽃을 숨겨? …길은 내가 연다.'], ['rena', 'serious', '부하들은 계단 위에 두고 왔다. 이건 내가 직접 해결할 일이다. 너와 함께.'], { hide: 1 }]);
     G.addAff('rena', 2); S.flags.raidWith = 'rena'; return;
   }
-  const id = G.replay ? pick(ORDER) : bestOf(S, 40);
+  const id = G.replay ? pick(ORDER) : bestOf(S, 28);
   if (id) {
     await G.play([['', '지하로 이어지는 계단 앞. 뒤에서 발소리가 따라왔다.'], { show: id }, ['', `${CHARS[id].name}${jo(CHARS[id].name, '이었다', '였다')}. 아무 말 없이, 내 옆에 섰다.`], { hide: 1 }]);
     G.addAff(id, 2); if (!G.replay) S.flags.raidWith = id;
@@ -517,7 +517,7 @@ Object.assign(COMMON, {
     { choice: [
       { t: '🔥 「빼앗긴 불꽃을 되찾기」', stats: { brave: 1 }, go: [['피오', '…멋있어요. 저도 그거 적을걸.'], ['', '등이 밤하늘로 떠올랐다. 별등의 이 빠진 귀퉁이 쪽으로, 곧장.']] },
       { t: '🌈 「모두가 각자의 색으로 빛나기」', stats: { charm: 1 }, go: [['피오', '…「흐림」도 색이에요? 그럼 저도 빛날 수 있겠네요!'], ['', '피오가 자기 등에 한 줄을 더 적었다. 「흐림도 색이다」.']] },
-      { t: '💫 「입춘의 밤, 그 사람 곁에 있기」', when: (S) => !!bestOf(S, 50), go: [{ run: (G) => { const id = G.replay ? pick(ORDER) : bestOf(G.S, 50); if (id) G.addAff(id, 2); } }, ['피오', '그 사람이 누군데요?! 보여 주세요!'], ['', '피오가 훔쳐보기 전에, 황급히 등을 날려 보냈다. 얼굴이 뜨거웠다.']] },
+      { t: '💫 「입춘의 밤, 그 사람 곁에 있기」', when: (S) => !!bestOf(S, 35), go: [{ run: (G) => { const id = G.replay ? pick(ORDER) : bestOf(G.S, 35); if (id) G.addAff(id, 2); } }, ['피오', '그 사람이 누군데요?! 보여 주세요!'], ['', '피오가 훔쳐보기 전에, 황급히 등을 날려 보냈다. 얼굴이 뜨거웠다.']] },
       { t: '📚 「3학년 장학금 받기」', stats: { int: 1 }, go: [['피오', '…선배, 의외로 현실적이네요.'], ['', '현실적인 소원도 하늘 높이 잘만 날아갔다.']] },
     ] },
     { bgm: 'calm', tint: 'am', pt: null },
@@ -605,13 +605,13 @@ GROWTH.push(
 /* 엔딩 조건 */
 Object.assign(END_HINTS, {
   normal: `특별한 누군가 없이, 무색의 빛 ${GROWTH.length}장을 마치지 못한 채 마지막 별빛 축제를 맞이한다`,
-  true: `여덟 명 모두를 만나고 모두의 호감도를 35 이상으로. 그리고 무색의 빛 ${GROWTH.length}장까지`,
+  true: `여덟 명 모두를 만나고 모두의 호감도를 25 이상으로. 그리고 무색의 빛 ${GROWTH.length}장까지`,
   solo: `무색의 빛 이야기를 ${GROWTH.length}장까지 마치고, 마지막 축제의 밤 혼자 탑에 오른다`,
 });
 
 /* ───── 히로인별 2학년 가을 이야기 (🍂) ─────
  * 2학년 이야기(🌸)를 본 히로인을 2학기(8월 26일~)에 호감도 Y2B_AT 이상으로 만나면 열린다 */
-const Y2B_AT = 75;
+const Y2B_AT = 55;
 const y2bReady = (S, id) => S.day >= dayOf2(8, 26) && S.flags[`y2_${id}`] && S.aff[id] >= Y2B_AT && !S.flags[`y2b_${id}`] && !!Y2B_STORY[id];
 const Y2B_STORY = {
   serena: [

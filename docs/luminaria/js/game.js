@@ -7,16 +7,21 @@ const META_KEY = 'luminaria_meta_v1';
 const slotKey = (i) => `luminaria_slot_${i}`;
 const WEEK = ['월', '화', '수', '목', '금', '토', '일'];
 const AP_MAX = 4; // 한 턴 = 일주일. 한 주에 행동치 4 (행동 하나에 1씩)
-const EV_AT = [20, 45, 70];
-const END_AT = 80;
-const TRUE_AT = 35;
+/* 호감도 기준 (0~100). 호감도가 한 번에 0.1~1씩만 오르므로 기준도 낮게 잡았다 */
+const EV_AT = [15, 30, 45];
+const END_AT = 60;
+const TRUE_AT = 25;
 const SPEEDS = { 느리게: 45, 보통: 24, 빠르게: 10, 즉시: 0 };
 const AUTOS = { 느리게: 1.6, 보통: 1, 빠르게: .6 };
 const EV_BGM = ['calm', 'sad', 'romance'];
 const WEATHER = { 맑음: '☀', 흐림: '☁', 비: '🌧', 눈: '❄' };
 const EVENT_RATE = .18; // 장소 돌발 사건이 일어날 확률 (별의 탑은 .6)
-const AFF_CAP = 3; // 호감도는 한 번에 최대 ±3
-const REL = [[80, '운명의 상대'], [65, '두근두근'], [45, '특별한 친구'], [25, '친구'], [10, '아는 사이'], [0, '낯선 사이']];
+const AFF_CAP = 1;   // 호감도는 한 번에 최대 ±1
+const AFF_MIN = 0.1; // …최소 0.1 (소수 첫째 자리까지)
+const round1 = (v) => Math.round(v * 10) / 10;
+/* 시나리오에 적힌 호감도 값(예전 단위 ±1~5)을 지금 단위로: 1 → 0.3, 2 → 0.7, 3 이상 → 1 */
+const affScale = (n) => Math.sign(n) * Math.min(AFF_CAP, Math.max(AFF_MIN, round1(Math.abs(n) / 3)));
+const REL = [[60, '운명의 상대'], [45, '두근두근'], [30, '특별한 친구'], [15, '친구'], [5, '아는 사이'], [0, '낯선 사이']];
 
 const EXT = { chibi: 'webp', stand: 'webp' }; // 투명 배경 그림은 WebP
 const img = (id, kind) => `img/${id}_${kind}.${EXT[kind] || 'jpg'}`;
@@ -293,11 +298,11 @@ async function play(steps) {
   }
 }
 
-/* 능력치 판정: 「색 읽기」를 익히면 +5 보정 */
+/* 능력치 판정: 「색 읽기」·「별의 맹세」를 익히면 각각 내부 +5 (화면 +1) 보정 */
 const judgeBonus = () => (S && S.skills.insight ? 5 : 0) + (S && S.skills.oath ? 5 : 0);
 function passes(need) { return Object.entries(need).every(([k, v]) => (k === 'total' ? total(S.stats) : S.stats[k]) + judgeBonus() >= v); }
 function needLabel(need) {
-  return Object.entries(need).map(([k, v]) => `${k === 'total' ? '총 능력치' : STATS[k]} ${v}`).join(' · ') + (passes(need) ? ' ✓' : '');
+  return Object.entries(need).map(([k, v]) => `${k === 'total' ? '총 능력치' : STATS[k]} ${statTxt(v)}`).join(' · ') + (passes(need) ? ' ✓' : '');
 }
 function learn(k) {
   if (REPLAY || S.skills[k]) return;
@@ -324,22 +329,23 @@ function checkGrowth() {
 }
 
 function meet(id) { if (REPLAY) return; S.met[id] = true; META.met[id] = true; saveMeta(); }
-function addAff(id, n) {
+/* exact: 이미 지금 단위(0.1~1)로 계산한 값. 아니면 예전 단위로 보고 affScale 로 바꾼다 */
+function addAff(id, n, exact) {
   if (!n || REPLAY) return;
-  n = Math.max(-AFF_CAP, Math.min(AFF_CAP, n));
-  S.aff[id] = Math.max(0, Math.min(100, S.aff[id] + n));
-  pop(n > 0 ? `♥ +${n}` : `♡ ${n}`, n < 0);
+  n = exact ? Math.sign(n) * Math.min(AFF_CAP, Math.max(AFF_MIN, round1(Math.abs(n)))) : affScale(n);
+  S.aff[id] = Math.max(0, Math.min(100, round1(S.aff[id] + n)));
+  pop(n > 0 ? `♥ +${num1(n)}` : `♡ ${num1(n)}`, n < 0);
   AUDIO.sfx(n > 0 ? 'heart' : 'down');
   if (n > 0) { const r = $('#sBox').getBoundingClientRect(); FX.burst(r.left + 60, r.top - 10, 'heart', CHARS[id].color); }
 }
-/* 보상: 능력치는 한 번에 하나만 +1~2 (적힌 값 중 가장 큰 능력치), 골드는 적힌 그대로 */
+/* 보상: 능력치는 한 번에 하나만 +0.2~0.4 (내부 +1~2, 적힌 값 중 가장 큰 능력치), 골드는 적힌 그대로 */
 const statGain = () => rand(1, 2);
 function addStats(g, show) {
   if (REPLAY) return;
   const parts = [];
   if (g.gold) { S.gold = Math.max(0, S.gold + g.gold); parts.push(`골드 ${g.gold > 0 ? '+' : ''}${g.gold}`); }
   const k = Object.keys(STATS).filter((x) => g[x] > 0).sort((a, b) => g[b] - g[a])[0];
-  if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${n}`); }
+  if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${statTxt(n)}`); }
   if (show && parts.length) toast(parts.join(' · '));
 }
 
@@ -413,10 +419,10 @@ async function visit(locId) {
   const parts = [];
   if (L.ticket) {
     for (const k of Object.keys(STATS)) S.stats[k] += 2;
-    S.tower--; parts.push('모든 능력치 +2');
+    S.tower--; parts.push(`모든 능력치 +${statTxt(2)}`);
   } else {
     const k = locStat(locId);
-    if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${n}`); }
+    if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${statTxt(n)}`); }
   }
   if (L.gold) {
     let g = rand(...L.gold);
@@ -471,7 +477,7 @@ function eventMinDay(e) {
   return e.minDay;
 }
 
-/* 기숙사: 편지 쓰기 (한 사람에게 일주일에 한 번, 호감도 +1) */
+/* 기숙사: 편지 쓰기 (한 사람에게 일주일에 한 번, 호감도 +0.3) */
 async function dormMenu() {
   const week = Math.floor((S.day - 1) / 7);
   const ids = ALL.filter((id) => S.intro[id] && S.letters[id] !== week);
@@ -482,7 +488,7 @@ async function dormMenu() {
   const id = ids[i];
   S.letters[id] = week;
   await say('', null, `${CHARS[id].name}에게 짧은 편지를 썼다. 요즘 있었던 일, 그리고 고마웠던 일을 적었다.`);
-  addAff(id, 1);
+  addAff(id, 0.3, true);
 }
 
 async function talkTo(id) {
@@ -514,11 +520,11 @@ async function talkTo(id) {
       await play(t.q);
       const i = await choose(t.c.map((x) => ({ t: x[0] })));
       const [, d, reply] = t.c[i];
-      addAff(id, talkGain(d, repeat));
+      addAff(id, talkGain(d, repeat), true);
       await play(reply.map((r) => (r.length === 3 ? r : [id, ...r])));
       if (k === -2) {
         const r = c.req;
-        await say('', null, `(${c.name}${josa(c.name, '은', '는')} 무언가 털어놓고 싶은 눈치다. …${STATS[r.stat]}${josa(STATS[r.stat], '이', '가')} ${r.v} 이상이라면 마음을 열어줄지도 모른다.)`);
+        await say('', null, `(${c.name}${josa(c.name, '은', '는')} 무언가 털어놓고 싶은 눈치다. …${STATS[r.stat]}${josa(STATS[r.stat], '이', '가')} ${statTxt(r.v)} 이상이라면 마음을 열어줄지도 모른다.)`);
       } else if (k === -3) {
         await say('', null, `(${c.name}${josa(c.name, '과', '와')} 한층 가까워진 것 같다. …${md(EV_DAY[S.ev[id]])} 무렵이면, 더 깊은 이야기를 들을 수 있을지도.)`);
       }
@@ -527,13 +533,13 @@ async function talkTo(id) {
   await afterTalk(id);
   charHide();
 }
-/* 대화 선택지의 호감 변화: 마음을 울린 답 +3 · 좋은 답 +2 · 보통 +1 · 무심한 답 -1 · 무례한 답 -3
- * 한 번 들은 이야기를 다시 할 땐 좋은 답도 +1 */
+/* 대화 선택지의 호감 변화: 마음을 울린 답 +1 · 좋은 답 +0.5 · 보통 +0.2 · 무심한 답 -0.3 · 무례한 답 -1
+ * 한 번 들은 이야기를 다시 할 땐 마음을 울린 답 +0.3, 나머지 +0.1. 「공명」을 익히면 +0.1 */
 function talkGain(d, repeat) {
-  let g = d >= 5 ? 3 : d >= 3 ? 2 : d >= 1 ? 1 : d === 0 ? -1 : -3;
-  if (g > 0 && repeat) g = 1;
-  if (g > 0 && S.skills.echo) g += 1;
-  return Math.min(AFF_CAP, g);
+  let g = d >= 5 ? 1 : d >= 3 ? 0.5 : d >= 1 ? 0.2 : d === 0 ? -0.3 : -1;
+  if (g > 0 && repeat) g = d >= 5 ? 0.3 : AFF_MIN;
+  if (g > 0 && S.skills.echo) g += 0.1;
+  return Math.min(AFF_CAP, round1(g));
 }
 
 const DATE_GAP = 21; // 같은 사람과의 데이트는 3주에 한 번
@@ -565,11 +571,11 @@ async function giftMenu(id) {
   const key = items[i][0];
   S.inv[key]--; S.gifted[id] = S.day;
   let line, gain;
-  if (c.likes.includes(key)) { line = GIFT_LINES.like[id]; gain = 3; }
-  else if (c.dislikes.includes(key)) { line = GIFT_LINES.dislike; gain = -2; }
-  else { line = GIFT_LINES.normal; gain = S.skills.grace ? 2 : 1; }
+  if (c.likes.includes(key)) { line = GIFT_LINES.like[id]; gain = 1; }
+  else if (c.dislikes.includes(key)) { line = GIFT_LINES.dislike; gain = -0.6; }
+  else { line = GIFT_LINES.normal; gain = S.skills.grace ? 0.6 : 0.3; }
   await say(id, line[0], line[1]);
-  addAff(id, gain);
+  addAff(id, gain, true);
 }
 async function dateScene(id) {
   const back = $('#sChar').classList.contains('on');
@@ -582,7 +588,7 @@ async function dateScene(id) {
   if (S.lover && S.lover !== id && !REPLAY) { // 연인이 있는데 다른 사람과 데이트
     const lv = CHARS[S.lover];
     addAff(S.lover, -3);
-    toast(`💔 소문이 ${lv.name}의 귀에 들어간 것 같다… (${lv.name} 호감도 -3)`);
+    toast(`💔 소문이 ${lv.name}의 귀에 들어간 것 같다… (${lv.name} 호감도 -1)`);
   }
   if (back) charShow(id);
 }
@@ -595,7 +601,7 @@ const loveActs = () => Object.entries(LOVE_ACTS).filter(([, a]) => !isVac() || a
 function loveCard() {
   if (S.lover) {
     const c = CHARS[S.lover];
-    return `<button class="btn loc love" data-love style="--c:${c.color}"><span class="ic">${icon('heart')}</span><span class="nm"><b>${c.name}${josa(c.name, '과', '와')} 연애</b><small>연인 ${S.day - S.love.since + 1}일째 · 행동치 1 · 호감도 최대 +3</small></span><span class="who"><img src="${img(S.lover, 'chibi')}" alt=""></span></button>`;
+    return `<button class="btn loc love" data-love style="--c:${c.color}"><span class="ic">${icon('heart')}</span><span class="nm"><b>${c.name}${josa(c.name, '과', '와')} 연애</b><small>연인 ${S.day - S.love.since + 1}일째 · 행동치 1 · 호감도 최대 +1</small></span><span class="who"><img src="${img(S.lover, 'chibi')}" alt=""></span></button>`;
   }
   const cs = confessCands();
   if (!cs.length) return '';
@@ -609,16 +615,16 @@ function loveMenu() {
       const id = S.lover, c = CHARS[id], nx = LOVE_MILES.find((n) => n > S.love.n);
       modal(`<h2>${icon('heart')} ${c.name}${josa(c.name, '과', '와')}의 연애</h2>
         <div class="love-head" style="--c:${c.color}"><img src="${img(id, 'e1')}" alt=""><div><b>${c.name} · 연인 ${S.day - S.love.since + 1}일째</b>
-          <small>${md(S.love.since)}부터 · 연애 ${S.love.n}회 · 호감도 ${S.aff[id]}</small>
+          <small>${md(S.love.since)}부터 · 연애 ${S.love.n}회 · 호감도 ${num1(S.aff[id])}</small>
           <small>${nx ? `다음 특별한 순간 「${LOVE_MILE_TITLES[LOVE_MILES.indexOf(nx)]}」까지 ${nx - S.love.n}회` : '세 가지 특별한 순간을 모두 함께했다'}</small></div></div>
         <p class="sub">이번 주에 ${isVac() ? '(방학) 함께 보낼 하루를 고른다' : '방과 후, 또는 주말에 함께할 일을 고른다'}. 행동치 1을 씁니다 (남은 행동치 ${S.ap}/${AP_MAX}).</p>
-        <div class="love-acts">${loveActs().map(([k, a]) => `<button class="btn" data-act="${k}">${icon(a.icon)}<b>${a.name}</b><small>${a.when === 'free' ? '주말 · ' : '방과 후 · '}${STATS[a.stat]} +1~2 · 호감도 최대 +3</small></button>`).join('')}</div>
+        <div class="love-acts">${loveActs().map(([k, a]) => `<button class="btn" data-act="${k}">${icon(a.icon)}<b>${a.name}</b><small>${a.when === 'free' ? '주말 · ' : '방과 후 · '}${STATS[a.stat]} +${statTxt(1)}~${statTxt(2)} · 호감도 최대 +1</small></button>`).join('')}</div>
         <p class="sub">연애를 2주 넘게 쉬거나 다른 사람과 데이트하면 호감도가 깎이고, ${BREAK_AT} 아래로 떨어지면 헤어집니다.</p>`, true, () => res(pick));
     } else {
       const cs = confessCands();
       modal(`<h2>${icon('message-circle-heart')} 고백하기</h2>
         <p class="sub">마음을 전할 사람을 고르세요. 그녀를 불러내 고백하는 데 행동치 1을 씁니다. 어떤 말로 전하느냐에 따라 대답이 달라져요.</p>
-        <div class="love-acts">${cs.map((id) => `<button class="btn" data-who="${id}" style="--c:${CHARS[id].color}"><img src="${softFace(id)}" alt=""><b>${CHARS[id].name}</b><small>호감도 ${S.aff[id]} · ${rel(S.aff[id])}</small></button>`).join('')}</div>`, true, () => res(pick));
+        <div class="love-acts">${cs.map((id) => `<button class="btn" data-who="${id}" style="--c:${CHARS[id].color}"><img src="${softFace(id)}" alt=""><b>${CHARS[id].name}</b><small>호감도 ${num1(S.aff[id])} · ${rel(S.aff[id])}</small></button>`).join('')}</div>`, true, () => res(pick));
     }
     $('#modalInner').onclick = (e) => {
       const b = e.target.closest('[data-act],[data-who]'); if (!b) return;
@@ -685,7 +691,7 @@ async function loverDay(k) {
   S.stats[A.stat] += sg;
   S.love.last = S.day;
   if (got !== 'bad') S.love.n++;
-  toast(`💕 ${A.name} · ${STATS[A.stat]} +${sg}`);
+  toast(`💕 ${A.name} · ${STATS[A.stat]} +${statTxt(sg)}`);
   const mi = LOVE_MILES.indexOf(S.love.n);
   if (got !== 'bad' && mi >= 0) {
     await banner(LOVE_MILE_TITLES[mi], `${c.name}${josa(c.name, '과', '와')}의 특별한 순간`, '💕');
@@ -705,8 +711,8 @@ async function loveCheck() {
   }
   if (S.day - Math.max(S.love.last, S.love.warn || 0) >= NEGLECT_GAP) {
     S.love.warn = S.day;
-    S.aff[id] = Math.max(0, S.aff[id] - 2);
-    toast(`💔 ${c.name}: “${LOVE_NEGLECT[id]}” (호감도 -2)`);
+    S.aff[id] = Math.max(0, round1(S.aff[id] - 0.6));
+    toast(`💔 ${c.name}: “${LOVE_NEGLECT[id]}” (호감도 -0.6)`);
   }
 }
 
@@ -807,7 +813,7 @@ function flip(big, small) {
 
 async function festival() {
   const best = S.lover || ALL.filter((id) => S.intro[id]).sort((a, b) => S.aff[b] - S.aff[a])[0];
-  if (best && S.aff[best] >= 30 && EVE[best]) { await runScene([{ bgm: 'calm' }, ...EVE[best]]); seen(`${best}_eve`); }
+  if (best && S.aff[best] >= 20 && EVE[best]) { await runScene([{ bgm: 'calm' }, ...EVE[best]]); seen(`${best}_eve`); }
   else await runScene([{ bgm: 'calm' }, ...COMMON.eveAlone]);
   S.weather = '맑음';
   await banner(dateStr(LAST_DAY), '별빛 축제의 밤', '✦');
@@ -830,7 +836,7 @@ async function festival() {
     await play([{ bgm: 'romance' }, ...lov, ...STORY[who].end]); key = who;
   }
   else {
-    const fr = ALL.filter((id) => S.intro[id] && S.aff[id] >= 35).sort((a, b) => S.aff[b] - S.aff[a])[0];
+    const fr = ALL.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
     const ne = [...COMMON.normalEnd];
     if (fr) ne.splice(ne.length - 1, 0, { show: fr }, [fr, Object.keys(CHARS[fr].ex)[1], FRIEND_LINES[fr]], { hide: 1 });
     await play([{ bgm: 'calm' }, ...ne]); key = 'normal';
@@ -874,8 +880,8 @@ function results(r) {
     <div class="logo">LUMINARIA<small>Eight Fates</small></div>
     <div class="end-name">${esc(END_TITLES[r.key] || '')}</div>
     <p class="quote">${CHARS[r.key] ? `「${CHARS[r.key].quote}」` : r.key === 'true' ? '「여덟 개의 빛, 그리고 색이 없는 단 하나의 빛.」' : r.key === 'solo' ? '「색이 없다는 건, 무엇이든 이을 수 있다는 뜻이었다.」' : '「…다음 축제에는, 조금 더 용기를 내볼까.」'}</p>
-    <div class="res-grid">${top.map((id) => `<div><img src="${img(id, 'e1')}" alt=""><b>${CHARS[id].name}</b><span>♥ ${r.aff[id]}</span></div>`).join('')}</div>
-    <p>${Object.entries(STATS).map(([k, n]) => `${n} ${r.stats[k]}`).join(' · ')}</p>
+    <div class="res-grid">${top.map((id) => `<div><img src="${img(id, 'e1')}" alt=""><b>${CHARS[id].name}</b><span>♥ ${num1(r.aff[id])}</span></div>`).join('')}</div>
+    <p>${Object.entries(STATS).map(([k, n]) => `${n} ${statTxt(r.stats[k])}`).join(' · ')}</p>
     <p>학원 평가 <b>${RANKS[r.rank][1]}</b> · 무색의 빛 ${r.growth}/${GROWTH.length}장 · 무색 마법 ${r.skills}/${Object.keys(SKILLS).length}</p>
     <p>히로인 엔딩 ${cleared} / 8${hidCleared ? ` · 히든 ${hidCleared} / 4` : ''}${META.endings.solo ? ' · 🕯️ 성장 엔딩' : ''}${META.endings.true ? ' · ✦ 트루 엔딩' : ''}</p>
     <p style="color:var(--dim);font-size:13px">플레이해주셔서 감사합니다.</p>
@@ -907,7 +913,7 @@ function hub() {
   if (!evs.length && nextD && nextD - S.day <= 14) news.push(`📜 다음 주 ${md(nextD)} — ${DAY_NEWS[CALENDAR[nextD]]} (D-${nextD - S.day})`);
   if (t.vac) news.push(`🏖 ${t.name}! 수업이 없다. 탐험·상점가가 매일 열린다`);
   if (S.weather === '비' || S.weather === '눈') news.push(`${WEATHER[S.weather]} ${S.weather}${josa(S.weather, '이', '가')} 온다. 밖에서 사람을 만나기는 어려울 것 같다`);
-  if (S.tower > 0 && !locked('tower')) news.push(`🕯️ 별의 탑에서 수련할 수 있다 (${S.tower}회 · 모든 능력치 +2)`);
+  if (S.tower > 0 && !locked('tower')) news.push(`🕯️ 별의 탑에서 수련할 수 있다 (${S.tower}회 · 모든 능력치 +${statTxt(2)})`);
   for (const id of ALL) {
     const k = pendingEvent(id);
     if (k >= 0) news.push(`💌 ${CHARS[id].name}${josa(CHARS[id].name, '과', '와')}의 이야기가 기다리고 있다. 만나러 가 보자`);
@@ -923,19 +929,19 @@ function hub() {
   const g = GROWTH[S.growth];
   if (g) {
     const tt = total(S.stats);
-    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 곧, 무색의 빛에 변화가 찾아올 것 같다` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${g.need} (지금 ${tt})`);
+    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 곧, 무색의 빛에 변화가 찾아올 것 같다` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${statTxt(g.need)} (지금 ${statTxt(tt)})`);
   }
   $('#hNews').innerHTML = news.map((n) => `<li>${iconize(n)}</li>`).join('');
 
-  const st = Object.entries(STATS).map(([k, n]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, S.stats[k])}%"></i></div><b>${S.stats[k]}</b></div>`).join('');
+  const st = Object.entries(STATS).map(([k, n]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, S.stats[k])}%"></i></div><b>${(S.stats[k] / STAT_UNIT).toFixed(1)}</b></div>`).join(''); // 막대는 20.0에서 가득
   const tt = total(S.stats), nx = RANKS[S.rank + 1];
-  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${tt} · 다음 등급 ${nx[0]}` : `총 ${tt} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">${iconize('💰')} ${S.gold} G</div>`;
+  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${statTxt(tt)} · 다음 등급 ${statTxt(nx[0])}` : `총 ${statTxt(tt)} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">${iconize('💰')} ${S.gold} G</div>`;
 
   $('#hLocs').innerHTML = loveCard() + Object.keys(LOCS).map((k) => [k, locState(k)]).filter(([, s]) => !s.hide).map(([k, s]) => {
     const L = LOCS[k], stat = locStat(k);
     const ws = encounterOdds(k).filter(([id]) => S.met[id]); // 얼굴은 세 명까지, 나머지는 +n
     const who = ws.slice(0, 3).map(([id]) => `<img src="${img(id, 'e0')}" title="${CHARS[id].name} (자주 온다)" alt="">`).join('') + (ws.length > 3 ? `<span class="more" title="${ws.slice(3).map(([id]) => CHARS[id].name).join(', ')}">+${ws.length - 3}</span>` : '');
-    const gain = [L.ticket ? `모든 능력치 +2 · ${S.tower}회` : stat ? `${STATS[stat]} +1~2` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
+    const gain = [L.ticket ? `모든 능력치 +${statTxt(2)} · ${S.tower}회` : stat ? `${STATS[stat]} +${statTxt(1)}~${statTxt(2)}` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
     return `<button class="btn loc ${s.ok ? '' : 'shut'}" data-loc="${k}" ${s.ok ? '' : 'disabled'}><span class="ic">${iconize(L.club && S.club ? CLUBS[S.club].icon : L.icon)}</span><span class="nm"><b>${locName(k)}</b><small>${s.ok ? gain : iconize(`🔒 ${s.why}`)}</small></span><span class="who">${s.ok ? who : ''}</span></button>`;
   }).join('');
 
@@ -1023,11 +1029,11 @@ function growthMenu() {
   const t = total(S.stats), nx = RANKS[S.rank + 1];
   const chap = GROWTH.map((g, i) => {
     const done = i < S.growth, next = i === S.growth;
-    return `<li class="${done ? 'done' : next ? 'next' : ''}"><b>${i + 1}장 ${done || next ? g.title : '？？？'}</b><small>${done ? '완료' : next ? `${md(g.day)} 이후 · 총 능력치 ${g.need}${t >= g.need ? ' ✓' : ` (지금 ${t})`}` : '앞 장을 마치면 열린다'}</small></li>`;
+    return `<li class="${done ? 'done' : next ? 'next' : ''}"><b>${i + 1}장 ${done || next ? g.title : '？？？'}</b><small>${done ? '완료' : next ? `${md(g.day)} 이후 · 총 능력치 ${statTxt(g.need)}${t >= g.need ? ' ✓' : ` (지금 ${statTxt(t)})`}` : '앞 장을 마치면 열린다'}</small></li>`;
   }).join('');
   const sk = Object.entries(SKILLS).map(([k, x]) => {
     const has = S.skills[k];
-    const how = x.stat ? `${STATS[x.stat[0]]} ${x.stat[1]} 달성 (지금 ${S.stats[x.stat[0]]})` : `무색의 빛 ${x.ch}장`;
+    const how = x.stat ? `${STATS[x.stat[0]]} ${statTxt(x.stat[1])} 달성 (지금 ${statTxt(S.stats[x.stat[0]])})` : `무색의 빛 ${x.ch}장`;
     return `<div class="skill ${has ? 'on' : ''}"><span class="ic">${has ? x.icon : '🔒'}</span><div><b>${x.ch ? '' : '[특기] '}${x.name}</b><small>${x.desc}</small>${has ? '' : `<em>${how}</em>`}</div></div>`;
   }).join('');
   const found = Object.keys(META.found).length;
@@ -1042,11 +1048,11 @@ function growthMenu() {
       ${S.creed ? `<small>신념: ${CREEDS[S.creed]}</small>` : ''}</div></div>
     <h3>📅 시간표 <small>(지금: ${termOf(S.day).name} · 한 주에 행동치 ${AP_MAX})</small></h3>
     <div class="tt-wrap"><table class="tt"><tr><th>행동</th><td>학기 중</td><td>방학</td><td>오르는 것</td><td>자주 오는 사람</td></tr>${tt}</table></div>
-    <p class="sub">🕯️ 별의 탑: 무색 마법을 각성할 때마다 한 번 (모든 능력치 +2) · 남은 수련 ${S.tower}회 · 히로인은 자주 오는 곳에서도 10~30% 확률로만 만난다</p>
+    <p class="sub">🕯️ 별의 탑: 무색 마법을 각성할 때마다 한 번 (모든 능력치 +${statTxt(2)}) · 남은 수련 ${S.tower}회 · 히로인은 자주 오는 곳에서도 10~30% 확률로만 만난다</p>
     ${nextEv ? `<h3>다가오는 학원 행사</h3><ul class="chap">${nextEv}</ul>` : ''}
     <h3>무색의 빛 — 주인공 이야기</h3><ul class="chap">${chap}</ul>
     <h3>무색 마법 · 특기 ${Object.keys(S.skills).length}/${Object.keys(SKILLS).length}</h3><div class="skills">${sk}</div>
-    <p class="sub">학원 곳곳의 돌발 사건 ${found}/${RANDOM_EVENTS.length}개 발견 · 능력치 판정 선택지 〔 〕는 조건을 넘으면 ✓가 붙어요${S.skills.insight ? ' (「색 읽기」 보정 +10 적용 중)' : ''}</p>`);
+    <p class="sub">학원 곳곳의 돌발 사건 ${found}/${RANDOM_EVENTS.length}개 발견 · 능력치 판정 선택지 〔 〕는 조건을 넘으면 ✓가 붙어요${judgeBonus() ? ` (판정 보정 +${statTxt(judgeBonus())} 적용 중)` : ''}</p>`);
 }
 
 function profile(id, fromAlbum) {
@@ -1061,8 +1067,8 @@ function profile(id, fromAlbum) {
       <div class="pname">${c.name}<small>${c.en}</small></div>
       <div class="ptitle">${c.title}</div>
       <table class="info">${c.info.map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('')}
-        ${inGame ? `<tr><th>관계</th><td>${rel(aff)}</td></tr><tr><th>호감도</th><td><span class="hearts">${'♥'.repeat(Math.floor(aff / 20))}${'♡'.repeat(5 - Math.floor(aff / 20))}</span> ${aff}</td></tr>
-        <tr><th>이야기</th><td>${'●'.repeat(ev)}${'○'.repeat(3 - ev)} ${ev < 3 ? `(다음: 호감도 ${EV_AT[ev]}${EV_DAY[ev] > 1 ? ` · ${md(EV_DAY[ev])} 이후` : ''}${ev === 2 ? ` · ${STATS[c.req.stat]} ${c.req.v}` : ''})` : '완료'}</td></tr>
+        ${inGame ? `<tr><th>관계</th><td>${rel(aff)}</td></tr><tr><th>호감도</th><td><span class="hearts">${'♥'.repeat(Math.floor(aff / 20))}${'♡'.repeat(5 - Math.floor(aff / 20))}</span> ${num1(aff)}</td></tr>
+        <tr><th>이야기</th><td>${'●'.repeat(ev)}${'○'.repeat(3 - ev)} ${ev < 3 ? `(다음: 호감도 ${EV_AT[ev]}${EV_DAY[ev] > 1 ? ` · ${md(EV_DAY[ev])} 이후` : ''}${ev === 2 ? ` · ${STATS[c.req.stat]} ${statTxt(c.req.v)}` : ''})` : '완료'}</td></tr>
         <tr><th>2학년</th><td>${SIDE_STORIES.map((x) => (S.flags[`${x.key}_${id}`] ? `${x.icon} ${x.title} 완료` : `${x.icon} ${x.title} (${x.hint})`)).join('<br>')}</td></tr>
         <tr><th>자주 가는 곳</th><td>${Object.entries(HAUNTS[id]).map(([l, p]) => `${LOCS[l].place} ${p}%`).join(', ')}</td></tr>
         <tr><th>좋아하는 선물</th><td>${likes}</td></tr>
@@ -1152,7 +1158,7 @@ function summary(s) {
   if (!s) return '<span class="empty">비어 있음</span>';
   const best = ALL.filter((id) => s.intro && s.intro[id]).sort((a, b) => s.aff[b] - s.aff[a])[0];
   const when = s.ts ? new Date(s.ts).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-  return `<b>${gradeWeek(s.day)}</b> · ${esc(s.name)}${best ? ` · <span style="color:${CHARS[best].color}">${CHARS[best].name} ♥${s.aff[best]}</span>` : ''}<small>${when}</small>`;
+  return `<b>${gradeWeek(s.day)}</b> · ${esc(s.name)}${best ? ` · <span style="color:${CHARS[best].color}">${CHARS[best].name} ♥${num1(s.aff[best])}</span>` : ''}<small>${when}</small>`;
 }
 function saveMenu(mode) {
   const rows = [];

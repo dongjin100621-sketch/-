@@ -412,9 +412,9 @@ const END_TITLES = {
 };
 const END_HINTS = {
   normal: '특별한 누군가 없이, 무색의 빛 5장을 마치지 못한 채 축제를 맞이한다',
-  true: '여덟 명 모두를 만나고 모두의 호감도를 35 이상으로. 그리고 무색의 빛 5장까지',
+  true: '여덟 명 모두를 만나고 모두의 호감도를 25 이상으로. 그리고 무색의 빛 5장까지',
   solo: '무색의 빛 이야기를 5장까지 마치고, 축제의 밤 혼자 탑에 오른다',
-  ...Object.fromEntries(ORDER.map((id) => [id, `이야기 3개를 모두 보고 호감도 80 이상 (${STATS[CHARS[id].req.stat]} ${CHARS[id].req.v} 필요)`])),
+  ...Object.fromEntries(ORDER.map((id) => [id, `이야기 3개를 모두 보고 호감도 60 이상 (${STATS[CHARS[id].req.stat]} ${statTxt(CHARS[id].req.v)} 필요)`])),
 };
 
 /* ───────────────────────── 일상 대화 추가분 ───────────────────────── */
