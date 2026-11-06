@@ -2,7 +2,7 @@
 
 여름 캐릭터 시트(1484×1060 · 1448×1086 PNG)에서 필요한 부분만 잘라 Real-ESRGAN(realesr-general-x4v3)으로
 4배 키운다. 뭉개짐을 막으려고 8방향(회전·반전)으로 키워 평균 내고(TTA), 다시 줄였을 때 원본과
-같아지도록 역투영해 잔 디테일을 되살린다. 줄이지 않고 4배 크기 그대로 저장한다 (일러스트·스탠딩 2100px).
+같아지도록 역투영해 잔 디테일을 되살린 뒤, 약한 언샤프 마스크로 선을 세운다. 줄이지 않고 4배 크기 그대로 저장한다 (일러스트·스탠딩 2100px).
 스탠딩·꼬마 캐릭터는 isnet-anime 로 배경을 지운다 (luminaria_hd.py 와 같은 방식).
 
     python3 tools/luminaria_summer.py <시트 폴더> <모델 폴더> [이름 ...] [--preview 파일]
@@ -86,7 +86,8 @@ def main():
         x0, y0, x1, y1 = box
         p = (max(0, x0 - PAD), max(0, y0 - PAD), min(sheet.width, x1 + PAD), min(sheet.height, y1 + PAD))
         c = sheet.crop(p)
-        b = backproject(c, up.tta(c))
+        # 8방향 평균은 선이 살짝 무뎌지므로, 약한 언샤프 마스크로 선만 다시 세운다
+        b = backproject(c, up.tta(c)).filter(ImageFilter.UnsharpMask(2, 50, 2))
         return b.crop(((x0 - p[0]) * 4, (y0 - p[1]) * 4, (x1 - p[0]) * 4, (y1 - p[1]) * 4))
 
     shots = []
