@@ -178,6 +178,8 @@ async function examRun(G, n) {
   else if (G.passes({ int: mid - sp })) { score += 1; await G.say('', null, '아는 문제와 모르는 문제가 반반. 어떻게든 답안지를 채웠다.'); }
   else await G.say('', null, '…모르겠다. 문제를 읽는 것만으로도 머리가 지끈거린다.');
   await G.say('교수', null, `마지막 문제일세. ${E.q[0]}`);
+  const ST = EXAM_STUDY[n]; // 시험 범위 강의를 들었으면 그 말이 떠오른다 (detail.js)
+  if (ST && (S.flags[`study${n}`] || G.replay)) await G.say('', null, `(${ST.recall})`);
   if (await G.choose(E.q[1].map((t) => ({ t }))) === E.q[2]) { score++; await G.play([{ sfx: 'heart' }, ['', '…확신을 담아 답을 적었다.']]); }
   else await G.play([{ sfx: 'down' }, ['', '…답을 적고 나서야, 교과서의 그 쪽이 떠올랐다. 늦었다.']]);
   // 실기
@@ -381,7 +383,8 @@ Object.assign(COMMON, {
     ['학원장', '여름은 잘 보냈는가. 2학기엔 학과 대항 마법제, 학원제, 그리고 시험이 둘. 바쁜 가을이 될 걸세.'],
     { if: (S) => S.intro.noelle, go: [
       { show: 'noelle' }, ['noelle', 'think', '…여름 동안 별등의 빛을 매일 기록했어. 아주 조금씩, 약해지고 있어.'],
-      ['noelle', 'normal', '입춘 전야까지 버티려면… 여덟 개의 빛이 필요해. 그리고 아마, 너도.'], { hide: 1 }],
+      ['noelle', 'normal', '타다 남은 기록도 몇 글자 더 읽어 냈어. 「여덟이 다시 불을」. …여덟 개의 무언가가, 별등에 불을 다시 붙인다는 뜻 같아.'],
+      ['noelle', 'blank', '그 여덟이 뭔지는, 아직이야. 그리고 「색 없는」 뒤도.'], { hide: 1 }],
     else: [['', '탑 위의 별등이 여름 전보다 조금 희미해 보였다. …기분 탓일까.']] },
     { if: (S) => S.flags.leon, go: [['레온', '왔군, 무색. 이번 대항전 결승, 기다리고 있겠다.']] },
     ['', '【 2학기: 다시 수업이 시작된다. 마법 이론은 월·수·금, 검술은 화·목. 】'],

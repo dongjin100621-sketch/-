@@ -187,6 +187,11 @@ Object.assign(COMMON, {
         ['beatrix', 'smile', '네 덕에 단가를 2할이나 깎았어. 이건 수고비. 받아 둬.'] ] },
     ] },
     { hide: 1 },
+    { if: (S) => S.intro.noelle && S.growth < 5, go: [
+      { bg: 'library', tint: 'night' }, { show: 'noelle' },
+      ['noelle', 'think', '…타다 남은 기록, 빈칸을 거의 다 채웠어. 「여덟이 다시 불을 붙이고, 색 없는 빛이 그 사이를 잇는다」.'],
+      ['noelle', 'blank', '여덟은 별이 아니야. 아마… 사람. 그리고 색 없는 빛은── 너도 짐작하고 있지?'],
+      { hide: 1 }, { bg: 'market', tint: 'pm' }] },
     ['', '광장의 등불이 하나둘 켜진다. 축제가, 바로 앞까지 와 있었다.'],
   ],
 
