@@ -15,7 +15,7 @@ const SUMMER_SPOTS = ['sea', 'guard']; // 여름방학에 이곳에선 여름 �
   tail.forEach(([k]) => delete LOCS[k]);
   Object.assign(LOCS, {
     guard: { name: '해변 구조대', place: '은빛 해변 구조대', icon: '🏖️', bg: 'sea', stat: 'brave', only: 'summer', vdays: WEEKDAYS, gold: [10, 20], sub: 'guard', desc: '여름 한정 구조대원으로 해변을 지킨다.', outdoor: true },
-    snow: { name: '눈꽃 마을 봉사', place: '북쪽 눈꽃 마을', icon: '❄️', bg: 'north', stat: 'str', only: ['winter', 'spring', 'y2winter'], vdays: WEEKDAYS, sub: 'snow', desc: '눈에 갇힌 북쪽 마을에서 봉사한다.', outdoor: true },
+    snow: { name: '눈꽃 마을 봉사', place: '북쪽 눈꽃 마을', icon: '❄️', bg: 'north', stat: 'str', only: ['winter', 'spring', 'y2winter', 'y3winter'], vdays: WEEKDAYS, sub: 'snow', desc: '눈에 갇힌 북쪽 마을에서 봉사한다.', outdoor: true },
   });
   tail.forEach(([k, v]) => { LOCS[k] = v; });
 }
