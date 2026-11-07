@@ -23,7 +23,7 @@ const examSoon = (S, span) => Number(Object.keys(EXAM_KEYS).find((n) => { const 
 /* ───── 생일 (프로필에도 표시) ───── */
 const BIRTHDAYS = { serena: [1, 14], luna: [8, 9], camilla: [10, 2], aria: [4, 23], lizette: [11, 17], rose: [6, 21], noelle: [9, 23], beatrix: [5, 31], elise: [3, 3], sia: [7, 28], elin: [10, 31], rena: [12, 5] };
 for (const [id, [m, d]] of Object.entries(BIRTHDAYS)) CHARS[id].info.splice(1, 0, ['생일', `${m}월 ${d}일`]);
-const bdayThisWeek = (S, id) => { const [m, d] = BIRTHDAYS[id]; return [dayOf(m, d), dayOf2(m, d)].find((b) => sameWeek(b, S.day)) || 0; };
+const bdayThisWeek = (S, id) => { const [m, d] = BIRTHDAYS[id]; return [dayOf(m, d), dayOf2(m, d), dayOf3(m, d)].find((b) => sameWeek(b, S.day)) || 0; };
 
 /* ═════════════════════════ 1. 선물 ═════════════════════════ */
 /* ask: 보통 / wary: 낯선 사이의 비싼 선물 / glad: 친한 사이
@@ -344,6 +344,7 @@ async function letterRun(G, id) {
   if (type === 'miss') g += aff >= 30 ? 0.2 : aff < 15 ? -0.2 : 0;
   if (type === 'thanks') g += 0.1;
   if (type === 'meet') g += 0.1;
+  if (S.skills.share) g += 0.1; // 무색 마법 10장 「등불 나누기」
   G.addAff(id, Math.max(0.1, Math.min(1, r1(g))), true);
   if (!G.replay) {
     const key = type === 'miss' && aff < 15 ? 'awk' : gap >= 21 && aff >= 10 ? 'long' : aff >= 35 ? 'high' : aff >= 15 ? 'mid' : 'low';
@@ -525,7 +526,7 @@ STORY.elin.talks[0].vary = (S) => (S.at !== 'class' ? {
 
 /* ═════════════════════════ 4. 만남의 상황 ═════════════════════════ */
 /* 그 장소에서 마주칠지 상황이 정하는 히로인: { with: 이번에 만나는 사람, skip: 무작위 만남에서 뺄 사람 } */
-const CAMILLA_AWAY = [dayOf(5, 13), dayOf(10, 7), dayOf2(5, 20), dayOf2(10, 7)].map(wkOf); // 기사학과 국경 원정 실습 주간
+const CAMILLA_AWAY = [dayOf(5, 13), dayOf(10, 7), dayOf2(5, 20), dayOf2(10, 7), dayOf3(5, 19), dayOf3(10, 13)].map(wkOf); // 기사학과 국경 원정 실습 주간
 const CAMILLA_MISS = [
   '기다리는 사이, 신입생 하나가 발목을 접질렸다. 카밀라는 그 아이를 업고 의무실로 달려갔다.',
   '줄이 겨우 줄어들 무렵, 기사학과 교관이 카밀라를 회의에 불러 갔다.',
@@ -538,7 +539,7 @@ const ENCOUNTER_SIT = {
     const S = G.S, out = { with: [], skip: ['camilla'] };
     if (G.replay) return out;
     if (CAMILLA_AWAY.includes(wkOf(S.day))) {
-      await G.say('', null, `훈련장 조교석이 비어 있었다. 기사학과 ${S.day > YEAR1 ? '상급생' : '2학년'}들은 이번 주 국경 원정 실습을 나갔다고 한다. 오늘 구령은 교관이 직접 붙였다.`);
+      await G.say('', null, `훈련장 조교석이 비어 있었다. 기사학과 ${gradeOf(S.day)}학년들은 이번 주 국경 원정 실습을 나갔다고 한다. 오늘 구령은 교관이 직접 붙였다.`);
       return out;
     }
     if (!S.intro.camilla) {
