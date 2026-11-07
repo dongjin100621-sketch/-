@@ -110,5 +110,19 @@
   "artist": "Gustave Caillebotte",
   "license": "Public domain",
   "source": "https://commons.wikimedia.org/wiki/File:Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg"
+ },
+ {
+  "bg": "plum",
+  "title": "Vincent van Gogh - The white orchard - Google Art Project.jpg",
+  "artist": "Vincent van Gogh",
+  "license": "Public domain",
+  "source": "https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_The_white_orchard_-_Google_Art_Project.jpg"
+ },
+ {
+  "bg": "ballroom",
+  "title": "Adolph Menzel - Das Ballsouper - Google Art Project.jpg",
+  "artist": "Adolph von Menzel",
+  "license": "Public domain",
+  "source": "https://commons.wikimedia.org/wiki/File:Adolph_Menzel_-_Das_Ballsouper_-_Google_Art_Project.jpg"
  }
 ]
