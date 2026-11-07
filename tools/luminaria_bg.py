@@ -32,6 +32,9 @@ PICK = {
     'north':     ('Pieter Bruegel the Elder - Hunters in the Snow (Winter) - Google Art Project.jpg', None, .55),
     'aurora':    ('Frederic Edwin Church - Aurora Borealis - Google Art Project.jpg', None, (.5, .35)),
     'rain':      ('Gustave Caillebotte - Paris Street; Rainy Day - Google Art Project.jpg', None, .5),
+    # 3학년 · 졸업 (year3c.js)
+    'plum':      ('Vincent van Gogh - The white orchard - Google Art Project.jpg', None, .5),
+    'ballroom':  ('Adolph Menzel - Das Ballsouper - Google Art Project.jpg', None, (.5, .4)),
 }
 W, H = 2400, 1500  # 고해상도 화면(레티나)용
 # Real-ESRGAN realesr-general-x4v3 가중치 경로 (같은 폴더에 realesr-general-wdn-x4v3.pth).
