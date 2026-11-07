@@ -461,7 +461,7 @@ Object.assign(COMMON, {
 
 /* ───── 무색의 빛 10장 ───── */
 GROWTH.push(
-  { key: 'g10', title: '등불지기의 수업', day: dayOf3(4, 20), need: 560, steps: [
+  { key: 'g10', title: '등불지기의 수업', day: dayOf3(4, 20), need: 600, steps: [
     { bgm: 'calm', bg: 'tower', tint: 'pm', pt: 'motes' },
     ['', '3학년 첫 달의 끝. 학원장이 별의 탑으로 불러, 빈 등잔 하나를 내 앞에 내려놓았다.'],
     ['학원장', '등불지기의 첫 수업일세. 아니, 내가 해 줄 수 있는 몇 안 되는 수업이지.'],
