@@ -1,0 +1,17 @@
+{
+  "name": "한자 서당",
+  "short_name": "한자 서당",
+  "description": "초급·중급·고급으로 나눈 한자·한문 공부: 카드 학습, 퀴즈, 쓰기 연습, 사자성어, 한문 명구",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4eee2",
+  "theme_color": "#f4eee2",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
