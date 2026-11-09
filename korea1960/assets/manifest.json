@@ -153,7 +153,21 @@
       "kind": "open_license_font_subset",
       "use": "한국어 UI 표시",
       "historicalEvidence": false
+    },
+    {
+      "id": "font_korean_regular_woff2",
+      "path": "assets/fonts/ChronicleKR-Regular.woff2",
+      "kind": "open_license_font_subset",
+      "use": "한국어 UI 표시 (v2 게임, 보통)",
+      "historicalEvidence": false
+    },
+    {
+      "id": "font_korean_bold_woff2",
+      "path": "assets/fonts/ChronicleKR-Bold.woff2",
+      "kind": "open_license_font_subset",
+      "use": "한국어 UI 표시 (v2 게임, 굵게)",
+      "historicalEvidence": false
     }
   ],
-  "notes": "PNG는 원본, WebP는 실행용. 생성 삽화는 역사적 증거가 아니다. 한국어 폰트는 별도 SIL OFL 라이선스이며 fonts/OFL.txt를 유지한다. 외부 CDN·음악·원작 에셋에 의존하지 않는다."
+  "notes": "PNG는 원본, WebP는 실행용. 생성 삽화는 역사적 증거가 아니다. 한국어 폰트는 별도 SIL OFL 라이선스이며 fonts/OFL.txt를 유지한다. 외부 CDN·음악·원작 에셋에 의존하지 않는다. v2 게임(game/)은 WOFF2 서브셋 2종을 쓰고, v1 TTF는 example/ 참조 구현용으로 남긴다. 서브셋은 tools/subset_font.py로 다시 만든다."
 }
