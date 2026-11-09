@@ -258,7 +258,52 @@
           "conditions": {
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "phaseIn": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "prelude",
+                      "civilian",
+                      "transition",
+                      "elected",
+                      "governing"
+                    ]
+                  }
+                },
+                "flag": {
+                  "enum": [
+                    "route",
+                    "won1963",
+                    "constitutionalLimit",
+                    "authoritarian"
+                  ]
+                },
+                "eq": {
+                  "type": [
+                    "boolean",
+                    "string"
+                  ]
+                },
+                "yearGte": {
+                  "type": "integer"
+                },
+                "yearLte": {
+                  "type": "integer"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "gte": {
+                  "type": "number"
+                },
+                "lte": {
+                  "type": "number"
+                }
+              }
             }
           },
           "choices": {
@@ -284,6 +329,77 @@
                   "additionalProperties": {
                     "type": "number"
                   }
+                }
+              }
+            }
+          },
+          "context": {
+            "type": "array",
+            "minItems": 1,
+            "description": "v1.1.0: 현재 경로에 맞는 '이 캠페인에서는' 설명. 조건이 맞는 첫 항목을 표시한다. 실제 역사 문장(body)과 분리한다.",
+            "items": {
+              "type": "object",
+              "required": [
+                "conditions",
+                "text"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "conditions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "minProperties": 1,
+                    "properties": {
+                      "phaseIn": {
+                        "type": "array",
+                        "items": {
+                          "enum": [
+                            "prelude",
+                            "civilian",
+                            "transition",
+                            "elected",
+                            "governing"
+                          ]
+                        }
+                      },
+                      "flag": {
+                        "enum": [
+                          "route",
+                          "won1963",
+                          "constitutionalLimit",
+                          "authoritarian"
+                        ]
+                      },
+                      "eq": {
+                        "type": [
+                          "boolean",
+                          "string"
+                        ]
+                      },
+                      "yearGte": {
+                        "type": "integer"
+                      },
+                      "yearLte": {
+                        "type": "integer"
+                      },
+                      "metric": {
+                        "type": "string"
+                      },
+                      "gte": {
+                        "type": "number"
+                      },
+                      "lte": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 400
                 }
               }
             }

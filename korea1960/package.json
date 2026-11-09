@@ -1,13 +1,25 @@
 {
-  "name": "korea1960-claude-reference",
-  "version": "1.0.0",
+  "name": "korea1960-chronicle",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Original fictional historical-political simulation production kit. No runtime dependencies.",
+  "description": "대한민국 1960: 선택의 연대기 — 월 단위 역사 정치·경제 시뮬레이션. 실행·테스트에 외부 의존성이 없다. 모든 수치와 선택 결과는 가상.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "test": "node --test tests/engine.test.mjs",
+    "test": "node --test tests/engine.test.mjs tests/game.test.mjs",
+    "test:reference": "node --test tests/engine.test.mjs",
+    "test:game": "node --test tests/game.test.mjs",
+    "test:browser": "node tests/browser/e2e.cjs",
     "validate": "python3 tools/validate_content.py",
-    "build:standalone": "python3 tools/build_standalone.py",
+    "sync": "python3 tools/validate_content.py --sync",
+    "simulate": "node tools/simulate.mjs",
+    "build": "python3 tools/build_standalone.py",
+    "build:pages": "python3 tools/build_standalone.py --pages",
+    "build:reference": "python3 tools/build_standalone.py --reference",
+    "saves": "node tools/make_sample_saves.mjs",
+    "package": "python3 tools/package_zip.py",
     "start": "python3 tools/serve.py"
   }
 }
