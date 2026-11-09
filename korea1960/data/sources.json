@@ -1,0 +1,128 @@
+[
+  {
+    "id": "S01",
+    "title": "Steam 공식 상점",
+    "institution": "KMS STUDIO",
+    "url": "https://store.steampowered.com/app/5035220?l=english",
+    "scope": "참조 게임의 공개 장르·출발 시점·정책 및 분기 구조 확인. 역사 사료로 사용하지 않음.",
+    "accessed": "2026-11-10",
+    "type": "product_reference"
+  },
+  {
+    "id": "S02",
+    "title": "4·19혁명 주요일지",
+    "institution": "국가기록원",
+    "url": "https://theme.archives.go.kr/next/419/info01.do?menuId=01",
+    "scope": "1960년 3·15 선거, 4·19혁명, 4·26 하야, 8월 제2공화국, 1961년 5·16 군사정변의 날짜.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S03",
+    "title": "제1차 경제개발5개년계획(1962~1966)",
+    "institution": "국가기록원",
+    "url": "https://www.archives.go.kr/next/newsearch/showDetailPopup.do?isContents=Y&rc_code=1310377&rc_rfile_no=200041073582&rc_ritem_no=000000000001",
+    "scope": "제1차 경제개발5개년계획의 시행 기간.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S04",
+    "title": "제5대 대통령선거",
+    "institution": "중앙선거관리위원회 사이버선거역사관",
+    "url": "https://museum.nec.go.kr/museum2018/bbs/6/3/1/20170912155756377100_view.do?article_category=12&article_id=20181001162958531100",
+    "scope": "1963년 10월 15일 제5대 대통령선거 실시.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S05",
+    "title": "제5대 대통령 취임식",
+    "institution": "대통령기록관",
+    "url": "https://pa.go.kr/online_contents/inauguration/president05.jsp",
+    "scope": "1963년 12월 17일 박정희 대통령 취임.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S06",
+    "title": "한일국교 정상화",
+    "institution": "국가기록원",
+    "url": "https://theme.archives.go.kr/next/govpo/detail.do?policySeq=502",
+    "scope": "1965년 6월 22일 기본조약 조인과 12월 18일 발효. 본문에 있는 6·3 시위의 연도 표기 혼재는 인용하지 않음.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S07",
+    "title": "고속도로, 국토 대동맥을 잇다",
+    "institution": "국가기록원",
+    "url": "https://www.archives.go.kr/next/common/archivedata/render.do?filePath=2F757046696c652F70616c67616e2F313431333333393239343339312e706466",
+    "scope": "경부고속도로 완전 개통일 1970년 7월 7일.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S08",
+    "title": "새마을운동 제창",
+    "institution": "국가기록원",
+    "url": "https://theme.archives.go.kr/next/daily/viewMain.do?selectDay=20140422",
+    "scope": "1970년 4월 22일 전국지방장관회의에서 새마을운동 제창.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S09",
+    "title": "대한민국사연표: 전태일",
+    "institution": "국사편찬위원회",
+    "url": "https://db.history.go.kr/id/tcct_1970_11_13_0010",
+    "scope": "1970년 11월 13일 전태일의 근로조건 개선 요구와 죽음. 게임에는 행위의 방법이나 재현을 넣지 않음.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S10",
+    "title": "7·4 남북 공동 성명",
+    "institution": "국사편찬위원회 우리역사넷",
+    "url": "https://contents.history.go.kr/front/hm/view.do?levelId=hm_153_0050",
+    "scope": "1972년 7월 4일 남북공동성명 발표.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S11",
+    "title": "10월유신",
+    "institution": "한국학중앙연구원 한국민족문화대백과사전",
+    "url": "https://encykorea.aks.ac.kr/Article/E0032425",
+    "scope": "1972년 10월 17일 초헌법적 비상조치와 권위주의 체제 강화. 연구기관의 해설이며 1차 사료와 구별.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S12",
+    "title": "중화학공업 육성",
+    "institution": "국가기록원",
+    "url": "https://theme.archives.go.kr/next/govpo/detail.do?policySeq=308",
+    "scope": "1973년 1월 12일 중화학공업화 선언.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S13",
+    "title": "석유파동",
+    "institution": "국가기록원",
+    "url": "https://theme.archives.go.kr/next/koreaOfRecord/gasoline.do",
+    "scope": "1973년 첫 석유파동, 1978년 말~1979년 두 번째 석유파동. 게임의 충격 크기는 가상.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  },
+  {
+    "id": "S14",
+    "title": "부마민주항쟁",
+    "institution": "국사편찬위원회 우리역사넷",
+    "url": "https://contents.history.go.kr/front/kc/printViewPopup.do?levelId=kc_i502300",
+    "scope": "1979년 10월 부산·마산의 민주항쟁과 박정희 정권 말기의 상황. 실제 사건의 강제 재현 대신 조건부 맥락으로 제시.",
+    "accessed": "2026-11-10",
+    "type": "institutional_history"
+  }
+]

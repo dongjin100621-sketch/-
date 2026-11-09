@@ -1,0 +1,98 @@
+[
+  {
+    "id": "first_policy",
+    "name": "첫 정책",
+    "description": "정책을 한 번 시행한다.",
+    "condition": {
+      "policies": 1
+    }
+  },
+  {
+    "id": "first_bill",
+    "name": "의회의 시간",
+    "description": "법안을 한 번 가결한다.",
+    "condition": {
+      "passedBills": 1
+    }
+  },
+  {
+    "id": "first_project",
+    "name": "준공 보고서",
+    "description": "건설 사업을 한 번 완공한다.",
+    "condition": {
+      "completedProjects": 1
+    }
+  },
+  {
+    "id": "reader",
+    "name": "기록을 읽는 사람",
+    "description": "자료집 화면을 연다.",
+    "condition": {
+      "view": "archive"
+    }
+  },
+  {
+    "id": "liberty",
+    "name": "열린 공론장",
+    "description": "자유 75 이상.",
+    "condition": {
+      "liberty": 75
+    }
+  },
+  {
+    "id": "school",
+    "name": "기술의 씨앗",
+    "description": "교육 70 이상.",
+    "condition": {
+      "education": 70
+    }
+  },
+  {
+    "id": "farmer",
+    "name": "농촌의 변화",
+    "description": "농업 70 이상.",
+    "condition": {
+      "agriculture": 70
+    }
+  },
+  {
+    "id": "care",
+    "name": "생활의 기반",
+    "description": "생활 수준 70 이상.",
+    "condition": {
+      "welfare": 70
+    }
+  },
+  {
+    "id": "clean",
+    "name": "맑은 강",
+    "description": "환경 80 이상.",
+    "condition": {
+      "environment": 80
+    }
+  },
+  {
+    "id": "balanced_region",
+    "name": "멀리 있는 중심",
+    "description": "서로 다른 5개 권역에서 사업 준공.",
+    "condition": {
+      "regionsBuilt": 5
+    }
+  },
+  {
+    "id": "decade",
+    "name": "열 번의 겨울",
+    "description": "120개월을 진행한다.",
+    "condition": {
+      "turn": 120
+    }
+  },
+  {
+    "id": "chronicle",
+    "name": "닫힌 업무일지",
+    "description": "엔딩에 도달한다.",
+    "condition": {
+      "ending": true
+    }
+  }
+]

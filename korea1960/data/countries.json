@@ -1,0 +1,38 @@
+[
+  {
+    "id": "usa",
+    "name": "미국",
+    "initialRelation": 65,
+    "description": "원조·시장·인권 의제를 함께 다루는 관계"
+  },
+  {
+    "id": "japan",
+    "name": "일본",
+    "initialRelation": 25,
+    "description": "국교와 경제협력, 과거사 쟁점을 함께 다루는 관계"
+  },
+  {
+    "id": "north",
+    "name": "북한",
+    "initialRelation": 15,
+    "description": "긴장 완화·인도적 대화를 중심으로 추상화"
+  },
+  {
+    "id": "europe",
+    "name": "서유럽",
+    "initialRelation": 45,
+    "description": "차관·기술 교류를 위한 묶음 권역"
+  },
+  {
+    "id": "nonaligned",
+    "name": "비동맹권",
+    "initialRelation": 35,
+    "description": "무역과 다변화 외교를 위한 묶음 권역"
+  },
+  {
+    "id": "international",
+    "name": "국제기구",
+    "initialRelation": 50,
+    "description": "공개 통계·차관·개발 협력을 위한 묶음 상대"
+  }
+]

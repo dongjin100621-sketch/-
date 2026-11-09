@@ -1,0 +1,9 @@
+export type Phase='prelude'|'civilian'|'transition'|'elected'|'governing';
+export type MetricId='gdp'|'treasury'|'debt'|'reserves'|'inflation'|'unemployment'|'legitimacy'|'liberty'|'welfare'|'education'|'infrastructure'|'industry'|'agriculture'|'environment'|'stability'|'admin'|'equality'|'security';
+export type Effects=Partial<Record<MetricId,number>>;
+export type Condition={phaseIn?:Phase[];flag?:string;eq?:boolean|string;yearGte?:number;yearLte?:number;metric?:MetricId;gte?:number;lte?:number};
+export interface Choice{id:string;label:string;effects:Effects;factionEffects?:Record<string,number>;relations?:Record<string,number>;influence?:number;setFlags?:Record<string,boolean|string>;phase?:Phase;delay?:{months:number;effects:Effects;text:string};special?:'firstElection';ending?:string;}
+export interface EventDef{id:string;title:string;body:string;choices:Choice[];kind:'historical_anchor'|'fictional_system';art:'cover'|'cabinet'|'industry'|'civic';date?:string;conditions:Condition[];cooldown:number;sourceIds:string[];}
+export interface PolicyDef{id:string;name:string;category:string;cost:number;monthlyCost:number;unlockYear:number;effects:Effects;monthlyEffects:Effects;factionEffects:Record<string,number>;description:string;requiresBill:boolean;}
+export interface ProjectDef{id:string;name:string;cost:number;months:number;maintenance:number;income:number;effects:Effects;unlockYear:number;description:string;}
+export type Action={type:'choose';choiceId:string}|{type:'prepare'}|{type:'policy';id:string}|{type:'project';id:string;regionId:string}|{type:'budget';budget:Record<'industry'|'agriculture'|'education'|'welfare'|'infrastructure'|'security',number>}|{type:'diplomacy';countryId:string;mode:'talk'|'technology'|'humanitarian'}|{type:'adviser';id:string}|{type:'repay';amount:number}|{type:'endMonth'};

@@ -1,0 +1,226 @@
+[
+  {
+    "id": "rural_clinic",
+    "name": "농촌 보건 거점",
+    "cost": 22,
+    "months": 5,
+    "maintenance": 0.15,
+    "income": 0.15,
+    "effects": {
+      "welfare": 4,
+      "equality": 2
+    },
+    "unlockYear": 1962,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "primary_campus",
+    "name": "초등 교육 시설",
+    "cost": 24,
+    "months": 6,
+    "maintenance": 0.15,
+    "income": 0.1,
+    "effects": {
+      "education": 5
+    },
+    "unlockYear": 1962,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "technical_campus",
+    "name": "기술학교",
+    "cost": 30,
+    "months": 8,
+    "maintenance": 0.2,
+    "income": 0.2,
+    "effects": {
+      "education": 4,
+      "industry": 2
+    },
+    "unlockYear": 1963,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "local_road",
+    "name": "지방 연결도로",
+    "cost": 28,
+    "months": 7,
+    "maintenance": 0.12,
+    "income": 0.3,
+    "effects": {
+      "infrastructure": 4,
+      "agriculture": 1
+    },
+    "unlockYear": 1962,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "irrigation",
+    "name": "관개·배수 개선",
+    "cost": 25,
+    "months": 6,
+    "maintenance": 0.1,
+    "income": 0.25,
+    "effects": {
+      "agriculture": 5
+    },
+    "unlockYear": 1962,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "rail_hub",
+    "name": "철도 물류 거점",
+    "cost": 40,
+    "months": 10,
+    "maintenance": 0.2,
+    "income": 0.55,
+    "effects": {
+      "infrastructure": 6,
+      "industry": 1
+    },
+    "unlockYear": 1963,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "power_grid",
+    "name": "송전망 확충",
+    "cost": 38,
+    "months": 9,
+    "maintenance": 0.22,
+    "income": 0.5,
+    "effects": {
+      "infrastructure": 6,
+      "environment": -1
+    },
+    "unlockYear": 1963,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "waterworks",
+    "name": "상하수도 시설",
+    "cost": 32,
+    "months": 8,
+    "maintenance": 0.2,
+    "income": 0.2,
+    "effects": {
+      "environment": 5,
+      "welfare": 3
+    },
+    "unlockYear": 1963,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "light_industry",
+    "name": "경공업 단지",
+    "cost": 36,
+    "months": 8,
+    "maintenance": 0.25,
+    "income": 0.65,
+    "effects": {
+      "industry": 5,
+      "unemployment": -1,
+      "environment": -2
+    },
+    "unlockYear": 1962,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "port_upgrade",
+    "name": "항만 물류 시설",
+    "cost": 45,
+    "months": 11,
+    "maintenance": 0.25,
+    "income": 0.75,
+    "effects": {
+      "infrastructure": 4,
+      "reserves": 3
+    },
+    "unlockYear": 1964,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "steel_complex",
+    "name": "제철 기반 시설",
+    "cost": 65,
+    "months": 16,
+    "maintenance": 0.5,
+    "income": 1,
+    "effects": {
+      "industry": 9,
+      "environment": -5
+    },
+    "unlockYear": 1968,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "shipyard",
+    "name": "조선 생산 시설",
+    "cost": 58,
+    "months": 14,
+    "maintenance": 0.4,
+    "income": 0.95,
+    "effects": {
+      "industry": 7,
+      "reserves": 3,
+      "environment": -3
+    },
+    "unlockYear": 1970,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "research_campus",
+    "name": "공공 연구소",
+    "cost": 48,
+    "months": 12,
+    "maintenance": 0.3,
+    "income": 0.35,
+    "effects": {
+      "education": 7,
+      "industry": 2
+    },
+    "unlockYear": 1966,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "public_housing",
+    "name": "도시 주택 지구",
+    "cost": 42,
+    "months": 10,
+    "maintenance": 0.25,
+    "income": 0.2,
+    "effects": {
+      "welfare": 5,
+      "equality": 3
+    },
+    "unlockYear": 1964,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "market_storage",
+    "name": "농수산물 저장 시설",
+    "cost": 26,
+    "months": 6,
+    "maintenance": 0.1,
+    "income": 0.3,
+    "effects": {
+      "agriculture": 4,
+      "inflation": -0.5
+    },
+    "unlockYear": 1963,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "river_restoration",
+    "name": "하천 환경 개선",
+    "cost": 35,
+    "months": 9,
+    "maintenance": 0.15,
+    "income": 0.1,
+    "effects": {
+      "environment": 7,
+      "welfare": 1
+    },
+    "unlockYear": 1965,
+    "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  }
+]

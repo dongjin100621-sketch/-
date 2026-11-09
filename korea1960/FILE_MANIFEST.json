@@ -1,0 +1,355 @@
+{
+  "version": "1.0.0",
+  "files": [
+    {
+      "path": "00_START_HERE.md",
+      "bytes": 2836,
+      "sha256": "37a8b583b8a4661f5b353f5fbae4c3a1113b461bbc06d7acec64f0882ed2d573"
+    },
+    {
+      "path": "CLAUDE_CONTEXT.md",
+      "bytes": 42358,
+      "sha256": "390c2c5cb86741a94478c9246e5ecca18224647c0ab4dcf2fd51cfd43aa83cae"
+    },
+    {
+      "path": "CONTENT_INDEX.md",
+      "bytes": 5467,
+      "sha256": "e77bb2a92b8720061de8ae9585210592b292bb698337e6f320f9eb78541dec09"
+    },
+    {
+      "path": "PLAYABLE_SAMPLE.html",
+      "bytes": 2341485,
+      "sha256": "83b8088619f0df9c2623b77f9b15cddcf29281c47b5d8af0936e03acc571105b"
+    },
+    {
+      "path": "QA_REPORT.md",
+      "bytes": 3445,
+      "sha256": "ce53c712a1b37093ea1f479d18335f1126eb5b6410f6301bcffaed437c7b283f"
+    },
+    {
+      "path": "RIGHTS_AND_ATTRIBUTION.md",
+      "bytes": 1660,
+      "sha256": "3f0807e1cf24516677cbd2a6352bba2048eb708d34f6e6fa761ec220a0cfa760"
+    },
+    {
+      "path": "START_WINDOWS.bat",
+      "bytes": 61,
+      "sha256": "5e43e89264108a1e6f221c2a9ca9d2189e3d5ae01448ddc005ba7a45ace54ea5"
+    },
+    {
+      "path": "assets/ART_PROMPTS.md",
+      "bytes": 3781,
+      "sha256": "7047103df52fda7a54e4d3f1fff25ee912ce28159814f3afd60da3921e8a99f1"
+    },
+    {
+      "path": "assets/art/cabinet.png",
+      "bytes": 2758346,
+      "sha256": "951496f6589357f026e9233e3adf4e6119119b384c246b1d1569ff7e6611d0e0"
+    },
+    {
+      "path": "assets/art/cabinet.webp",
+      "bytes": 281690,
+      "sha256": "6a272c531e79d643de7806b409d1c6d21ddc12f1d78455ca6944db8712eb4776"
+    },
+    {
+      "path": "assets/art/civic.png",
+      "bytes": 3450106,
+      "sha256": "f772c4997d5887f0f1c3d2237a3a0ecab4b5716ce311f9385b2f3b45598ba6fa"
+    },
+    {
+      "path": "assets/art/civic.webp",
+      "bytes": 512514,
+      "sha256": "4c5e442d103b8aafa7b031d6bdc4b29c508b0c02d48c2a111e73401036b57780"
+    },
+    {
+      "path": "assets/art/cover.png",
+      "bytes": 2610749,
+      "sha256": "83d40e52e74646586643df92759d91818134c1f2880c8f6e89ae8062cca9c920"
+    },
+    {
+      "path": "assets/art/cover.webp",
+      "bytes": 257154,
+      "sha256": "360c0ce3a0a9757b22f41467cdaa17aec6d7a22db3a762e6efec5eb5e545371d"
+    },
+    {
+      "path": "assets/art/industry.png",
+      "bytes": 3280021,
+      "sha256": "13d4013e3bb0f88e57d41cddb8ca3eb3e9f3473cb34812ee90e00211e7017a1d"
+    },
+    {
+      "path": "assets/art/industry.webp",
+      "bytes": 444658,
+      "sha256": "9c98677ec449b119b7fdbf26335ba5b6359cd89349b0e3696c7ac7ee88c529f9"
+    },
+    {
+      "path": "assets/fonts/ChronicleKR-Regular.ttf",
+      "bytes": 148464,
+      "sha256": "acc1b9dd25b83185e3194d409cd1ac0127568d4918dbc6bd606bc1305002c487"
+    },
+    {
+      "path": "assets/fonts/OFL.txt",
+      "bytes": 4388,
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    {
+      "path": "assets/fonts/README.md",
+      "bytes": 624,
+      "sha256": "f015703a0945c3670920bc1098c618226c6ce30d218702eb81f1c8f268453503"
+    },
+    {
+      "path": "assets/manifest.json",
+      "bytes": 4478,
+      "sha256": "da875d4b24669f68b981c6c01eaa2bf01b1fc89608c71d939468fa818b981389"
+    },
+    {
+      "path": "assets/ui/archive.svg",
+      "bytes": 258,
+      "sha256": "aa3316b4a1e893bdcd2cf5d8519835171b1458a6395416b5d2b750c0c3c94312"
+    },
+    {
+      "path": "assets/ui/assembly.svg",
+      "bytes": 234,
+      "sha256": "4210589ee26e1ef4686d5a0db957f26f0e2116fab23997c4957f7c6da4069e8a"
+    },
+    {
+      "path": "assets/ui/budget.svg",
+      "bytes": 218,
+      "sha256": "802b8de44c40f0be7dd58bed4da3855d8ac80e49b7252356ec18486d4ac5e793"
+    },
+    {
+      "path": "assets/ui/build.svg",
+      "bytes": 246,
+      "sha256": "e0ee05b0728949364a756b9d91e930a2ec3e4d2901753ac631298f93906ff181"
+    },
+    {
+      "path": "assets/ui/cabinet.svg",
+      "bytes": 233,
+      "sha256": "a12c55e1fc72e73528077c3af2f332232cca985ffb71f4ee250117440f2db1ed"
+    },
+    {
+      "path": "assets/ui/clock.svg",
+      "bytes": 221,
+      "sha256": "7423ff0ba643b700360d3156d4fdbab96c669f48fda21a697b19080151eaa3c8"
+    },
+    {
+      "path": "assets/ui/diplomacy.svg",
+      "bytes": 252,
+      "sha256": "37ebafeb1656ac7034711e44b6c2db2ba43fd26fa9dd551f828c7ea86d4028b5"
+    },
+    {
+      "path": "assets/ui/growth.svg",
+      "bytes": 220,
+      "sha256": "6bf03062c4e13d56c867073e424d0d55ee18449afd0f0fa9e21969561a00ef85"
+    },
+    {
+      "path": "assets/ui/overview.svg",
+      "bytes": 215,
+      "sha256": "299c56247cf323c6d67a631de60e927d167664d100561d76f7e3483c7553bccf"
+    },
+    {
+      "path": "assets/ui/policy.svg",
+      "bytes": 213,
+      "sha256": "4d04f8c8a15c341e81b1ca4d43b2d1b78eb020786a4b6763f3f097607b7c7823"
+    },
+    {
+      "path": "assets/ui/region_board.svg",
+      "bytes": 2844,
+      "sha256": "2b83e51c7405cb478cf9d07307a6ea2c7f3b9303bd4e58f11d1c2ed48dde575f"
+    },
+    {
+      "path": "assets/ui/rights.svg",
+      "bytes": 233,
+      "sha256": "8365b04473974ea53191d51935c2b43cab90303df8729d3f004817d76dfd2990"
+    },
+    {
+      "path": "assets/ui/save.svg",
+      "bytes": 221,
+      "sha256": "a46b6432e827bc0abaee4505128ffe31f567c1d7fb5038bfbeaa27c44035847a"
+    },
+    {
+      "path": "assets/ui/tokens.json",
+      "bytes": 497,
+      "sha256": "4259f612c7bfca7ed970e89f52f55f45c3e0990f1b407d2289607f1a55260003"
+    },
+    {
+      "path": "data/achievements.json",
+      "bytes": 1924,
+      "sha256": "79a4f1aa84e4b5794435ee3b7a4d8b4408d85896d81e4bd4fa333657a2e94a9d"
+    },
+    {
+      "path": "data/advisers.json",
+      "bytes": 1751,
+      "sha256": "1e6abd9fe7935792b7e58353bcdc5f71fa1359dd38bfff9c3195a894f73b9cb5"
+    },
+    {
+      "path": "data/countries.json",
+      "bytes": 959,
+      "sha256": "96f090c37c8f0827dc0b4bd444ca8da509021a388906ebee88b3385ef306b57d"
+    },
+    {
+      "path": "data/endings.json",
+      "bytes": 3852,
+      "sha256": "1aa87baa85816496fa3d41dc23761bf5a421edae251d6713ce228783aab8798c"
+    },
+    {
+      "path": "data/events.json",
+      "bytes": 68784,
+      "sha256": "71a9da55db1903234d3d38ccf4ea43388aee12bacb4ee278e1ea06bb0879bfb0"
+    },
+    {
+      "path": "data/factions.json",
+      "bytes": 2132,
+      "sha256": "2586c4606ec5e18af013a1c8a03c7fe496601f9d16ad5cb7f7fae85860556ce7"
+    },
+    {
+      "path": "data/game.json",
+      "bytes": 118252,
+      "sha256": "60d293dfa297287b846501b07d5cf95c206f1f9b2a92997c17204b2f81d3f7ad"
+    },
+    {
+      "path": "data/game.schema.json",
+      "bytes": 6958,
+      "sha256": "7e0c89c860dabde910db8de7a9eb882bd240ce4f4d8a293ae409c415bd03dde5"
+    },
+    {
+      "path": "data/metrics.json",
+      "bytes": 4312,
+      "sha256": "21045747d4070d6be35fd03e523e73bce7a67035b87a44be57d3e53d2efee348"
+    },
+    {
+      "path": "data/policies.json",
+      "bytes": 10923,
+      "sha256": "30ae585f491b6a2ac4ea0e14d422d4bd6586cb9d35cde5e4956fa14d696bd5df"
+    },
+    {
+      "path": "data/projects.json",
+      "bytes": 5579,
+      "sha256": "63a9ddd0e88ef794eba6a56cf5e67017550c88747fa419320a472d5fbd19a65a"
+    },
+    {
+      "path": "data/regions.json",
+      "bytes": 3327,
+      "sha256": "d45b3981d37c9b528d1ca83b4f5e848fa4d21cd5eaf7c7665a92bf080c50a926"
+    },
+    {
+      "path": "data/sources.json",
+      "bytes": 5274,
+      "sha256": "7b5f38e022f645d438469d868ca3dcc0fa403ad775991c23a641854ba76e9fac"
+    },
+    {
+      "path": "data/types.d.ts",
+      "bytes": 1834,
+      "sha256": "815dd23dac28baff85460d48c4a1f382025b4dd831af72c987b6ba2ecffd07c3"
+    },
+    {
+      "path": "docs/ART_DIRECTION.md",
+      "bytes": 2283,
+      "sha256": "01c01c73813ca445486850ca061ee19bb5d9c77ae78785c6140320624b8d327e"
+    },
+    {
+      "path": "docs/DATA_CONTRACT.md",
+      "bytes": 4863,
+      "sha256": "af6816bd1b422078bb11eec63e0425f7780fb0e2014e31a6b043db2dc2c0deb0"
+    },
+    {
+      "path": "docs/DEVELOPMENT_HANDOFF.md",
+      "bytes": 3164,
+      "sha256": "676c203962a271c6ba5634f8b58deda438177576c2812790e5c2193d9e9feefc"
+    },
+    {
+      "path": "docs/GAME_DESIGN.md",
+      "bytes": 7435,
+      "sha256": "fbfc337260eb484018e04d6f99ff3cd287fd465077aac060c78308b00624c866"
+    },
+    {
+      "path": "docs/QA_CHECKLIST.md",
+      "bytes": 1898,
+      "sha256": "b8966bca0baacc474455233a101bb02bef994e8a2e9ff6e3cafd888b160600bb"
+    },
+    {
+      "path": "docs/SIMULATION_RULES.md",
+      "bytes": 5934,
+      "sha256": "aec5046be2f8415c41ab49261eea0d0f7e41152aea8fd55081d17ed2df7f3cae"
+    },
+    {
+      "path": "docs/SOURCES_AND_HISTORY.md",
+      "bytes": 6359,
+      "sha256": "dae6576668caf0ff82f2644231d8d8dca01af536a0d4aee05b58e86118345eed"
+    },
+    {
+      "path": "example/app.mjs",
+      "bytes": 22955,
+      "sha256": "b90f79e2a16a742377d1220a765423fa15599e0efd5cc48e908d1d2c28e015c2"
+    },
+    {
+      "path": "example/engine.mjs",
+      "bytes": 21120,
+      "sha256": "1d57bf6eb2aa4773e58ec919ce7dab2f97ce0bcc4b25ff0e4eb38e6695ed4aff"
+    },
+    {
+      "path": "example/index.html",
+      "bytes": 516,
+      "sha256": "3b013448447320a8fee116a15d994d5b14b2aef021812e4df246cf9c4db3190f"
+    },
+    {
+      "path": "example/saves/1964_governing.json",
+      "bytes": 58220,
+      "sha256": "5d75b3108df682fbc0831347dbe2fe24081717fcf20dbdf5e9023b1d66b414d8"
+    },
+    {
+      "path": "example/saves/1973_policy_choices.json",
+      "bytes": 121669,
+      "sha256": "e305eea92483726fb1fdd1a9b2e41d63bf672615f50e436f4d46c56405292ba1"
+    },
+    {
+      "path": "example/saves/README.md",
+      "bytes": 658,
+      "sha256": "a18acbecd7c1b91eb78eaf876f5140e8193827216747ccececb0e7826959fd21"
+    },
+    {
+      "path": "example/style.css",
+      "bytes": 13926,
+      "sha256": "db79bc2ba2d36f0673cbb7b1ff0c128aef46d2726957dca460b191dce3ff7997"
+    },
+    {
+      "path": "package.json",
+      "bytes": 437,
+      "sha256": "57206f0dd4340b3fbdc4de01841d5ad21fb0423e4afe7bb2fb1ff3460be829be"
+    },
+    {
+      "path": "prompts/CLAUDE_MASTER_PROMPT.md",
+      "bytes": 6298,
+      "sha256": "95a83c75f3867bf9f475b4763aa6445ed70f70b37a1f79e8cdbbacfdfd9004b8"
+    },
+    {
+      "path": "prompts/STAGED_WORKFLOW.md",
+      "bytes": 2655,
+      "sha256": "6a7dcc81e97747a6eceedb68b4eee76d290444483ab5744178acfdab5844398e"
+    },
+    {
+      "path": "tests/engine.test.mjs",
+      "bytes": 11455,
+      "sha256": "86080164f106661bdecb0187d9a88ef6d3b8721b8883dcbd6eeedb681dc23f07"
+    },
+    {
+      "path": "tools/build_standalone.py",
+      "bytes": 2089,
+      "sha256": "44fb1df5960127c05ba10ea65b9456e6a97419afe28c214dffb52b12b361bdc8"
+    },
+    {
+      "path": "tools/make_sample_saves.mjs",
+      "bytes": 1416,
+      "sha256": "b3611464df15946d40d9991e6d7c628da4d46a0f18e626c5e8407333ec296443"
+    },
+    {
+      "path": "tools/serve.py",
+      "bytes": 717,
+      "sha256": "46ebf8edc3db1e703f1a74370142ee147fd8d0eb63c5cead8179cbdde2514978"
+    },
+    {
+      "path": "tools/validate_content.py",
+      "bytes": 2880,
+      "sha256": "8be7e8fec498df0fd956e21d1d1a94d3f30f71bdeef1ab566e621d0c8490c02e"
+    }
+  ]
+}

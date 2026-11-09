@@ -1,0 +1,494 @@
+[
+  {
+    "id": "export_credit",
+    "name": "수출 금융",
+    "category": "경제",
+    "cost": 12,
+    "monthlyCost": 0.45,
+    "unlockYear": 1962,
+    "effects": {
+      "industry": 4,
+      "reserves": 3
+    },
+    "monthlyEffects": {
+      "industry": 0.055,
+      "reserves": 0.025
+    },
+    "factionEffects": {
+      "business": 5
+    },
+    "description": "단기 금융을 보강하지만 국고와 부채의 여력을 확인해야 한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "small_business",
+    "name": "중소기업 기술 지원",
+    "category": "경제",
+    "cost": 10,
+    "monthlyCost": 0.3,
+    "unlockYear": 1962,
+    "effects": {
+      "industry": 2,
+      "equality": 2
+    },
+    "monthlyEffects": {
+      "industry": 0.04,
+      "equality": 0.025
+    },
+    "factionEffects": {
+      "business": 3,
+      "workers": 2
+    },
+    "description": "대기업 외에도 생산성과 기술이 축적되도록 지원한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "price_stability",
+    "name": "물가 안정 협의",
+    "category": "경제",
+    "cost": 6,
+    "monthlyCost": 0.22,
+    "unlockYear": 1961,
+    "effects": {
+      "inflation": -1.5
+    },
+    "monthlyEffects": {
+      "inflation": -0.04
+    },
+    "factionEffects": {
+      "civil": 3
+    },
+    "description": "재정과 공급을 점검한다. 가격을 영구 고정하는 정책은 아니다.",
+    "requiresBill": false
+  },
+  {
+    "id": "farm_extension",
+    "name": "농업 기술 보급",
+    "category": "농촌",
+    "cost": 10,
+    "monthlyCost": 0.28,
+    "unlockYear": 1962,
+    "effects": {
+      "agriculture": 4
+    },
+    "monthlyEffects": {
+      "agriculture": 0.065
+    },
+    "factionEffects": {
+      "farmers": 5
+    },
+    "description": "농업 교육과 생산기술을 확산한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "rural_coops",
+    "name": "농촌 협동조합 지원",
+    "category": "농촌",
+    "cost": 9,
+    "monthlyCost": 0.25,
+    "unlockYear": 1962,
+    "effects": {
+      "agriculture": 2,
+      "equality": 2
+    },
+    "monthlyEffects": {
+      "agriculture": 0.035,
+      "equality": 0.035
+    },
+    "factionEffects": {
+      "farmers": 4
+    },
+    "description": "주민 참여와 자율 회계를 전제로 한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "grain_buffer",
+    "name": "식량 완충 비축",
+    "category": "농촌",
+    "cost": 14,
+    "monthlyCost": 0.35,
+    "unlockYear": 1962,
+    "effects": {
+      "agriculture": 3,
+      "stability": 2
+    },
+    "monthlyEffects": {
+      "agriculture": 0.025
+    },
+    "factionEffects": {
+      "farmers": 2,
+      "civil": 2
+    },
+    "description": "흉작과 가격 변동에 대응하는 가상 비축 제도.",
+    "requiresBill": false
+  },
+  {
+    "id": "primary_school",
+    "name": "기초교육 확대",
+    "category": "교육",
+    "cost": 12,
+    "monthlyCost": 0.32,
+    "unlockYear": 1962,
+    "effects": {
+      "education": 3
+    },
+    "monthlyEffects": {
+      "education": 0.065
+    },
+    "factionEffects": {
+      "students": 5
+    },
+    "description": "교실과 교원 역량에 장기 투자한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "technical_school",
+    "name": "직업·기술 교육",
+    "category": "교육",
+    "cost": 16,
+    "monthlyCost": 0.4,
+    "unlockYear": 1963,
+    "effects": {
+      "education": 3,
+      "industry": 1
+    },
+    "monthlyEffects": {
+      "education": 0.045,
+      "industry": 0.025
+    },
+    "factionEffects": {
+      "workers": 3,
+      "business": 3
+    },
+    "description": "성장의 숙련인력 병목을 완화한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "research_fund",
+    "name": "공공 연구기금",
+    "category": "교육",
+    "cost": 22,
+    "monthlyCost": 0.5,
+    "unlockYear": 1966,
+    "effects": {
+      "education": 4
+    },
+    "monthlyEffects": {
+      "education": 0.08
+    },
+    "factionEffects": {
+      "students": 5
+    },
+    "description": "장기 연구를 지원한다. 즉시 수출이 늘어나는 수단은 아니다.",
+    "requiresBill": false
+  },
+  {
+    "id": "health_centers",
+    "name": "지역 보건소 확충",
+    "category": "생활",
+    "cost": 14,
+    "monthlyCost": 0.4,
+    "unlockYear": 1962,
+    "effects": {
+      "welfare": 4
+    },
+    "monthlyEffects": {
+      "welfare": 0.055
+    },
+    "factionEffects": {
+      "workers": 3,
+      "farmers": 3
+    },
+    "description": "예방 의료와 접근성을 개선한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "housing",
+    "name": "공공 주거 지원",
+    "category": "생활",
+    "cost": 18,
+    "monthlyCost": 0.45,
+    "unlockYear": 1963,
+    "effects": {
+      "welfare": 3,
+      "equality": 2
+    },
+    "monthlyEffects": {
+      "welfare": 0.045,
+      "equality": 0.025
+    },
+    "factionEffects": {
+      "civil": 5
+    },
+    "description": "과밀과 불안정한 주거에 대응한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "labor_inspection",
+    "name": "노동 감독 독립성",
+    "category": "권리",
+    "cost": 12,
+    "monthlyCost": 0.35,
+    "unlockYear": 1963,
+    "effects": {
+      "welfare": 2,
+      "liberty": 3
+    },
+    "monthlyEffects": {
+      "welfare": 0.035,
+      "liberty": 0.025
+    },
+    "factionEffects": {
+      "workers": 6,
+      "business": -2
+    },
+    "description": "산업재해와 장시간 노동을 감독하고 공개한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "association",
+    "name": "결사권 보장",
+    "category": "권리",
+    "cost": 8,
+    "monthlyCost": 0.15,
+    "unlockYear": 1963,
+    "effects": {
+      "liberty": 6
+    },
+    "monthlyEffects": {
+      "liberty": 0.03
+    },
+    "factionEffects": {
+      "workers": 4,
+      "opposition": 5
+    },
+    "description": "합법적 단체의 활동을 보장하는 가상 법안.",
+    "requiresBill": true
+  },
+  {
+    "id": "press_freedom",
+    "name": "언론 자유 보장",
+    "category": "권리",
+    "cost": 8,
+    "monthlyCost": 0.15,
+    "unlockYear": 1963,
+    "effects": {
+      "liberty": 7,
+      "legitimacy": 2
+    },
+    "monthlyEffects": {
+      "liberty": 0.03
+    },
+    "factionEffects": {
+      "students": 6,
+      "opposition": 4
+    },
+    "description": "독립 보도와 정부의 답변 책임을 보장한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "judicial_review",
+    "name": "사법 독립 보강",
+    "category": "권리",
+    "cost": 14,
+    "monthlyCost": 0.3,
+    "unlockYear": 1963,
+    "effects": {
+      "liberty": 5,
+      "legitimacy": 4
+    },
+    "monthlyEffects": {
+      "admin": 0.03
+    },
+    "factionEffects": {
+      "opposition": 6
+    },
+    "description": "권력 행위를 심사할 제도적 통로를 마련한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "open_accounts",
+    "name": "공공 회계 공개",
+    "category": "행정",
+    "cost": 9,
+    "monthlyCost": 0.18,
+    "unlockYear": 1962,
+    "effects": {
+      "admin": 4,
+      "legitimacy": 3
+    },
+    "monthlyEffects": {
+      "admin": 0.04
+    },
+    "factionEffects": {
+      "bureaucracy": 3,
+      "civil": 3
+    },
+    "description": "지출 내역과 사업 평가를 공개한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "civil_service",
+    "name": "전문 행정 인사",
+    "category": "행정",
+    "cost": 12,
+    "monthlyCost": 0.25,
+    "unlockYear": 1962,
+    "effects": {
+      "admin": 5
+    },
+    "monthlyEffects": {
+      "admin": 0.055
+    },
+    "factionEffects": {
+      "bureaucracy": 5
+    },
+    "description": "정치적 충성 대신 전문성과 절차를 강화한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "local_council",
+    "name": "지역 참여 예산",
+    "category": "행정",
+    "cost": 12,
+    "monthlyCost": 0.28,
+    "unlockYear": 1963,
+    "effects": {
+      "equality": 4,
+      "legitimacy": 3
+    },
+    "monthlyEffects": {
+      "equality": 0.04
+    },
+    "factionEffects": {
+      "farmers": 3,
+      "civil": 3
+    },
+    "description": "중앙의 결정에 지역 의견을 반영한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "energy_efficiency",
+    "name": "에너지 절약 투자",
+    "category": "환경",
+    "cost": 18,
+    "monthlyCost": 0.3,
+    "unlockYear": 1965,
+    "effects": {
+      "environment": 3,
+      "reserves": 2
+    },
+    "monthlyEffects": {
+      "environment": 0.045,
+      "reserves": 0.02
+    },
+    "factionEffects": {
+      "civil": 3
+    },
+    "description": "에너지 수입 충격을 줄이고 생산과 생활의 효율을 높이는 투자.",
+    "requiresBill": false
+  },
+  {
+    "id": "clean_water",
+    "name": "수질·상하수도 기준",
+    "category": "환경",
+    "cost": 16,
+    "monthlyCost": 0.35,
+    "unlockYear": 1963,
+    "effects": {
+      "environment": 5,
+      "welfare": 1
+    },
+    "monthlyEffects": {
+      "environment": 0.055
+    },
+    "factionEffects": {
+      "civil": 4,
+      "business": -1
+    },
+    "description": "산업화의 환경 비용을 반영한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "rail_priority",
+    "name": "철도·물류 효율화",
+    "category": "기반",
+    "cost": 20,
+    "monthlyCost": 0.35,
+    "unlockYear": 1963,
+    "effects": {
+      "infrastructure": 5
+    },
+    "monthlyEffects": {
+      "infrastructure": 0.06
+    },
+    "factionEffects": {
+      "business": 4
+    },
+    "description": "도로 외의 물류 수단도 함께 발전시킨다.",
+    "requiresBill": false
+  },
+  {
+    "id": "grid_planning",
+    "name": "전력망 공개 계획",
+    "category": "기반",
+    "cost": 18,
+    "monthlyCost": 0.32,
+    "unlockYear": 1963,
+    "effects": {
+      "infrastructure": 4,
+      "admin": 1
+    },
+    "monthlyEffects": {
+      "infrastructure": 0.05
+    },
+    "factionEffects": {
+      "business": 3,
+      "civil": 2
+    },
+    "description": "발전과 송전의 병목을 계획한다.",
+    "requiresBill": false
+  },
+  {
+    "id": "civilian_oversight",
+    "name": "민간 통제의 제도화",
+    "category": "안보",
+    "cost": 10,
+    "monthlyCost": 0.2,
+    "unlockYear": 1963,
+    "effects": {
+      "liberty": 4,
+      "legitimacy": 4,
+      "security": 1
+    },
+    "monthlyEffects": {
+      "legitimacy": 0.02
+    },
+    "factionEffects": {
+      "military": -2,
+      "opposition": 5
+    },
+    "description": "군의 정치적 중립과 책임 있는 감독을 명시한다.",
+    "requiresBill": true
+  },
+  {
+    "id": "diplomatic_diversity",
+    "name": "교역·외교 다변화",
+    "category": "외교",
+    "cost": 12,
+    "monthlyCost": 0.28,
+    "unlockYear": 1963,
+    "effects": {
+      "reserves": 3,
+      "security": 2
+    },
+    "monthlyEffects": {
+      "reserves": 0.03
+    },
+    "factionEffects": {
+      "business": 3
+    },
+    "description": "하나의 시장에 대한 과도한 의존을 완화한다.",
+    "requiresBill": false
+  }
+]

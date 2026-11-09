@@ -1,0 +1,159 @@
+{
+  "assets": [
+    {
+      "id": "cabinet_source",
+      "path": "assets/art/cabinet.png",
+      "kind": "generated_illustration",
+      "use": "정책·의회·내각",
+      "historicalEvidence": false
+    },
+    {
+      "id": "cabinet",
+      "path": "assets/art/cabinet.webp",
+      "kind": "generated_illustration",
+      "use": "정책·의회·내각",
+      "historicalEvidence": false
+    },
+    {
+      "id": "civic_source",
+      "path": "assets/art/civic.png",
+      "kind": "generated_illustration",
+      "use": "권리·시민·선거",
+      "historicalEvidence": false
+    },
+    {
+      "id": "civic",
+      "path": "assets/art/civic.webp",
+      "kind": "generated_illustration",
+      "use": "권리·시민·선거",
+      "historicalEvidence": false
+    },
+    {
+      "id": "cover_source",
+      "path": "assets/art/cover.png",
+      "kind": "generated_illustration",
+      "use": "타이틀·상황판",
+      "historicalEvidence": false
+    },
+    {
+      "id": "cover",
+      "path": "assets/art/cover.webp",
+      "kind": "generated_illustration",
+      "use": "타이틀·상황판",
+      "historicalEvidence": false
+    },
+    {
+      "id": "industry_source",
+      "path": "assets/art/industry.png",
+      "kind": "generated_illustration",
+      "use": "경제·산업·건설",
+      "historicalEvidence": false
+    },
+    {
+      "id": "industry",
+      "path": "assets/art/industry.webp",
+      "kind": "generated_illustration",
+      "use": "경제·산업·건설",
+      "historicalEvidence": false
+    },
+    {
+      "id": "archive",
+      "path": "assets/ui/archive.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "assembly",
+      "path": "assets/ui/assembly.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "budget",
+      "path": "assets/ui/budget.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "build",
+      "path": "assets/ui/build.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "cabinet",
+      "path": "assets/ui/cabinet.svg",
+      "kind": "original_vector",
+      "use": "정책·의회·내각",
+      "historicalEvidence": false
+    },
+    {
+      "id": "clock",
+      "path": "assets/ui/clock.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "diplomacy",
+      "path": "assets/ui/diplomacy.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "growth",
+      "path": "assets/ui/growth.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "overview",
+      "path": "assets/ui/overview.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "policy",
+      "path": "assets/ui/policy.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "region_board",
+      "path": "assets/ui/region_board.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "rights",
+      "path": "assets/ui/rights.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "save",
+      "path": "assets/ui/save.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘 또는 권역 도식",
+      "historicalEvidence": false
+    },
+    {
+      "id": "font_korean",
+      "path": "assets/fonts/ChronicleKR-Regular.ttf",
+      "kind": "open_license_font_subset",
+      "use": "한국어 UI 표시",
+      "historicalEvidence": false
+    }
+  ],
+  "notes": "PNG는 원본, WebP는 실행용. 생성 삽화는 역사적 증거가 아니다. 한국어 폰트는 별도 SIL OFL 라이선스이며 fonts/OFL.txt를 유지한다. 외부 CDN·음악·원작 에셋에 의존하지 않는다."
+}

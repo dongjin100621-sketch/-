@@ -1,0 +1,142 @@
+[
+  {
+    "id": "capital",
+    "name": "서울·경기",
+    "mapCol": 0,
+    "mapRow": 0,
+    "initialDevelopment": 60,
+    "agriculturePotential": 35,
+    "specialties": [
+      "services",
+      "education"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "gangwon",
+    "name": "강원",
+    "mapCol": 1,
+    "mapRow": 0,
+    "initialDevelopment": 34,
+    "agriculturePotential": 60,
+    "specialties": [
+      "mining",
+      "forestry"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "chungnam",
+    "name": "충남",
+    "mapCol": 0,
+    "mapRow": 1,
+    "initialDevelopment": 35,
+    "agriculturePotential": 64,
+    "specialties": [
+      "agriculture",
+      "logistics"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "chungbuk",
+    "name": "충북",
+    "mapCol": 1,
+    "mapRow": 1,
+    "initialDevelopment": 32,
+    "agriculturePotential": 60,
+    "specialties": [
+      "agriculture",
+      "materials"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "jeonbuk",
+    "name": "전북",
+    "mapCol": 0,
+    "mapRow": 2,
+    "initialDevelopment": 30,
+    "agriculturePotential": 74,
+    "specialties": [
+      "agriculture",
+      "food"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "gyeongbuk",
+    "name": "경북",
+    "mapCol": 1,
+    "mapRow": 2,
+    "initialDevelopment": 39,
+    "agriculturePotential": 56,
+    "specialties": [
+      "manufacturing",
+      "materials"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "jeonnam",
+    "name": "전남",
+    "mapCol": 0,
+    "mapRow": 3,
+    "initialDevelopment": 28,
+    "agriculturePotential": 76,
+    "specialties": [
+      "agriculture",
+      "port"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "gyeongnam",
+    "name": "경남",
+    "mapCol": 1,
+    "mapRow": 3,
+    "initialDevelopment": 43,
+    "agriculturePotential": 50,
+    "specialties": [
+      "shipbuilding",
+      "manufacturing"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "busan",
+    "name": "부산",
+    "mapCol": 2,
+    "mapRow": 3,
+    "initialDevelopment": 53,
+    "agriculturePotential": 30,
+    "specialties": [
+      "port",
+      "trade"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  },
+  {
+    "id": "jeju",
+    "name": "제주",
+    "mapCol": 0,
+    "mapRow": 4,
+    "initialDevelopment": 24,
+    "agriculturePotential": 58,
+    "specialties": [
+      "agriculture",
+      "tourism"
+    ],
+    "slots": 4,
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "name": "korea1960-claude-reference",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Original fictional historical-political simulation production kit. No runtime dependencies.",
+  "scripts": {
+    "test": "node --test tests/engine.test.mjs",
+    "validate": "python3 tools/validate_content.py",
+    "build:standalone": "python3 tools/build_standalone.py",
+    "start": "python3 tools/serve.py"
+  }
+}

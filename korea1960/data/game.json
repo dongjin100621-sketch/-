@@ -1,0 +1,4403 @@
+{
+  "meta": {
+    "id": "korea1960",
+    "title": "대한민국 1960: 선택의 연대기",
+    "version": "1.0.0",
+    "schemaVersion": 1,
+    "language": "ko",
+    "start": "1960-01",
+    "end": "1979-12",
+    "turns": 240,
+    "sourceChecked": "2026-11-10",
+    "disclaimer": "참조 게임에서 착안한 독자 제작용 자료. 원작의 코드·화면·대사·수치·이미지를 복제하지 않는다. 모든 수치·선택 효과·가상 인물·가상 선거 결과는 게임 설계 값이다."
+  },
+  "metrics": [
+    {
+      "id": "gdp",
+      "label": "생산",
+      "unit": "가상 지수",
+      "initial": 100,
+      "min": 1,
+      "max": 9999,
+      "higherIsBetter": true,
+      "description": "1960년=100으로 놓은 게임 내 생산 지수. 실제 GDP 통계가 아님."
+    },
+    {
+      "id": "treasury",
+      "label": "국고",
+      "unit": "재정점",
+      "initial": 180,
+      "min": -9999,
+      "max": 99999,
+      "higherIsBetter": true,
+      "description": "실제 원화가 아닌 게임 자원. 음수이면 부채로 자동 조달."
+    },
+    {
+      "id": "debt",
+      "label": "부채",
+      "unit": "재정점",
+      "initial": 80,
+      "min": 0,
+      "max": 99999,
+      "higherIsBetter": false,
+      "description": "정부의 가상 누적부채. 매달 이자가 발생."
+    },
+    {
+      "id": "reserves",
+      "label": "외환 여력",
+      "unit": "지수",
+      "initial": 45,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "실제 달러 액수가 아닌 대외 지급 능력의 추상 지수."
+    },
+    {
+      "id": "inflation",
+      "label": "물가상승률",
+      "unit": "가상 연율 %",
+      "initial": 9,
+      "min": 0,
+      "max": 60,
+      "higherIsBetter": false,
+      "description": "관측 통계가 아닌 모델 내 연율. 생산성·재정·대외 충격의 영향."
+    },
+    {
+      "id": "unemployment",
+      "label": "실업률",
+      "unit": "가상 %",
+      "initial": 14,
+      "min": 1,
+      "max": 40,
+      "higherIsBetter": false,
+      "description": "모형 값. 실제 실업 통계와 비교하지 않음."
+    },
+    {
+      "id": "legitimacy",
+      "label": "정당성",
+      "unit": "점",
+      "initial": 45,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "절차·정책 성과·시민의 신뢰를 합친 가상 값."
+    },
+    {
+      "id": "liberty",
+      "label": "시민적 자유",
+      "unit": "점",
+      "initial": 42,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "언론·결사·사법의 권리 보장을 추상화. 역사 실측 순위가 아님."
+    },
+    {
+      "id": "welfare",
+      "label": "생활 수준",
+      "unit": "점",
+      "initial": 35,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "주거·의료·소득 안정의 가상 지수."
+    },
+    {
+      "id": "education",
+      "label": "교육·기술",
+      "unit": "점",
+      "initial": 30,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "교육과 숙련의 누적 역량."
+    },
+    {
+      "id": "infrastructure",
+      "label": "기반 시설",
+      "unit": "점",
+      "initial": 25,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "전력·수송·물류의 가상 역량."
+    },
+    {
+      "id": "industry",
+      "label": "산업 역량",
+      "unit": "점",
+      "initial": 18,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "산업 생산 기반의 가상 역량."
+    },
+    {
+      "id": "agriculture",
+      "label": "농업 기반",
+      "unit": "점",
+      "initial": 38,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "식량·농업 생산성의 가상 역량."
+    },
+    {
+      "id": "environment",
+      "label": "환경",
+      "unit": "점",
+      "initial": 65,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "수질·대기·생활 환경의 가상 상태."
+    },
+    {
+      "id": "stability",
+      "label": "사회 안정",
+      "unit": "점",
+      "initial": 46,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "갈등의 제도적 조정 능력. 억압으로 얻는 단기 효과는 지속되지 않음."
+    },
+    {
+      "id": "admin",
+      "label": "행정 역량",
+      "unit": "점",
+      "initial": 40,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "예산 집행과 공개 검증 능력."
+    },
+    {
+      "id": "equality",
+      "label": "분배 균형",
+      "unit": "점",
+      "initial": 44,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "지역·계층 간 균형의 가상 지수."
+    },
+    {
+      "id": "security",
+      "label": "안보 여력",
+      "unit": "점",
+      "initial": 45,
+      "min": 0,
+      "max": 100,
+      "higherIsBetter": true,
+      "description": "전쟁이나 병력 운용 대신 외교·대비 능력만 추상화."
+    }
+  ],
+  "factions": [
+    {
+      "id": "workers",
+      "name": "노동자",
+      "initialSupport": 42,
+      "weight": 0.2,
+      "priorities": [
+        "welfare",
+        "liberty",
+        "equality"
+      ],
+      "description": "임금과 안전, 결사의 자유를 중시한다."
+    },
+    {
+      "id": "farmers",
+      "name": "농민",
+      "initialSupport": 48,
+      "weight": 0.2,
+      "priorities": [
+        "agriculture",
+        "equality",
+        "infrastructure"
+      ],
+      "description": "가격 안정과 농촌 생활 기반을 중시한다."
+    },
+    {
+      "id": "business",
+      "name": "기업·상공인",
+      "initialSupport": 46,
+      "weight": 0.15,
+      "priorities": [
+        "industry",
+        "infrastructure",
+        "admin"
+      ],
+      "description": "투자 환경과 예측 가능한 규칙을 중시한다."
+    },
+    {
+      "id": "students",
+      "name": "학생·지식인",
+      "initialSupport": 38,
+      "weight": 0.12,
+      "priorities": [
+        "liberty",
+        "education",
+        "legitimacy"
+      ],
+      "description": "권리 보장과 교육, 공적 책임을 중시한다."
+    },
+    {
+      "id": "civil",
+      "name": "도시 시민",
+      "initialSupport": 44,
+      "weight": 0.16,
+      "priorities": [
+        "welfare",
+        "environment",
+        "stability"
+      ],
+      "description": "생활비와 주거·교통, 행정 서비스를 중시한다."
+    },
+    {
+      "id": "bureaucracy",
+      "name": "행정 조직",
+      "initialSupport": 50,
+      "weight": 0.07,
+      "priorities": [
+        "admin",
+        "legitimacy",
+        "education"
+      ],
+      "description": "규칙과 전문성, 지속 가능한 집행을 중시한다."
+    },
+    {
+      "id": "military",
+      "name": "군 조직",
+      "initialSupport": 50,
+      "weight": 0.06,
+      "priorities": [
+        "security",
+        "stability",
+        "legitimacy"
+      ],
+      "description": "제도적 임무와 대외 안보를 중시한다."
+    },
+    {
+      "id": "opposition",
+      "name": "야당·시민단체",
+      "initialSupport": 36,
+      "weight": 0.04,
+      "priorities": [
+        "liberty",
+        "equality",
+        "legitimacy"
+      ],
+      "description": "정책 감시와 권력 교체 가능성을 중시한다."
+    }
+  ],
+  "regions": [
+    {
+      "id": "capital",
+      "name": "서울·경기",
+      "mapCol": 0,
+      "mapRow": 0,
+      "initialDevelopment": 60,
+      "agriculturePotential": 35,
+      "specialties": [
+        "services",
+        "education"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "gangwon",
+      "name": "강원",
+      "mapCol": 1,
+      "mapRow": 0,
+      "initialDevelopment": 34,
+      "agriculturePotential": 60,
+      "specialties": [
+        "mining",
+        "forestry"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "chungnam",
+      "name": "충남",
+      "mapCol": 0,
+      "mapRow": 1,
+      "initialDevelopment": 35,
+      "agriculturePotential": 64,
+      "specialties": [
+        "agriculture",
+        "logistics"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "chungbuk",
+      "name": "충북",
+      "mapCol": 1,
+      "mapRow": 1,
+      "initialDevelopment": 32,
+      "agriculturePotential": 60,
+      "specialties": [
+        "agriculture",
+        "materials"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "jeonbuk",
+      "name": "전북",
+      "mapCol": 0,
+      "mapRow": 2,
+      "initialDevelopment": 30,
+      "agriculturePotential": 74,
+      "specialties": [
+        "agriculture",
+        "food"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "gyeongbuk",
+      "name": "경북",
+      "mapCol": 1,
+      "mapRow": 2,
+      "initialDevelopment": 39,
+      "agriculturePotential": 56,
+      "specialties": [
+        "manufacturing",
+        "materials"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "jeonnam",
+      "name": "전남",
+      "mapCol": 0,
+      "mapRow": 3,
+      "initialDevelopment": 28,
+      "agriculturePotential": 76,
+      "specialties": [
+        "agriculture",
+        "port"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "gyeongnam",
+      "name": "경남",
+      "mapCol": 1,
+      "mapRow": 3,
+      "initialDevelopment": 43,
+      "agriculturePotential": 50,
+      "specialties": [
+        "shipbuilding",
+        "manufacturing"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "busan",
+      "name": "부산",
+      "mapCol": 2,
+      "mapRow": 3,
+      "initialDevelopment": 53,
+      "agriculturePotential": 30,
+      "specialties": [
+        "port",
+        "trade"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    },
+    {
+      "id": "jeju",
+      "name": "제주",
+      "mapCol": 0,
+      "mapRow": 4,
+      "initialDevelopment": 24,
+      "agriculturePotential": 58,
+      "specialties": [
+        "agriculture",
+        "tourism"
+      ],
+      "slots": 4,
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    }
+  ],
+  "countries": [
+    {
+      "id": "usa",
+      "name": "미국",
+      "initialRelation": 65,
+      "description": "원조·시장·인권 의제를 함께 다루는 관계"
+    },
+    {
+      "id": "japan",
+      "name": "일본",
+      "initialRelation": 25,
+      "description": "국교와 경제협력, 과거사 쟁점을 함께 다루는 관계"
+    },
+    {
+      "id": "north",
+      "name": "북한",
+      "initialRelation": 15,
+      "description": "긴장 완화·인도적 대화를 중심으로 추상화"
+    },
+    {
+      "id": "europe",
+      "name": "서유럽",
+      "initialRelation": 45,
+      "description": "차관·기술 교류를 위한 묶음 권역"
+    },
+    {
+      "id": "nonaligned",
+      "name": "비동맹권",
+      "initialRelation": 35,
+      "description": "무역과 다변화 외교를 위한 묶음 권역"
+    },
+    {
+      "id": "international",
+      "name": "국제기구",
+      "initialRelation": 50,
+      "description": "공개 통계·차관·개발 협력을 위한 묶음 상대"
+    }
+  ],
+  "policies": [
+    {
+      "id": "export_credit",
+      "name": "수출 금융",
+      "category": "경제",
+      "cost": 12,
+      "monthlyCost": 0.45,
+      "unlockYear": 1962,
+      "effects": {
+        "industry": 4,
+        "reserves": 3
+      },
+      "monthlyEffects": {
+        "industry": 0.055,
+        "reserves": 0.025
+      },
+      "factionEffects": {
+        "business": 5
+      },
+      "description": "단기 금융을 보강하지만 국고와 부채의 여력을 확인해야 한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "small_business",
+      "name": "중소기업 기술 지원",
+      "category": "경제",
+      "cost": 10,
+      "monthlyCost": 0.3,
+      "unlockYear": 1962,
+      "effects": {
+        "industry": 2,
+        "equality": 2
+      },
+      "monthlyEffects": {
+        "industry": 0.04,
+        "equality": 0.025
+      },
+      "factionEffects": {
+        "business": 3,
+        "workers": 2
+      },
+      "description": "대기업 외에도 생산성과 기술이 축적되도록 지원한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "price_stability",
+      "name": "물가 안정 협의",
+      "category": "경제",
+      "cost": 6,
+      "monthlyCost": 0.22,
+      "unlockYear": 1961,
+      "effects": {
+        "inflation": -1.5
+      },
+      "monthlyEffects": {
+        "inflation": -0.04
+      },
+      "factionEffects": {
+        "civil": 3
+      },
+      "description": "재정과 공급을 점검한다. 가격을 영구 고정하는 정책은 아니다.",
+      "requiresBill": false
+    },
+    {
+      "id": "farm_extension",
+      "name": "농업 기술 보급",
+      "category": "농촌",
+      "cost": 10,
+      "monthlyCost": 0.28,
+      "unlockYear": 1962,
+      "effects": {
+        "agriculture": 4
+      },
+      "monthlyEffects": {
+        "agriculture": 0.065
+      },
+      "factionEffects": {
+        "farmers": 5
+      },
+      "description": "농업 교육과 생산기술을 확산한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "rural_coops",
+      "name": "농촌 협동조합 지원",
+      "category": "농촌",
+      "cost": 9,
+      "monthlyCost": 0.25,
+      "unlockYear": 1962,
+      "effects": {
+        "agriculture": 2,
+        "equality": 2
+      },
+      "monthlyEffects": {
+        "agriculture": 0.035,
+        "equality": 0.035
+      },
+      "factionEffects": {
+        "farmers": 4
+      },
+      "description": "주민 참여와 자율 회계를 전제로 한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "grain_buffer",
+      "name": "식량 완충 비축",
+      "category": "농촌",
+      "cost": 14,
+      "monthlyCost": 0.35,
+      "unlockYear": 1962,
+      "effects": {
+        "agriculture": 3,
+        "stability": 2
+      },
+      "monthlyEffects": {
+        "agriculture": 0.025
+      },
+      "factionEffects": {
+        "farmers": 2,
+        "civil": 2
+      },
+      "description": "흉작과 가격 변동에 대응하는 가상 비축 제도.",
+      "requiresBill": false
+    },
+    {
+      "id": "primary_school",
+      "name": "기초교육 확대",
+      "category": "교육",
+      "cost": 12,
+      "monthlyCost": 0.32,
+      "unlockYear": 1962,
+      "effects": {
+        "education": 3
+      },
+      "monthlyEffects": {
+        "education": 0.065
+      },
+      "factionEffects": {
+        "students": 5
+      },
+      "description": "교실과 교원 역량에 장기 투자한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "technical_school",
+      "name": "직업·기술 교육",
+      "category": "교육",
+      "cost": 16,
+      "monthlyCost": 0.4,
+      "unlockYear": 1963,
+      "effects": {
+        "education": 3,
+        "industry": 1
+      },
+      "monthlyEffects": {
+        "education": 0.045,
+        "industry": 0.025
+      },
+      "factionEffects": {
+        "workers": 3,
+        "business": 3
+      },
+      "description": "성장의 숙련인력 병목을 완화한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "research_fund",
+      "name": "공공 연구기금",
+      "category": "교육",
+      "cost": 22,
+      "monthlyCost": 0.5,
+      "unlockYear": 1966,
+      "effects": {
+        "education": 4
+      },
+      "monthlyEffects": {
+        "education": 0.08
+      },
+      "factionEffects": {
+        "students": 5
+      },
+      "description": "장기 연구를 지원한다. 즉시 수출이 늘어나는 수단은 아니다.",
+      "requiresBill": false
+    },
+    {
+      "id": "health_centers",
+      "name": "지역 보건소 확충",
+      "category": "생활",
+      "cost": 14,
+      "monthlyCost": 0.4,
+      "unlockYear": 1962,
+      "effects": {
+        "welfare": 4
+      },
+      "monthlyEffects": {
+        "welfare": 0.055
+      },
+      "factionEffects": {
+        "workers": 3,
+        "farmers": 3
+      },
+      "description": "예방 의료와 접근성을 개선한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "housing",
+      "name": "공공 주거 지원",
+      "category": "생활",
+      "cost": 18,
+      "monthlyCost": 0.45,
+      "unlockYear": 1963,
+      "effects": {
+        "welfare": 3,
+        "equality": 2
+      },
+      "monthlyEffects": {
+        "welfare": 0.045,
+        "equality": 0.025
+      },
+      "factionEffects": {
+        "civil": 5
+      },
+      "description": "과밀과 불안정한 주거에 대응한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "labor_inspection",
+      "name": "노동 감독 독립성",
+      "category": "권리",
+      "cost": 12,
+      "monthlyCost": 0.35,
+      "unlockYear": 1963,
+      "effects": {
+        "welfare": 2,
+        "liberty": 3
+      },
+      "monthlyEffects": {
+        "welfare": 0.035,
+        "liberty": 0.025
+      },
+      "factionEffects": {
+        "workers": 6,
+        "business": -2
+      },
+      "description": "산업재해와 장시간 노동을 감독하고 공개한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "association",
+      "name": "결사권 보장",
+      "category": "권리",
+      "cost": 8,
+      "monthlyCost": 0.15,
+      "unlockYear": 1963,
+      "effects": {
+        "liberty": 6
+      },
+      "monthlyEffects": {
+        "liberty": 0.03
+      },
+      "factionEffects": {
+        "workers": 4,
+        "opposition": 5
+      },
+      "description": "합법적 단체의 활동을 보장하는 가상 법안.",
+      "requiresBill": true
+    },
+    {
+      "id": "press_freedom",
+      "name": "언론 자유 보장",
+      "category": "권리",
+      "cost": 8,
+      "monthlyCost": 0.15,
+      "unlockYear": 1963,
+      "effects": {
+        "liberty": 7,
+        "legitimacy": 2
+      },
+      "monthlyEffects": {
+        "liberty": 0.03
+      },
+      "factionEffects": {
+        "students": 6,
+        "opposition": 4
+      },
+      "description": "독립 보도와 정부의 답변 책임을 보장한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "judicial_review",
+      "name": "사법 독립 보강",
+      "category": "권리",
+      "cost": 14,
+      "monthlyCost": 0.3,
+      "unlockYear": 1963,
+      "effects": {
+        "liberty": 5,
+        "legitimacy": 4
+      },
+      "monthlyEffects": {
+        "admin": 0.03
+      },
+      "factionEffects": {
+        "opposition": 6
+      },
+      "description": "권력 행위를 심사할 제도적 통로를 마련한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "open_accounts",
+      "name": "공공 회계 공개",
+      "category": "행정",
+      "cost": 9,
+      "monthlyCost": 0.18,
+      "unlockYear": 1962,
+      "effects": {
+        "admin": 4,
+        "legitimacy": 3
+      },
+      "monthlyEffects": {
+        "admin": 0.04
+      },
+      "factionEffects": {
+        "bureaucracy": 3,
+        "civil": 3
+      },
+      "description": "지출 내역과 사업 평가를 공개한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "civil_service",
+      "name": "전문 행정 인사",
+      "category": "행정",
+      "cost": 12,
+      "monthlyCost": 0.25,
+      "unlockYear": 1962,
+      "effects": {
+        "admin": 5
+      },
+      "monthlyEffects": {
+        "admin": 0.055
+      },
+      "factionEffects": {
+        "bureaucracy": 5
+      },
+      "description": "정치적 충성 대신 전문성과 절차를 강화한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "local_council",
+      "name": "지역 참여 예산",
+      "category": "행정",
+      "cost": 12,
+      "monthlyCost": 0.28,
+      "unlockYear": 1963,
+      "effects": {
+        "equality": 4,
+        "legitimacy": 3
+      },
+      "monthlyEffects": {
+        "equality": 0.04
+      },
+      "factionEffects": {
+        "farmers": 3,
+        "civil": 3
+      },
+      "description": "중앙의 결정에 지역 의견을 반영한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "energy_efficiency",
+      "name": "에너지 절약 투자",
+      "category": "환경",
+      "cost": 18,
+      "monthlyCost": 0.3,
+      "unlockYear": 1965,
+      "effects": {
+        "environment": 3,
+        "reserves": 2
+      },
+      "monthlyEffects": {
+        "environment": 0.045,
+        "reserves": 0.02
+      },
+      "factionEffects": {
+        "civil": 3
+      },
+      "description": "에너지 수입 충격을 줄이고 생산과 생활의 효율을 높이는 투자.",
+      "requiresBill": false
+    },
+    {
+      "id": "clean_water",
+      "name": "수질·상하수도 기준",
+      "category": "환경",
+      "cost": 16,
+      "monthlyCost": 0.35,
+      "unlockYear": 1963,
+      "effects": {
+        "environment": 5,
+        "welfare": 1
+      },
+      "monthlyEffects": {
+        "environment": 0.055
+      },
+      "factionEffects": {
+        "civil": 4,
+        "business": -1
+      },
+      "description": "산업화의 환경 비용을 반영한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "rail_priority",
+      "name": "철도·물류 효율화",
+      "category": "기반",
+      "cost": 20,
+      "monthlyCost": 0.35,
+      "unlockYear": 1963,
+      "effects": {
+        "infrastructure": 5
+      },
+      "monthlyEffects": {
+        "infrastructure": 0.06
+      },
+      "factionEffects": {
+        "business": 4
+      },
+      "description": "도로 외의 물류 수단도 함께 발전시킨다.",
+      "requiresBill": false
+    },
+    {
+      "id": "grid_planning",
+      "name": "전력망 공개 계획",
+      "category": "기반",
+      "cost": 18,
+      "monthlyCost": 0.32,
+      "unlockYear": 1963,
+      "effects": {
+        "infrastructure": 4,
+        "admin": 1
+      },
+      "monthlyEffects": {
+        "infrastructure": 0.05
+      },
+      "factionEffects": {
+        "business": 3,
+        "civil": 2
+      },
+      "description": "발전과 송전의 병목을 계획한다.",
+      "requiresBill": false
+    },
+    {
+      "id": "civilian_oversight",
+      "name": "민간 통제의 제도화",
+      "category": "안보",
+      "cost": 10,
+      "monthlyCost": 0.2,
+      "unlockYear": 1963,
+      "effects": {
+        "liberty": 4,
+        "legitimacy": 4,
+        "security": 1
+      },
+      "monthlyEffects": {
+        "legitimacy": 0.02
+      },
+      "factionEffects": {
+        "military": -2,
+        "opposition": 5
+      },
+      "description": "군의 정치적 중립과 책임 있는 감독을 명시한다.",
+      "requiresBill": true
+    },
+    {
+      "id": "diplomatic_diversity",
+      "name": "교역·외교 다변화",
+      "category": "외교",
+      "cost": 12,
+      "monthlyCost": 0.28,
+      "unlockYear": 1963,
+      "effects": {
+        "reserves": 3,
+        "security": 2
+      },
+      "monthlyEffects": {
+        "reserves": 0.03
+      },
+      "factionEffects": {
+        "business": 3
+      },
+      "description": "하나의 시장에 대한 과도한 의존을 완화한다.",
+      "requiresBill": false
+    }
+  ],
+  "projects": [
+    {
+      "id": "rural_clinic",
+      "name": "농촌 보건 거점",
+      "cost": 22,
+      "months": 5,
+      "maintenance": 0.15,
+      "income": 0.15,
+      "effects": {
+        "welfare": 4,
+        "equality": 2
+      },
+      "unlockYear": 1962,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "primary_campus",
+      "name": "초등 교육 시설",
+      "cost": 24,
+      "months": 6,
+      "maintenance": 0.15,
+      "income": 0.1,
+      "effects": {
+        "education": 5
+      },
+      "unlockYear": 1962,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "technical_campus",
+      "name": "기술학교",
+      "cost": 30,
+      "months": 8,
+      "maintenance": 0.2,
+      "income": 0.2,
+      "effects": {
+        "education": 4,
+        "industry": 2
+      },
+      "unlockYear": 1963,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "local_road",
+      "name": "지방 연결도로",
+      "cost": 28,
+      "months": 7,
+      "maintenance": 0.12,
+      "income": 0.3,
+      "effects": {
+        "infrastructure": 4,
+        "agriculture": 1
+      },
+      "unlockYear": 1962,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "irrigation",
+      "name": "관개·배수 개선",
+      "cost": 25,
+      "months": 6,
+      "maintenance": 0.1,
+      "income": 0.25,
+      "effects": {
+        "agriculture": 5
+      },
+      "unlockYear": 1962,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "rail_hub",
+      "name": "철도 물류 거점",
+      "cost": 40,
+      "months": 10,
+      "maintenance": 0.2,
+      "income": 0.55,
+      "effects": {
+        "infrastructure": 6,
+        "industry": 1
+      },
+      "unlockYear": 1963,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "power_grid",
+      "name": "송전망 확충",
+      "cost": 38,
+      "months": 9,
+      "maintenance": 0.22,
+      "income": 0.5,
+      "effects": {
+        "infrastructure": 6,
+        "environment": -1
+      },
+      "unlockYear": 1963,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "waterworks",
+      "name": "상하수도 시설",
+      "cost": 32,
+      "months": 8,
+      "maintenance": 0.2,
+      "income": 0.2,
+      "effects": {
+        "environment": 5,
+        "welfare": 3
+      },
+      "unlockYear": 1963,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "light_industry",
+      "name": "경공업 단지",
+      "cost": 36,
+      "months": 8,
+      "maintenance": 0.25,
+      "income": 0.65,
+      "effects": {
+        "industry": 5,
+        "unemployment": -1,
+        "environment": -2
+      },
+      "unlockYear": 1962,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "port_upgrade",
+      "name": "항만 물류 시설",
+      "cost": 45,
+      "months": 11,
+      "maintenance": 0.25,
+      "income": 0.75,
+      "effects": {
+        "infrastructure": 4,
+        "reserves": 3
+      },
+      "unlockYear": 1964,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "steel_complex",
+      "name": "제철 기반 시설",
+      "cost": 65,
+      "months": 16,
+      "maintenance": 0.5,
+      "income": 1,
+      "effects": {
+        "industry": 9,
+        "environment": -5
+      },
+      "unlockYear": 1968,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "shipyard",
+      "name": "조선 생산 시설",
+      "cost": 58,
+      "months": 14,
+      "maintenance": 0.4,
+      "income": 0.95,
+      "effects": {
+        "industry": 7,
+        "reserves": 3,
+        "environment": -3
+      },
+      "unlockYear": 1970,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "research_campus",
+      "name": "공공 연구소",
+      "cost": 48,
+      "months": 12,
+      "maintenance": 0.3,
+      "income": 0.35,
+      "effects": {
+        "education": 7,
+        "industry": 2
+      },
+      "unlockYear": 1966,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "public_housing",
+      "name": "도시 주택 지구",
+      "cost": 42,
+      "months": 10,
+      "maintenance": 0.25,
+      "income": 0.2,
+      "effects": {
+        "welfare": 5,
+        "equality": 3
+      },
+      "unlockYear": 1964,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "market_storage",
+      "name": "농수산물 저장 시설",
+      "cost": 26,
+      "months": 6,
+      "maintenance": 0.1,
+      "income": 0.3,
+      "effects": {
+        "agriculture": 4,
+        "inflation": -0.5
+      },
+      "unlockYear": 1963,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "river_restoration",
+      "name": "하천 환경 개선",
+      "cost": 35,
+      "months": 9,
+      "maintenance": 0.15,
+      "income": 0.1,
+      "effects": {
+        "environment": 7,
+        "welfare": 1
+      },
+      "unlockYear": 1965,
+      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    }
+  ],
+  "advisers": [
+    {
+      "id": "han",
+      "name": "한서진",
+      "role": "재정 자문",
+      "fictional": true,
+      "initials": "한",
+      "cost": 12,
+      "monthlyEffects": {
+        "admin": 0.06,
+        "inflation": -0.025
+      },
+      "quote": "성장률 옆에 상환표도 두어야 합니다."
+    },
+    {
+      "id": "yun",
+      "name": "윤지수",
+      "role": "교육 자문",
+      "fictional": true,
+      "initials": "윤",
+      "cost": 12,
+      "monthlyEffects": {
+        "education": 0.08
+      },
+      "quote": "한 번의 준공식보다 꾸준한 수업이 중요합니다."
+    },
+    {
+      "id": "cho",
+      "name": "조명호",
+      "role": "산업 자문",
+      "fictional": true,
+      "initials": "조",
+      "cost": 12,
+      "monthlyEffects": {
+        "industry": 0.08,
+        "environment": -0.015
+      },
+      "quote": "공장 안의 기술과 사람을 함께 보십시오."
+    },
+    {
+      "id": "min",
+      "name": "민하경",
+      "role": "권리·법제 자문",
+      "fictional": true,
+      "initials": "민",
+      "cost": 12,
+      "monthlyEffects": {
+        "liberty": 0.06,
+        "legitimacy": 0.03
+      },
+      "quote": "권한의 경계가 제도의 수명입니다."
+    },
+    {
+      "id": "kang",
+      "name": "강도윤",
+      "role": "농촌·지역 자문",
+      "fictional": true,
+      "initials": "강",
+      "cost": 12,
+      "monthlyEffects": {
+        "agriculture": 0.06,
+        "equality": 0.04
+      },
+      "quote": "지도에서 먼 곳도 생활에서는 중심입니다."
+    },
+    {
+      "id": "lee",
+      "name": "이유정",
+      "role": "외교 자문",
+      "fictional": true,
+      "initials": "이",
+      "cost": 12,
+      "monthlyEffects": {
+        "reserves": 0.04,
+        "security": 0.03
+      },
+      "quote": "관계의 숫자 뒤에는 신뢰의 시간이 있습니다."
+    }
+  ],
+  "events": [
+    {
+      "id": "opening",
+      "title": "겨울의 업무일지",
+      "body": "1960년 1월. 당신은 대통령이 아닌 군인 박정희다. 국정 지표는 관찰 자료다. 초기 행동은 정책 준비와 공개적인 입장 표명으로 제한된다. 역사와 다른 결정은 대체역사로 기록된다.",
+      "choices": [
+        {
+          "id": "opening_1",
+          "label": "경제·사회 자료부터 검토한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "opening_2",
+          "label": "정치적 중립의 원칙을 확인한다",
+          "effects": {
+            "legitimacy": 1
+          },
+          "factionEffects": {
+            "military": 1,
+            "opposition": 1
+          }
+        },
+        {
+          "id": "opening_3",
+          "label": "퇴역 이후의 공적 역할을 구상한다",
+          "effects": {},
+          "influence": 3
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cover",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [],
+      "date": "1960-01"
+    },
+    {
+      "id": "election_1960",
+      "title": "3·15 선거와 정국의 균열",
+      "body": "실제 역사: 1960년 3월 15일 정부통령 선거와 마산 시위가 있었다. 아래 선택은 박정희의 가상 반응이며 실제 발언을 인용한 것이 아니다.",
+      "choices": [
+        {
+          "id": "election_1960_1",
+          "label": "정치적 중립과 적법 절차를 강조한다",
+          "effects": {
+            "legitimacy": 2
+          },
+          "factionEffects": {
+            "opposition": 2
+          }
+        },
+        {
+          "id": "election_1960_2",
+          "label": "독립적인 사실 확인을 요구한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "election_1960_3",
+          "label": "국가 상황을 관찰하며 판단을 유보한다",
+          "effects": {},
+          "influence": 1
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [
+        "S02"
+      ],
+      "conditions": [],
+      "date": "1960-03"
+    },
+    {
+      "id": "april_1960",
+      "title": "4월의 시민들",
+      "body": "실제 역사: 1960년 4월 19일 전국적으로 민주주의를 요구하는 시위가 확산됐고, 4월 26일 이승만이 하야 성명을 발표했다. 민간인의 권리와 희생을 사건의 중심에 둔다.",
+      "choices": [
+        {
+          "id": "april_1960_1",
+          "label": "시민 보호와 정치적 중립을 지지한다",
+          "effects": {
+            "legitimacy": 3
+          },
+          "factionEffects": {
+            "students": 4,
+            "civil": 3
+          }
+        },
+        {
+          "id": "april_1960_2",
+          "label": "민간 정부의 헌정 절차를 존중한다",
+          "effects": {
+            "legitimacy": 2
+          },
+          "factionEffects": {
+            "opposition": 3
+          }
+        },
+        {
+          "id": "april_1960_3",
+          "label": "희생자에 대한 공개적 애도를 표한다",
+          "effects": {},
+          "factionEffects": {
+            "civil": 2
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [
+        "S02"
+      ],
+      "conditions": [],
+      "date": "1960-04"
+    },
+    {
+      "id": "republic2",
+      "title": "제2공화국의 출범",
+      "body": "실제 역사: 1960년 8월 윤보선이 대통령으로 선출되고 장면이 국무총리로 인준됐다. 당신에게 국가 예산을 결정할 권한은 없다.",
+      "choices": [
+        {
+          "id": "republic2_1",
+          "label": "정치에 개입하지 않는 원칙을 세운다",
+          "effects": {
+            "legitimacy": 2
+          },
+          "influence": 2
+        },
+        {
+          "id": "republic2_2",
+          "label": "경제 개혁 의견서를 준비한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 3
+        },
+        {
+          "id": "republic2_3",
+          "label": "장기적인 민간 정치 참여를 검토한다",
+          "effects": {},
+          "influence": 4
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S02"
+      ],
+      "conditions": [],
+      "date": "1960-08"
+    },
+    {
+      "id": "may_1961",
+      "title": "1961년 5월: 권력과 절차",
+      "body": "실제 역사: 1961년 5월 16일 군사정변으로 헌정 질서가 중단됐다. 이 캠페인에서는 통치 경로의 선택과 그에 따른 제도적 비용이 이후의 정치에 영향을 준다.",
+      "choices": [
+        {
+          "id": "may_1961_1",
+          "label": "헌정 질서 존중과 민간 정치 경로를 선택한다",
+          "effects": {
+            "liberty": 5,
+            "legitimacy": 6
+          },
+          "setFlags": {
+            "route": "constitutional"
+          },
+          "phase": "civilian",
+          "factionEffects": {
+            "opposition": 6,
+            "students": 4
+          }
+        },
+        {
+          "id": "may_1961_2",
+          "label": "군정으로 이어지는 역사 분기를 선택한다",
+          "effects": {
+            "liberty": -12,
+            "legitimacy": -8,
+            "stability": 4
+          },
+          "setFlags": {
+            "route": "military"
+          },
+          "phase": "transition",
+          "factionEffects": {
+            "military": 6,
+            "students": -8
+          }
+        },
+        {
+          "id": "may_1961_3",
+          "label": "퇴역하여 공직 진출을 준비한다",
+          "effects": {
+            "legitimacy": 4
+          },
+          "setFlags": {
+            "route": "constitutional"
+          },
+          "phase": "civilian",
+          "influence": 6
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S02"
+      ],
+      "conditions": [],
+      "date": "1961-05"
+    },
+    {
+      "id": "plan_1962",
+      "title": "개발 계획의 출발",
+      "body": "실제 역사: 제1차 경제개발5개년계획은 1962~1966년을 대상으로 추진됐다. 게임의 투자 규모와 효과는 균형 조정을 위한 가상 값이다.",
+      "choices": [
+        {
+          "id": "plan_1962_1",
+          "label": "산업·사회 기반을 함께 검토한다",
+          "effects": {
+            "admin": 2,
+            "education": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "plan_1962_2",
+          "label": "수출과 생산 기반을 우선 검토한다",
+          "effects": {
+            "industry": 2
+          },
+          "influence": 2
+        },
+        {
+          "id": "plan_1962_3",
+          "label": "지역 격차와 농업 기반을 우선 검토한다",
+          "effects": {
+            "agriculture": 2,
+            "equality": 1
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S03"
+      ],
+      "conditions": [],
+      "date": "1962-01"
+    },
+    {
+      "id": "election_1963",
+      "title": "선거를 통한 권한의 확인",
+      "body": "실제 역사: 1963년 10월 15일 제5대 대통령선거가 치러졌다. 이 샘플은 플레이어의 출마 결정을 이 시점에 압축한 가상 선거다. 득표와 결과는 실제 선거 수치가 아니다.",
+      "choices": [
+        {
+          "id": "election_1963_1",
+          "label": "공개 토론과 절차를 존중하는 선거에 참여한다",
+          "effects": {
+            "legitimacy": 3
+          },
+          "special": "firstElection"
+        },
+        {
+          "id": "election_1963_2",
+          "label": "연합 공약을 제시하고 선거에 참여한다",
+          "effects": {
+            "equality": 1
+          },
+          "special": "firstElection",
+          "influence": 3
+        },
+        {
+          "id": "election_1963_3",
+          "label": "공직 도전을 마치고 평화롭게 물러난다",
+          "effects": {},
+          "ending": "retired"
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [
+        "S04"
+      ],
+      "conditions": [],
+      "date": "1963-10"
+    },
+    {
+      "id": "inauguration_1963",
+      "title": "새로운 정부의 책임",
+      "body": "실제 역사: 1963년 12월 17일 박정희가 대통령에 취임했다. 플레이어가 선거에서 승리한 경우에만 샘플의 국정 운영 단계가 열린다. 다른 분기는 실제 역사와 다르다.",
+      "choices": [
+        {
+          "id": "inauguration_1963_1",
+          "label": "경제 발전과 권리 보장을 함께 약속한다",
+          "effects": {
+            "legitimacy": 4,
+            "liberty": 2
+          },
+          "phase": "governing"
+        },
+        {
+          "id": "inauguration_1963_2",
+          "label": "재정 공개와 책임 행정을 우선한다",
+          "effects": {
+            "admin": 4,
+            "legitimacy": 2
+          },
+          "phase": "governing"
+        },
+        {
+          "id": "inauguration_1963_3",
+          "label": "지역과 계층 간 협의를 시작한다",
+          "effects": {
+            "equality": 3,
+            "stability": 2
+          },
+          "phase": "governing"
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S05"
+      ],
+      "conditions": [
+        {
+          "flag": "won1963",
+          "eq": true
+        }
+      ],
+      "date": "1963-12"
+    },
+    {
+      "id": "japan_1965",
+      "title": "국교와 청구권을 둘러싼 협상",
+      "body": "실제 역사: 1965년 6월 22일 한일기본조약이 조인됐다. 협상의 경제 효과와 피해 당사자 권리, 공개 검증의 문제를 함께 검토한다. 아래 결과는 가상이다.",
+      "choices": [
+        {
+          "id": "japan_1965_1",
+          "label": "공개 검증과 피해 당사자 의견 수렴을 우선한다",
+          "effects": {
+            "legitimacy": 4,
+            "admin": 2
+          },
+          "relations": {
+            "japan": 4
+          },
+          "delay": {
+            "months": 4,
+            "effects": {
+              "reserves": 5
+            },
+            "text": "공개 검증을 거친 경제협력의 효과가 나타났다."
+          }
+        },
+        {
+          "id": "japan_1965_2",
+          "label": "경제협력을 신속히 확대한다",
+          "effects": {
+            "treasury": 18,
+            "reserves": 6,
+            "legitimacy": -3
+          },
+          "relations": {
+            "japan": 10
+          },
+          "factionEffects": {
+            "students": -4
+          }
+        },
+        {
+          "id": "japan_1965_3",
+          "label": "의회 심의를 거쳐 단계적으로 합의한다",
+          "effects": {
+            "liberty": 2,
+            "stability": 2
+          },
+          "relations": {
+            "japan": 6
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S06"
+      ],
+      "conditions": [],
+      "date": "1965-06"
+    },
+    {
+      "id": "village_1970",
+      "title": "농촌 재건의 방식",
+      "body": "실제 역사: 1970년 4월 22일 새마을운동이 제창됐다. 주민 자율성, 지역 격차, 사업의 지속성을 게임의 검토 항목으로 둔다.",
+      "choices": [
+        {
+          "id": "village_1970_1",
+          "label": "주민이 사업을 고르고 회계를 공개하도록 한다",
+          "effects": {
+            "agriculture": 3,
+            "equality": 3,
+            "treasury": -8
+          },
+          "factionEffects": {
+            "farmers": 5
+          }
+        },
+        {
+          "id": "village_1970_2",
+          "label": "시설 확충에 집중한다",
+          "effects": {
+            "agriculture": 5,
+            "treasury": -12
+          }
+        },
+        {
+          "id": "village_1970_3",
+          "label": "소규모 시범사업부터 평가한다",
+          "effects": {
+            "admin": 3,
+            "agriculture": 2
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S08"
+      ],
+      "conditions": [],
+      "date": "1970-04"
+    },
+    {
+      "id": "highway_1970",
+      "title": "국토를 잇는 길",
+      "body": "실제 역사: 경부고속도로는 1970년 7월 7일 완전 개통됐다. 이 캠페인의 시설은 플레이어가 투자해야 완성되므로 실제 시설의 자동 완공을 뜻하지 않는다.",
+      "choices": [
+        {
+          "id": "highway_1970_1",
+          "label": "교통망의 연계와 유지 보수를 검토한다",
+          "effects": {
+            "infrastructure": 2,
+            "admin": 1
+          }
+        },
+        {
+          "id": "highway_1970_2",
+          "label": "지역 도로와 철도 접근성을 검토한다",
+          "effects": {
+            "equality": 2,
+            "infrastructure": 1
+          }
+        },
+        {
+          "id": "highway_1970_3",
+          "label": "사회·환경 비용을 공개 평가한다",
+          "effects": {
+            "environment": 2,
+            "legitimacy": 2
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S07"
+      ],
+      "conditions": [],
+      "date": "1970-07"
+    },
+    {
+      "id": "labor_1970",
+      "title": "성장의 그늘에 놓인 노동",
+      "body": "실제 역사: 1970년 11월 13일 전태일은 근로조건 개선을 요구하며 항거한 끝에 사망했다. 이 사건은 열악한 노동 환경과 권리 문제를 사회에 드러냈다. 생산의 성과와 노동자의 삶을 함께 살펴야 한다.",
+      "choices": [
+        {
+          "id": "labor_1970_1",
+          "label": "독립적인 노동 감독과 시정 계획을 마련한다",
+          "effects": {
+            "welfare": 4,
+            "liberty": 3,
+            "treasury": -6
+          },
+          "factionEffects": {
+            "workers": 7
+          }
+        },
+        {
+          "id": "labor_1970_2",
+          "label": "노사·시민 대표의 공개 협의체를 연다",
+          "effects": {
+            "stability": 3,
+            "legitimacy": 3
+          },
+          "factionEffects": {
+            "workers": 4
+          }
+        },
+        {
+          "id": "labor_1970_3",
+          "label": "조사 결과와 개선 일정을 공개한다",
+          "effects": {
+            "admin": 3,
+            "legitimacy": 2
+          },
+          "delay": {
+            "months": 3,
+            "effects": {
+              "welfare": 3
+            },
+            "text": "노동 환경 개선에 대한 후속 보고가 제출됐다."
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [
+        "S09"
+      ],
+      "conditions": [],
+      "date": "1970-11"
+    },
+    {
+      "id": "dialogue_1972",
+      "title": "남북 대화의 통로",
+      "body": "실제 역사: 1972년 7월 4일 남북공동성명이 발표됐다. 대화의 지속성과 공개적 책임, 긴장 완화를 함께 살핀다.",
+      "choices": [
+        {
+          "id": "dialogue_1972_1",
+          "label": "대화 창구와 의회 보고를 함께 유지한다",
+          "effects": {
+            "security": 3,
+            "legitimacy": 2
+          },
+          "relations": {
+            "north": 10
+          }
+        },
+        {
+          "id": "dialogue_1972_2",
+          "label": "인도적 교류를 먼저 확대한다",
+          "effects": {
+            "welfare": 2,
+            "treasury": -5
+          },
+          "relations": {
+            "north": 12
+          }
+        },
+        {
+          "id": "dialogue_1972_3",
+          "label": "단계별 상호 확인을 요구한다",
+          "effects": {
+            "security": 4
+          },
+          "relations": {
+            "north": 5
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S10"
+      ],
+      "conditions": [],
+      "date": "1972-07"
+    },
+    {
+      "id": "yushin_1972",
+      "title": "권력의 한계선",
+      "body": "실제 역사: 1972년 10월 17일 초헌법적 비상조치로 유신체제가 추진됐다. 실제로는 시민적 자유와 권력 견제가 크게 제한됐다. 게임에서는 다른 제도적 선택도 가능하다.",
+      "choices": [
+        {
+          "id": "yushin_1972_1",
+          "label": "임기와 헌정 절차의 한계를 유지한다",
+          "effects": {
+            "liberty": 6,
+            "legitimacy": 5
+          },
+          "setFlags": {
+            "constitutionalLimit": true
+          }
+        },
+        {
+          "id": "yushin_1972_2",
+          "label": "장기 집권 체제로 전환하는 가상 분기를 택한다",
+          "effects": {
+            "liberty": -24,
+            "legitimacy": -12,
+            "stability": 5
+          },
+          "setFlags": {
+            "authoritarian": true
+          },
+          "factionEffects": {
+            "students": -12,
+            "opposition": -15
+          }
+        },
+        {
+          "id": "yushin_1972_3",
+          "label": "공개 개헌 논의와 임기 종료 일정을 제시한다",
+          "effects": {
+            "liberty": 4,
+            "legitimacy": 4,
+            "stability": -2
+          },
+          "setFlags": {
+            "constitutionalLimit": true
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [
+        "S11"
+      ],
+      "conditions": [],
+      "date": "1972-10"
+    },
+    {
+      "id": "heavy_1973",
+      "title": "중화학공업의 선택",
+      "body": "실제 역사: 1973년 1월 12일 중화학공업화가 선언됐다. 이 게임에서는 투자 속도, 재정 부담, 기술 인력과 환경을 함께 고려한다.",
+      "choices": [
+        {
+          "id": "heavy_1973_1",
+          "label": "인력·금융·환경을 묶은 단계적 투자를 한다",
+          "effects": {
+            "industry": 4,
+            "education": 2,
+            "treasury": -10
+          }
+        },
+        {
+          "id": "heavy_1973_2",
+          "label": "대규모 투자를 앞당긴다",
+          "effects": {
+            "industry": 7,
+            "debt": 12,
+            "environment": -4
+          }
+        },
+        {
+          "id": "heavy_1973_3",
+          "label": "기존 산업과 중소기업의 생산성을 먼저 보강한다",
+          "effects": {
+            "industry": 3,
+            "equality": 3,
+            "treasury": -5
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S12"
+      ],
+      "conditions": [],
+      "date": "1973-01"
+    },
+    {
+      "id": "oil_1973",
+      "title": "첫 번째 에너지 충격",
+      "body": "실제 역사: 1973년 석유파동이 시작됐다. 게임의 충격 크기와 지속 기간은 가상이며 어떤 통치 분기에서도 대외 충격은 발생할 수 있다.",
+      "choices": [
+        {
+          "id": "oil_1973_1",
+          "label": "취약 계층을 지원하며 절약 투자를 한다",
+          "effects": {
+            "inflation": 2,
+            "reserves": -4,
+            "treasury": -10,
+            "welfare": 1
+          },
+          "delay": {
+            "months": 8,
+            "effects": {
+              "reserves": 3,
+              "inflation": -1
+            },
+            "text": "에너지 효율 개선이 수입 부담을 일부 낮췄다."
+          }
+        },
+        {
+          "id": "oil_1973_2",
+          "label": "긴축으로 대외 지급 능력을 방어한다",
+          "effects": {
+            "reserves": -1,
+            "inflation": 1,
+            "unemployment": 2,
+            "welfare": -2
+          }
+        },
+        {
+          "id": "oil_1973_3",
+          "label": "조달 다변화와 공동 협상을 추진한다",
+          "effects": {
+            "reserves": -3,
+            "inflation": 2,
+            "treasury": -5
+          },
+          "relations": {
+            "nonaligned": 5,
+            "international": 3
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S13"
+      ],
+      "conditions": [],
+      "date": "1973-10"
+    },
+    {
+      "id": "oil_1979",
+      "title": "두 번째 에너지 충격",
+      "body": "실제 역사: 1978년 말부터 1979년에 걸쳐 두 번째 석유파동이 전개됐다. 산업 구조와 생활비의 취약성을 점검할 시점이다.",
+      "choices": [
+        {
+          "id": "oil_1979_1",
+          "label": "생활 안정과 에너지 절약을 병행한다",
+          "effects": {
+            "treasury": -10,
+            "inflation": 2,
+            "welfare": 1,
+            "reserves": -3
+          }
+        },
+        {
+          "id": "oil_1979_2",
+          "label": "차입 규모를 제한하고 투자 계획을 조정한다",
+          "effects": {
+            "industry": -2,
+            "reserves": 1,
+            "unemployment": 1
+          }
+        },
+        {
+          "id": "oil_1979_3",
+          "label": "무역·금융 협력으로 충격을 분산한다",
+          "effects": {
+            "debt": 8,
+            "inflation": 1,
+            "reserves": 2
+          },
+          "relations": {
+            "international": 4
+          }
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [
+        "S13"
+      ],
+      "conditions": [],
+      "date": "1979-01"
+    },
+    {
+      "id": "buma_1979",
+      "title": "1979년 가을의 질문",
+      "body": "실제 역사: 1979년 10월 부산·마산에서 민주항쟁이 일어났다. 이 캠페인의 가을은 지금까지 축적한 자유와 정당성에 따라 다른 의미를 갖는다. 시민의 요구에 어떻게 응답할 것인가.",
+      "choices": [
+        {
+          "id": "buma_1979_1",
+          "label": "권리 보장과 책임 있는 이행 일정을 제시한다",
+          "effects": {
+            "liberty": 6,
+            "legitimacy": 4,
+            "stability": 3
+          }
+        },
+        {
+          "id": "buma_1979_2",
+          "label": "공개 대화와 독립적인 사실 조사를 수용한다",
+          "effects": {
+            "liberty": 4,
+            "admin": 3,
+            "stability": 3
+          }
+        },
+        {
+          "id": "buma_1979_3",
+          "label": "임기를 마치고 평화로운 권한 이양을 택한다",
+          "effects": {},
+          "ending": "peaceful_transfer"
+        }
+      ],
+      "kind": "historical_anchor",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [
+        "S14"
+      ],
+      "conditions": [],
+      "date": "1979-10"
+    },
+    {
+      "id": "sys_grain",
+      "title": "쌀값과 도시의 식탁",
+      "body": "도시의 생활비 부담과 농가의 소득 요구가 동시에 올라왔다. 한쪽의 가격만 억누르면 다른 쪽의 불안이 커질 수 있다.",
+      "choices": [
+        {
+          "id": "sys_grain_1",
+          "label": "취약 계층의 식료품 지원을 늘린다",
+          "effects": {
+            "treasury": -5,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_grain_2",
+          "label": "유통과 저장 병목을 조사한다",
+          "effects": {
+            "admin": 2,
+            "agriculture": 1
+          }
+        },
+        {
+          "id": "sys_grain_3",
+          "label": "농가와 소비자 대표의 협의체를 연다",
+          "effects": {
+            "stability": 2,
+            "equality": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_classroom",
+      "title": "교실보다 빠르게 늘어나는 학생",
+      "body": "학교는 더 많은 학생을 받아들이고 있지만 교실과 교원이 부족하다. 교육의 질과 접근성을 동시에 지킬 방법이 필요하다.",
+      "choices": [
+        {
+          "id": "sys_classroom_1",
+          "label": "교원 연수와 교재에 투자한다",
+          "effects": {
+            "treasury": -5,
+            "education": 3
+          }
+        },
+        {
+          "id": "sys_classroom_2",
+          "label": "지역별 수요를 공개 조사한다",
+          "effects": {
+            "admin": 2
+          }
+        },
+        {
+          "id": "sys_classroom_3",
+          "label": "작은 학교의 공동 수업을 지원한다",
+          "effects": {
+            "education": 2,
+            "equality": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_port",
+      "title": "부두 앞에서 멈춘 수출품",
+      "body": "창고와 철도 연결이 맞지 않아 화물이 쌓였다. 항만 하나를 늘리는 것만으로 해결될 문제인지 검토해야 한다.",
+      "choices": [
+        {
+          "id": "sys_port_1",
+          "label": "물류 연결을 소규모로 개선한다",
+          "effects": {
+            "treasury": -6,
+            "infrastructure": 3
+          }
+        },
+        {
+          "id": "sys_port_2",
+          "label": "수출 일정과 통관 절차를 조정한다",
+          "effects": {
+            "admin": 2,
+            "reserves": 1
+          }
+        },
+        {
+          "id": "sys_port_3",
+          "label": "단기 보관비 지원으로 시간을 번다",
+          "effects": {
+            "treasury": -3,
+            "reserves": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_safety",
+      "title": "공장 안전 보고서",
+      "body": "지역 공장의 사고 위험을 알리는 보고서가 들어왔다. 생산 일정과 안전 개선 비용을 놓고 의견이 갈린다.",
+      "choices": [
+        {
+          "id": "sys_safety_1",
+          "label": "안전 점검과 개선비 지원을 시행한다",
+          "effects": {
+            "treasury": -5,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_safety_2",
+          "label": "노동자 참여 점검을 보장한다",
+          "effects": {
+            "liberty": 2,
+            "legitimacy": 2
+          }
+        },
+        {
+          "id": "sys_safety_3",
+          "label": "독립 조사와 개선 일정을 공개한다",
+          "effects": {
+            "admin": 3,
+            "stability": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_river",
+      "title": "강물의 색이 달라졌다",
+      "body": "하류 주민이 수질 악화를 호소한다. 산업 지원 정책의 효과를 평가할 때 환경 비용도 함께 계산해야 한다.",
+      "choices": [
+        {
+          "id": "sys_river_1",
+          "label": "정화 시설 지원을 시작한다",
+          "effects": {
+            "treasury": -6,
+            "environment": 4
+          }
+        },
+        {
+          "id": "sys_river_2",
+          "label": "배출 자료를 공개하고 시정을 요구한다",
+          "effects": {
+            "admin": 2,
+            "environment": 2
+          }
+        },
+        {
+          "id": "sys_river_3",
+          "label": "기업·주민의 공동 감시를 보장한다",
+          "effects": {
+            "liberty": 1,
+            "environment": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_housing",
+      "title": "불어난 도시의 방 한 칸",
+      "body": "이주 노동자가 늘며 임대료와 통근 부담이 커졌다. 주택 공급과 기반 시설의 속도가 서로 맞지 않는다.",
+      "choices": [
+        {
+          "id": "sys_housing_1",
+          "label": "공공 주거 시범사업을 지원한다",
+          "effects": {
+            "treasury": -7,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_housing_2",
+          "label": "지역 교통의 혼잡을 먼저 줄인다",
+          "effects": {
+            "treasury": -3,
+            "infrastructure": 2
+          }
+        },
+        {
+          "id": "sys_housing_3",
+          "label": "세입자와 임대인의 공개 협의를 연다",
+          "effects": {
+            "legitimacy": 2,
+            "stability": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_loan",
+      "title": "해외 차관의 조건",
+      "body": "국제 금융기관이 차관을 제안했다. 자금은 늘지만 상환과 공개 검증의 책임도 뒤따른다.",
+      "choices": [
+        {
+          "id": "sys_loan_1",
+          "label": "상환 조건을 공개하고 제한적으로 도입한다",
+          "effects": {
+            "treasury": 12,
+            "debt": 12,
+            "admin": 1
+          }
+        },
+        {
+          "id": "sys_loan_2",
+          "label": "기술 협력만 먼저 협상한다",
+          "effects": {
+            "education": 2,
+            "reserves": 1
+          }
+        },
+        {
+          "id": "sys_loan_3",
+          "label": "국내 저축과 사업 조정을 우선한다",
+          "effects": {
+            "treasury": 2,
+            "stability": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_regional",
+      "title": "예산표의 빈칸",
+      "body": "일부 지역이 계속 사업 대상에서 빠졌다는 민원이 제기됐다. 전체 효율과 지역 접근성을 함께 검토해야 한다.",
+      "choices": [
+        {
+          "id": "sys_regional_1",
+          "label": "소외 지역의 기반 시설에 투자한다",
+          "effects": {
+            "treasury": -6,
+            "equality": 4
+          }
+        },
+        {
+          "id": "sys_regional_2",
+          "label": "선정 기준과 회의록을 공개한다",
+          "effects": {
+            "admin": 3,
+            "legitimacy": 1
+          }
+        },
+        {
+          "id": "sys_regional_3",
+          "label": "지역 대표의 심의 참여를 보장한다",
+          "effects": {
+            "equality": 2,
+            "liberty": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_statistics",
+      "title": "숫자를 발표할 용기",
+      "body": "불리한 경기 자료의 발표를 미루자는 의견이 나왔다. 정확한 통계가 정책의 출발점인지 판단할 때다.",
+      "choices": [
+        {
+          "id": "sys_statistics_1",
+          "label": "자료와 한계를 함께 공개한다",
+          "effects": {
+            "legitimacy": 3,
+            "admin": 2
+          }
+        },
+        {
+          "id": "sys_statistics_2",
+          "label": "외부 검증을 거쳐 발표한다",
+          "effects": {
+            "admin": 3
+          }
+        },
+        {
+          "id": "sys_statistics_3",
+          "label": "향후 발표 일정을 명문화한다",
+          "effects": {
+            "legitimacy": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_wage",
+      "title": "임금 협상의 계절",
+      "body": "생활비는 올랐지만 기업은 투자 부담을 호소한다. 생산성과 분배의 속도를 어떻게 맞출지 논의가 필요하다.",
+      "choices": [
+        {
+          "id": "sys_wage_1",
+          "label": "노사 대표의 자율 협상을 보장한다",
+          "effects": {
+            "liberty": 2,
+            "welfare": 1
+          }
+        },
+        {
+          "id": "sys_wage_2",
+          "label": "저소득 노동자를 한시 지원한다",
+          "effects": {
+            "treasury": -4,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_wage_3",
+          "label": "생산성 교육과 임금 자료를 공개한다",
+          "effects": {
+            "education": 2,
+            "admin": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_harvest",
+      "title": "좋은 수확, 낮아진 가격",
+      "body": "수확이 늘었지만 농가 판매가격이 떨어졌다. 풍년이 곧바로 안정된 소득으로 이어지지는 않는다.",
+      "choices": [
+        {
+          "id": "sys_harvest_1",
+          "label": "공동 저장과 유통을 지원한다",
+          "effects": {
+            "treasury": -4,
+            "agriculture": 3
+          }
+        },
+        {
+          "id": "sys_harvest_2",
+          "label": "도시 급식과 연결한다",
+          "effects": {
+            "treasury": -3,
+            "welfare": 2
+          }
+        },
+        {
+          "id": "sys_harvest_3",
+          "label": "장기 계약의 정보를 공개한다",
+          "effects": {
+            "admin": 2,
+            "equality": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_skill",
+      "title": "기계는 도착했지만",
+      "body": "공장에 새 설비가 들어왔으나 숙련 인력이 부족하다. 단기 채용과 장기 교육의 간극을 좁혀야 한다.",
+      "choices": [
+        {
+          "id": "sys_skill_1",
+          "label": "직업 훈련을 지원한다",
+          "effects": {
+            "treasury": -5,
+            "education": 3
+          }
+        },
+        {
+          "id": "sys_skill_2",
+          "label": "학교·기업 공동 실습을 점검한다",
+          "effects": {
+            "education": 2,
+            "industry": 1
+          }
+        },
+        {
+          "id": "sys_skill_3",
+          "label": "검증된 기술 자문을 초청한다",
+          "effects": {
+            "treasury": -3,
+            "industry": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_exports",
+      "title": "수출 주문의 급증",
+      "body": "해외에서 예상보다 큰 주문이 들어왔다. 무리한 증산은 품질과 노동 환경을 악화시킬 수 있다.",
+      "choices": [
+        {
+          "id": "sys_exports_1",
+          "label": "품질과 작업 조건을 지키며 수주한다",
+          "effects": {
+            "reserves": 3,
+            "industry": 1
+          }
+        },
+        {
+          "id": "sys_exports_2",
+          "label": "새 주문 일부를 중소기업과 나눈다",
+          "effects": {
+            "reserves": 2,
+            "equality": 2
+          }
+        },
+        {
+          "id": "sys_exports_3",
+          "label": "설비 투자 가능성을 우선 검증한다",
+          "effects": {
+            "admin": 2,
+            "industry": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_drought",
+      "title": "가뭄의 전망",
+      "body": "강수량 부족으로 농업 생산에 대한 우려가 커졌다. 긴급 지원과 장기 물 관리의 균형이 필요하다.",
+      "choices": [
+        {
+          "id": "sys_drought_1",
+          "label": "급수와 농가 지원을 시행한다",
+          "effects": {
+            "treasury": -5,
+            "agriculture": 2
+          }
+        },
+        {
+          "id": "sys_drought_2",
+          "label": "관개 시설의 취약 구간을 점검한다",
+          "effects": {
+            "agriculture": 1,
+            "admin": 2
+          }
+        },
+        {
+          "id": "sys_drought_3",
+          "label": "지역 물 배분 협의를 연다",
+          "effects": {
+            "stability": 2,
+            "equality": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_medicine",
+      "title": "보건소의 대기줄",
+      "body": "지역 보건소를 찾는 사람이 늘었다. 인력과 의약품, 교통 접근성 중 어느 병목부터 풀어야 할까.",
+      "choices": [
+        {
+          "id": "sys_medicine_1",
+          "label": "인력과 소모품을 보강한다",
+          "effects": {
+            "treasury": -4,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_medicine_2",
+          "label": "순회 진료의 일정을 확대한다",
+          "effects": {
+            "treasury": -2,
+            "welfare": 2
+          }
+        },
+        {
+          "id": "sys_medicine_3",
+          "label": "수요 자료와 대기 시간을 공개한다",
+          "effects": {
+            "admin": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_coal",
+      "title": "겨울 연료의 부담",
+      "body": "난방비가 올라 가계의 지출이 늘었다. 취약 계층 지원과 에너지 소비 개선을 함께 검토한다.",
+      "choices": [
+        {
+          "id": "sys_coal_1",
+          "label": "한시적인 난방 지원을 시행한다",
+          "effects": {
+            "treasury": -5,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_coal_2",
+          "label": "건물의 열손실을 점검한다",
+          "effects": {
+            "treasury": -3,
+            "environment": 2
+          }
+        },
+        {
+          "id": "sys_coal_3",
+          "label": "지역 공동 구매를 지원한다",
+          "effects": {
+            "admin": 1,
+            "welfare": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_journal",
+      "title": "날카로운 신문 사설",
+      "body": "신문이 정부 사업의 실패를 비판했다. 비판의 내용에 답할지, 자료를 검증할지 결정해야 한다.",
+      "choices": [
+        {
+          "id": "sys_journal_1",
+          "label": "공개 질의에 자료로 답한다",
+          "effects": {
+            "liberty": 2,
+            "legitimacy": 2
+          }
+        },
+        {
+          "id": "sys_journal_2",
+          "label": "외부 평가단을 요청한다",
+          "effects": {
+            "admin": 3
+          }
+        },
+        {
+          "id": "sys_journal_3",
+          "label": "시정 일정과 책임 부서를 발표한다",
+          "effects": {
+            "legitimacy": 3
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_assembly",
+      "title": "상임위원회의 요구",
+      "body": "의회가 사업의 비용 추계를 더 자세히 요구한다. 지연을 감수하더라도 검증의 시간을 보장할 수 있다.",
+      "choices": [
+        {
+          "id": "sys_assembly_1",
+          "label": "추계와 대안을 보완해 제출한다",
+          "effects": {
+            "admin": 3,
+            "legitimacy": 1
+          }
+        },
+        {
+          "id": "sys_assembly_2",
+          "label": "공청회를 지원한다",
+          "effects": {
+            "liberty": 2,
+            "stability": 1
+          }
+        },
+        {
+          "id": "sys_assembly_3",
+          "label": "사업 범위를 줄여 재검토한다",
+          "effects": {
+            "treasury": 3,
+            "admin": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_fishing",
+      "title": "어촌의 냉장 창고",
+      "body": "어획물의 보관과 운송 문제로 수익이 줄고 있다. 큰 항만보다 작은 저장시설이 더 시급할 수 있다.",
+      "choices": [
+        {
+          "id": "sys_fishing_1",
+          "label": "공동 냉장 설비를 지원한다",
+          "effects": {
+            "treasury": -4,
+            "agriculture": 3
+          }
+        },
+        {
+          "id": "sys_fishing_2",
+          "label": "어민의 공동 판매를 지원한다",
+          "effects": {
+            "equality": 2,
+            "agriculture": 1
+          }
+        },
+        {
+          "id": "sys_fishing_3",
+          "label": "운송 일정과 수요 정보를 연결한다",
+          "effects": {
+            "admin": 2,
+            "infrastructure": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_women",
+      "title": "교육 기회의 문턱",
+      "body": "여성 노동자와 학생이 교육 접근성 개선을 요구한다. 지금의 생산 구조를 유지할지 새로운 역량에 투자할지 판단한다.",
+      "choices": [
+        {
+          "id": "sys_women_1",
+          "label": "야간·성인 교육의 접근성을 높인다",
+          "effects": {
+            "treasury": -4,
+            "education": 3,
+            "equality": 1
+          }
+        },
+        {
+          "id": "sys_women_2",
+          "label": "고용과 교육의 차별 실태를 공개한다",
+          "effects": {
+            "admin": 2,
+            "liberty": 1
+          }
+        },
+        {
+          "id": "sys_women_3",
+          "label": "사업장 학습 협약을 지원한다",
+          "effects": {
+            "education": 2,
+            "welfare": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_audit",
+      "title": "견적서 사이의 차이",
+      "body": "비슷한 공사인데 사업비가 크게 다르다. 부정으로 단정하기 전에 독립적인 원가 검증이 필요하다.",
+      "choices": [
+        {
+          "id": "sys_audit_1",
+          "label": "독립 원가 감사를 실시한다",
+          "effects": {
+            "admin": 4,
+            "legitimacy": 1
+          }
+        },
+        {
+          "id": "sys_audit_2",
+          "label": "계약과 선정 기준을 공개한다",
+          "effects": {
+            "admin": 3,
+            "liberty": 1
+          }
+        },
+        {
+          "id": "sys_audit_3",
+          "label": "부실 사업의 범위를 조정한다",
+          "effects": {
+            "treasury": 4,
+            "admin": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_diplomats",
+      "title": "새로운 교역 상대",
+      "body": "기존 시장 밖에서 무역 대표단이 찾아왔다. 단기 거래와 장기 협력의 가치를 비교해야 한다.",
+      "choices": [
+        {
+          "id": "sys_diplomats_1",
+          "label": "소규모 시범 교역을 추진한다",
+          "effects": {
+            "reserves": 2,
+            "industry": 1
+          }
+        },
+        {
+          "id": "sys_diplomats_2",
+          "label": "기술·교육 교류부터 시작한다",
+          "effects": {
+            "education": 2
+          }
+        },
+        {
+          "id": "sys_diplomats_3",
+          "label": "공개된 거래 규칙을 먼저 합의한다",
+          "effects": {
+            "admin": 2,
+            "legitimacy": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_railfare",
+      "title": "오르는 통근 비용",
+      "body": "도시의 통근 비용이 늘며 노동자와 학생의 생활비가 압박받고 있다. 운송기관도 적자를 호소한다.",
+      "choices": [
+        {
+          "id": "sys_railfare_1",
+          "label": "취약 계층 정기권을 지원한다",
+          "effects": {
+            "treasury": -3,
+            "welfare": 2
+          }
+        },
+        {
+          "id": "sys_railfare_2",
+          "label": "혼잡 시간대 운행을 조정한다",
+          "effects": {
+            "infrastructure": 2
+          }
+        },
+        {
+          "id": "sys_railfare_3",
+          "label": "원가와 서비스 수준을 공개한다",
+          "effects": {
+            "admin": 2,
+            "legitimacy": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_forest",
+      "title": "산비탈의 토사",
+      "body": "잦은 토사 유출이 마을과 농경지를 위협한다. 복구와 예방 사업을 동시에 고민해야 한다.",
+      "choices": [
+        {
+          "id": "sys_forest_1",
+          "label": "사면 복구와 산림 관리를 지원한다",
+          "effects": {
+            "treasury": -4,
+            "environment": 3,
+            "agriculture": 1
+          }
+        },
+        {
+          "id": "sys_forest_2",
+          "label": "지역 단위 예방 점검을 시행한다",
+          "effects": {
+            "admin": 2,
+            "security": 1
+          }
+        },
+        {
+          "id": "sys_forest_3",
+          "label": "취약 가구의 피해 회복을 돕는다",
+          "effects": {
+            "treasury": -3,
+            "welfare": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_competition",
+      "title": "대기업과 작은 납품업체",
+      "body": "대형 투자 사업의 납품 조건을 두고 분쟁이 생겼다. 규모의 효율과 공정한 거래를 함께 살펴야 한다.",
+      "choices": [
+        {
+          "id": "sys_competition_1",
+          "label": "계약 분쟁 조정 절차를 만든다",
+          "effects": {
+            "admin": 2,
+            "equality": 2
+          }
+        },
+        {
+          "id": "sys_competition_2",
+          "label": "납품 대금 공개 점검을 시행한다",
+          "effects": {
+            "legitimacy": 2,
+            "industry": 1
+          }
+        },
+        {
+          "id": "sys_competition_3",
+          "label": "중소기업 기술 협력을 지원한다",
+          "effects": {
+            "treasury": -4,
+            "industry": 2,
+            "education": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_science",
+      "title": "연구실의 긴 시간",
+      "body": "연구소는 성과가 나오기 전에 예산이 끊긴다고 호소한다. 짧은 평가 주기를 어떻게 바꿀지 결정한다.",
+      "choices": [
+        {
+          "id": "sys_science_1",
+          "label": "검증 가능한 다년 연구를 지원한다",
+          "effects": {
+            "treasury": -5,
+            "education": 4
+          }
+        },
+        {
+          "id": "sys_science_2",
+          "label": "공개 평가와 중간 점검을 병행한다",
+          "effects": {
+            "education": 2,
+            "admin": 1
+          }
+        },
+        {
+          "id": "sys_science_3",
+          "label": "학교와 산업 현장의 문제를 연결한다",
+          "effects": {
+            "education": 2,
+            "industry": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_culture",
+      "title": "지역 도서관의 요청",
+      "body": "문화와 정보 접근이 경제 정책의 주변으로 밀려났다. 시민은 가까운 곳에서 배울 공간을 원한다.",
+      "choices": [
+        {
+          "id": "sys_culture_1",
+          "label": "작은 도서관 운영을 지원한다",
+          "effects": {
+            "treasury": -3,
+            "education": 2,
+            "welfare": 1
+          }
+        },
+        {
+          "id": "sys_culture_2",
+          "label": "이동 도서 서비스를 지원한다",
+          "effects": {
+            "treasury": -2,
+            "equality": 2
+          }
+        },
+        {
+          "id": "sys_culture_3",
+          "label": "지역의 자율 운영을 보장한다",
+          "effects": {
+            "liberty": 2,
+            "legitimacy": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_water",
+      "title": "수돗물이 닿지 않는 집",
+      "body": "신규 주거지의 상수도 연결이 늦어지고 있다. 공장용수와 생활용수의 배분도 논의가 필요하다.",
+      "choices": [
+        {
+          "id": "sys_water_1",
+          "label": "생활용수 연결을 우선 지원한다",
+          "effects": {
+            "treasury": -5,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_water_2",
+          "label": "누수와 공급 병목을 점검한다",
+          "effects": {
+            "infrastructure": 2,
+            "admin": 1
+          }
+        },
+        {
+          "id": "sys_water_3",
+          "label": "주민이 참여하는 배분 협의를 연다",
+          "effects": {
+            "legitimacy": 2,
+            "equality": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_pension",
+      "title": "노후의 생활비",
+      "body": "고령 가구의 빈곤 문제가 지역 보고서에 반복된다. 가족에게만 책임을 맡기는 방식의 한계를 검토한다.",
+      "choices": [
+        {
+          "id": "sys_pension_1",
+          "label": "기초 생활 지원을 시범 시행한다",
+          "effects": {
+            "treasury": -4,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_pension_2",
+          "label": "지역 돌봄 서비스를 연결한다",
+          "effects": {
+            "welfare": 2,
+            "equality": 1
+          }
+        },
+        {
+          "id": "sys_pension_3",
+          "label": "공개 실태 조사를 실시한다",
+          "effects": {
+            "admin": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_power",
+      "title": "정전의 원인",
+      "body": "전력 공급과 수요 예측이 어긋나 생산과 생활에 불편이 생겼다. 증설만큼 유지 보수도 중요하다.",
+      "choices": [
+        {
+          "id": "sys_power_1",
+          "label": "취약 송전 구간을 보수한다",
+          "effects": {
+            "treasury": -5,
+            "infrastructure": 3
+          }
+        },
+        {
+          "id": "sys_power_2",
+          "label": "시간대 수요 조정을 협의한다",
+          "effects": {
+            "admin": 2,
+            "environment": 1
+          }
+        },
+        {
+          "id": "sys_power_3",
+          "label": "장기 전력 계획을 공개한다",
+          "effects": {
+            "admin": 3,
+            "legitimacy": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_tourism",
+      "title": "작은 섬의 방문객",
+      "body": "지역 관광 수요가 늘었지만 생활 기반과 자연 보전은 준비되지 않았다. 지역 주민이 혜택을 얻는 방식을 검토한다.",
+      "choices": [
+        {
+          "id": "sys_tourism_1",
+          "label": "주민 참여형 소규모 사업을 지원한다",
+          "effects": {
+            "treasury": -3,
+            "equality": 2,
+            "reserves": 1
+          }
+        },
+        {
+          "id": "sys_tourism_2",
+          "label": "상하수도와 생활 쓰레기부터 관리한다",
+          "effects": {
+            "treasury": -4,
+            "environment": 3
+          }
+        },
+        {
+          "id": "sys_tourism_3",
+          "label": "방문 수요를 단계적으로 관리한다",
+          "effects": {
+            "admin": 2,
+            "environment": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_remit",
+      "title": "해외에서 온 편지",
+      "body": "해외 취업자가 고국의 가족과 기술 활용 기회를 묻는다. 송금만으로 설명되지 않는 이동의 비용과 가능성이 있다.",
+      "choices": [
+        {
+          "id": "sys_remit_1",
+          "label": "귀국 인력의 경험 공유를 지원한다",
+          "effects": {
+            "education": 2,
+            "industry": 1
+          }
+        },
+        {
+          "id": "sys_remit_2",
+          "label": "가족 지원과 상담 창구를 연다",
+          "effects": {
+            "treasury": -2,
+            "welfare": 2
+          }
+        },
+        {
+          "id": "sys_remit_3",
+          "label": "해외 노동 조건에 대한 정보를 공개한다",
+          "effects": {
+            "admin": 2,
+            "liberty": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_inflation_credit",
+      "title": "빠른 신용 팽창",
+      "body": "대출이 늘며 투자는 활발해졌지만 물가 부담도 커졌다. 어느 정도의 속도를 감당할 수 있을지 검토한다.",
+      "choices": [
+        {
+          "id": "sys_inflation_credit_1",
+          "label": "신용 증가 속도를 점진 조정한다",
+          "effects": {
+            "inflation": -1,
+            "industry": -1
+          }
+        },
+        {
+          "id": "sys_inflation_credit_2",
+          "label": "취약 기업의 재무 자료를 점검한다",
+          "effects": {
+            "admin": 2,
+            "inflation": -0.5
+          }
+        },
+        {
+          "id": "sys_inflation_credit_3",
+          "label": "생활 필수품의 공급 병목을 줄인다",
+          "effects": {
+            "treasury": -3,
+            "inflation": -0.6
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_rights_case",
+      "title": "법원의 공개 심리",
+      "body": "정부 조치의 적법성을 다투는 소송이 제기됐다. 결과를 미리 정하지 않는 절차가 필요하다.",
+      "choices": [
+        {
+          "id": "sys_rights_case_1",
+          "label": "독립적인 심리를 존중한다",
+          "effects": {
+            "liberty": 3,
+            "legitimacy": 2
+          }
+        },
+        {
+          "id": "sys_rights_case_2",
+          "label": "관련 자료를 법원에 제출한다",
+          "effects": {
+            "admin": 2,
+            "legitimacy": 2
+          }
+        },
+        {
+          "id": "sys_rights_case_3",
+          "label": "행정 지침의 적법성을 재검토한다",
+          "effects": {
+            "liberty": 2,
+            "admin": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_local_vote",
+      "title": "지역 대표의 목소리",
+      "body": "지역 대표가 중앙 사업의 우선순위에 이의를 제기했다. 효율적인 결정과 주민 동의를 함께 확보해야 한다.",
+      "choices": [
+        {
+          "id": "sys_local_vote_1",
+          "label": "사업 대안에 대한 공개 토론을 연다",
+          "effects": {
+            "legitimacy": 3,
+            "equality": 1
+          }
+        },
+        {
+          "id": "sys_local_vote_2",
+          "label": "우선순위 평가 자료를 공유한다",
+          "effects": {
+            "admin": 3
+          }
+        },
+        {
+          "id": "sys_local_vote_3",
+          "label": "지역의 자율 사업 범위를 넓힌다",
+          "effects": {
+            "equality": 3,
+            "liberty": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_peace",
+      "title": "대화 채널의 작은 성과",
+      "body": "인도적 문제를 논의하던 채널에서 실무적 합의의 가능성이 보인다. 작은 신뢰를 어떻게 유지할지 결정한다.",
+      "choices": [
+        {
+          "id": "sys_peace_1",
+          "label": "단계별 이행 결과를 공개한다",
+          "effects": {
+            "security": 2,
+            "legitimacy": 1
+          }
+        },
+        {
+          "id": "sys_peace_2",
+          "label": "인도적 교류의 지원을 늘린다",
+          "effects": {
+            "treasury": -3,
+            "welfare": 1,
+            "security": 2
+          }
+        },
+        {
+          "id": "sys_peace_3",
+          "label": "정례적인 실무 협의를 유지한다",
+          "effects": {
+            "security": 3
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_savings",
+      "title": "저축과 생활의 균형",
+      "body": "투자 자금을 모으려는 정책이 가계 소비를 지나치게 압박한다는 지적이 나왔다. 자율성과 실질 소득을 함께 고려한다.",
+      "choices": [
+        {
+          "id": "sys_savings_1",
+          "label": "저축의 자율성과 정보 공개를 보장한다",
+          "effects": {
+            "liberty": 2,
+            "admin": 1
+          }
+        },
+        {
+          "id": "sys_savings_2",
+          "label": "저소득 가구의 생활 지원을 보강한다",
+          "effects": {
+            "treasury": -4,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_savings_3",
+          "label": "사업의 투자 시점을 분산한다",
+          "effects": {
+            "treasury": 3,
+            "industry": -1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_flood",
+      "title": "장마 뒤의 마을",
+      "body": "집중호우로 도로와 주택이 피해를 입었다. 복구 과정에서 반복되는 취약성을 개선할 기회도 있다.",
+      "choices": [
+        {
+          "id": "sys_flood_1",
+          "label": "주민의 주거 복구를 먼저 지원한다",
+          "effects": {
+            "treasury": -5,
+            "welfare": 3
+          }
+        },
+        {
+          "id": "sys_flood_2",
+          "label": "배수와 도로의 취약 구간을 보강한다",
+          "effects": {
+            "treasury": -5,
+            "infrastructure": 3
+          }
+        },
+        {
+          "id": "sys_flood_3",
+          "label": "피해 조사와 복구 순서를 공개한다",
+          "effects": {
+            "admin": 3,
+            "legitimacy": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_education_gap",
+      "title": "도시와 농촌의 진학 격차",
+      "body": "학교 수는 늘었지만 지역별 진학 기회는 같지 않다. 성적만으로 설명하기 어려운 접근성의 차이를 살펴야 한다.",
+      "choices": [
+        {
+          "id": "sys_education_gap_1",
+          "label": "농촌 장학·기숙 지원을 시행한다",
+          "effects": {
+            "treasury": -4,
+            "education": 2,
+            "equality": 2
+          }
+        },
+        {
+          "id": "sys_education_gap_2",
+          "label": "지역 교원의 연수를 강화한다",
+          "effects": {
+            "treasury": -3,
+            "education": 3
+          }
+        },
+        {
+          "id": "sys_education_gap_3",
+          "label": "교재와 진학 정보를 함께 제공한다",
+          "effects": {
+            "education": 2,
+            "admin": 1
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_trade_balance",
+      "title": "수입이 수출보다 빠를 때",
+      "body": "설비 수입이 늘며 외환 부담이 커졌다. 성장을 위한 수입과 단기 지급 능력 사이의 간극을 관리해야 한다.",
+      "choices": [
+        {
+          "id": "sys_trade_balance_1",
+          "label": "투자 일정과 수입 계획을 조정한다",
+          "effects": {
+            "reserves": 3,
+            "industry": -1
+          }
+        },
+        {
+          "id": "sys_trade_balance_2",
+          "label": "수출 금융의 효율을 점검한다",
+          "effects": {
+            "admin": 2,
+            "reserves": 1
+          }
+        },
+        {
+          "id": "sys_trade_balance_3",
+          "label": "다자 협력의 지급 조건을 협상한다",
+          "effects": {
+            "debt": 3,
+            "reserves": 3
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "industry",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sys_constitutional_review",
+      "title": "헌법을 읽는 시민들",
+      "body": "시민 모임이 권력 견제와 권리 조항에 대한 의견서를 제출했다. 제도는 정부의 편의만으로 설명될 수 없다.",
+      "choices": [
+        {
+          "id": "sys_constitutional_review_1",
+          "label": "공개 심의와 시민 의견을 보장한다",
+          "effects": {
+            "liberty": 3,
+            "legitimacy": 2
+          }
+        },
+        {
+          "id": "sys_constitutional_review_2",
+          "label": "비교 법제 연구를 지원한다",
+          "effects": {
+            "education": 1,
+            "admin": 2
+          }
+        },
+        {
+          "id": "sys_constitutional_review_3",
+          "label": "정기적인 권리 영향 평가를 시행한다",
+          "effects": {
+            "liberty": 2,
+            "admin": 2
+          }
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "civic",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "transition",
+            "governing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prep_study",
+      "title": "정책 준비 노트",
+      "body": "관찰한 문제를 의견서로 정리한다. 아직 국가의 결정을 직접 집행할 권한은 없다.",
+      "choices": [
+        {
+          "id": "prep_study_1",
+          "label": "자료와 출처를 정리한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_study_2",
+          "label": "공개적인 정책 의견을 검토한다",
+          "effects": {
+            "education": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_study_3",
+          "label": "헌정 절차를 기준으로 판단한다",
+          "effects": {
+            "legitimacy": 1
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "prelude",
+            "civilian"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prep_principle",
+      "title": "공적 역할의 경계",
+      "body": "정치적 영향력의 확대와 적법한 권한은 다르다. 미래의 역할을 어떤 원칙에 둘지 고민한다.",
+      "choices": [
+        {
+          "id": "prep_principle_1",
+          "label": "자료와 출처를 정리한다",
+          "effects": {
+            "legitimacy": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_principle_2",
+          "label": "공개적인 정책 의견을 검토한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_principle_3",
+          "label": "헌정 절차를 기준으로 판단한다",
+          "effects": {
+            "liberty": 1
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "prelude",
+            "civilian"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prep_reading",
+      "title": "전후 경제 자료",
+      "body": "생산·물가·농촌의 상황을 담은 자료가 쌓였다. 숫자의 한계와 출처를 먼저 확인한다.",
+      "choices": [
+        {
+          "id": "prep_reading_1",
+          "label": "자료와 출처를 정리한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_reading_2",
+          "label": "공개적인 정책 의견을 검토한다",
+          "effects": {
+            "agriculture": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_reading_3",
+          "label": "헌정 절차를 기준으로 판단한다",
+          "effects": {
+            "education": 1
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "prelude",
+            "civilian"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prep_public",
+      "title": "민간의 의견",
+      "body": "공개된 논설과 정책 제안에서 서로 다른 사회의 요구를 읽는다. 아래 선택은 가상적인 사전 준비다.",
+      "choices": [
+        {
+          "id": "prep_public_1",
+          "label": "자료와 출처를 정리한다",
+          "effects": {
+            "legitimacy": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_public_2",
+          "label": "공개적인 정책 의견을 검토한다",
+          "effects": {
+            "equality": 1
+          },
+          "influence": 2
+        },
+        {
+          "id": "prep_public_3",
+          "label": "헌정 절차를 기준으로 판단한다",
+          "effects": {
+            "admin": 1
+          },
+          "influence": 2
+        }
+      ],
+      "kind": "fictional_system",
+      "art": "cabinet",
+      "cooldown": 18,
+      "sourceIds": [],
+      "conditions": [
+        {
+          "phaseIn": [
+            "prelude",
+            "civilian"
+          ]
+        }
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "fiscal_crisis",
+      "title": "재정의 한계",
+      "priority": 100,
+      "conditions": {
+        "debt": {
+          "gte": 700
+        }
+      },
+      "text": "상환 부담이 국가의 선택지를 좁혔다. 생산 확대와 지출 약속 사이의 간격을 감당하지 못했다."
+    },
+    {
+      "id": "legitimacy_crisis",
+      "title": "통치 신뢰의 붕괴",
+      "priority": 99,
+      "conditions": {
+        "legitimacy": {
+          "lte": 3
+        }
+      },
+      "text": "통치의 근거가 무너졌다. 성장이나 행정 능력만으로 공적 신뢰를 대신할 수 없었다."
+    },
+    {
+      "id": "rights_crisis",
+      "title": "권리의 긴 겨울",
+      "priority": 98,
+      "conditions": {
+        "liberty": {
+          "lte": 3
+        }
+      },
+      "text": "권리의 제한이 국가의 미래를 가로막았다. 시민의 삶에 남긴 비용을 연대기에 기록한다."
+    },
+    {
+      "id": "peaceful_transfer",
+      "title": "평화로운 권한 이양",
+      "priority": 95,
+      "conditions": {
+        "explicit": true
+      },
+      "text": "권력을 넘기는 절차를 지켰다. 이후의 국정은 다음 정부와 시민의 선택으로 이어진다."
+    },
+    {
+      "id": "retired",
+      "title": "공직 밖의 길",
+      "priority": 94,
+      "conditions": {
+        "explicit": true
+      },
+      "text": "권력에 오르는 길만이 공적 역할의 전부는 아니었다. 캠페인의 한 장을 스스로 마쳤다."
+    },
+    {
+      "id": "balanced",
+      "title": "성장과 권리의 동행",
+      "priority": 90,
+      "conditions": {
+        "gdp": {
+          "gte": 220
+        },
+        "liberty": {
+          "gte": 70
+        },
+        "welfare": {
+          "gte": 65
+        },
+        "equality": {
+          "gte": 60
+        }
+      },
+      "text": "생산 기반과 권리, 생활과 분배의 균형을 함께 남겼다. 모든 문제를 끝낸 시대는 아니지만 제도적 기반은 두터워졌다."
+    },
+    {
+      "id": "constitutional",
+      "title": "제도로 남은 시대",
+      "priority": 85,
+      "conditions": {
+        "liberty": {
+          "gte": 75
+        },
+        "legitimacy": {
+          "gte": 65
+        }
+      },
+      "text": "성적표의 중심에 헌정 절차와 권력 견제가 남았다. 다음 세대가 다른 선택을 할 공간을 확보했다."
+    },
+    {
+      "id": "welfare",
+      "title": "생활을 바꾼 투자",
+      "priority": 80,
+      "conditions": {
+        "welfare": {
+          "gte": 75
+        },
+        "equality": {
+          "gte": 65
+        }
+      },
+      "text": "학교와 보건, 주거와 지역의 작은 변화가 시대의 성과가 됐다."
+    },
+    {
+      "id": "green",
+      "title": "덜 남긴 비용",
+      "priority": 75,
+      "conditions": {
+        "environment": {
+          "gte": 80
+        },
+        "gdp": {
+          "gte": 180
+        }
+      },
+      "text": "생산을 늘리는 과정에서 환경 부담을 줄였다. 성장의 수치와 생활의 질을 함께 관리했다."
+    },
+    {
+      "id": "industrial",
+      "title": "공장과 그 뒤의 과제",
+      "priority": 70,
+      "conditions": {
+        "industry": {
+          "gte": 75
+        },
+        "gdp": {
+          "gte": 240
+        }
+      },
+      "text": "산업 기반은 커졌다. 그 성과의 배분과 권리 보장, 남은 부채는 다음 시대의 질문이다."
+    },
+    {
+      "id": "authoritarian",
+      "title": "집중된 권력의 유산",
+      "priority": 65,
+      "conditions": {
+        "liberty": {
+          "lt": 40
+        }
+      },
+      "text": "권력의 집중은 시민의 선택 공간을 좁혔다. 경제적 성과가 있었다 해도 권리 침해의 비용은 별도로 남는다."
+    },
+    {
+      "id": "unfinished",
+      "title": "다음 세대로 넘긴 과제",
+      "priority": 0,
+      "conditions": {},
+      "text": "어떤 단어 하나로도 이 시대를 설명할 수 없다. 연대기에 남은 선택과 지표를 함께 읽어야 한다."
+    }
+  ],
+  "achievements": [
+    {
+      "id": "first_policy",
+      "name": "첫 정책",
+      "description": "정책을 한 번 시행한다.",
+      "condition": {
+        "policies": 1
+      }
+    },
+    {
+      "id": "first_bill",
+      "name": "의회의 시간",
+      "description": "법안을 한 번 가결한다.",
+      "condition": {
+        "passedBills": 1
+      }
+    },
+    {
+      "id": "first_project",
+      "name": "준공 보고서",
+      "description": "건설 사업을 한 번 완공한다.",
+      "condition": {
+        "completedProjects": 1
+      }
+    },
+    {
+      "id": "reader",
+      "name": "기록을 읽는 사람",
+      "description": "자료집 화면을 연다.",
+      "condition": {
+        "view": "archive"
+      }
+    },
+    {
+      "id": "liberty",
+      "name": "열린 공론장",
+      "description": "자유 75 이상.",
+      "condition": {
+        "liberty": 75
+      }
+    },
+    {
+      "id": "school",
+      "name": "기술의 씨앗",
+      "description": "교육 70 이상.",
+      "condition": {
+        "education": 70
+      }
+    },
+    {
+      "id": "farmer",
+      "name": "농촌의 변화",
+      "description": "농업 70 이상.",
+      "condition": {
+        "agriculture": 70
+      }
+    },
+    {
+      "id": "care",
+      "name": "생활의 기반",
+      "description": "생활 수준 70 이상.",
+      "condition": {
+        "welfare": 70
+      }
+    },
+    {
+      "id": "clean",
+      "name": "맑은 강",
+      "description": "환경 80 이상.",
+      "condition": {
+        "environment": 80
+      }
+    },
+    {
+      "id": "balanced_region",
+      "name": "멀리 있는 중심",
+      "description": "서로 다른 5개 권역에서 사업 준공.",
+      "condition": {
+        "regionsBuilt": 5
+      }
+    },
+    {
+      "id": "decade",
+      "name": "열 번의 겨울",
+      "description": "120개월을 진행한다.",
+      "condition": {
+        "turn": 120
+      }
+    },
+    {
+      "id": "chronicle",
+      "name": "닫힌 업무일지",
+      "description": "엔딩에 도달한다.",
+      "condition": {
+        "ending": true
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Steam 공식 상점",
+      "institution": "KMS STUDIO",
+      "url": "https://store.steampowered.com/app/5035220?l=english",
+      "scope": "참조 게임의 공개 장르·출발 시점·정책 및 분기 구조 확인. 역사 사료로 사용하지 않음.",
+      "accessed": "2026-11-10",
+      "type": "product_reference"
+    },
+    {
+      "id": "S02",
+      "title": "4·19혁명 주요일지",
+      "institution": "국가기록원",
+      "url": "https://theme.archives.go.kr/next/419/info01.do?menuId=01",
+      "scope": "1960년 3·15 선거, 4·19혁명, 4·26 하야, 8월 제2공화국, 1961년 5·16 군사정변의 날짜.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S03",
+      "title": "제1차 경제개발5개년계획(1962~1966)",
+      "institution": "국가기록원",
+      "url": "https://www.archives.go.kr/next/newsearch/showDetailPopup.do?isContents=Y&rc_code=1310377&rc_rfile_no=200041073582&rc_ritem_no=000000000001",
+      "scope": "제1차 경제개발5개년계획의 시행 기간.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S04",
+      "title": "제5대 대통령선거",
+      "institution": "중앙선거관리위원회 사이버선거역사관",
+      "url": "https://museum.nec.go.kr/museum2018/bbs/6/3/1/20170912155756377100_view.do?article_category=12&article_id=20181001162958531100",
+      "scope": "1963년 10월 15일 제5대 대통령선거 실시.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S05",
+      "title": "제5대 대통령 취임식",
+      "institution": "대통령기록관",
+      "url": "https://pa.go.kr/online_contents/inauguration/president05.jsp",
+      "scope": "1963년 12월 17일 박정희 대통령 취임.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S06",
+      "title": "한일국교 정상화",
+      "institution": "국가기록원",
+      "url": "https://theme.archives.go.kr/next/govpo/detail.do?policySeq=502",
+      "scope": "1965년 6월 22일 기본조약 조인과 12월 18일 발효. 본문에 있는 6·3 시위의 연도 표기 혼재는 인용하지 않음.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S07",
+      "title": "고속도로, 국토 대동맥을 잇다",
+      "institution": "국가기록원",
+      "url": "https://www.archives.go.kr/next/common/archivedata/render.do?filePath=2F757046696c652F70616c67616e2F313431333333393239343339312e706466",
+      "scope": "경부고속도로 완전 개통일 1970년 7월 7일.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S08",
+      "title": "새마을운동 제창",
+      "institution": "국가기록원",
+      "url": "https://theme.archives.go.kr/next/daily/viewMain.do?selectDay=20140422",
+      "scope": "1970년 4월 22일 전국지방장관회의에서 새마을운동 제창.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S09",
+      "title": "대한민국사연표: 전태일",
+      "institution": "국사편찬위원회",
+      "url": "https://db.history.go.kr/id/tcct_1970_11_13_0010",
+      "scope": "1970년 11월 13일 전태일의 근로조건 개선 요구와 죽음. 게임에는 행위의 방법이나 재현을 넣지 않음.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S10",
+      "title": "7·4 남북 공동 성명",
+      "institution": "국사편찬위원회 우리역사넷",
+      "url": "https://contents.history.go.kr/front/hm/view.do?levelId=hm_153_0050",
+      "scope": "1972년 7월 4일 남북공동성명 발표.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S11",
+      "title": "10월유신",
+      "institution": "한국학중앙연구원 한국민족문화대백과사전",
+      "url": "https://encykorea.aks.ac.kr/Article/E0032425",
+      "scope": "1972년 10월 17일 초헌법적 비상조치와 권위주의 체제 강화. 연구기관의 해설이며 1차 사료와 구별.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S12",
+      "title": "중화학공업 육성",
+      "institution": "국가기록원",
+      "url": "https://theme.archives.go.kr/next/govpo/detail.do?policySeq=308",
+      "scope": "1973년 1월 12일 중화학공업화 선언.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S13",
+      "title": "석유파동",
+      "institution": "국가기록원",
+      "url": "https://theme.archives.go.kr/next/koreaOfRecord/gasoline.do",
+      "scope": "1973년 첫 석유파동, 1978년 말~1979년 두 번째 석유파동. 게임의 충격 크기는 가상.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    },
+    {
+      "id": "S14",
+      "title": "부마민주항쟁",
+      "institution": "국사편찬위원회 우리역사넷",
+      "url": "https://contents.history.go.kr/front/kc/printViewPopup.do?levelId=kc_i502300",
+      "scope": "1979년 10월 부산·마산의 민주항쟁과 박정희 정권 말기의 상황. 실제 사건의 강제 재현 대신 조건부 맥락으로 제시.",
+      "accessed": "2026-11-10",
+      "type": "institutional_history"
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+[
+  {
+    "id": "fiscal_crisis",
+    "title": "재정의 한계",
+    "priority": 100,
+    "conditions": {
+      "debt": {
+        "gte": 700
+      }
+    },
+    "text": "상환 부담이 국가의 선택지를 좁혔다. 생산 확대와 지출 약속 사이의 간격을 감당하지 못했다."
+  },
+  {
+    "id": "legitimacy_crisis",
+    "title": "통치 신뢰의 붕괴",
+    "priority": 99,
+    "conditions": {
+      "legitimacy": {
+        "lte": 3
+      }
+    },
+    "text": "통치의 근거가 무너졌다. 성장이나 행정 능력만으로 공적 신뢰를 대신할 수 없었다."
+  },
+  {
+    "id": "rights_crisis",
+    "title": "권리의 긴 겨울",
+    "priority": 98,
+    "conditions": {
+      "liberty": {
+        "lte": 3
+      }
+    },
+    "text": "권리의 제한이 국가의 미래를 가로막았다. 시민의 삶에 남긴 비용을 연대기에 기록한다."
+  },
+  {
+    "id": "peaceful_transfer",
+    "title": "평화로운 권한 이양",
+    "priority": 95,
+    "conditions": {
+      "explicit": true
+    },
+    "text": "권력을 넘기는 절차를 지켰다. 이후의 국정은 다음 정부와 시민의 선택으로 이어진다."
+  },
+  {
+    "id": "retired",
+    "title": "공직 밖의 길",
+    "priority": 94,
+    "conditions": {
+      "explicit": true
+    },
+    "text": "권력에 오르는 길만이 공적 역할의 전부는 아니었다. 캠페인의 한 장을 스스로 마쳤다."
+  },
+  {
+    "id": "balanced",
+    "title": "성장과 권리의 동행",
+    "priority": 90,
+    "conditions": {
+      "gdp": {
+        "gte": 220
+      },
+      "liberty": {
+        "gte": 70
+      },
+      "welfare": {
+        "gte": 65
+      },
+      "equality": {
+        "gte": 60
+      }
+    },
+    "text": "생산 기반과 권리, 생활과 분배의 균형을 함께 남겼다. 모든 문제를 끝낸 시대는 아니지만 제도적 기반은 두터워졌다."
+  },
+  {
+    "id": "constitutional",
+    "title": "제도로 남은 시대",
+    "priority": 85,
+    "conditions": {
+      "liberty": {
+        "gte": 75
+      },
+      "legitimacy": {
+        "gte": 65
+      }
+    },
+    "text": "성적표의 중심에 헌정 절차와 권력 견제가 남았다. 다음 세대가 다른 선택을 할 공간을 확보했다."
+  },
+  {
+    "id": "welfare",
+    "title": "생활을 바꾼 투자",
+    "priority": 80,
+    "conditions": {
+      "welfare": {
+        "gte": 75
+      },
+      "equality": {
+        "gte": 65
+      }
+    },
+    "text": "학교와 보건, 주거와 지역의 작은 변화가 시대의 성과가 됐다."
+  },
+  {
+    "id": "green",
+    "title": "덜 남긴 비용",
+    "priority": 75,
+    "conditions": {
+      "environment": {
+        "gte": 80
+      },
+      "gdp": {
+        "gte": 180
+      }
+    },
+    "text": "생산을 늘리는 과정에서 환경 부담을 줄였다. 성장의 수치와 생활의 질을 함께 관리했다."
+  },
+  {
+    "id": "industrial",
+    "title": "공장과 그 뒤의 과제",
+    "priority": 70,
+    "conditions": {
+      "industry": {
+        "gte": 75
+      },
+      "gdp": {
+        "gte": 240
+      }
+    },
+    "text": "산업 기반은 커졌다. 그 성과의 배분과 권리 보장, 남은 부채는 다음 시대의 질문이다."
+  },
+  {
+    "id": "authoritarian",
+    "title": "집중된 권력의 유산",
+    "priority": 65,
+    "conditions": {
+      "liberty": {
+        "lt": 40
+      }
+    },
+    "text": "권력의 집중은 시민의 선택 공간을 좁혔다. 경제적 성과가 있었다 해도 권리 침해의 비용은 별도로 남는다."
+  },
+  {
+    "id": "unfinished",
+    "title": "다음 세대로 넘긴 과제",
+    "priority": 0,
+    "conditions": {},
+    "text": "어떤 단어 하나로도 이 시대를 설명할 수 없다. 연대기에 남은 선택과 지표를 함께 읽어야 한다."
+  }
+]

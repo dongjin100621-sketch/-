@@ -1,0 +1,79 @@
+[
+  {
+    "id": "han",
+    "name": "한서진",
+    "role": "재정 자문",
+    "fictional": true,
+    "initials": "한",
+    "cost": 12,
+    "monthlyEffects": {
+      "admin": 0.06,
+      "inflation": -0.025
+    },
+    "quote": "성장률 옆에 상환표도 두어야 합니다."
+  },
+  {
+    "id": "yun",
+    "name": "윤지수",
+    "role": "교육 자문",
+    "fictional": true,
+    "initials": "윤",
+    "cost": 12,
+    "monthlyEffects": {
+      "education": 0.08
+    },
+    "quote": "한 번의 준공식보다 꾸준한 수업이 중요합니다."
+  },
+  {
+    "id": "cho",
+    "name": "조명호",
+    "role": "산업 자문",
+    "fictional": true,
+    "initials": "조",
+    "cost": 12,
+    "monthlyEffects": {
+      "industry": 0.08,
+      "environment": -0.015
+    },
+    "quote": "공장 안의 기술과 사람을 함께 보십시오."
+  },
+  {
+    "id": "min",
+    "name": "민하경",
+    "role": "권리·법제 자문",
+    "fictional": true,
+    "initials": "민",
+    "cost": 12,
+    "monthlyEffects": {
+      "liberty": 0.06,
+      "legitimacy": 0.03
+    },
+    "quote": "권한의 경계가 제도의 수명입니다."
+  },
+  {
+    "id": "kang",
+    "name": "강도윤",
+    "role": "농촌·지역 자문",
+    "fictional": true,
+    "initials": "강",
+    "cost": 12,
+    "monthlyEffects": {
+      "agriculture": 0.06,
+      "equality": 0.04
+    },
+    "quote": "지도에서 먼 곳도 생활에서는 중심입니다."
+  },
+  {
+    "id": "lee",
+    "name": "이유정",
+    "role": "외교 자문",
+    "fictional": true,
+    "initials": "이",
+    "cost": 12,
+    "monthlyEffects": {
+      "reserves": 0.04,
+      "security": 0.03
+    },
+    "quote": "관계의 숫자 뒤에는 신뢰의 시간이 있습니다."
+  }
+]
