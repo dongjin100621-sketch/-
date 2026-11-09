@@ -1,20 +1,30 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "files": [
     {
       "path": "00_START_HERE.md",
-      "bytes": 2836,
-      "sha256": "37a8b583b8a4661f5b353f5fbae4c3a1113b461bbc06d7acec64f0882ed2d573"
+      "bytes": 3174,
+      "sha256": "48400cfdee8222c8a8f0af3318dd08d81ae7e6cb89ca18753390cb0e5f4008bd"
+    },
+    {
+      "path": "CHECKPOINT.md",
+      "bytes": 6368,
+      "sha256": "a8f12c3581874b59a5b9133c52721de4e8199942e9c56e229d8f4875d08b4955"
     },
     {
       "path": "CLAUDE_CONTEXT.md",
-      "bytes": 42358,
-      "sha256": "390c2c5cb86741a94478c9246e5ecca18224647c0ab4dcf2fd51cfd43aa83cae"
+      "bytes": 42703,
+      "sha256": "90484bce995ac53ad394a1b53057977fbd94107df5894cdb3adda5a3a6a83d00"
     },
     {
       "path": "CONTENT_INDEX.md",
-      "bytes": 5467,
-      "sha256": "e77bb2a92b8720061de8ae9585210592b292bb698337e6f320f9eb78541dec09"
+      "bytes": 6048,
+      "sha256": "4cf5d38bfb2806d4c9465d8792931cbba027c1f38d2ff1c9fdc8f455bb448e70"
+    },
+    {
+      "path": "KOREA1960.html",
+      "bytes": 2420755,
+      "sha256": "b403139bead95f1e08b61cbb3ca149f00a0460cfd327a33b88341ed9699a839c"
     },
     {
       "path": "PLAYABLE_SAMPLE.html",
@@ -23,18 +33,23 @@
     },
     {
       "path": "QA_REPORT.md",
-      "bytes": 3445,
-      "sha256": "ce53c712a1b37093ea1f479d18335f1126eb5b6410f6301bcffaed437c7b283f"
+      "bytes": 11727,
+      "sha256": "e895f382a1e392e1c90563a2454b226e48999680353f290c66501849a0db4cd7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7770,
+      "sha256": "c1702b1f7b5dfbbb9cf386c683f34b811229e0a243a7f9566cc53164a317abb5"
     },
     {
       "path": "RIGHTS_AND_ATTRIBUTION.md",
-      "bytes": 1660,
-      "sha256": "3f0807e1cf24516677cbd2a6352bba2048eb708d34f6e6fa761ec220a0cfa760"
+      "bytes": 1732,
+      "sha256": "bc6015a05072b96d3c035c0cf24478c69376eee1fe975ccbac8cbab051e4bacf"
     },
     {
       "path": "START_WINDOWS.bat",
-      "bytes": 61,
-      "sha256": "5e43e89264108a1e6f221c2a9ca9d2189e3d5ae01448ddc005ba7a45ace54ea5"
+      "bytes": 58,
+      "sha256": "df4e549d7afe4f07e937a2ab1d836b7dce7493eb9021d19d471b6e097c389375"
     },
     {
       "path": "assets/ART_PROMPTS.md",
@@ -82,9 +97,19 @@
       "sha256": "9c98677ec449b119b7fdbf26335ba5b6359cd89349b0e3696c7ac7ee88c529f9"
     },
     {
+      "path": "assets/fonts/ChronicleKR-Bold.woff2",
+      "bytes": 65176,
+      "sha256": "d2c6403f8d137b38ca09d29a56ebbae1a0e8d45a88f0148c6d11fbd97590da02"
+    },
+    {
       "path": "assets/fonts/ChronicleKR-Regular.ttf",
       "bytes": 148464,
       "sha256": "acc1b9dd25b83185e3194d409cd1ac0127568d4918dbc6bd606bc1305002c487"
+    },
+    {
+      "path": "assets/fonts/ChronicleKR-Regular.woff2",
+      "bytes": 63964,
+      "sha256": "e4bba1cce570154526a10f010e9adaf5dffd0448f460d7093a935bc2294636ac"
     },
     {
       "path": "assets/fonts/OFL.txt",
@@ -93,13 +118,13 @@
     },
     {
       "path": "assets/fonts/README.md",
-      "bytes": 624,
-      "sha256": "f015703a0945c3670920bc1098c618226c6ce30d218702eb81f1c8f268453503"
+      "bytes": 1195,
+      "sha256": "b97e4510868dde06e1369b376ff84a35d5987a682738e186ddcebd12f2f996f3"
     },
     {
       "path": "assets/manifest.json",
-      "bytes": 4478,
-      "sha256": "da875d4b24669f68b981c6c01eaa2bf01b1fc89608c71d939468fa818b981389"
+      "bytes": 5116,
+      "sha256": "a029b07aaf4b7838514ac0ea40c9c92f676ff65993da21528f711f14b6949768"
     },
     {
       "path": "assets/ui/archive.svg",
@@ -193,8 +218,8 @@
     },
     {
       "path": "data/events.json",
-      "bytes": 68784,
-      "sha256": "71a9da55db1903234d3d38ccf4ea43388aee12bacb4ee278e1ea06bb0879bfb0"
+      "bytes": 78079,
+      "sha256": "37f20424500860e8ba4e2cbf4320e2e146c0da4e731b2f6fd0320ad8391e2761"
     },
     {
       "path": "data/factions.json",
@@ -203,13 +228,13 @@
     },
     {
       "path": "data/game.json",
-      "bytes": 118252,
-      "sha256": "60d293dfa297287b846501b07d5cf95c206f1f9b2a92997c17204b2f81d3f7ad"
+      "bytes": 128264,
+      "sha256": "df97a5d9235a13fb86a4e97cb61abecdbf14520fa4ff9558d25268d8e55b16f6"
     },
     {
       "path": "data/game.schema.json",
-      "bytes": 6958,
-      "sha256": "7e0c89c860dabde910db8de7a9eb882bd240ce4f4d8a293ae409c415bd03dde5"
+      "bytes": 10623,
+      "sha256": "4b1ab4e640c6cec0b008945219574d2c44632ca38430b7ac48e24ec95edf16e7"
     },
     {
       "path": "data/metrics.json",
@@ -238,8 +263,8 @@
     },
     {
       "path": "data/types.d.ts",
-      "bytes": 1834,
-      "sha256": "815dd23dac28baff85460d48c4a1f382025b4dd831af72c987b6ba2ecffd07c3"
+      "bytes": 2626,
+      "sha256": "c176fbc937f26a0b812f31ec03bd57c394f924899975a049c3815d5599050c6c"
     },
     {
       "path": "docs/ART_DIRECTION.md",
@@ -248,13 +273,13 @@
     },
     {
       "path": "docs/DATA_CONTRACT.md",
-      "bytes": 4863,
-      "sha256": "af6816bd1b422078bb11eec63e0425f7780fb0e2014e31a6b043db2dc2c0deb0"
+      "bytes": 7043,
+      "sha256": "096337110c570d3221fe28c36c7839f2e2da48df6d7fb8cdf2693dcf437110f9"
     },
     {
       "path": "docs/DEVELOPMENT_HANDOFF.md",
-      "bytes": 3164,
-      "sha256": "676c203962a271c6ba5634f8b58deda438177576c2812790e5c2193d9e9feefc"
+      "bytes": 4571,
+      "sha256": "a991a45af300a135eeb6ab93189731081bb90dea494f2832d4ee7558d30fdfa4"
     },
     {
       "path": "docs/GAME_DESIGN.md",
@@ -268,8 +293,8 @@
     },
     {
       "path": "docs/SIMULATION_RULES.md",
-      "bytes": 5934,
-      "sha256": "aec5046be2f8415c41ab49261eea0d0f7e41152aea8fd55081d17ed2df7f3cae"
+      "bytes": 9600,
+      "sha256": "3b62454e1b05f42f944040142a2eafa8ba47506e53c76948081898a98ceb58c6"
     },
     {
       "path": "docs/SOURCES_AND_HISTORY.md",
@@ -312,9 +337,54 @@
       "sha256": "db79bc2ba2d36f0673cbb7b1ff0c128aef46d2726957dca460b191dce3ff7997"
     },
     {
+      "path": "game/app.mjs",
+      "bytes": 89500,
+      "sha256": "89f7b637f34c8200786abe795bcb119606e20ad3adbe44dcab06ceaada8a4092"
+    },
+    {
+      "path": "game/engine.mjs",
+      "bytes": 40146,
+      "sha256": "2378f7a8a0b9f9f46c7428d3c431a2b8ba5dd043c5ab7d52fd3bdc8d8eb31770"
+    },
+    {
+      "path": "game/index.html",
+      "bytes": 788,
+      "sha256": "4957ef322376c71941a361e54c8eaf2679204edb350628484b09d6b72773c9fa"
+    },
+    {
+      "path": "game/saves/1964_bills_and_projects.json",
+      "bytes": 71855,
+      "sha256": "6f2f02f8692fed04885416a846f48f3d668640318586d5f2dfc2ea8eab4a7249"
+    },
+    {
+      "path": "game/saves/1964_start_governing.json",
+      "bytes": 63543,
+      "sha256": "f28ec39e5993d33b1d4511440049e44f9f0669ed916cc6e87ac87fdb60dc09b6"
+    },
+    {
+      "path": "game/saves/1973_policy_choices.json",
+      "bytes": 136346,
+      "sha256": "fc546a7796b18de4c5004b36947957bb603e2481dabccd79e84e939f491c7182"
+    },
+    {
+      "path": "game/saves/README.md",
+      "bytes": 1055,
+      "sha256": "afbd1aeb057591b01c8906695e5fa820672a34b39b0ecca6dbe6b1ceabb9aa9a"
+    },
+    {
+      "path": "game/style.css",
+      "bytes": 24928,
+      "sha256": "08b2b5e9395c564e480a161e8f73075c2b037df0dd8e0dda5db2a3df9792e8fe"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 252,
+      "sha256": "8efd9354798d1f99c3cd5e74058457056476b68634e721a76169020882c01487"
+    },
+    {
       "path": "package.json",
-      "bytes": 437,
-      "sha256": "57206f0dd4340b3fbdc4de01841d5ad21fb0423e4afe7bb2fb1ff3460be829be"
+      "bytes": 1062,
+      "sha256": "71dd42c406672ba669c68c062813fa82bfe3e3d654e3e258e3861b49d044607f"
     },
     {
       "path": "prompts/CLAUDE_MASTER_PROMPT.md",
@@ -327,29 +397,69 @@
       "sha256": "6a7dcc81e97747a6eceedb68b4eee76d290444483ab5744178acfdab5844398e"
     },
     {
+      "path": "tests/browser/e2e.cjs",
+      "bytes": 15924,
+      "sha256": "bd9af0d2c5cc1f26129ee5b757b27d152dafa550ef42a62baf6ffcefe73205e8"
+    },
+    {
       "path": "tests/engine.test.mjs",
       "bytes": 11455,
       "sha256": "86080164f106661bdecb0187d9a88ef6d3b8721b8883dcbd6eeedb681dc23f07"
     },
     {
+      "path": "tests/fixtures/v1_1964_governing.json",
+      "bytes": 58220,
+      "sha256": "5d75b3108df682fbc0831347dbe2fe24081717fcf20dbdf5e9023b1d66b414d8"
+    },
+    {
+      "path": "tests/fixtures/v1_1973_policy_choices.json",
+      "bytes": 121669,
+      "sha256": "e305eea92483726fb1fdd1a9b2e41d63bf672615f50e436f4d46c56405292ba1"
+    },
+    {
+      "path": "tests/game.test.mjs",
+      "bytes": 31323,
+      "sha256": "b194ce93636378197f53adeb280aaf9c8299b640058b29718fb87db6d9df618c"
+    },
+    {
+      "path": "tests/helpers/campaign.mjs",
+      "bytes": 10759,
+      "sha256": "629121520e3624f299d509307ec32630bfd47b84f29448368927bc27ef68c38c"
+    },
+    {
       "path": "tools/build_standalone.py",
-      "bytes": 2089,
-      "sha256": "44fb1df5960127c05ba10ea65b9456e6a97419afe28c214dffb52b12b361bdc8"
+      "bytes": 4979,
+      "sha256": "43a86fd576fe57c049903522aac662c69e4a4ca89ff05e9a9b1ebd5e1badb902"
     },
     {
       "path": "tools/make_sample_saves.mjs",
-      "bytes": 1416,
-      "sha256": "b3611464df15946d40d9991e6d7c628da4d46a0f18e626c5e8407333ec296443"
+      "bytes": 2169,
+      "sha256": "646068c8102bac133e3a9167c8ba9cd3ab58ffcf6ff42af7db75105f9e74de1e"
+    },
+    {
+      "path": "tools/package_zip.py",
+      "bytes": 2287,
+      "sha256": "a1acae2ce15d889e40def24a98b52b98a6adff385e61426e8beea324745a706a"
     },
     {
       "path": "tools/serve.py",
-      "bytes": 717,
-      "sha256": "46ebf8edc3db1e703f1a74370142ee147fd8d0eb63c5cead8179cbdde2514978"
+      "bytes": 962,
+      "sha256": "099fb191bd6cb8187b14a70d11442ae069509119238794d0e8d5dfcf855008f4"
+    },
+    {
+      "path": "tools/simulate.mjs",
+      "bytes": 2444,
+      "sha256": "5da1aaa2956416147667c7fe62c7c6cc440a4ae0c8bf8a52dd7c509158304125"
+    },
+    {
+      "path": "tools/subset_font.py",
+      "bytes": 2784,
+      "sha256": "3a99bc2fdf8bd30a33ae5d4499ea6ed41fd98fc20714126de060ddaad6b6f538"
     },
     {
       "path": "tools/validate_content.py",
-      "bytes": 2880,
-      "sha256": "8be7e8fec498df0fd956e21d1d1a94d3f30f71bdeef1ab566e621d0c8490c02e"
+      "bytes": 6783,
+      "sha256": "d2cd4b82dabd5e5cf8485f088935b773d580fe47b1ff6609a45aad19badecd8b"
     }
   ]
 }

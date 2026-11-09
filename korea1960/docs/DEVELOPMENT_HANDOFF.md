@@ -1,5 +1,20 @@
 # 개발 인수 메모
 
+## v2 (현재)
+
+현재 게임은 `game/`(engine.mjs·app.mjs·style.css·index.html)이고 `example/`은 v1 참조 구현으로 수정하지 않는다. 명령은 README.md의 '명령' 절, 작업 상태는 CHECKPOINT.md를 따른다.
+
+* `npm test` — `tests/engine.test.mjs`(v1 원본 28개, example/ 대상) + `tests/game.test.mjs`(v2 48개)
+* `node tools/simulate.mjs [시드 수] [전략]` — constitutional/military/random 전략의 엔딩 분포와 최종 지표
+* `node tests/browser/e2e.cjs` — Playwright로 단일 HTML을 file://로 열어 데스크톱·모바일 전체 흐름 검수
+* `python3 tools/build_standalone.py [--pages|--reference]` — 단일 HTML 빌드
+* `python3 tools/subset_font.py <Regular.ttf> <Bold.ttf>` — 글꼴 서브셋 재생성(fontTools 필요)
+* `python3 tools/package_zip.py` — dist/에 전체 소스 ZIP
+
+파일 경계는 아래 v1 원칙을 그대로 따른다. game/app.mjs는 비용·결과를 직접 계산해 상태를 바꾸지 않고, 버튼의 비활성 사유도 엔진의 사유 함수(`actionReason` 등)를 그대로 쓴다. 미리보기 함수(`choicePreview`, `projectEffects`, `billChance` …)는 상태를 바꾸지 않고 난수를 소비하지 않는다. 빌더는 엔진의 export를 지우고 네임스페이스 `E`로 감싸므로, app.mjs는 `import * as E from './engine.mjs'` 한 줄만 import한다.
+
+## v1 (제작 패키지 원문)
+
 이 프로젝트는 플랫폼 계정·API 키·AI 추론·데이터베이스 없이 실행하는 로컬 예시다. 클로드는 추론 호출을 게임의 매턴 진행에 붙일 필요가 없다. 고정 콘텐츠·순수 엔진으로 결과를 재현하고, 필요한 창작 확장은 개발 단계에서 작성한다.
 
 ## 명령

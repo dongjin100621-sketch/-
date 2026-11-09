@@ -42,6 +42,15 @@
 
 **자료와 검사**: 급수·훈음은 한국어문회 한자능력검정시험 배정 한자(8급~5급 500자)를 따랐습니다. 자료는 `hanja/js/data.js`에 있고, `python3 tools/hanja_unihan.py`가 Unicode Unihan 자료로 급수별 글자 수, 호환용 한자 섞임, 훈음의 음, 예시 낱말·성어·명구 독음을 글자마다(두음 법칙과 不의 「부」 포함) 검사한 뒤 총획·부수 파일 `hanja/js/unihan.js`를 만듭니다. 앱 아이콘은 `python3 tools/hanja_appicon.py`로 그립니다(Noto Serif KR, OFL). 앱 파일을 고친 뒤에는 `python3 tools/build_pwa.py hanja`를 실행해 서비스 워커 목록을 갱신하고 `docs/hanja/`로 복사하세요.
 
+## 대한민국 1960: 선택의 연대기 (`korea1960/`)
+
+1960년 1월~1979년 12월을 한 달 한 턴(240턴)으로 진행하는 한국어 역사 정치·경제 시뮬레이션입니다. 박정희라는 역사적 출발점에서 시작하지만 1960년에는 대통령 권한이 없고, 관찰·사전 준비 → 1961년 헌정/군정 경로 분기 → 1963년 가상 선거와 취임 → 국정 운영(정책 24·법안 심의·사업 16·권역 10·외교 6·가상 자문 6) → 정기 선거 또는 권력 집중의 비용 → 엔딩 12종으로 이어집니다. 실제 역사는 출처와 함께 구분해 보여 주고, 모든 수치·선택 결과·선거·자문위원은 가상입니다.
+
+- **플레이**: `korea1960/KOREA1960.html`을 더블클릭(오프라인 단일 파일) 또는 https://dongjin100621-sketch.github.io/-/korea1960/
+- **소스·문서**: `korea1960/README.md`(실행·데이터 수정 위치·저장 호환), `korea1960/CHECKPOINT.md`(작업 상태·다음 단계), `korea1960/QA_REPORT.md`(실제 검증 결과)
+- **검사**: `cd korea1960 && npm test` (의존성 없음, 엔진 테스트 76개), 브라우저 검수 `node tests/browser/e2e.cjs`
+- 사용자가 제공한 제작 패키지 v1을 `korea1960/`에 그대로 들인 뒤, `example/`(참조 구현)은 보존하고 `game/`에서 엔진·화면을 발전시켰습니다. 앱을 고친 뒤에는 `python3 tools/build_standalone.py --pages`로 단일 HTML과 `docs/korea1960/`을 다시 만듭니다.
+
 ## 영지 개발 (`index.html`)
 
 턴제 영지 개발 게임 프로토타입입니다.
