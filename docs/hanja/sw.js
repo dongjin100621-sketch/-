@@ -1,8 +1,8 @@
 'use strict';
 /* 한 번 열어 두면 오프라인에서도 공부할 수 있게 파일을 보관한다.
    목록과 VERSION 은 tools/build_pwa.py hanja 가 갱신한다. */
-const VERSION = 'hanja-4c21aa24';
-const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/app.js", "js/data.js", "js/unihan.js", "js/write.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
+const VERSION = 'hanja-4d8b0944';
+const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/app.js", "js/data.js", "js/tiers.js", "js/unihan.js", "js/write.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
 const FONTS = /^fonts\.(googleapis|gstatic)\.com$/;
 
 self.addEventListener('install', (e) => {

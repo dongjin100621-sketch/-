@@ -18,8 +18,8 @@
   --lv-beginner: #3b8656;
   --lv-mid: #2c6597;
   --lv-adv: #8e3a2c;
-  --lv-master: #5b4a8a;
-  --lv-beginner-soft: #e3efe5; --lv-mid-soft: #e1eaf3; --lv-adv-soft: #f3e3de; --lv-master-soft: #e9e4f2;
+  --lv-master: #5b4a8a; --lv-top: #1f6f6c; --lv-ultra: #8a6a1e;
+  --lv-beginner-soft: #e3efe5; --lv-mid-soft: #e1eaf3; --lv-adv-soft: #f3e3de; --lv-master-soft: #e9e4f2; --lv-top-soft: #dcecea; --lv-ultra-soft: #f1e8d2;
   --grid-line: rgba(179, 54, 44, .38);
   --guide: rgba(30, 26, 21, .12);
   --shadow: 0 1px 2px rgba(70, 48, 16, .06), 0 6px 18px rgba(70, 48, 16, .07);
@@ -36,8 +36,8 @@
     --paper: #15130f; --paper-2: #1c1914; --card: #221e18; --ink: #efe7d8; --ink-2: #d1c8b7; --muted: #9e9584;
     --line: #36312a; --line-2: #4a4339; --seal: #e2685b; --seal-ink: #1b0f0c; --seal-soft: #3a211d;
     --good: #72c48f; --good-bg: #1c3125; --bad: #ef8072; --bad-bg: #3a211d;
-    --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0;
-    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438;
+    --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0; --lv-top: #6cc3bf; --lv-ultra: #e0bf6a;
+    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438; --lv-top-soft: #17302f; --lv-ultra-soft: #33290f;
     --grid-line: rgba(226, 104, 91, .42); --guide: rgba(239, 231, 216, .13);
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
     color-scheme: dark;
@@ -47,8 +47,8 @@
   --paper: #15130f; --paper-2: #1c1914; --card: #221e18; --ink: #efe7d8; --ink-2: #d1c8b7; --muted: #9e9584;
   --line: #36312a; --line-2: #4a4339; --seal: #e2685b; --seal-ink: #1b0f0c; --seal-soft: #3a211d;
   --good: #72c48f; --good-bg: #1c3125; --bad: #ef8072; --bad-bg: #3a211d;
-  --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0;
-    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438;
+  --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0; --lv-top: #6cc3bf; --lv-ultra: #e0bf6a;
+    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438; --lv-top-soft: #17302f; --lv-ultra-soft: #33290f;
   --grid-line: rgba(226, 104, 91, .42); --guide: rgba(239, 231, 216, .13);
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
   color-scheme: dark;
@@ -448,3 +448,18 @@ select {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* 사자성어 시험: 글자 맞추기 */
+.slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.slot { min-height: 76px; border-radius: 14px; border: 2px dashed var(--line); background: var(--paper-2); color: var(--ink); display: grid; place-items: center; cursor: pointer; font-family: inherit; padding: 0; }
+.slot.on { border-style: solid; border-color: var(--lv, var(--seal)); background: var(--card); }
+.slot .han { font-size: 40px; line-height: 1; }
+.slot.right { border-color: var(--good); background: var(--good-bg); color: var(--good); }
+.slot.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+.tiles8 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.tile8 { min-height: 76px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); display: grid; place-items: center; cursor: pointer; font-family: inherit; padding: 0; box-shadow: 0 1px 0 var(--line); -webkit-tap-highlight-color: transparent; }
+.tile8:active { transform: scale(.96); }
+.tile8:disabled { opacity: .28; cursor: default; box-shadow: none; }
+.tile8 .han { font-size: 40px; line-height: 1; }
+.answer-line { text-align: center; margin-top: 10px; font-size: 26px; letter-spacing: .1em; color: var(--good); }
+.tier-row { padding: 14px 16px; display: grid; gap: 6px; }
