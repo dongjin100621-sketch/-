@@ -1,5 +1,5 @@
 'use strict';
-/* 한자 서당 — 초급·중급·고급 한자·한문 학습 (사파리 대응 단일 페이지 앱)
+/* 한자 서당 — 초급·중급·고급·심화 한자·한문 학습 (사파리 대응 단일 페이지 앱)
    화면은 주소의 # 뒤(#/level/beginner …)로 나뉘고, 기록은 이 브라우저(localStorage)에만 저장된다. */
 (function () {
   /* ======================= 도우미 ======================= */
@@ -76,7 +76,7 @@
       const f = line.split('|');
       const info = {
         c: f[0], g: f[1], level: level.id, readings: parseReadings(f[2]),
-        words: f[3].split(',').map((w) => { const p = w.trim().split(' '); return { h: p[0], r: p[1] }; })
+        words: (f[3] || '').split(',').filter((w) => w.trim()).map((w) => { const p = w.trim().split(' '); return { h: p[0], r: p[1] }; })
       };
       info.main = info.readings[0].hun + ' ' + info.readings[0].eum;
       info.hunum = info.readings.map((r) => r.hun + ' ' + r.eum).join(', ');
@@ -128,21 +128,44 @@
 
   const PHRASES = [];
   (function parsePhrases() {
-    let unit = null;
+    let level = LV.adv, unit = null;
     PHRASE_SRC.split('\n').forEach((raw) => {
       const line = raw.trim();
       if (!line) return;
-      if (line[0] === '#') { unit = { name: line.slice(1).trim(), items: [], index: LV.adv.phraseUnits.length }; LV.adv.phraseUnits.push(unit); return; }
+      if (line[0] === '@') { level = LV[line.slice(1).trim()]; return; }
+      if (line[0] === '#') { unit = { name: line.slice(1).trim(), items: [], index: level.phraseUnits.length }; level.phraseUnits.push(unit); return; }
       const f = line.split('|');
       const gloss = {};
       (f[4] || '').split(';').forEach((g) => { if (g) { const p = g.split('='); gloss[p[0]] = p[1]; } });
-      const p = { id: 'p' + (PHRASES.length + 1), h: f[0], r: f[1], mean: f[2], src: f[3] || '', gloss, unit: unit.index };
+      const p = { id: 'p' + (PHRASES.length + 1), h: f[0], r: f[1], mean: f[2], src: f[3] || '', gloss, level: level.id, unit: unit.index };
       PHRASES.push(p);
       unit.items.push(p);
     });
   })();
   const IDIOM_BY = {}; IDIOMS.forEach((i) => { IDIOM_BY[i.id] = i; });
   const PHRASE_BY = {}; PHRASES.forEach((p) => { PHRASE_BY[p.id] = p; });
+  /* 사자성어 시험: 성어를 가장 어려운 글자의 급수로 나눈 다섯 단계 (js/tiers.js) */
+  const TIER_INFO = [null,
+    { n: 1, name: '초급', lv: 'beginner', hanja: '初', sub: '8·7급 한자로 된 성어' },
+    { n: 2, name: '중급', lv: 'mid', hanja: '中', sub: '6·5급 한자까지 쓴 성어' },
+    { n: 3, name: '고급', lv: 'adv', hanja: '高', sub: '4급 한자까지 쓴 성어' },
+    { n: 4, name: '최상', lv: 'top', hanja: '上', sub: '3급~1급 한자까지 쓴 성어' },
+    { n: 5, name: '극상', lv: 'ultra', hanja: '極', sub: '특급 한자까지 쓴 성어' }];
+  const TIERS = TIER_INFO.map((t) => t && Object.assign({}, t, { items: [] }));
+  const TIER_BY = {};
+  (function parseTiers() {
+    let t = null;
+    (typeof TIER_SRC === 'undefined' ? '' : TIER_SRC).split('\n').forEach((raw) => {
+      const line = raw.trim();
+      if (!line || line[0] === '/' || line[0] === '*') return;
+      if (line[0] === '@') { t = TIERS[+line.slice(1)]; return; }
+      if (!t) return;
+      const f = line.split('|');
+      const it = { id: f[0], h: f[0], r: f[1], mean: f[2], tier: t.n };
+      t.items.push(it);
+      TIER_BY[it.id] = it;
+    });
+  })();
   const ALL_CHARS = LEVELS.reduce((a, l) => a.concat(l.chars), []);
   const ALL_WORDS = [];
   ALL_CHARS.forEach((c) => c.words.forEach((w) => { if (!ALL_WORDS.some((x) => x.h === w.h)) ALL_WORDS.push(w); }));
@@ -179,11 +202,11 @@
   /* ======================= 기록 ======================= */
   const KEY = 'hanja-seodang-v1';
   const SETTINGS0 = { theme: 'system', font: 'serif', sound: true, speak: false };
-  const fresh = () => ({ v: 1, cards: {}, idioms: {}, phrases: {}, wrong: {}, days: {}, settings: Object.assign({}, SETTINGS0), tipClosed: false });
+  const fresh = () => ({ v: 1, cards: {}, idioms: {}, phrases: {}, wrong: {}, days: {}, tiers: {}, settings: Object.assign({}, SETTINGS0), tipClosed: false });
   let S = fresh();
   function adopt(o) {
     const n = fresh();
-    ['cards', 'idioms', 'phrases', 'wrong', 'days'].forEach((k) => { if (o[k] && typeof o[k] === 'object') n[k] = o[k]; });
+    ['cards', 'idioms', 'phrases', 'tiers', 'wrong', 'days'].forEach((k) => { if (o[k] && typeof o[k] === 'object') n[k] = o[k]; });
     n.settings = Object.assign({}, SETTINGS0, o.settings || {});
     n.tipClosed = !!o.tipClosed;
     return n;
@@ -191,7 +214,7 @@
   try { const raw = localStorage.getItem(KEY); if (raw) S = adopt(JSON.parse(raw)); } catch (e) { /* 사생활 보호 모드 등 */ }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 저장 못 해도 계속 쓸 수 있게 */ } }
 
-  const STORE = { c: 'cards', i: 'idioms', p: 'phrases' };
+  const STORE = { c: 'cards', i: 'idioms', p: 'phrases', t: 'tiers' };
   const boxOf = (k, id) => S[STORE[k]][id] || 0;
   const known = (k, id) => boxOf(k, id) >= 2;
   const inWrong = (k, id) => !!S.wrong[k + ':' + id];
@@ -332,8 +355,9 @@
       '<span class="meta">' + GRADE(t.g) + ' · ' + LV[t.level].name + (t.strokes ? ' · 총 ' + t.strokes + '획' : '') + '</span>' +
       '<span class="words">' + t.words.map((w) => '<span class="han">' + w.h + '</span> ' + w.r).join(' · ') + '</span></span></button>' +
       '<h2 class="sec">단계 고르기</h2><div class="levels">' + levels + '</div>' +
+      '<a class="card row-link" href="#/seongeo"><span class="ic-box">' + ic('msg') + '</span><span class="grow">사자성어 시험<small>초급부터 극상까지 · 글자 맞추기, 읽기, 뜻 맞추기</small></span>' + ic('right') + '</a>' +
       '<a class="card row-link" href="#/review"><span class="ic-box">' + ic('note') + '</span><span class="grow">오답 노트<small>틀렸거나 다시 보기로 한 한자·성어·명구</small></span><span class="count' + (wrongN ? '' : ' zero') + '">' + wrongN + '</span></a>' +
-      '<a class="card row-link" href="#/list?l=all"><span class="ic-box">' + ic('search') + '</span><span class="grow">한자 찾기<small>500자를 뜻·소리·한자로 찾아보기</small></span>' + ic('right') + '</a>' +
+      '<a class="card row-link" href="#/list?l=all"><span class="ic-box">' + ic('search') + '</span><span class="grow">한자 찾기<small>' + ALL_CHARS.length + '자를 뜻·소리·한자로 찾아보기</small></span>' + ic('right') + '</a>' +
       '</div>';
     render(html, {
       act: { tip() { S.tipClosed = true; save(); const el = $('.tip'); if (el) el.remove(); } }
@@ -370,7 +394,7 @@
       action('#/write?l=' + l.id + '&u=' + nu, 'pen', '쓰기 연습', '손가락이나 펜으로 따라 쓰기') +
       action('#/list?l=' + l.id, 'grid', '한자 목록', l.chars.length + '자 한눈에 보기 · 찾기') +
       (idioms.length ? action('#/idioms?l=' + l.id, 'msg', '사자성어', idioms.length + '개 · 글자 풀이와 이야기') : '') +
-      (phrases.length ? action('#/phrases', 'scroll', '한문 명구', phrases.length + '구 · 《논어》《맹자》《명심보감》') : '') +
+      (phrases.length ? action('#/phrases?l=' + l.id, 'scroll', '한문 명구', phrases.length + '구 · 《논어》《맹자》《명심보감》') : '') +
       '</div><h2 class="sec">단원 (' + l.units.length + ')</h2><ol class="units">' + units + '</ol></div>';
     render(html);
   }
@@ -575,6 +599,7 @@
   }
   function makeCharQ(c, type, pool) {
     const r0 = c.readings[0];
+    if (!c.words.length && (type === 'word' || type === 'fill')) type = Math.random() < 0.5 ? 'hun' : 'char';
     if (type === 'hun') {
       const ds = charOptions(c, pool, 3, (e) => e === r0.eum);
       return {
@@ -697,6 +722,7 @@
         if (x[0] === 'c' && CHARS[x[1]]) return makeQ(CHARS[x[1]], 'c', 'mix', LV[CHARS[x[1]].level].chars);
         if (x[0] === 'i' && IDIOM_BY[x[1]]) return makeQ(IDIOM_BY[x[1]], 'i', 'mix');
         if (x[0] === 'p' && PHRASE_BY[x[1]]) return makeQ(PHRASE_BY[x[1]], 'p', 'mix');
+        if (x[0] === 't' && TIER_BY[x[1]]) return makeTierQ(TIER_BY[x[1]], pick(['read', 'mean']));
         return null;
       }).filter(Boolean);
     }
@@ -707,7 +733,7 @@
       return repeatTo(items, n).map((it) => makeQ(it, 'i', t));
     }
     if (k === 'phrase') {
-      const items = u === 'all' ? PHRASES : (l.phraseUnits[+u] || { items: [] }).items;
+      const items = u === 'all' ? l.phraseUnits.reduce((a, x) => a.concat(x.items), []) : (l.phraseUnits[+u] || { items: [] }).items;
       return repeatTo(items, n).map((p) => makeQ(p, 'p', t));
     }
     const pool = u === 'all' ? l.chars : (l.units[+u] || { chars: [] }).chars;
@@ -722,7 +748,7 @@
     let back = '#/';
     if (k === 'review') back = '#/review';
     else if (l && k === 'idiom') back = '#/idioms?l=' + l.id + (u !== 'all' ? '&u=' + u : '');
-    else if (l && k === 'phrase') back = '#/phrases' + (u !== 'all' ? '?u=' + u : '');
+    else if (l && k === 'phrase') back = '#/phrases?l=' + l.id + (u !== 'all' ? '&u=' + u : '');
     else if (l) back = '#/level/' + l.id;
     const title = k === 'review' ? '오답 퀴즈' : k === 'idiom' ? '사자성어 퀴즈' : k === 'phrase' ? '한문 명구 퀴즈' : (l ? l.name : '') + ' 한자 퀴즈';
     const st = { qs: buildQuiz(q), i: 0, score: 0, wrong: [], answered: false, timer: 0 };
@@ -772,6 +798,7 @@
       const miss = st.wrong.filter((x) => (seen[x.kind + x.id] ? false : (seen[x.kind + x.id] = true)));
       const missBtn = (x) => {
         if (x.kind === 'c') return '<button class="han" data-char="' + x.id + '">' + x.id + '<small>' + esc(CHARS[x.id].main) + '</small></button>';
+        if (x.kind === 't') return '<button class="han" data-speak="' + esc(TIER_BY[x.id].r) + '">' + x.id + '<small>' + esc(TIER_BY[x.id].r) + '</small></button>';
         if (x.kind === 'i') return '<button class="han" data-idiom="' + x.id + '">' + IDIOM_BY[x.id].h + '<small>' + IDIOM_BY[x.id].r + '</small></button>';
         return '<button class="han" data-phrase="' + x.id + '" style="font-size:17px">' + esc(PHRASE_BY[x.id].h) + '</button>';
       };
@@ -790,6 +817,7 @@
           st.qs = shuffle(st.wrong).map((x) => {
             const t = 'mix';
             if (x.kind === 'c') return makeQ(CHARS[x.id], 'c', t, LV[CHARS[x.id].level].chars);
+            if (x.kind === 't') return makeTierQ(TIER_BY[x.id], pick(['read', 'mean']));
             if (x.kind === 'i') return makeQ(IDIOM_BY[x.id], 'i', t);
             return makeQ(PHRASE_BY[x.id], 'p', t);
           });
@@ -936,10 +964,10 @@
       '<div class="src">' + (k >= 2 ? '<span class="tag" style="float:left;background:var(--good-bg);color:var(--good)">익힘</span>' : k === 1 ? '<span class="tag" style="float:left;background:var(--bad-bg);color:var(--bad)">다시 보기</span>' : '') + esc(p.src) + '</div></article>';
   }
   function viewCollection(kind, q) {
-    const l = kind === 'idiom' ? (LV[q.get('l')] && LV[q.get('l')].idiomUnits.length ? LV[q.get('l')] : LV.mid) : LV.adv;
+    const l = kind === 'idiom' ? (LV[q.get('l')] && LV[q.get('l')].idiomUnits.length ? LV[q.get('l')] : LV.mid) : (LV[q.get('l')] && LV[q.get('l')].phraseUnits.length ? LV[q.get('l')] : LV.adv);
     const units = kind === 'idiom' ? l.idiomUnits : l.phraseUnits;
     const st = { u: Math.max(0, Math.min(units.length - 1, +q.get('u') || 0)), hide: false };
-    const title = kind === 'idiom' ? l.name + ' 사자성어' : '한문 명구';
+    const title = l.name + (kind === 'idiom' ? ' 사자성어' : ' 한문 명구');
     function draw() {
       const u = units[st.u];
       $('#tabs').innerHTML = units.map((x, i) => '<button class="chip" data-act="unit" data-i="' + i + '" aria-pressed="' + (i === st.u) + '">' + esc(x.name) + '</button>').join('');
@@ -956,7 +984,7 @@
       '<div class="idioms" id="col"></div>' +
       '<a class="btn seal wide" id="colQuiz" style="margin-top:16px">' + ic('quiz') + '이 묶음 퀴즈 풀기</a></div>', {
       act: {
-        unit(el) { st.u = +el.dataset.i; draw(); window.scrollTo(0, 0); history.replaceState(null, '', '#/' + (kind === 'idiom' ? 'idioms?l=' + l.id + '&u=' : 'phrases?u=') + st.u); },
+        unit(el) { st.u = +el.dataset.i; draw(); window.scrollTo(0, 0); history.replaceState(null, '', '#/' + (kind === 'idiom' ? 'idioms?l=' + l.id + '&u=' : 'phrases?l=' + l.id + '&u=') + st.u); },
         hide() { st.hide = !st.hide; draw(); },
         reveal(el, e) { if (st.hide && !e.target.closest('button,summary,a')) el.classList.toggle('revealed'); }
       }
@@ -969,7 +997,8 @@
     const cs = wrongList('c').filter((c) => CHARS[c]);
     const is = wrongList('i').filter((i) => IDIOM_BY[i]);
     const ps = wrongList('p').filter((p) => PHRASE_BY[p]);
-    const total = cs.length + is.length + ps.length;
+    const ts = wrongList('t').filter((x) => TIER_BY[x]);
+    const total = cs.length + is.length + ps.length + ts.length;
     let html = '<div class="wrap fade-in">' + topbar('오답 노트', '#/');
     if (!total) {
       html += '<div class="empty"><span class="han">淸</span>오답 노트가 깨끗해요.<br>퀴즈에서 틀리거나 카드에서 「다시 볼래요」를 누르면 여기에 모여요.</div></div>';
@@ -988,6 +1017,7 @@
     const rowItem = (key, hanja, sub, attr) => '<div class="card row-link" style="margin-top:8px;padding:10px 6px 10px 14px"><button style="all:unset;flex:1;cursor:pointer" ' + attr + '><span class="han" style="font-size:22px">' + esc(hanja) + '</span><small>' + esc(sub) + '</small></button>' +
       '<button class="icon-btn" data-act="rm" data-k="' + key + '" aria-label="노트에서 빼기">' + ic('x') + '</button></div>';
     if (is.length) html += '<h3 class="group-h">사자성어<span>' + is.length + '개</span></h3>' + is.map((i) => rowItem('i:' + i, IDIOM_BY[i].h, IDIOM_BY[i].r + ' · ' + IDIOM_BY[i].mean, 'data-idiom="' + i + '"')).join('');
+    if (ts.length) html += '<h3 class="group-h">사자성어 시험<span>' + ts.length + '개</span></h3>' + ts.map((x) => rowItem('t:' + x, TIER_BY[x].h, TIER_BY[x].r + ' · ' + TIER_BY[x].mean, 'data-speak="' + TIER_BY[x].r + '"')).join('');
     if (ps.length) html += '<h3 class="group-h">한문 명구<span>' + ps.length + '구</span></h3>' + ps.map((p) => rowItem('p:' + p, PHRASE_BY[p].h, PHRASE_BY[p].r, 'data-phrase="' + p + '"')).join('');
     html += '<button class="btn wide soft" style="margin-top:24px" data-act="clear">' + ic('trash') + '오답 노트 모두 비우기</button></div>';
     render(html, {
@@ -1014,7 +1044,7 @@
       '<div class="row"><div class="grow">기록 내보내기<small>다른 기기로 옮기거나 보관할 때 (JSON 파일)</small></div><button class="btn small" data-act="export">' + ic('down') + '내보내기</button></div>' +
       '<div class="row"><div class="grow">기록 불러오기</div><button class="btn small" data-act="import">' + ic('up') + '불러오기</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>' +
       '<div class="row"><div class="grow">처음부터 다시<small>익힌 한자, 오답 노트, 공부한 날을 모두 지워요</small></div><button class="btn small" data-act="reset" style="color:var(--bad)">' + ic('trash') + '지우기</button></div></section>' +
-      '<p class="about">급수와 훈음은 한국어문회 한자능력검정시험 배정 한자(8급~5급 500자)를 따랐고, 획수와 부수는 Unicode Unihan 자료에서 가져왔어요. 기록은 이 기기의 브라우저에만 저장돼요.</p></div>';
+      '<p class="about">급수와 훈음은 한국어문회 한자능력검정시험 배정 한자(8급~특급 2,500자)를 따랐고, 획수와 부수는 Unicode Unihan 자료에서 가져왔어요. 기록은 이 기기의 브라우저에만 저장돼요.</p></div>';
     render(html, {
       act: {
         theme(el) { S.settings.theme = el.dataset.v; save(); applySettings(); viewSettings(); },
@@ -1096,7 +1126,7 @@
   function refsOf(c) {
     const out = [];
     IDIOMS.forEach((it) => { if (it.h.indexOf(c) >= 0) out.push('<a href="#/idioms?l=' + it.level + '&u=' + it.unit + '"><span class="han">' + it.h + '</span>' + it.r + ' <small>' + esc(it.mean) + '</small></a>'); });
-    PHRASES.forEach((p) => { if (p.h.indexOf(c) >= 0) out.push('<a href="#/phrases?u=' + p.unit + '"><span class="han">' + esc(p.h) + '</span><small>' + esc(p.mean) + '</small></a>'); });
+    PHRASES.forEach((p) => { if (p.h.indexOf(c) >= 0) out.push('<a href="#/phrases?l=' + p.level + '&u=' + p.unit + '"><span class="han">' + esc(p.h) + '</span><small>' + esc(p.mean) + '</small></a>'); });
     return out;
   }
   function openChar(c) {
@@ -1125,6 +1155,196 @@
   function openIdiom(id) { const it = IDIOM_BY[id]; if (it) openSheet('<div style="padding-top:28px">' + idiomCard(it) + '</div>'); }
   function openPhrase(id) { const p = PHRASE_BY[id]; if (p) openSheet('<div style="padding-top:28px">' + phraseCard(p) + '</div>'); }
 
+  /* ======================= 사자성어 시험 ======================= */
+  const tierStyle = (t) => lvStyle({ id: t.lv });
+  const TEST_KINDS = [
+    ['build', '글자 맞추기', '뜻을 보고 여덟 글자 가운데 네 글자를 순서대로 골라 성어를 만들어요', 'cards'],
+    ['read', '읽기 맞추기', '한자 성어를 보고 바르게 읽은 것을 골라요', 'msg'],
+    ['mean', '뜻 맞추기', '한자 성어를 보고 알맞은 뜻을 골라요', 'quiz']
+  ];
+  function viewSeongeo() {
+    const rows = TIERS.slice(1).map((t) => {
+      const k = knownCount(t.items, 't');
+      return '<a class="card level-card" href="#/seongeo/' + t.n + '" style="' + tierStyle(t) + '">' +
+        '<span class="lv-badge han">' + t.hanja + '</span>' +
+        '<div class="lv-text"><div class="lv-name">' + t.name + '</div><div class="lv-sub">' + esc(t.sub) + '</div>' +
+        '<div class="bar"><i style="width:' + pct(k, t.items.length) + '%"></i></div>' +
+        '<div class="lv-count">익힌 성어 ' + k + ' / ' + t.items.length + '</div></div>' + ic('right') + '</a>';
+    }).join('');
+    render('<div class="wrap fade-in">' + topbar('사자성어 시험', '#/') +
+      '<p class="muted" style="margin:4px 4px 14px;font-size:14.5px">성어에 든 가장 어려운 글자의 급수로 단계를 나눴어요. 단계마다 세 가지 시험이 있어요.</p>' +
+      '<div class="levels">' + rows + '</div></div>');
+  }
+  function tierRow(it) {
+    const k = boxOf('t', it.id);
+    return '<article class="card idiom tier-row"><div class="han" lang="ko" style="font-size:30px;letter-spacing:.08em">' + it.h + '</div>' +
+      '<div class="read">' + esc(it.r) + speakBtn(it.r) + '</div><div class="muted" style="font-size:14.5px;line-height:1.5">' + esc(it.mean) + '</div>' +
+      (k >= 2 ? '<span class="tag" style="background:var(--good-bg);color:var(--good)">익힘</span>' : k === 1 ? '<span class="tag" style="background:var(--bad-bg);color:var(--bad)">다시 보기</span>' : '') + '</article>';
+  }
+  function viewSeongeoTier(n) {
+    const t = TIERS[+n];
+    if (!t) return go('#/seongeo');
+    const k = knownCount(t.items, 't');
+    const tests = TEST_KINDS.map((x) => '<a class="card action" href="#/stest?t=' + t.n + '&k=' + x[0] + '&n=10"><span class="ic-box">' + ic(x[3]) + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></a>').join('');
+    render('<div class="wrap fade-in" style="' + tierStyle(t) + '">' + topbar('사자성어 · ' + t.name, '#/seongeo') +
+      '<div class="lv-head"><span class="lv-badge han">' + t.hanja + '</span><div><h2>' + t.name + ' 사자성어</h2><p>' + esc(t.sub) + ' · ' + t.items.length + '개</p></div></div>' +
+      '<section class="card lv-progress"><div class="row"><span>익힌 성어</span><div class="bar"><i style="width:' + pct(k, t.items.length) + '%"></i></div><span>' + k + ' / ' + t.items.length + '</span></div></section>' +
+      '<h2 class="sec">시험 보기</h2><div class="actions">' + tests + '</div>' +
+      '<h2 class="sec">이 단계의 사자성어 (' + t.items.length + ')</h2><div class="idioms">' + t.items.map(tierRow).join('') + '</div></div>');
+  }
+  const exTier = (it) => '<div class="ex"><div><div class="han" style="font-size:32px" lang="ko">' + it.h + '</div><b>' + esc(it.r) + '</b><small>' + esc(it.mean) + '</small></div></div>';
+  function tierPool(it) { return TIERS[it.tier].items.length >= 8 ? TIERS[it.tier].items : TIERS.slice(1).reduce((a, x) => a.concat(x.items), []); }
+  function makeTierQ(it, type) {
+    const pool = tierPool(it);
+    if (type === 'build') {
+      const have = Array.from(it.h);
+      const others = pool.filter((x) => x !== it).map((x) => x.h).join('');
+      const other = shuffle(Array.from(new Set(Array.from(others)))).filter((c) => have.indexOf(c) < 0);
+      const decoys = other.slice(0, 4);
+      let i = 0;
+      return {
+        kind: 't', id: it.id, type: 'build', item: it,
+        tiles: shuffle(have.concat(decoys).map((ch) => ({ ch, id: i++ }))),
+        ask: '뜻에 맞는 사자성어를 만들어요', say: it.r, explain: exTier(it)
+      };
+    }
+    if (type === 'read') {
+      const ds = readingDistractors(it.h, it.r, 3, pool.map((x) => ({ r: x.r, h: x.h })));
+      return {
+        kind: 't', id: it.id, ask: '이 성어를 바르게 읽은 것은?',
+        prompt: '<div class="han q-idiom" lang="ko">' + it.h + '</div>',
+        options: shuffle([it.r].concat(ds)).map((o) => optText('<span>' + esc(o) + '</span>', o === it.r)),
+        explain: exTier(it), say: it.r
+      };
+    }
+    const ds = sample(pool.filter((x) => x !== it && x.mean !== it.mean), 3);
+    return {
+      kind: 't', id: it.id, ask: '이 성어의 뜻은?',
+      prompt: '<div class="han q-idiom" lang="ko">' + it.h + '</div>',
+      options: shuffle([it].concat(ds)).map((o) => optText(esc(o.mean), o === it, true)),
+      explain: exTier(it), say: it.r
+    };
+  }
+  function viewSTest(q) {
+    const t = TIERS[+q.get('t')];
+    const kind = q.get('k') || 'build';
+    if (!t || !t.items.length) return go('#/seongeo');
+    const back = '#/seongeo/' + t.n;
+    const label = (TEST_KINDS.filter((x) => x[0] === kind)[0] || TEST_KINDS[0])[1];
+    const n = Math.max(3, Math.min(30, +q.get('n') || 10));
+    const make = () => repeatTo(t.items, Math.min(n, t.items.length)).map((it) => makeTierQ(it, kind === 'mix' ? pick(['build', 'read', 'mean']) : kind));
+    const st = { qs: make(), i: 0, score: 0, wrong: [], answered: false, timer: 0, pick: [] };
+    function drawQ() {
+      const qq = st.qs[st.i];
+      st.answered = false; st.pick = [];
+      $('#pos').textContent = (st.i + 1) + ' / ' + st.qs.length;
+      const bar = '<div class="bar qbar"><i style="width:' + pct(st.i, st.qs.length) + '%"></i></div>';
+      if (qq.type === 'build') {
+        $('#quiz').innerHTML = bar + '<section class="card question fade-in"><div class="q-ask">' + esc(qq.ask) + '</div>' +
+          '<div class="q-sub" style="font-size:18px;line-height:1.5;margin-top:6px">' + esc(qq.item.mean) + '</div>' +
+          '<button class="btn small soft" id="hintBtn" data-act="hint" style="margin-top:12px">독음 힌트 보기</button></section>' +
+          '<div class="slots" id="slots"></div><div class="tiles8" id="tiles"></div>' +
+          '<div class="btns" style="margin-top:12px"><button class="btn" data-act="clear">다시 놓기</button><button class="btn primary" data-act="check" id="checkBtn" disabled>확인</button></div><div id="fb"></div>';
+        drawBuild();
+      } else {
+        $('#quiz').innerHTML = bar + '<section class="card question fade-in"><div class="q-ask">' + esc(qq.ask) + '</div>' + qq.prompt + '</section>' +
+          '<div class="options">' + qq.options.map((o, i) => '<button class="opt' + (o.long ? ' long' : '') + '" data-act="ans" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' + o.html + '</button>').join('') + '</div><div id="fb"></div>';
+      }
+    }
+    function drawBuild() {
+      const qq = st.qs[st.i];
+      const used = st.pick.map((p) => p.id);
+      $('#slots').innerHTML = [0, 1, 2, 3].map((i) => {
+        const p = st.pick[i];
+        return '<button class="slot' + (p ? ' on' : '') + '" data-act="unpick" data-i="' + i + '" aria-label="' + (i + 1) + '번째 글자' + (p ? ' ' + p.ch : ' 비어 있음') + '"><span class="han" lang="ko">' + (p ? p.ch : '') + '</span></button>';
+      }).join('');
+      $('#tiles').innerHTML = qq.tiles.map((x) => '<button class="tile8" data-act="pick" data-id="' + x.id + '"' + (used.indexOf(x.id) >= 0 ? ' disabled' : '') + '><span class="han" lang="ko">' + x.ch + '</span></button>').join('');
+      $('#checkBtn').disabled = st.pick.length < 4;
+    }
+    function finish(qq, ok) {
+      st.answered = true;
+      record('t', qq.id, ok);
+      beep(ok);
+      if (ok) st.score++; else st.wrong.push(qq);
+      const last = st.i === st.qs.length - 1;
+      $('#fb').innerHTML = '<section class="card feedback">' +
+        '<div class="verdict ' + (ok ? 'ok">' + ic('check') + '맞았어요!' : 'ng">' + ic('x') + '아쉬워요. 정답을 확인해요') + (qq.say ? speakBtn(qq.say) : '') + '</div>' +
+        qq.explain + '<button class="btn primary wide" data-act="next">' + (last ? '결과 보기' : '다음 문제') + '</button></section>';
+      if (ok) st.timer = setTimeout(next, 1500);
+      else { const f = $('#fb'); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    }
+    function answer(i) {
+      const qq = st.qs[st.i];
+      if (st.answered || qq.type === 'build') return;
+      const ok = qq.options[i].ok;
+      $$('.opt').forEach((b, j) => {
+        b.disabled = true;
+        if (qq.options[j].ok) b.classList.add('right'); else if (j === i) b.classList.add('wrong'); else b.classList.add('dim');
+      });
+      finish(qq, ok);
+    }
+    function check() {
+      const qq = st.qs[st.i];
+      if (st.answered || st.pick.length < 4) return;
+      const got = st.pick.map((p) => p.ch).join('');
+      const ok = got === qq.item.h;
+      $$('.tile8,.slot').forEach((b) => { b.disabled = true; });
+      $$('.slot').forEach((b, i) => b.classList.add(st.pick[i].ch === Array.from(qq.item.h)[i] ? 'right' : 'wrong'));
+      $('#checkBtn').disabled = true;
+      if (!ok) $('#slots').insertAdjacentHTML('afterend', '<div class="answer-line han" lang="ko">정답 ' + qq.item.h + '</div>');
+      finish(qq, ok);
+    }
+    function next() {
+      clearTimeout(st.timer);
+      if (!st.answered) return;
+      st.i++;
+      if (st.i >= st.qs.length) result(); else { drawQ(); window.scrollTo(0, 0); }
+    }
+    function result() {
+      const g = grade(st.score, st.qs.length);
+      $('#pos').textContent = '';
+      const seen = {};
+      const miss = st.wrong.filter((x) => (seen[x.id] ? false : (seen[x.id] = true)));
+      $('#quiz').innerHTML = '<section class="card result fade-in">' + stamp(g) +
+        '<div class="score">' + st.score + ' / ' + st.qs.length + '</div><p>' + g[2] + '</p>' +
+        (miss.length ? '<h2 style="font-size:16px;margin-top:8px">틀린 문제 (오답 노트에 모았어요)</h2><div class="miss">' + miss.map((x) => '<button class="han" data-speak="' + esc(x.item ? x.item.r : TIER_BY[x.id].r) + '">' + x.id + '<small>' + esc(TIER_BY[x.id].r) + '</small></button>').join('') + '</div>' : '') +
+        '<div class="btns" style="width:100%">' + (miss.length ? '<button class="btn seal" data-act="retry">틀린 문제만 다시</button>' : '') +
+        '<button class="btn primary" data-act="again">새 문제로 다시</button><a class="btn" href="' + back + '">돌아가기</a></div></section>';
+    }
+    render('<div class="wrap fade-in" style="' + tierStyle(t) + '">' + topbar(t.name + ' · ' + label, back, '<span id="pos"></span>') + '<div id="quiz"></div></div>', {
+      act: {
+        ans(el) { answer(+el.dataset.i); },
+        pick(el) {
+          if (st.answered || st.pick.length >= 4) return;
+          const x = st.qs[st.i].tiles.filter((y) => y.id === +el.dataset.id)[0];
+          if (x) { st.pick.push(x); drawBuild(); }
+        },
+        unpick(el) {
+          if (st.answered) return;
+          const i = +el.dataset.i;
+          if (st.pick[i]) { st.pick.splice(i, 1); drawBuild(); }
+        },
+        clear() { if (!st.answered) { st.pick = []; drawBuild(); } },
+        check,
+        hint(el) { const qq = st.qs[st.i]; el.outerHTML = '<div class="q-sub" style="margin-top:10px">독음 · <b>' + esc(qq.item.r) + '</b></div>'; },
+        next,
+        again() { route(); },
+        retry() {
+          st.qs = shuffle(st.wrong).map((x) => makeTierQ(TIER_BY[x.id], x.type === 'build' ? 'build' : pick(['read', 'mean'])));
+          st.i = 0; st.score = 0; st.wrong = [];
+          drawQ();
+        }
+      },
+      key(e) {
+        const qq = st.qs[st.i];
+        if (!st.answered && qq && qq.type !== 'build' && /^[1-4]$/.test(e.key) && $('.opt')) answer(+e.key - 1);
+        else if (st.answered && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) { e.preventDefault(); next(); }
+      },
+      destroy() { clearTimeout(st.timer); }
+    });
+    drawQ();
+  }
+
   /* ======================= 길잡이 ======================= */
   function render(html, v) {
     if (view.destroy) try { view.destroy(); } catch (e) { /* 무시 */ }
@@ -1148,6 +1368,8 @@
       case 'list': viewList(q); break;
       case 'idioms': viewCollection('idiom', q); break;
       case 'phrases': viewCollection('phrase', q); break;
+      case 'seongeo': if (parts[1]) viewSeongeoTier(parts[1]); else viewSeongeo(); break;
+      case 'stest': viewSTest(q); break;
       case 'review': viewReview(); break;
       case 'settings': viewSettings(); break;
       default: viewHome();
