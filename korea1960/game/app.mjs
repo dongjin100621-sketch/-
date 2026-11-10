@@ -90,10 +90,12 @@ function loadAutosave() {
   return null;
 }
 function importSave(raw) { return E.importSave(raw, data); }
+/** 파일 다운로드가 막힌 보기 화면(빌드 도구 --artifact로 만든 판). 내보내기를 텍스트 복사로 바꾼다. */
+const EMBEDDED = globalThis.__EMBED__ === 'artifact';
 function save() {
   if (!state) return;
   if (storage.set(STORE_KEY, E.exportSave(state))) { storageNote = ''; savedInfo = { turn: state.turn }; }
-  else storageNote = '이 브라우저에서는 자동 저장을 쓸 수 없습니다. 기록실에서 저장 파일을 내보내 진행을 보관하세요.';
+  else storageNote = EMBEDDED ? '이 화면에서는 자동 저장을 쓸 수 없습니다. 기록실의 ‘저장 텍스트 복사’로 진행을 보관하세요.' : '이 브라우저에서는 자동 저장을 쓸 수 없습니다. 기록실에서 저장 파일을 내보내 진행을 보관하세요.';
 }
 function announce(text) { const live = $('#live'); if (live) { live.textContent = ''; setTimeout(() => { live.textContent = text; }, 30); } }
 function toast(text, opts = {}) {
@@ -407,7 +409,7 @@ function archive() {
   return `<div class="page-head"><div><span class="eyebrow">PUBLIC RECORD · 기록실</span><h1>기록은 선택을 지우지 않는다</h1><p>저장·불러오기, 연대기, 역사 출처, 가상 수치의 정의를 한곳에 모았습니다.</p></div></div>
   ${state.ending ? `<div style="margin-bottom:16px">${endingCard()}</div>` : ''}
   <article class="panel"><h2>저장</h2><p style="font-size:14px">${savedInfo ? `자동 저장: ${esc(ym(savedInfo.turn))} 상태가 이 브라우저에 보관되어 있습니다.` : '자동 저장 기록이 없습니다.'} 다른 기기로 옮기거나 보관하려면 저장 파일(JSON)을 내보내세요. 불러온 파일은 버전·ID·수치 범위를 검사하고, 손상된 파일은 일부만 반영하지 않고 거부합니다.</p>
-  <div class="row" style="justify-content:flex-start;flex-wrap:wrap">${btn(`${icon('save')} 저장 파일 내보내기`, 'export', { cls: 'primary' })}<label class="btn file-btn">저장 파일 불러오기<input type="file" accept="application/json,.json" data-input="import" aria-label="저장 파일 불러오기"></label>${btn('새 연대기', 'newgame', { cls: 'quiet' })}</div>${storageNote ? `<p class="reason">${esc(storageNote)}</p>` : ''}</article>
+  <div class="row" style="justify-content:flex-start;flex-wrap:wrap">${btn(`${icon('save')} ${EMBEDDED ? '저장 텍스트 복사' : '저장 파일 내보내기'}`, 'export', { cls: 'primary' })}<label class="btn file-btn">저장 파일 불러오기<input type="file" accept="application/json,.json" data-input="import" aria-label="저장 파일 불러오기"></label>${EMBEDDED ? '' : btn('저장 텍스트 복사', 'exportText')}${btn('저장 텍스트 붙여넣기', 'pasteImport')}${btn('새 연대기', 'newgame', { cls: 'quiet' })}</div><small class="muted" style="display:block;margin-top:6px">${EMBEDDED ? '이 보기 화면은 파일 다운로드를 막습니다. 저장 텍스트를 복사해 두었다가 붙여넣기로 이어 하세요. 진행은 이 브라우저에 자동 저장됩니다.' : '파일을 받을 수 없는 환경에서는 저장 텍스트를 복사해 두었다가 붙여넣기로 이어 할 수 있습니다.'}</small>${storageNote ? `<p class="reason">${esc(storageNote)}</p>` : ''}</article>
   <article class="panel"><h2>기록 표식 ${unlocked.length} / ${data.achievements.length}</h2><div class="badges">${data.achievements.map(a => { const on = unlocked.some(x => x.id === a.id); return `<span class="badge-item ${on ? 'on' : ''}">${on ? '✓ ' : ''}${esc(a.name)} <small>${esc(a.description)}</small></span>`; }).join('')}</div></article>
   <article class="panel"><div class="row" style="flex-wrap:wrap"><h2>선택의 연대기 · ${state.log.length}건</h2></div><div class="filters" role="group" aria-label="기록 종류">${LOG_FILTERS.map(([id, t]) => `<button type="button" class="btn" data-action="logFilter" data-id="${id}" aria-pressed="${ui.logFilter === id}">${t}</button>`).join('')}</div>
   <ul class="timeline">${entries.slice(0, 400).map(l => `<li><time>${esc(l.date)}</time><p><span class="tag ${l.kind === 'historical_anchor' ? 'history' : l.kind ? 'fiction' : ''}">${esc(LOG_TYPES[l.type] || l.type)}${l.kind ? ` · ${l.kind === 'historical_anchor' ? '역사 앵커, 반응은 가상' : '가상 상황'}` : ''}</span> ${esc(l.text)}</p>${l.changes ? `<span></span>${fxPlain(l.changes)}` : ''}</li>`).join('') || '<li><span></span><p class="muted">이 종류의 기록이 아직 없습니다.</p></li>'}</ul>${entries.length > 400 ? `<small>최근 400건만 표시합니다. 전체 기록은 저장 파일에 있습니다.</small>` : ''}</article>
@@ -444,6 +446,8 @@ function modal() {
   else if (m.type === 'help') ({ title, body, actions } = helpContent()), wide = true;
   else if (m.type === 'newgame') ({ title, body, actions } = newGameContent());
   else if (m.type === 'import') ({ title, body, actions } = importContent(m));
+  else if (m.type === 'exportText') ({ title, body, actions } = exportTextContent(m));
+  else if (m.type === 'pasteImport') ({ title, body, actions } = pasteImportContent(m));
   return `<div class="modal-back" data-action="modalBack"><section class="paper modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"><h2 id="modal-title">${title}</h2>${body}<div class="actions">${actions}</div></section></div>`;
 }
 const closeBtn = (label = '닫기') => `<button type="button" class="btn quiet" data-action="closeModal" style="color:var(--paper-ink);border-color:var(--paper-line)">${label}</button>`;
@@ -511,6 +515,17 @@ function helpContent() {
   <h3>끝나는 방식</h3><p style="font-size:14px">부채 700 이상, 정당성 3 이하, 자유 3 이하는 즉시 위기 엔딩입니다. 그 밖에는 1979년 12월에 지표로 평가합니다. 엔딩 화면은 성장·권리·생활·환경을 따로 보여 줍니다.</p>
   <h3>역사와 가상</h3><p style="font-size:14px">'실제 역사' 상자는 출처가 있는 사실 요약입니다. '이 캠페인에서는' 상자와 모든 선택 결과·수치·선거·자문위원은 가상입니다. 경로가 달라지면 역사적 사건을 그대로 강제하지 않습니다.</p>`, actions: closeBtn('알겠습니다') };
 }
+function exportTextContent(m) {
+  return { title: '저장 텍스트', body: `<p>아래 텍스트가 지금 진행(${esc(ym(state.turn))})의 저장 내용입니다. 복사해 메모나 .json 파일로 보관했다가 기록실의 ‘저장 텍스트 붙여넣기’나 ‘저장 파일 불러오기’로 이어 할 수 있습니다.</p>
+  <label for="save-text" class="sr-only">저장 텍스트</label><textarea id="save-text" class="save-text" readonly spellcheck="false">${esc(E.exportSave(state))}</textarea>
+  ${m.copied === true ? '<p class="note-ok" role="status">복사했습니다.</p>' : m.copied === false ? '<p class="reason" role="status">자동 복사가 막혀 텍스트 전체를 선택했습니다. Ctrl+C(⌘C)로 복사하세요.</p>' : ''}`,
+    actions: closeBtn() + `<button type="button" class="btn primary" data-action="copySave" data-autofocus>복사</button>` };
+}
+function pasteImportContent(m) {
+  return { title: '저장 텍스트 붙여넣기', body: `<p>‘저장 텍스트 복사’로 받아 둔 텍스트(또는 저장 파일의 내용)를 붙여 넣으세요. 확인한 뒤에만 현재 진행을 바꿉니다.</p>
+  <label for="paste-text" class="sr-only">붙여 넣을 저장 텍스트</label><textarea id="paste-text" class="save-text" spellcheck="false" placeholder='{"format": "KOREA1960_SAVE", ...}' data-autofocus>${esc(m.text || '')}</textarea>${m.error ? `<p class="reason" role="alert">불러오지 못했습니다: ${esc(m.error)}</p>` : ''}`,
+    actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="importText">확인</button>` };
+}
 function newGameContent() {
   return { title: '새 연대기 시작', body: `<p>${state && !state.ending ? '진행 중인 연대기가 있습니다. 새로 시작하면 자동 저장이 새 게임으로 바뀝니다. 필요하면 먼저 저장 파일을 내보내세요.' : '1960년 1월부터 시작합니다.'}</p>
   <label for="seed-input"><h3>시드 (선택)</h3></label><input type="text" id="seed-input" inputmode="numeric" placeholder="비워 두면 무작위" maxlength="10" pattern="[0-9]*"><p style="font-size:13px" class="muted">같은 시드와 같은 선택은 같은 사건·선거·표결 결과를 만듭니다. 1~4294967295.</p>`,
@@ -518,7 +533,7 @@ function newGameContent() {
 }
 function importContent(m) {
   const s = m.loaded;
-  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? '버전 1 → 2로 변환' : '버전 2'}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
+  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? '버전 1 → 2로 변환' : '버전 2'}${m.fromData && m.fromData !== data.meta.version ? ` · 데이터 ${esc(m.fromData)} → ${esc(data.meta.version)}` : ''}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
 }
 
 /* ---------- 타이틀 ---------- */
@@ -622,11 +637,15 @@ async function importFile(input) {
   if (!file) return;
   if (file.size > 2000000) { toast('저장 파일은 2MB 이하여야 합니다.', { bad: true }); render(); return; }
   try {
-    const raw = await file.text(); const loaded = importSave(raw);
-    let migrated = false; try { migrated = JSON.parse(raw).version === 1; } catch { /* importSave가 이미 검사 */ }
-    ui.modal = { type: 'import', loaded, name: file.name, migrated };
+    const raw = await file.text(); ui.modal = importOffer(raw, file.name);
   } catch (e) { toast(`불러오지 못했습니다: ${e.message}`, { bad: true }); }
   render();
+}
+/** 검증된 저장을 확인 창 상태로 만든다. 잘못된 입력은 예외. */
+function importOffer(raw, name) {
+  const loaded = importSave(raw);
+  let migrated = false, fromData = ''; try { const p = JSON.parse(raw); migrated = p.version === 1; fromData = String(p.state.dataVersion); } catch { /* importSave가 이미 검사 */ }
+  return { type: 'import', loaded, name, migrated, fromData };
 }
 function startNew() {
   const raw = ($('#seed-input')?.value || '').trim();
@@ -659,7 +678,22 @@ document.addEventListener('click', e => {
     case 'newgame': ui.modal = { type: 'newgame' }; return render();
     case 'startNew': return startNew();
     case 'acceptImport': state = ui.modal.loaded; ui.modal = null; ui.screen = 'game'; ui.view = 'overview'; ui.budgetDraft = null; save(); toast(`저장 파일을 불러왔습니다 (${ym(state.turn)}).`); return render();
-    case 'export': return state ? (exportFile(), render()) : undefined;
+    case 'export': if (!state) return; if (EMBEDDED) { ui.modal = { type: 'exportText' }; return render(); } exportFile(); return render();
+    case 'exportText': if (!state) return; ui.modal = { type: 'exportText' }; return render();
+    case 'copySave': {
+      const area = $('#save-text'); if (!area) return;
+      const done = ok => { if (ui.modal?.type !== 'exportText') return; ui.modal = { type: 'exportText', copied: ok }; render(); if (!ok) { const a = $('#save-text'); a?.focus(); a?.select(); } };
+      try { navigator.clipboard.writeText(area.value).then(() => done(true), () => done(false)); } catch { done(false); }
+      return;
+    }
+    case 'pasteImport': ui.modal = { type: 'pasteImport' }; return render();
+    case 'importText': {
+      const text = $('#paste-text')?.value || '';
+      if (!text.trim()) { ui.modal = { type: 'pasteImport', text, error: '붙여 넣은 텍스트가 없습니다.' }; return render(); }
+      if (text.length > 2000000) { ui.modal = { type: 'pasteImport', text: '', error: '저장 텍스트는 2MB 이하여야 합니다.' }; return render(); }
+      try { ui.modal = importOffer(text, '붙여 넣은 저장 텍스트'); } catch (err) { ui.modal = { type: 'pasteImport', text, error: err.message }; }
+      return render();
+    }
     case 'choose': { const ev = byId('events', state.queue[0]), c = ev?.choices.find(x => x.id === id); if (c?.ending) return openConfirm({ type: 'choose', choiceId: id }); run({ type: 'choose', choiceId: id }); return; }
     case 'prepare': run({ type: 'prepare' }); return;
     case 'gotoEvent': { ui.view = 'overview'; ui._scrollTop = true; render(); const first = document.querySelector('.choice:not([aria-disabled="true"])'); if (first) { first.scrollIntoView({ block: 'center' }); first.focus({ preventScroll: true }); } return; }
@@ -680,7 +714,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && ui.modal) { ui.modal = null; render(); return; }
   if (e.key === 'Tab' && ui.modal) {
     const dialog = document.querySelector('[role="dialog"]'); if (!dialog) return;
-    const items = [...dialog.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),summary')];
+    const items = [...dialog.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),textarea,summary')];
     if (!items.length) return;
     if (e.shiftKey && document.activeElement === items[0]) { e.preventDefault(); items.at(-1).focus(); }
     else if (!e.shiftKey && document.activeElement === items.at(-1)) { e.preventDefault(); items[0].focus(); }

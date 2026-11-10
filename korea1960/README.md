@@ -13,8 +13,9 @@
 | `KOREA1960.html` 더블클릭 | 설치 없이 바로 실행. 콘텐츠·삽화·글꼴이 모두 들어 있는 단일 파일(약 2.4MB). Windows는 `START_WINDOWS.bat`도 가능 |
 | 웹 주소 | https://dongjin100621-sketch.github.io/-/korea1960/ (저장소의 `docs/korea1960/index.html`, 위와 같은 파일) |
 | `python3 tools/serve.py` | 분리 소스(`game/`)를 127.0.0.1에서 실행. 개발할 때 사용. `--reference`는 v1 참조 구현 |
+| Claude 아티팩트 링크 | `npm run build:artifact`로 만든 `dist/KOREA1960_artifact.html`을 게시한 판. 그 보기 화면은 파일 다운로드를 막으므로 ‘저장’이 **저장 텍스트 복사** 창으로 열립니다. 진행은 그 링크의 브라우저 저장소에 자동 저장됩니다 |
 
-진행은 브라우저(localStorage)에 매 행동마다 자동 저장됩니다. 다른 기기로 옮기려면 기록실 → **저장 파일 내보내기**(JSON) → 다른 기기에서 **저장 파일 불러오기**. 검토용 저장 파일은 `game/saves/`에 있습니다.
+진행은 브라우저(localStorage)에 매 행동마다 자동 저장됩니다. 다른 기기로 옮기려면 기록실 → **저장 파일 내보내기**(JSON) → 다른 기기에서 **저장 파일 불러오기**. 파일을 받을 수 없는 환경에서는 **저장 텍스트 복사** → **저장 텍스트 붙여넣기**로 같은 일을 합니다(내용은 저장 파일과 같은 JSON). 검토용 저장 파일은 `game/saves/`에 있습니다.
 
 ## 게임의 한 달
 
@@ -72,6 +73,8 @@ npm run simulate                  # 전략 8개의 엔딩 분포·최종 지표 
 npm run build                     # KOREA1960.html 빌드
 npm run build:pages               # 빌드 + docs/korea1960/index.html 복사
 npm run test:browser              # 브라우저 검수 (Playwright 필요)
+npm run test:artifact             # 웹 링크(아티팩트)판을 저장소·다운로드·클립보드가 막힌 sandbox iframe에서 검수
+npm run build:artifact            # 웹 링크(아티팩트)용 판 dist/KOREA1960_artifact.html
 npm run package                   # dist/KOREA1960_v2.1.0.zip (전체 소스 + 단일 HTML)
 npm start                         # 개발 서버
 ```

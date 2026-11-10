@@ -20,6 +20,8 @@
     "build:reference": "python3 tools/build_standalone.py --reference",
     "saves": "node tools/make_sample_saves.mjs",
     "package": "python3 tools/package_zip.py",
-    "start": "python3 tools/serve.py"
+    "start": "python3 tools/serve.py",
+    "test:artifact": "node tests/browser/artifact.cjs",
+    "build:artifact": "python3 tools/build_standalone.py --artifact --output dist/KOREA1960_artifact.html"
   }
 }

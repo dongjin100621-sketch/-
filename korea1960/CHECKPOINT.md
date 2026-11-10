@@ -5,7 +5,8 @@
 ## 지금 실행 가능한 상태
 
 * `KOREA1960.html`을 더블클릭하면 1960-01부터 1979-12(또는 조기 엔딩)까지 실제로 끝까지 플레이할 수 있다. 저장소 GitHub Pages(`docs/korea1960/index.html`)에도 같은 파일을 둔다.
-* 엔진·콘텐츠·저장 테스트 82개 통과, 자동 캠페인 900판(전략 8×100 + 시드 100) 불변식 통과, 콘텐츠 검증 통과, 데스크톱 1440×900·모바일 390×844 실제 브라우저 검수 120개 통과(QA_REPORT.md).
+* 엔진·콘텐츠·저장 테스트 82개 통과, 자동 캠페인 900판(전략 8×100 + 시드 100) 불변식 통과, 콘텐츠 검증 통과, 데스크톱 1440×900·모바일 390×844 실제 브라우저 검수 126개 통과, 웹 링크판 sandbox 검수 26개 통과(QA_REPORT.md).
+* 웹 링크: Claude 아티팩트로 게시한 판(소유자 비공개, 공유는 페이지의 Share 메뉴). GitHub Pages(`docs/korea1960/`)는 이 브랜치를 main에 병합해야 열린다.
 * 버전: 게임 2.1.0 · 데이터 1.2.0(밸런스 규칙) · 저장 형식 2(버전 1 자동 변환, 데이터 1.1.0 저장 그대로 이어 받음).
 
 ## 단계별 진행
@@ -24,6 +25,7 @@
 * `game/engine.mjs`(`gainScale`, `COMPATIBLE_DATA_VERSIONS`, 월 처리의 새 원인 항목, `projectEffects`의 `base`), `game/app.mjs`(지표 설명을 데이터 규칙에서 생성, 미리보기 ‘기본’ 값, 체감 안내, 게임 방법 단락)
 * `tests/game.test.mjs`(+6), `tests/helpers/campaign.mjs`(전략 5개 추가), `tests/fixtures/v2_data110_1964_bills_and_projects.json`(1.1.0 저장 호환 검사용), `tests/browser/e2e.cjs`(첫 선택 기록 값 기대)
 * `tools/validate_content.py`(balance 검사, 분리본 12개), `game/saves/*`(1.2.0으로 재생성), `KOREA1960.html`, `docs/korea1960/index.html`
+* 웹 링크판: `tools/build_standalone.py --artifact`, 저장 텍스트 복사·붙여넣기(`game/app.mjs`, `game/style.css`), `tests/browser/artifact.cjs`, `package.json`의 `build:artifact`·`test:artifact`
 * 문서: `docs/SIMULATION_RULES.md`(데이터 1.2.0 밸런스), `docs/DATA_CONTRACT.md`, `README.md`, `QA_REPORT.md`, `CLAUDE_CONTEXT.md`, 이 문서. `package.json` 2.1.0
 
 ## 2.0.0에서 바꾼 파일

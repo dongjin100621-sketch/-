@@ -134,6 +134,15 @@ async function run(viewport, tag) {
   const bad = path.join(out, `${tag}_bad.json`); exported.state.stats.gdp = 'NaN'; exported.state.queue = ['<img src=x onerror=alert(1)>']; fs.writeFileSync(bad, JSON.stringify(exported));
   await page.setInputFiles('[data-input="import"]', bad); await page.waitForSelector('.toast.bad');
   const s3 = await S(page); check(JSON.stringify(s3) === JSON.stringify(s), '손상된 저장은 거부하고 현재 상태 유지');
+  // 저장 텍스트 복사·붙여넣기 (파일 다운로드가 막힌 화면용)
+  await page.click('main [data-action="exportText"]'); await page.waitForSelector('#save-text');
+  const saveText = await page.inputValue('#save-text'); check(JSON.parse(saveText).state.turn === s.turn, '저장 텍스트 보기');
+  await page.keyboard.press('Escape');
+  await page.click('main [data-action="pasteImport"]'); await page.fill('#paste-text', '{"format":"KOREA1960_SAVE","version":2,"state":{}}'); await page.click('[data-action="importText"]');
+  check(await page.isVisible('[role="dialog"] [role="alert"]') && JSON.stringify(await S(page)) === JSON.stringify(s), '잘못된 저장 텍스트는 거부하고 상태 유지');
+  await page.fill('#paste-text', saveText); await page.click('[data-action="importText"]'); await page.click('[data-action="acceptImport"]');
+  check(JSON.stringify(await S(page)) === JSON.stringify(s), '저장 텍스트를 붙여 넣으면 상태가 같음');
+  await page.click('[data-action="nav"][data-view="archive"]');
   await page.click('[data-action="logFilter"][data-id="law"]');
   await page.screenshot({ path: `${out}/${tag}_11_archive.png`, fullPage: true }); await audit(page, '기록실');
   s = await S(page); check(s.visited.includes('archive'), '기록실 방문 기록');

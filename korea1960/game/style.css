@@ -345,3 +345,7 @@ blockquote{margin:6px 0;padding-left:12px;border-left:2px solid var(--brass);col
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media print{.sidebar,.topbar,.bottombar,.brief{display:none}.shell{display:block}}
+/* 저장 텍스트(다운로드가 막힌 화면용) */
+.save-text{display:block;width:100%;box-sizing:border-box;min-height:9.5em;max-height:40vh;margin:10px 0 4px;padding:10px;border:1px solid var(--paper-line);border-radius:6px;background:#fffdf6;color:var(--paper-ink);font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;white-space:pre;overflow:auto}
+.save-text:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.note-ok{color:#2f6b52;font-weight:700;margin:6px 0 0}
