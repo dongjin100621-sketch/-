@@ -31,7 +31,7 @@
 | `game/engine.mjs` | 계산 엔진 v2. 의존성·DOM 없음. `example/engine.mjs`에서 발전시킴 |
 | `game/app.mjs`, `game/style.css`, `game/index.html` | 화면 v2. 입력을 `dispatch`로 보내고 돌려받은 상태만 그림 |
 | `game/saves/` | 검토용 저장(형식 2) 3개 |
-| `data/game.json` | **모든 콘텐츠의 정본**. 분리본 `data/*.json` 11개는 읽기용 사본 |
+| `data/game.json` | **모든 콘텐츠와 밸런스 규칙의 정본**. 분리본 `data/*.json` 12개는 읽기용 사본 |
 | `data/game.schema.json`, `data/types.d.ts` | 구조 스키마·TypeScript 참고 타입 |
 | `assets/art/` | 생성 삽화 원본 PNG 4장(보존) + 실행용 WebP 4장 |
 | `assets/ui/` | SVG 아이콘 13개, 디자인 토큰 |
@@ -49,28 +49,30 @@
 
 * **콘텐츠(사건·정책·사업·권역·외교·자문·엔딩·출처·지표)**: `data/game.json`만 고칩니다. 그다음 `python3 tools/validate_content.py --sync`로 분리본을 다시 만들고 ID·참조·조건·무료 선택지·이미지를 검사합니다.
 * **사건의 경로별 설명**: 사건의 `context` 배열. `{conditions:[...], text}` 중 조건이 맞는 첫 항목이 ‘이 캠페인에서는’ 상자에 나옵니다. 조건 문법은 `docs/DATA_CONTRACT.md`.
+* **밸런스 수치**: `data/game.json`의 `balance` 블록(체감 시작점, 가상 사건 보너스 배율, 높아진 기대, 기본 성장률, 군정·권력 집중 비용). 코드를 고치지 않고 조정할 수 있습니다. 바꾼 뒤 `npm run simulate`로 전략 8개의 엔딩 분포를 다시 재세요. 블록을 지우면 1.1.0 계산으로 돌아갑니다. 설명은 `docs/SIMULATION_RULES.md` "데이터 1.2.0 밸런스".
 * **규칙·수식**: `game/engine.mjs` (문서는 `docs/SIMULATION_RULES.md`를 함께 고침). 화면에서 쓰는 설명 문구는 `game/app.mjs` 위쪽의 `METRIC_HELP`, `PHASE`.
 * **ID는 바꾸지 않습니다.** 저장 파일이 ID로 상태를 복원합니다. 표시 문구만 고치면 저장 호환이 유지됩니다. 지표의 의미·사건 분기·상태 구조를 바꾸면 `meta.version`이나 `SAVE_VERSION`을 올리고 `migrateSave`에 변환을 추가합니다.
 * 고친 뒤: `npm test` → `python3 tools/build_standalone.py --pages` → (글자가 새로 생겼으면) `tools/subset_font.py` → 다시 빌드.
 
 ## 저장 호환성
 
-* 현재 저장 형식 **2**, 데이터 버전 **1.1.0**. 파일은 JSON(`format: "KOREA1960_SAVE"`)이며 2MB 이하만 받습니다.
+* 현재 저장 형식 **2**, 데이터 버전 **1.2.0**. 파일은 JSON(`format: "KOREA1960_SAVE"`)이며 2MB 이하만 받습니다.
+* **데이터 1.1.0에서 만든 저장(형식 2)은 그대로 불러옵니다.** 상태 구조와 ID가 같아서 진행이 이어지고, 불러온 다음 달부터 1.2.0 밸런스 규칙으로 계산됩니다. 이미 쌓인 지표 값은 바꾸지 않습니다.
 * **버전 1(제작 패키지 v1, 데이터 1.0.0) 저장은 불러올 때 자동 변환**됩니다. 브라우저에 남은 v1 자동 저장도 처음 열 때 옮깁니다. 콘텐츠 ID·수치가 같아서 진행·난수·법안·사업·지연 효과가 그대로 이어집니다.
-* 그 밖의 버전, 다른 데이터 버전의 버전 1, 다른 게임, 미등록 ID, 범위 밖 수치, 잘못된 자료형, 허용되지 않은 결산 필드는 **전부 거부**하고 현재 진행을 바꾸지 않습니다. 텍스트는 화면에서 HTML 이스케이프됩니다. 서명된 저장이 아니므로 치트 방지는 보장하지 않습니다.
+* 그 밖의 버전, 등록되지 않은 데이터 버전(예: 1.1.1), 다른 데이터 버전의 버전 1, 다른 게임, 미등록 ID, 범위 밖 수치, 잘못된 자료형, 허용되지 않은 결산 필드는 **전부 거부**하고 현재 진행을 바꾸지 않습니다. 텍스트는 화면에서 HTML 이스케이프됩니다. 서명된 저장이 아니므로 치트 방지는 보장하지 않습니다.
 * v2 저장은 v1 참조 구현에서 열 수 없습니다(버전 검사).
 
 ## 명령
 
 ```
-npm test                          # 엔진 테스트 76개 (원본 28 + v2 48), 약 30초
+npm test                          # 엔진 테스트 82개 (원본 28 + v2 54), 약 50초
 CAMPAIGN_SEEDS=100 npm run test:game   # 자동 캠페인을 전략마다 100개로 늘린 확장 검사
 npm run validate                  # 콘텐츠 검증   (python3 tools/validate_content.py)
-npm run simulate                  # 전략별 엔딩 분포·최종 지표 평균 (node tools/simulate.mjs 40)
+npm run simulate                  # 전략 8개의 엔딩 분포·최종 지표 평균 (node tools/simulate.mjs 40)
 npm run build                     # KOREA1960.html 빌드
 npm run build:pages               # 빌드 + docs/korea1960/index.html 복사
 npm run test:browser              # 브라우저 검수 (Playwright 필요)
-npm run package                   # dist/KOREA1960_v2.0.0.zip (전체 소스 + 단일 HTML)
+npm run package                   # dist/KOREA1960_v2.1.0.zip (전체 소스 + 단일 HTML)
 npm start                         # 개발 서버
 ```
 

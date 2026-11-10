@@ -4,42 +4,42 @@
   "state": {
     "version": 2,
     "gameId": "korea1960",
-    "dataVersion": "1.1.0",
+    "dataVersion": "1.2.0",
     "turn": 56,
     "rng": 2380594875,
     "phase": "governing",
     "ap": 1,
     "influence": 527,
-    "seats": 0.5525645236958325,
+    "seats": 0.5495968072078334,
     "stats": {
-      "gdp": 120.9190606232146,
-      "treasury": 294.06037562412394,
+      "gdp": 114.33174328840327,
+      "treasury": 290.47151410130175,
       "debt": 80,
-      "reserves": 47,
+      "reserves": 45.7,
       "inflation": 8.508614686990704,
       "unemployment": 12.772792069283867,
-      "legitimacy": 90.839168,
-      "liberty": 58.57000000000002,
-      "welfare": 43.34400000000005,
-      "education": 34.34400000000005,
-      "infrastructure": 28.34400000000005,
-      "industry": 22.35999999999993,
+      "legitimacy": 69.03433808425757,
+      "liberty": 57.270000000000024,
+      "welfare": 41.394000000000055,
+      "education": 33.044000000000054,
+      "infrastructure": 27.04400000000005,
+      "industry": 21.70999999999993,
       "agriculture": 44.016000000000076,
-      "environment": 65.613684,
-      "stability": 55.561400430397704,
-      "admin": 68,
-      "equality": 48.13132938142265,
+      "environment": 64.92324885000001,
+      "stability": 51.21587179579792,
+      "admin": 51.10000000000004,
+      "equality": 46.181339719157734,
       "security": 46
     },
     "support": {
-      "workers": 42.782047633144145,
-      "farmers": 44.264106268894174,
-      "business": 36.997964864114586,
-      "students": 56.04227251538397,
-      "civil": 49.81250105926427,
-      "bureaucracy": 53.061820056416636,
-      "military": 54.853335756406715,
-      "opposition": 57.004340372993475
+      "workers": 42.55851914590288,
+      "farmers": 44.160102715454926,
+      "business": 34.54133945648371,
+      "students": 52.83327571676097,
+      "civil": 49.29278459852651,
+      "bureaucracy": 47.50734300607578,
+      "military": 51.351972304081414,
+      "opposition": 53.79341126791469
     },
     "relations": {
       "usa": 65,
@@ -68,7 +68,7 @@
         "remaining": 0,
         "status": "passed",
         "startedTurn": 48,
-        "probability": 0.6357675396010478,
+        "probability": 0.5854868133226884,
         "roll": 0.30699512362480164,
         "resolvedTurn": 52
       }
@@ -127,7 +127,7 @@
       },
       {
         "turn": 0,
-        "gdp": 100.32900000000001,
+        "gdp": 100.22899999999998,
         "inflation": 8.988,
         "liberty": 42,
         "legitimacy": 44.988612,
@@ -136,7 +136,7 @@
       },
       {
         "turn": 1,
-        "gdp": 100.65945329822088,
+        "gdp": 100.45889492854887,
         "inflation": 8.976144,
         "liberty": 42,
         "legitimacy": 44.977236000000005,
@@ -145,7 +145,7 @@
       },
       {
         "turn": 2,
-        "gdp": 100.99136577029934,
+        "gdp": 100.68968718853388,
         "inflation": 8.964430272,
         "liberty": 42,
         "legitimacy": 46.965872000000005,
@@ -154,7 +154,7 @@
       },
       {
         "turn": 3,
-        "gdp": 101.32474333028202,
+        "gdp": 100.92137920520982,
         "inflation": 8.952857108736,
         "liberty": 42,
         "legitimacy": 49.95452,
@@ -163,471 +163,471 @@
       },
       {
         "turn": 4,
-        "gdp": 101.6595919307405,
+        "gdp": 101.15397342616805,
         "inflation": 8.941422823431168,
         "liberty": 42,
-        "legitimacy": 50.943180000000005,
+        "legitimacy": 50.29318000000001,
         "welfare": 35.120000000000005,
         "environment": 64.968185
       },
       {
         "turn": 5,
-        "gdp": 101.99591756288804,
+        "gdp": 101.38747232130709,
         "inflation": 8.930125749549994,
         "liberty": 42,
-        "legitimacy": 50.931852000000006,
+        "legitimacy": 50.28185200000001,
         "welfare": 35.144000000000005,
         "environment": 64.961759
       },
       {
         "turn": 6,
-        "gdp": 102.33372625669794,
+        "gdp": 101.62187838280475,
         "inflation": 8.918964240555393,
         "liberty": 42,
-        "legitimacy": 51.920536000000006,
+        "legitimacy": 50.62053600000001,
         "welfare": 35.168000000000006,
         "environment": 64.955312
       },
       {
         "turn": 7,
-        "gdp": 102.67302408102398,
+        "gdp": 101.85719412509178,
         "inflation": 8.907936669668729,
         "liberty": 42,
-        "legitimacy": 53.909232,
+        "legitimacy": 52.609232000000006,
         "welfare": 35.19200000000001,
         "environment": 64.94884400000001
       },
       {
         "turn": 8,
-        "gdp": 103.0138171437223,
+        "gdp": 102.0934220848271,
         "inflation": 8.897041429632704,
         "liberty": 42,
-        "legitimacy": 54.897940000000006,
+        "legitimacy": 52.94794000000001,
         "welfare": 35.21600000000001,
         "environment": 64.942355
       },
       {
         "turn": 9,
-        "gdp": 103.35611159177527,
+        "gdp": 102.33056482087443,
         "inflation": 8.886276932477111,
         "liberty": 42,
-        "legitimacy": 54.886660000000006,
+        "legitimacy": 52.93666000000001,
         "welfare": 35.24000000000001,
         "environment": 64.935845
       },
       {
         "turn": 10,
-        "gdp": 103.69991361141706,
+        "gdp": 102.5686249142805,
         "inflation": 8.875641609287387,
         "liberty": 42,
-        "legitimacy": 55.875392000000005,
+        "legitimacy": 53.27539200000001,
         "welfare": 35.26400000000001,
         "environment": 64.929314
       },
       {
         "turn": 11,
-        "gdp": 104.04522942826094,
+        "gdp": 102.8076049682547,
         "inflation": 8.865133909975938,
         "liberty": 42,
-        "legitimacy": 56.864136,
+        "legitimacy": 53.61413600000001,
         "welfare": 35.28800000000001,
         "environment": 64.922762
       },
       {
         "turn": 12,
-        "gdp": 104.39206530742833,
+        "gdp": 103.04750760815011,
         "inflation": 8.854752303056227,
         "liberty": 42,
-        "legitimacy": 57.852892000000004,
+        "legitimacy": 53.95289200000001,
         "welfare": 35.31200000000001,
         "environment": 64.916189
       },
       {
         "turn": 13,
-        "gdp": 104.74042755367967,
+        "gdp": 103.28833548144624,
         "inflation": 8.844495275419552,
         "liberty": 42,
-        "legitimacy": 57.841660000000005,
+        "legitimacy": 53.94166000000001,
         "welfare": 35.33600000000001,
         "environment": 64.909595
       },
       {
         "turn": 14,
-        "gdp": 105.09032251154693,
+        "gdp": 103.5300912577328,
         "inflation": 8.834361332114518,
         "liberty": 42,
-        "legitimacy": 58.83044,
+        "legitimacy": 54.28044000000001,
         "welfare": 35.360000000000014,
         "environment": 64.90298
       },
       {
         "turn": 15,
-        "gdp": 105.44175656546803,
+        "gdp": 103.77277762869525,
         "inflation": 8.824348996129144,
         "liberty": 42,
-        "legitimacy": 58.819232,
+        "legitimacy": 54.26923200000001,
         "welfare": 35.384000000000015,
         "environment": 64.896344
       },
       {
         "turn": 16,
-        "gdp": 105.79473613992278,
+        "gdp": 104.01639730810157,
         "inflation": 8.814456808175594,
         "liberty": 47,
-        "legitimacy": 64.812036,
+        "legitimacy": 60.18310546000001,
         "welfare": 35.408000000000015,
         "environment": 64.889687
       },
       {
         "turn": 17,
-        "gdp": 106.14926769957081,
+        "gdp": 104.26095303179046,
         "inflation": 8.804683326477488,
         "liberty": 47,
-        "legitimacy": 64.80485200000001,
+        "legitimacy": 60.0982826381,
         "welfare": 35.432000000000016,
         "environment": 64.883009
       },
       {
         "turn": 18,
-        "gdp": 106.50535774939104,
+        "gdp": 104.50644755766098,
         "inflation": 8.795027126559757,
         "liberty": 47,
-        "legitimacy": 65.79768000000001,
+        "legitimacy": 60.358646905041375,
         "welfare": 35.45600000000002,
         "environment": 64.87631
       },
       {
         "turn": 19,
-        "gdp": 106.86301283482294,
+        "gdp": 104.75288366566346,
         "inflation": 8.78548680104104,
         "liberty": 47,
-        "legitimacy": 65.79052000000001,
+        "legitimacy": 60.27121460146576,
         "welfare": 35.48000000000002,
         "environment": 64.86959
       },
       {
         "turn": 20,
-        "gdp": 107.2222395419096,
+        "gdp": 105.00026415779185,
         "inflation": 8.776060959428548,
         "liberty": 47,
-        "legitimacy": 66.78337200000001,
+        "legitimacy": 60.527518071597385,
         "welfare": 35.50400000000002,
         "environment": 64.862849
       },
       {
         "turn": 21,
-        "gdp": 107.58304449744253,
+        "gdp": 105.24859185807739,
         "inflation": 8.766748227915405,
         "liberty": 47,
-        "legitimacy": 67.77623600000001,
+        "legitimacy": 60.77777979414385,
         "welfare": 35.52800000000002,
         "environment": 64.856087
       },
       {
         "turn": 22,
-        "gdp": 107.94543436910804,
+        "gdp": 105.49786961258359,
         "inflation": 8.757547249180421,
         "liberty": 47,
-        "legitimacy": 68.769112,
+        "legitimacy": 61.022142467630914,
         "welfare": 35.55200000000002,
         "environment": 64.849304
       },
       {
         "turn": 23,
-        "gdp": 108.30941586563553,
+        "gdp": 105.74810028940261,
         "inflation": 8.748456682190255,
         "liberty": 47,
-        "legitimacy": 68.762,
+        "legitimacy": 60.92480501061645,
         "welfare": 35.57600000000002,
         "environment": 64.8425
       },
       {
         "turn": 24,
-        "gdp": 108.67629544993783,
+        "gdp": 106.00055575585631,
         "inflation": 8.739475202003973,
         "liberty": 47,
-        "legitimacy": 68.7549,
+        "legitimacy": 60.82893943545721,
         "welfare": 35.60000000000002,
         "environment": 64.835675
       },
       {
         "turn": 25,
-        "gdp": 109.04478899424471,
+        "gdp": 106.2539759949229,
         "inflation": 8.730601499579926,
         "liberty": 47,
-        "legitimacy": 68.74781200000001,
+        "legitimacy": 60.734523663925344,
         "welfare": 35.624000000000024,
         "environment": 64.828829
       },
       {
         "turn": 26,
-        "gdp": 109.41490338928452,
+        "gdp": 106.50836397539975,
         "inflation": 8.721834281584966,
         "liberty": 47,
-        "legitimacy": 69.74073600000001,
+        "legitimacy": 60.97995527313801,
         "welfare": 35.648000000000025,
         "environment": 64.821962
       },
       {
         "turn": 27,
-        "gdp": 109.78664556776876,
+        "gdp": 106.76372268825335,
         "inflation": 8.713172270205947,
         "liberty": 47,
-        "legitimacy": 70.73367200000001,
+        "legitimacy": 61.21960191453058,
         "welfare": 35.672000000000025,
         "environment": 64.815074
       },
       {
         "turn": 28,
-        "gdp": 110.16002250455143,
+        "gdp": 107.02005514662335,
         "inflation": 8.704614202963475,
         "liberty": 47,
-        "legitimacy": 70.72662000000001,
+        "legitimacy": 61.11936166581262,
         "welfare": 35.696000000000026,
         "environment": 64.808165
       },
       {
         "turn": 29,
-        "gdp": 110.53504121679018,
+        "gdp": 107.27736438582802,
         "inflation": 8.696158832527914,
         "liberty": 47,
-        "legitimacy": 70.71958000000001,
+        "legitimacy": 61.020636840825425,
         "welfare": 35.72000000000003,
         "environment": 64.801235
       },
       {
         "turn": 30,
-        "gdp": 110.91170876410915,
+        "gdp": 107.5356534633708,
         "inflation": 8.687804926537579,
         "liberty": 47,
-        "legitimacy": 70.712552,
+        "legitimacy": 60.92340470821305,
         "welfare": 35.74400000000003,
         "environment": 64.794284
       },
       {
         "turn": 31,
-        "gdp": 111.29003224876362,
+        "gdp": 107.79492545894823,
         "inflation": 8.679551267419129,
         "liberty": 47,
-        "legitimacy": 71.70553600000001,
+        "legitimacy": 61.164434283260945,
         "welfare": 35.76800000000003,
         "environment": 64.787312
       },
       {
         "turn": 32,
-        "gdp": 111.6700188158063,
+        "gdp": 108.05518347445896,
         "inflation": 8.671396652210099,
         "liberty": 47,
-        "legitimacy": 71.69853200000001,
+        "legitimacy": 61.06506882901203,
         "welfare": 35.79200000000003,
         "environment": 64.780319
       },
       {
         "turn": 33,
-        "gdp": 112.05167565325544,
+        "gdp": 108.3164306340142,
         "inflation": 8.663339892383577,
         "liberty": 47,
-        "legitimacy": 71.69154000000002,
+        "legitimacy": 60.96720567657685,
         "welfare": 35.81600000000003,
         "environment": 64.77330500000001
       },
       {
         "turn": 34,
-        "gdp": 112.43500999226465,
+        "gdp": 108.57867008394922,
         "inflation": 8.655379813674974,
         "liberty": 47,
-        "legitimacy": 71.68456000000002,
+        "legitimacy": 60.870822291428205,
         "welfare": 35.84000000000003,
         "environment": 64.76627
       },
       {
         "turn": 35,
-        "gdp": 112.8200291072945,
+        "gdp": 108.84190499283606,
         "inflation": 8.647515255910875,
         "liberty": 47,
-        "legitimacy": 72.67759200000002,
+        "legitimacy": 61.11314107743254,
         "welfare": 35.86400000000003,
         "environment": 64.759214
       },
       {
         "turn": 36,
-        "gdp": 113.20674031628582,
+        "gdp": 109.10613855149752,
         "inflation": 8.639745072839945,
         "liberty": 47,
-        "legitimacy": 72.67063600000002,
+        "legitimacy": 61.014592301271044,
         "welfare": 35.888000000000034,
         "environment": 64.752137
       },
       {
         "turn": 37,
-        "gdp": 113.5951509808347,
+        "gdp": 109.37137397302233,
         "inflation": 8.632068131965866,
         "liberty": 47,
-        "legitimacy": 73.66369200000001,
+        "legitimacy": 61.2535390593554,
         "welfare": 35.912000000000035,
         "environment": 64.745039
       },
       {
         "turn": 38,
-        "gdp": 113.98526850636944,
+        "gdp": 109.63761449278137,
         "inflation": 8.624483314382276,
         "liberty": 47,
-        "legitimacy": 74.65676,
+        "legitimacy": 61.48685401369725,
         "welfare": 35.936000000000035,
         "environment": 64.73792
       },
       {
         "turn": 39,
-        "gdp": 114.377100342329,
+        "gdp": 109.90486336844526,
         "inflation": 8.616989514609688,
         "liberty": 47,
-        "legitimacy": 74.64984000000001,
+        "legitimacy": 61.38273500349179,
         "welfare": 35.960000000000036,
         "environment": 64.73078
       },
       {
         "turn": 40,
-        "gdp": 114.77065398234335,
+        "gdp": 110.17312388000305,
         "inflation": 8.609585640434371,
         "liberty": 47,
-        "legitimacy": 75.64293200000002,
+        "legitimacy": 61.613022151128064,
         "welfare": 35.98400000000004,
         "environment": 64.723619
       },
       {
         "turn": 41,
-        "gdp": 115.16593696441554,
+        "gdp": 110.4423993297819,
         "inflation": 8.602270612749159,
         "liberty": 47,
-        "legitimacy": 75.63603600000002,
+        "legitimacy": 61.50703425886115,
         "welfare": 36.00800000000004,
         "environment": 64.716437
       },
       {
         "turn": 42,
-        "gdp": 115.56295687110547,
+        "gdp": 110.71269304246822,
         "inflation": 8.595043365396169,
         "liberty": 47,
-        "legitimacy": 76.62915200000002,
+        "legitimacy": 61.73440925345967,
         "welfare": 36.03200000000004,
         "environment": 64.709234
       },
       {
         "turn": 43,
-        "gdp": 115.96172132971554,
+        "gdp": 110.98400836512965,
         "inflation": 8.587902845011415,
         "liberty": 47,
-        "legitimacy": 76.62228000000002,
+        "legitimacy": 61.62662419465777,
         "welfare": 36.05600000000004,
         "environment": 64.70201
       },
       {
         "turn": 44,
-        "gdp": 116.36223801247796,
+        "gdp": 111.25634866723841,
         "inflation": 8.580848010871279,
         "liberty": 47,
-        "legitimacy": 77.61542000000001,
+        "legitimacy": 61.851198264460194,
         "welfare": 36.08000000000004,
         "environment": 64.694765
       },
       {
         "turn": 45,
-        "gdp": 116.7645146367438,
+        "gdp": 111.52971734069563,
         "inflation": 8.573877834740824,
         "liberty": 47,
-        "legitimacy": 80.60857200000001,
+        "legitimacy": 64.55992773870629,
         "welfare": 36.10400000000004,
         "environment": 64.687499
       },
       {
         "turn": 46,
-        "gdp": 117.16855896517391,
+        "gdp": 111.80411779985688,
         "inflation": 8.566991300723934,
         "liberty": 47,
-        "legitimacy": 80.601736,
+        "legitimacy": 64.40979536262569,
         "welfare": 36.12800000000004,
         "environment": 64.680212
       },
       {
         "turn": 47,
-        "gdp": 117.57437880593152,
+        "gdp": 112.07955348155878,
         "inflation": 8.560187405115247,
         "liberty": 49,
-        "legitimacy": 84.596512,
+        "legitimacy": 67.76913794896767,
         "welfare": 36.152000000000044,
         "environment": 64.672904
       },
       {
         "turn": 48,
-        "gdp": 117.98198201287661,
+        "gdp": 112.3560278451467,
         "inflation": 8.553465156253864,
-        "liberty": 51.06,
-        "legitimacy": 86.6229,
+        "liberty": 49.760000000000005,
+        "legitimacy": 68.15250169572957,
         "welfare": 36.176000000000045,
         "environment": 64.665575
       },
       {
         "turn": 49,
-        "gdp": 118.39420805333044,
+        "gdp": 112.63448816313759,
         "inflation": 8.546823574378818,
-        "liberty": 51.120000000000005,
-        "legitimacy": 86.649348,
+        "liberty": 49.82000000000001,
+        "legitimacy": 67.97472803200591,
         "welfare": 36.200000000000045,
         "environment": 64.658225
       },
       {
         "turn": 50,
-        "gdp": 118.8082530335164,
+        "gdp": 112.91399882257195,
         "inflation": 8.540261691486272,
-        "liberty": 51.18000000000001,
-        "legitimacy": 86.676856,
-        "welfare": 38.224000000000046,
+        "liberty": 49.88000000000001,
+        "legitimacy": 67.80015585064467,
+        "welfare": 36.92400000000005,
         "environment": 64.650854
       },
       {
         "turn": 51,
-        "gdp": 119.22412507587404,
+        "gdp": 113.19456337691697,
         "inflation": 8.533778551188437,
-        "liberty": 51.24000000000001,
-        "legitimacy": 88.704424,
-        "welfare": 38.24800000000005,
+        "liberty": 49.94000000000001,
+        "legitimacy": 68.1830188027922,
+        "welfare": 36.94800000000005,
         "environment": 64.643462
       },
       {
         "turn": 52,
-        "gdp": 119.64183235010957,
+        "gdp": 113.47618540238982,
         "inflation": 8.527373208574176,
-        "liberty": 58.30000000000001,
-        "legitimacy": 90.73205200000001,
-        "welfare": 42.27200000000005,
+        "liberty": 57.000000000000014,
+        "legitimacy": 69.60502217159164,
+        "welfare": 40.97200000000005,
         "environment": 64.636049
       },
       {
         "turn": 53,
-        "gdp": 120.06569017936931,
+        "gdp": 113.76029829792775,
         "inflation": 8.521044730071285,
-        "liberty": 58.390000000000015,
-        "legitimacy": 90.76734,
-        "welfare": 42.29600000000005,
+        "liberty": 57.09000000000002,
+        "legitimacy": 69.41159837695696,
+        "welfare": 40.99600000000005,
         "environment": 64.628615
       },
       {
         "turn": 54,
-        "gdp": 120.49143009891341,
+        "gdp": 114.04548303157556,
         "inflation": 8.514792193310429,
-        "liberty": 58.48000000000002,
-        "legitimacy": 90.803212,
-        "welfare": 43.32000000000005,
+        "liberty": 57.18000000000002,
+        "legitimacy": 69.2214308983955,
+        "welfare": 41.370000000000054,
         "environment": 64.62116
       },
       {
         "turn": 55,
-        "gdp": 120.9190606232146,
+        "gdp": 114.33174328840327,
         "inflation": 8.508614686990704,
-        "liberty": 58.57000000000002,
-        "legitimacy": 90.839168,
-        "welfare": 43.34400000000005,
-        "environment": 65.613684
+        "liberty": 57.270000000000024,
+        "legitimacy": 69.03433808425757,
+        "welfare": 41.394000000000055,
+        "environment": 64.92324885000001
       }
     ],
     "log": [
@@ -647,7 +647,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -678,7 +678,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -775,7 +775,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -806,7 +806,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -837,7 +837,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -901,7 +901,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -932,7 +932,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -963,7 +963,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -994,7 +994,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -1025,7 +1025,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -1056,7 +1056,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1087,7 +1087,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.35
         }
       },
       {
@@ -1118,7 +1118,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1183,7 +1183,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1214,7 +1214,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3491
         }
       },
       {
@@ -1245,7 +1245,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1276,7 +1276,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3476
         }
       },
       {
@@ -1307,7 +1307,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3454
         }
       },
       {
@@ -1338,7 +1338,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3432
         }
       },
       {
@@ -1369,7 +1369,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1434,7 +1434,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1465,7 +1465,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3436
         }
       },
       {
@@ -1496,7 +1496,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3414
         }
       },
       {
@@ -1527,7 +1527,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1558,7 +1558,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1589,7 +1589,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1620,7 +1620,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3419
         }
       },
       {
@@ -1651,7 +1651,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1682,7 +1682,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1713,7 +1713,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1744,7 +1744,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3424
         }
       },
       {
@@ -1775,7 +1775,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1806,7 +1806,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3411
         }
       },
       {
@@ -1837,7 +1837,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.339
         }
       },
       {
@@ -1868,7 +1868,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1899,7 +1899,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3379
         }
       },
       {
@@ -1930,7 +1930,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -1961,7 +1961,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3368
         }
       },
       {
@@ -1992,7 +1992,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 1
+          "admin": 0.35
         }
       },
       {
@@ -2023,7 +2023,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 1
+          "legitimacy": 0.3358
         }
       },
       {
@@ -2056,7 +2056,7 @@
           "S04"
         ],
         "changes": {
-          "legitimacy": 3
+          "legitimacy": 2.8612
         }
       },
       {
@@ -2115,7 +2115,7 @@
           "S05"
         ],
         "changes": {
-          "legitimacy": 4,
+          "legitimacy": 3.559,
           "liberty": 2
         }
       },
@@ -2129,8 +2129,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 2,
-          "liberty": 2
+          "legitimacy": 0.564,
+          "liberty": 0.7
         }
       },
       {
@@ -2173,8 +2173,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "education": 2,
-          "admin": 1
+          "education": 0.7,
+          "admin": 0.35
         }
       },
       {
@@ -2187,8 +2187,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "welfare": 2,
-          "equality": 1
+          "welfare": 0.7,
+          "equality": 0.35
         }
       },
       {
@@ -2201,8 +2201,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 2,
-          "stability": 1
+          "legitimacy": 0.5635,
+          "stability": 0.35
         }
       },
       {
@@ -2215,8 +2215,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "admin": 2,
-          "equality": 2
+          "admin": 0.7,
+          "equality": 0.7
         }
       },
       {
@@ -2235,7 +2235,7 @@
         "turn": 52,
         "date": "1964-05",
         "type": "bill",
-        "text": "언론 자유 보장: 가결 (가상 통과 확률 63.6%).",
+        "text": "언론 자유 보장: 가결 (가상 통과 확률 58.5%).",
         "policyId": "press_freedom",
         "changes": {
           "liberty": 7,
@@ -2252,7 +2252,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "infrastructure": 2
+          "infrastructure": 0.7
         }
       },
       {
@@ -2265,8 +2265,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "welfare": 1,
-          "admin": 1
+          "welfare": 0.35,
+          "admin": 0.35
         }
       },
       {
@@ -2279,8 +2279,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "environment": 1,
-          "admin": 2
+          "environment": 0.3096,
+          "admin": 0.7
         }
       },
       {
@@ -2293,8 +2293,8 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "reserves": 2,
-          "industry": 1
+          "reserves": 0.7,
+          "industry": 0.35
         }
       },
       {
@@ -2322,12 +2322,12 @@
     ],
     "ending": null,
     "lastFinance": {
-      "income": 15.36720005346197,
-      "base": 11.686880021384788,
+      "income": 15.141591906105145,
+      "base": 11.596636762442058,
       "interest": 0.24,
       "upkeep": 0.44999999999999996,
-      "expense": 12.376880021384787,
-      "balance": 2.9903200320771814,
+      "expense": 12.286636762442058,
+      "balance": 2.8549551436630862,
       "turn": 55
     },
     "visited": [],
@@ -2335,12 +2335,12 @@
       "turn": 55,
       "date": "1964-08",
       "finance": {
-        "income": 15.36720005346197,
-        "base": 11.686880021384788,
+        "income": 15.141591906105145,
+        "base": 11.596636762442058,
         "interest": 0.24,
         "upkeep": 0.44999999999999996,
-        "expense": 12.376880021384787,
-        "balance": 2.9903200320771814
+        "expense": 12.286636762442058,
+        "balance": 2.8549551436630862
       },
       "borrowed": 0,
       "completed": [],
@@ -2352,11 +2352,11 @@
       ],
       "ending": null,
       "changes": {
-        "gdp": 0.427631,
-        "treasury": 2.99032,
+        "gdp": 0.28626,
+        "treasury": 2.854955,
         "inflation": -0.006178,
         "unemployment": -0.015872,
-        "legitimacy": 0.035956,
+        "legitimacy": -0.187093,
         "liberty": 0.09,
         "welfare": 0.024,
         "education": 0.024,
@@ -2364,31 +2364,31 @@
         "industry": 0.06,
         "agriculture": 0.036,
         "environment": -0.007476,
-        "stability": 0.282873,
+        "stability": 0.142298,
         "equality": -0.009594
       },
       "support": {
-        "workers": 0.185463,
-        "farmers": -0.01112,
-        "business": 0.057351,
-        "students": 0.133559,
-        "civil": 0.128902,
-        "bureaucracy": 0.290579,
-        "military": 0.229407,
-        "opposition": 0.226731
+        "workers": 0.14675,
+        "farmers": -0.03623,
+        "business": -0.035214,
+        "students": 0.007252,
+        "civil": 0.082519,
+        "bureaucracy": 0.09108,
+        "military": 0.095678,
+        "opposition": 0.094918
       },
       "relations": {},
       "ledger": {
         "treasury": [
           [
             "월 재정 수지",
-            2.99032
+            2.854955
           ]
         ],
         "gdp": [
           [
             "생산 추세",
-            0.427631
+            0.28626
           ]
         ],
         "welfare": [
@@ -2442,17 +2442,21 @@
         "legitimacy": [
           [
             "사회 추세",
-            0.005956
+            0.003032
+          ],
+          [
+            "높아진 기대",
+            -0.213367
           ],
           [
             "자문 지속 효과",
-            0.03
+            0.023242
           ]
         ],
         "stability": [
           [
             "사회 추세",
-            0.282873
+            0.142298
           ]
         ],
         "equality": [

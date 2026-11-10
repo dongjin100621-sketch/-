@@ -12,3 +12,7 @@ export type Action={type:'choose';choiceId:string}|{type:'prepare'}|{type:'polic
 /* 저장 버전 2(game/engine.mjs)에서 추가된 상태 필드 */
 export interface MonthReport{turn:number;date:string;finance:{income:number;base:number;interest:number;upkeep:number;expense:number;balance:number};borrowed:number;completed:{projectId:string;regionId:string}[];bills:{policyId:string;status:'passed'|'failed';probability:number}[];followups:{text:string;effects:Effects}[];election:{share:number;transfer:boolean;seats:number}|null;events:string[];ending:string|null;changes:Effects;support:Record<string,number>;relations:Record<string,number>;ledger:Partial<Record<MetricId,[string,number][]>>;}
 export interface SaveStateV2Extra{report:MonthReport|null;monthActions:string[];}
+/** 데이터 1.2.0 밸런스 규칙(game.json의 balance). 없으면 1.1.0 계산. */
+export interface BalanceRules{note?:string;diminishing?:{note?:string;metrics:MetricId[];from:number;minFactor:number};eventGain?:{note?:string;fictional_system?:number;historical_anchor?:number};expectations?:{note?:string}&Partial<Record<MetricId,{target:number;rate:number}>>;growthBase?:number;growthNote?:string;militaryRule?:{note?:string;monthly:Effects};authoritarian?:{note?:string;monthly:Effects;gainFactor?:Effects;support?:Record<string,number>;relations?:Record<string,number>};}
+/** projectEffects()의 항목. base는 체감·사건 배율로 실제 변화(delta)가 데이터 값과 다를 때만 있다. */
+export interface ProjectedEffect{id:MetricId;delta:number;base?:number;before:number;after:number;}

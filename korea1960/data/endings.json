@@ -129,7 +129,7 @@
   {
     "id": "authoritarian",
     "title": "집중된 권력의 유산",
-    "priority": 65,
+    "priority": 82,
     "conditions": {
       "liberty": {
         "lt": 40

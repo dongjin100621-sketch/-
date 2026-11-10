@@ -1,6 +1,6 @@
 # 데이터 계약과 저장 구조
 
-`data/game.json`이 정본이다. 분리 JSON 11개는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
+`data/game.json`이 정본이다. 분리 JSON 12개(목록 11개와 `balance.json`)는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
 
 ## 콘텐츠 레코드
 
@@ -41,7 +41,9 @@ v2(game/engine.mjs) 추가 인터페이스: `actionReason(state,data,action)`(�
 
 ## 저장 상태
 
-**현재 형식: format=KOREA1960_SAVE, version=2, dataVersion=1.1.0.** 버전 2 state는 아래 버전 1의 필드에 `report`(월 결산, 없으면 null)와 `monthActions`(이번 달 외교 상대 기록)를 더한다. 연대기 항목은 선택적으로 `changes`(지표 변화), `eventId`·`choiceId`·`kind`·`sourceIds`, `policyId`·`projectId`·`regionId`·`countryId`를 갖고, 불러올 때 모두 ID·수치를 검사한다. `report`는 허용된 키만 받는다.
+**현재 형식: format=KOREA1960_SAVE, version=2, dataVersion=1.2.0.** 버전 2 state는 아래 버전 1의 필드에 `report`(월 결산, 없으면 null)와 `monthActions`(이번 달 외교 상대 기록)를 더한다. 연대기 항목은 선택적으로 `changes`(지표 변화), `eventId`·`choiceId`·`kind`·`sourceIds`, `policyId`·`projectId`·`regionId`·`countryId`를 갖고, 불러올 때 모두 ID·수치를 검사한다. `report`는 허용된 키만 받는다.
+
+**데이터 1.1.0의 버전 2 저장**은 그대로 받아 dataVersion만 1.2.0으로 바꾼다(`COMPATIBLE_DATA_VERSIONS`). 1.2.0은 ID·상태 구조가 같고 `balance` 규칙만 더했으므로, 불러온 뒤의 달부터 새 규칙으로 계산된다. 이미 쌓인 지표 값은 바꾸지 않는다. 그 밖의 데이터 버전(예: 1.1.1)은 거부한다.
 
 버전 1(데이터 1.0.0) 저장은 `migrateSave`가 순수 변환한다: 버전·데이터 버전을 올리고 `report:null`, `monthActions:[]`를 더한다. 콘텐츠 ID와 수치는 그대로이므로 안전하다. 그 밖의 버전, 데이터 버전이 다른 버전 1, 다른 게임 ID는 거부한다. 자동 저장은 브라우저 localStorage의 `korea1960.game.v2`에 두고, 예전 키 `korea1960.reference.v1`이 있으면 변환해 옮긴다. 읽지 못한 자동 저장은 지우지 않고 `korea1960.game.v2.unreadable`에 보관한다.
 
@@ -54,3 +56,18 @@ v2(game/engine.mjs) 추가 인터페이스: `actionReason(state,data,action)`(�
 동일 콘텐츠 ID의 표시 문구만 수정하는 경우 저장 버전을 유지할 수 있다. 지표의 의미·사건 분기·ID·상태 구조를 바꾸면 dataVersion 또는 save version을 올리고, 구버전 파일을 안전하게 거부하거나 순수 변환 함수를 제공한다. 호환성 경고를 지우기 위해 버전 검사를 임의로 제거하지 않는다. 현재 예시는 다른 버전의 저장을 거부한다.
 
 TypeScript 참고 타입은 data/types.d.ts에 있다. 스키마의 기본 형태는 data/game.schema.json, 실제 참조·의미 검증은 tools/validate_content.py와 테스트가 담당한다. 동작하는 정본 데이터를 검증하기 위한 스키마이지 모든 가상 확장 필드를 이미 지원한다는 뜻이 아니다.
+
+## 밸런스 규칙 블록 (데이터 1.2.0)
+
+`balance`는 선택 항목이다. 없으면 엔진은 데이터 1.1.0(제작 패키지 v1)과 같은 계산을 한다. 각 하위 블록은 `note`(설명 문자열)를 가질 수 있다. 모르는 키나 범위 밖 값은 `tools/validate_content.py`가 거부한다.
+
+| 키 | 형태 | 검사 범위 |
+| --- | --- | --- |
+| `diminishing` | `{metrics:[지표 ID], from, minFactor}` | metrics는 0~100 지표만, 0 ≤ from < 100, 0 ≤ minFactor ≤ 1 |
+| `eventGain` | `{fictional_system?, historical_anchor?}` | 0~2 |
+| `expectations` | `{지표 ID: {target, rate}}` | 0~100 지표, target 0~100, rate 0~0.2 |
+| `growthBase` | 숫자 | −0.01~0.012 |
+| `militaryRule` | `{monthly: {지표 ID: 값}}` | ±2 |
+| `authoritarian` | `{monthly, gainFactor?, support?, relations?}` | monthly ±2, gainFactor 0~1(0~100 지표), support는 집단 ID, relations는 외교 상대 ID, ±2 |
+
+수식은 docs/SIMULATION_RULES.md "데이터 1.2.0 밸런스", 타입은 `data/types.d.ts`의 `BalanceRules`.

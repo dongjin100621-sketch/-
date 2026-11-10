@@ -16,6 +16,8 @@
 export const SAVE_VERSION = 2;
 export const SAVE_FORMAT = 'KOREA1960_SAVE';
 export const LEGACY_DATA_VERSIONS = { 1: '1.0.0' };
+/** 같은 저장 형식(2)에서 그대로 이어 받을 수 있는 이전 데이터 버전. ID·상태 구조가 같고 수치 규칙만 다르다. */
+export const COMPATIBLE_DATA_VERSIONS = ['1.1.0'];
 export const BUDGET_KEYS = ['industry', 'agriculture', 'education', 'welfare', 'infrastructure', 'security'];
 export const PHASES = ['prelude', 'civilian', 'transition', 'elected', 'governing'];
 export const EXECUTIVE_PHASES = ['transition', 'governing'];
@@ -59,10 +61,25 @@ function normalize(s, d) {
   s.seats = clamp(s.seats, .05, .95);
 }
 function log(s, type, text, extra = {}) { s.log.push({ turn: s.turn, date: dateLabel(Math.min(s.turn, 239)), type, text, ...extra }); }
-function apply(s, effects = {}) {
+/* ---------- 밸런스 규칙(데이터 1.2.0의 balance 블록) ----------
+ * balance가 없으면 모든 배율이 1이고 새 월 항목이 없어 v1과 같은 계산이 된다(회귀 비교에 쓴다). */
+/** 지표 id에 더해질 양(+) 효과의 배율. 음(-) 효과에는 쓰지 않는다.
+ *  kind: 사건 선택의 효과일 때 사건 종류(가상 사건의 무비용 보너스 축소). 체감·사건 배율은 0~100 지수 지표(diminishing.metrics)에만 적용된다. */
+export function gainScale(s, d, id, kind = null) {
+  const b = d && d.balance; if (!b) return 1;
+  let f = 1;
+  const dim = b.diminishing, index = !!dim && dim.metrics.includes(id);
+  if (index && kind && b.eventGain && finite(b.eventGain[kind])) f *= b.eventGain[kind];
+  if (index && s.stats[id] > dim.from) f *= Math.max(dim.minFactor, (100 - s.stats[id]) / (100 - dim.from));
+  const a = b.authoritarian;
+  if (a && s.flags.authoritarian && a.gainFactor && Object.hasOwn(a.gainFactor, id)) f *= a.gainFactor[id];
+  return f;
+}
+const scaled = (s, d, id, v, kind = null) => v > 0 && d && d.balance ? v * gainScale(s, d, id, kind) : v;
+function apply(s, effects = {}, d = null, kind = null) {
   for (const [k, v] of Object.entries(effects)) {
     if (!Object.hasOwn(s.stats, k) || !finite(v)) throw new Error(`미등록 효과: ${k}`);
-    s.stats[k] += v;
+    s.stats[k] += scaled(s, d, k, v, kind);
   }
 }
 function faction(s, e = {}) { for (const [k, v] of Object.entries(e)) s.support[k] = clamp(s.support[k] + v, 0, 100); }
@@ -274,23 +291,34 @@ function month(s, d) {
     report.borrowed = borrowing;
     log(s, 'finance', `부족분 ${borrowing.toFixed(1)} 재정점을 부채로 조달했다.`);
   }
-  const k = s.stats, b = s.budget, executive = isExecutive(s);
+  const k = s.stats, b = s.budget, executive = isExecutive(s), bal = d.balance || null;
+  const add = (id, v) => { k[id] += scaled(s, d, id, v); };
   // 초반 배분은 플레이어가 조작하는 지출이 아니라 관찰용 국가 기본값이다.
-  const rate = clamp(.0025 + k.industry * .00003 + k.education * .000012 + k.infrastructure * .000018 - Math.max(0, k.inflation - 12) * .00015 - k.unemployment * .00004, -.01, .012);
+  const rate = clamp((bal && finite(bal.growthBase) ? bal.growthBase : .0025) + k.industry * .00003 + k.education * .000012 + k.infrastructure * .000018 - Math.max(0, k.inflation - 12) * .00015 - k.unemployment * .00004, -.01, .012);
   track('생산 추세', () => { k.gdp *= 1 + rate; });
-  track('예산 배분', () => { for (const key of BUDGET_KEYS) k[key] += (b[key] - 12) * .006; });
+  track('예산 배분', () => { for (const key of BUDGET_KEYS) add(key, (b[key] - 12) * .006); });
   track('물가 추세·부채 압력', () => { k.inflation += (8 - k.inflation) * .012 + Math.max(0, k.debt - 220) * .0001; });
   track('고용 추세', () => { k.unemployment += (12 - k.unemployment) * .012 - k.industry * .0003; });
   track('산업화의 환경 부담', () => { k.environment -= k.industry * .00035; });
   track('사회 추세', () => {
-    k.stability += (k.legitimacy - k.stability) * .008 + (k.welfare - 45) * .0008;
-    k.legitimacy += ((k.liberty - 50) * .0008 + (k.welfare - 45) * .0005);
-    k.equality += (k.welfare - k.equality) * .002;
+    add('stability', (k.legitimacy - k.stability) * .008 + (k.welfare - 45) * .0008);
+    add('legitimacy', ((k.liberty - 50) * .0008 + (k.welfare - 45) * .0005));
+    add('equality', (k.welfare - k.equality) * .002);
   });
-  if (s.flags.authoritarian) track('권력 집중의 비용', () => { k.liberty -= .3; k.legitimacy -= .10; });
+  if (bal && bal.expectations) track('높아진 기대', () => {
+    for (const [id, x] of Object.entries(bal.expectations)) if (object(x) && Object.hasOwn(k, id) && k[id] > x.target) k[id] -= (k[id] - x.target) * x.rate;
+  });
+  if (bal && bal.militaryRule && s.phase === 'transition') track('군정의 비용', () => { for (const [id, v] of Object.entries(bal.militaryRule.monthly)) k[id] += v; });
+  if (s.flags.authoritarian) track('권력 집중의 비용', () => {
+    if (!bal || !bal.authoritarian) { k.liberty -= .3; k.legitimacy -= .10; return; }
+    const a = bal.authoritarian;
+    for (const [id, v] of Object.entries(a.monthly)) k[id] += v;
+    faction(s, a.support || {});
+    for (const [id, v] of Object.entries(a.relations || {})) s.relations[id] += v;
+  });
   if (executive) {
-    track('정책 지속 효과', () => { for (const id of s.policies) apply(s, d.policies.find(x => x.id === id).monthlyEffects); });
-    track('자문 지속 효과', () => { for (const id of s.advisers) apply(s, d.advisers.find(x => x.id === id).monthlyEffects); });
+    track('정책 지속 효과', () => { for (const id of s.policies) apply(s, d.policies.find(x => x.id === id).monthlyEffects, d); });
+    track('자문 지속 효과', () => { for (const id of s.advisers) apply(s, d.advisers.find(x => x.id === id).monthlyEffects, d); });
   }
   track('사업 준공', () => {
     for (const p of s.projects) {
@@ -298,7 +326,7 @@ function month(s, d) {
       p.remaining--;
       if (p.remaining <= 0) {
         p.remaining = 0; p.status = 'complete'; p.completedTurn = s.turn;
-        const def = d.projects.find(x => x.id === p.projectId); apply(s, def.effects);
+        const def = d.projects.find(x => x.id === p.projectId); apply(s, def.effects, d);
         report.completed.push({ projectId: p.projectId, regionId: p.regionId });
         log(s, 'construction', `${d.regions.find(x => x.id === p.regionId).name} · ${def.name} 준공.`, { projectId: p.projectId, regionId: p.regionId, changes: roundEffects(def.effects) });
       }
@@ -314,7 +342,7 @@ function month(s, d) {
         bill.remaining = 0; const p = d.policies.find(x => x.id === bill.policyId);
         const chance = billChance(s, d);
         bill.probability = chance; bill.roll = random(s); bill.status = bill.roll < chance ? 'passed' : 'failed'; bill.resolvedTurn = s.turn;
-        if (bill.status === 'passed' && !s.policies.includes(p.id)) activate(s, p);
+        if (bill.status === 'passed' && !s.policies.includes(p.id)) activate(s, d, p);
         report.bills.push({ policyId: p.id, status: bill.status, probability: chance });
         log(s, 'bill', `${p.name}: ${bill.status === 'passed' ? '가결' : '부결'} (가상 통과 확률 ${(chance * 100).toFixed(1)}%).`, { policyId: p.id, ...(bill.status === 'passed' ? { changes: roundEffects(p.effects) } : {}) });
       }
@@ -322,7 +350,7 @@ function month(s, d) {
   });
   track('지연 효과', () => {
     for (const x of s.delayed.filter(x => x.due <= s.turn + 1)) {
-      apply(s, x.effects); report.followups.push({ text: x.text, effects: clone(x.effects) });
+      apply(s, x.effects, d); report.followups.push({ text: x.text, effects: clone(x.effects) });
       log(s, 'followup', x.text, { changes: roundEffects(x.effects) });
     }
     s.delayed = s.delayed.filter(x => x.due > s.turn + 1);
@@ -351,7 +379,7 @@ function month(s, d) {
 }
 function diff(a, b) { const out = {}; for (const key of Object.keys(b)) { const v = b[key] - a[key]; if (Math.abs(v) > 1e-9) out[key] = round(v, 6); } return out; }
 function roundEffects(e) { return Object.fromEntries(Object.entries(e || {}).map(([k, v]) => [k, round(v, 4)])); }
-function activate(s, p) { s.policies.push(p.id); apply(s, p.effects); faction(s, p.factionEffects); }
+function activate(s, d, p) { s.policies.push(p.id); apply(s, p.effects, d); faction(s, p.factionEffects); }
 function firstElection(s, d) {
   const probability = firstElectionChance(s, d);
   const roll = random(s) * 100;
@@ -360,19 +388,20 @@ function firstElection(s, d) {
   else setEnding(s, d, 'peaceful_transfer');
 }
 /** 사건 선택의 직접 효과(특수 판정·엔딩·난수 제외). dispatch와 미리보기가 같은 코드를 쓴다. */
-function applyChoice(s, c) {
-  apply(s, c.effects); faction(s, c.factionEffects);
+function applyChoice(s, c, d, kind) {
+  apply(s, c.effects, d, kind); faction(s, c.factionEffects);
   for (const [id, v] of Object.entries(c.relations || {})) s.relations[id] += v;
   Object.assign(s.flags, c.setFlags || {}); if (c.phase) s.phase = c.phase; s.influence += c.influence || 0;
 }
 
 /* ---------- 미리보기: 결정 직전에 보여 줄 값. 상태를 바꾸지 않고 난수를 소비하지 않는다. ---------- */
-/** 효과를 현재 값에 더한 뒤 지표 범위로 제한한 전/후 목록. */
-export function projectEffects(s, d, effects = {}) {
-  return Object.entries(effects).map(([id, delta]) => {
-    const m = d.metrics.find(x => x.id === id), before = s.stats[id];
+/** 효과를 현재 값에 더한 뒤 지표 범위로 제한한 전/후 목록. delta는 실제로 더해질 양(체감·신뢰 할인 반영),
+ *  base는 데이터에 적힌 기본값이며 둘이 다를 때만 넣는다. */
+export function projectEffects(s, d, effects = {}, kind = null) {
+  return Object.entries(effects).map(([id, value]) => {
+    const m = d.metrics.find(x => x.id === id), before = s.stats[id], delta = scaled(s, d, id, value, kind);
     const after = m ? clamp(before + delta, m.min, m.max) : before + delta;
-    return { id, delta, before, after };
+    return Math.abs(delta - value) > 1e-9 ? { id, delta, base: value, before, after } : { id, delta, before, after };
   });
 }
 export function choicePreview(s, d, choiceId) {
@@ -380,9 +409,9 @@ export function choicePreview(s, d, choiceId) {
   if (!c) return null;
   // 선택이 건드리는 부분만 복사한다(연대기 전체를 복제하지 않는다).
   const t = { stats: { ...s.stats }, support: { ...s.support }, relations: { ...s.relations }, flags: { ...s.flags }, phase: s.phase, influence: s.influence, seats: s.seats };
-  applyChoice(t, c); normalize(t, d);
+  applyChoice(t, c, d, e.kind); normalize(t, d);
   return {
-    stats: projectEffects(s, d, c.effects),
+    stats: projectEffects(s, d, c.effects, e.kind),
     support: Object.entries(c.factionEffects || {}).map(([id, v]) => ({ id, delta: v, before: s.support[id], after: t.support[id] })),
     relations: Object.entries(c.relations || {}).map(([id, v]) => ({ id, delta: v, before: s.relations[id], after: t.relations[id] })),
     influence: c.influence || 0,
@@ -421,7 +450,7 @@ export function dispatch(current, d, action) {
   switch (action.type) {
     case 'choose': {
       const e = d.events.find(x => x.id === s.queue[0]), c = e.choices.find(x => x.id === action.choiceId);
-      applyChoice(s, c);
+      applyChoice(s, c, d, e.kind);
       if (c.delay) s.delayed.push({ due: s.turn + c.delay.months, ...clone(c.delay) });
       log(s, 'event', `${e.title} — ${c.label}`, { eventId: e.id, choiceId: c.id, kind: e.kind, sourceIds: e.sourceIds });
       s.queue.shift();
@@ -441,7 +470,7 @@ export function dispatch(current, d, action) {
         s.bills.push({ policyId: p.id, total, remaining: total, status: 'introduced', startedTurn: s.turn });
         log(s, 'bill', `${p.name} 발의. 예상 심의 ${total}개월. 시행비 ${p.cost} 재정점은 부결되어도 돌려받지 않는다.`, { policyId: p.id });
       } else {
-        activate(s, p);
+        activate(s, d, p);
         log(s, 'policy', `${p.name} 시행. ${p.cost} 재정점 지출, 매월 유지비 ${p.monthlyCost}.`, { policyId: p.id });
       }
       break;
@@ -459,7 +488,7 @@ export function dispatch(current, d, action) {
     }
     case 'diplomacy': {
       const country = d.countries.find(x => x.id === action.countryId), o = DIPLOMACY_MODES[action.mode];
-      s.ap--; s.stats.treasury -= o.cost; s.relations[country.id] += o.relation; apply(s, o.effects);
+      s.ap--; s.stats.treasury -= o.cost; s.relations[country.id] += o.relation; apply(s, o.effects, d);
       s.monthActions.push(`diplomacy:${country.id}`);
       log(s, 'diplomacy', `${country.name} · ${o.label} (${o.cost} 재정점, 관계 +${o.relation}).`, { countryId: country.id });
       break;
@@ -491,7 +520,14 @@ export function exportSave(s) { return JSON.stringify({ format: SAVE_FORMAT, ver
 /** 이전 버전 저장을 현재 구조로 바꾸는 순수 함수. 알 수 없는 버전은 거부한다. 검증은 importSave가 한다. */
 export function migrateSave(parsed, d) {
   if (!object(parsed) || parsed.format !== SAVE_FORMAT) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
-  if (parsed.version === SAVE_VERSION) return parsed;
+  if (parsed.version === SAVE_VERSION) {
+    const s = parsed.state;
+    if (object(s) && s.gameId === d.meta.id && s.dataVersion !== d.meta.version && COMPATIBLE_DATA_VERSIONS.includes(s.dataVersion)) {
+      const next = clone(s); next.dataVersion = d.meta.version;
+      return { ...parsed, state: next, migratedFromData: s.dataVersion };
+    }
+    return parsed;
+  }
   if (parsed.version === 1) {
     const s = parsed.state;
     if (!object(s) || s.version !== 1 || s.dataVersion !== LEGACY_DATA_VERSIONS[1] || s.gameId !== d.meta.id) throw new Error('버전 1 저장의 구조가 올바르지 않습니다.');

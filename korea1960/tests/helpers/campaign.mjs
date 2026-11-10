@@ -48,6 +48,33 @@ const exec = (s, d, a) => { const r = E.dispatch(s, d, a); if (!r.ok) throw new 
 const tryDo = (s, d, a) => { const r = E.dispatch(s, d, a); return r.ok ? r.state : s; };
 const regionsByDev = (s, d) => [...d.regions].sort((a, b) => E.regionDevelopment(s, d, a.id) - E.regionDevelopment(s, d, b.id));
 
+/** 정해진 우선순위로 사건을 고르고 정책·사업·자문·외교를 쓰는 전략을 만든다. */
+function focused(cfg) {
+  return {
+    choose(s, d, e, r) {
+      const pref = { may_1961: cfg.route, yushin_1972: cfg.yushin, buma_1979: cfg.buma, election_1963: cfg.election || 'election_1963_2', heavy_1973: cfg.heavy };
+      if (pref[e.id] && !E.choiceReason(s, d, pref[e.id])) return pref[e.id];
+      const ok = e.choices.filter(c => !E.choiceReason(s, d, c.id) && !c.ending && (cfg.allowAuthoritarian || (!c.setFlags?.authoritarian && c.phase !== 'transition')));
+      const score = c => Object.entries(cfg.weights).reduce((a, [k, w]) => a + (c.effects[k] || 0) * w, 0) + (c.influence || 0) * .3 + r();
+      return (ok.sort((a, b) => score(b) - score(a))[0] || e.choices.find(c => !E.choiceReason(s, d, c.id))).id;
+    },
+    act(s, d, r) {
+      if (E.PREPARE_PHASES.includes(s.phase)) { while (s.ap > 0) s = exec(s, d, { type: 'prepare' }); return s; }
+      if (!E.isExecutive(s)) return s;
+      if (s.turn % 12 === 0) s = tryDo(s, d, { type: 'budget', budget: cfg.budget });
+      const reserve = cfg.minTreasury ?? 35;
+      for (const id of cfg.policies) { if (s.ap < 2 || s.stats.treasury < reserve) break; s = tryDo(s, d, { type: 'policy', id }); }
+      if (s.advisers.length < 2 && s.ap > 0) for (const id of cfg.advisers) s = tryDo(s, d, { type: 'adviser', id });
+      if (s.ap > 0 && s.stats.treasury > reserve + 5) {
+        outer: for (const reg of regionsByDev(s, d)) for (const id of cfg.projects) { const n = tryDo(s, d, { type: 'project', id, regionId: reg.id }); if (n !== s) { s = n; break outer; } }
+      }
+      if (!cfg.noRepay && s.ap > 0 && s.stats.debt > 200 && s.stats.treasury > 70) s = tryDo(s, d, { type: 'repay', amount: 20 });
+      if (s.ap > 0) s = tryDo(s, d, { type: 'diplomacy', countryId: d.countries[Math.floor(r() * d.countries.length)].id, mode: cfg.diplomacy });
+      return s;
+    }
+  };
+}
+
 /** 전략: 사건 선택 함수 + 월 행동 함수. */
 export const STRATEGIES = {
   /** 헌정 경로·권리 중시. 정책·법안·사업·외교·자문·예산을 모두 사용. */
@@ -97,6 +124,47 @@ export const STRATEGIES = {
       if (s.ap > 0) s = tryDo(s, d, { type: 'diplomacy', countryId: 'usa', mode: 'technology' });
       return s;
     }
+  },
+  /** 복지 우선: 헌정 경로, 생활·분배·교육 중심 예산과 정책. */
+  welfare: focused({
+    route: 'may_1961_1', yushin: 'yushin_1972_1', buma: 'buma_1979_1',
+    weights: { welfare: 3, equality: 2.5, education: 1, legitimacy: .3, treasury: .05 },
+    budget: { industry: 12, agriculture: 18, education: 22, welfare: 30, infrastructure: 10, security: 8 },
+    policies: ['health_centers', 'housing', 'primary_school', 'labor_inspection', 'rural_coops', 'local_council', 'small_business', 'farm_extension', 'grain_buffer', 'price_stability'],
+    projects: ['rural_clinic', 'public_housing', 'primary_campus', 'waterworks', 'market_storage', 'irrigation'],
+    advisers: ['kang', 'yun'], diplomacy: 'humanitarian'
+  }),
+  /** 환경 우선: 헌정 경로, 환경 부담을 줄이며 완만한 성장. */
+  green: focused({
+    route: 'may_1961_1', yushin: 'yushin_1972_3', buma: 'buma_1979_1',
+    weights: { environment: 3, welfare: 1, agriculture: 1, education: 1, industry: -.5, treasury: .05 },
+    budget: { industry: 16, agriculture: 20, education: 20, welfare: 16, infrastructure: 18, security: 10 },
+    policies: ['clean_water', 'energy_efficiency', 'grid_planning', 'research_fund', 'technical_school', 'export_credit', 'farm_extension', 'rail_priority', 'small_business', 'primary_school'],
+    projects: ['river_restoration', 'waterworks', 'research_campus', 'technical_campus', 'irrigation', 'rail_hub', 'port_upgrade'],
+    advisers: ['yun', 'kang'], diplomacy: 'technology'
+  }),
+  /** 강경: 군정·권력 집중 경로에서 통제와 동원을 우선한다. 위기 엔딩 도달 확인용. */
+  hardline: focused({
+    route: 'may_1961_2', election: 'election_1963_1', yushin: 'yushin_1972_2', buma: 'buma_1979_2', heavy: 'heavy_1973_2',
+    weights: { security: 2, stability: 2, admin: 1.5, industry: 1, legitimacy: 1, liberty: -2, treasury: .1 },
+    budget: { industry: 30, agriculture: 10, education: 10, welfare: 6, infrastructure: 20, security: 24 },
+    policies: ['export_credit', 'civil_service', 'rail_priority', 'grid_planning', 'diplomatic_diversity'],
+    projects: ['steel_complex', 'shipyard', 'light_industry', 'power_grid', 'port_upgrade', 'rail_hub'],
+    advisers: ['cho', 'lee'], diplomacy: 'talk', allowAuthoritarian: true, prepareOnlyWhenNeeded: false
+  }),
+  /** 성장 우선: 헌정 경로를 지키되 산업·기반시설에 집중하고 분배·권리는 뒤로 미룬다. */
+  growth: focused({
+    route: 'may_1961_1', yushin: 'yushin_1972_3', buma: 'buma_1979_2', heavy: 'heavy_1973_1',
+    weights: { industry: 3, infrastructure: 1.5, reserves: 1, legitimacy: .5, treasury: .1 },
+    budget: { industry: 34, agriculture: 12, education: 16, welfare: 8, infrastructure: 22, security: 8 },
+    policies: ['export_credit', 'small_business', 'technical_school', 'rail_priority', 'grid_planning', 'research_fund', 'price_stability', 'diplomatic_diversity', 'civil_service'],
+    projects: ['steel_complex', 'shipyard', 'light_industry', 'port_upgrade', 'power_grid', 'rail_hub', 'technical_campus', 'research_campus'],
+    advisers: ['cho', 'han'], diplomacy: 'technology'
+  }),
+  /** 소극: 사건에서 첫 번째로 가능한 선택만 고르고 국정 행동을 하지 않는다. */
+  passive: {
+    choose(s, d, e) { return (e.choices.find(c => !E.choiceReason(s, d, c.id) && !c.ending) || e.choices.find(c => !E.choiceReason(s, d, c.id))).id; },
+    act(s, d) { if (E.PREPARE_PHASES.includes(s.phase)) while (s.ap > 0) s = exec(s, d, { type: 'prepare' }); return s; }
   },
   /** 무작위: 가능한 행동 중 아무거나. 교착·악용 탐지용. */
   random: {

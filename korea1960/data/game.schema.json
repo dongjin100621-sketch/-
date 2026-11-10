@@ -454,6 +454,156 @@
           }
         }
       }
+    },
+    "balance": {
+      "description": "데이터 1.2.0 밸런스 규칙(선택). 없으면 엔진은 1.1.0 계산을 쓴다. 세부 검사는 tools/validate_content.py.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": "string"
+        },
+        "growthNote": {
+          "type": "string"
+        },
+        "diminishing": {
+          "type": "object",
+          "required": [
+            "metrics",
+            "from",
+            "minFactor"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "note": {
+              "type": "string"
+            },
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "from": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 100
+            },
+            "minFactor": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "eventGain": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "note": {
+              "type": "string"
+            },
+            "fictional_system": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
+            },
+            "historical_anchor": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
+            }
+          }
+        },
+        "expectations": {
+          "type": "object",
+          "properties": {
+            "note": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "target",
+              "rate"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "target": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "rate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0.2
+              }
+            }
+          }
+        },
+        "growthBase": {
+          "type": "number",
+          "minimum": -0.01,
+          "maximum": 0.012
+        },
+        "militaryRule": {
+          "type": "object",
+          "required": [
+            "monthly"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "note": {
+              "type": "string"
+            },
+            "monthly": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "authoritarian": {
+          "type": "object",
+          "required": [
+            "monthly"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "note": {
+              "type": "string"
+            },
+            "monthly": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "gainFactor": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "support": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "relations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -10,6 +10,8 @@ import * as V1 from '../example/engine.mjs';
 import { playCampaign, checkInvariants, STRATEGIES } from './helpers/campaign.mjs';
 const { createState, dispatch, exportSave, importSave, evaluateEnding, finance, policyReason, projectReason, random, calendar, dateLabel } = E;
 const d = JSON.parse(fs.readFileSync(new URL('../data/game.json', import.meta.url), 'utf8'));
+/** balance 블록을 뺀 같은 데이터. 엔진 v2가 이것으로 1.1.0(v1)과 같은 계산을 하는지 회귀 비교에 쓴다. */
+const noBalance = (() => { const x = JSON.parse(JSON.stringify(d)); delete x.balance; return x; })();
 function exec(s, a) { const r = dispatch(s, d, a); assert.equal(r.ok, true, r.error); return r.state; }
 function free(s) { while (s.queue.length && !s.ending) { const e = d.events.find(x => x.id === s.queue[0]); s = exec(s, { type: 'choose', choiceId: e.choices.find(c => (c.effects.treasury || 0) >= 0 && !c.ending)?.id || e.choices[0].id }); } return s; }
 function governing() { let s = createState(d); s.queue = []; s.turn = 60; s.phase = 'governing'; s.stats.treasury = 500; s.flags.won1963 = true; return s; }
@@ -135,8 +137,9 @@ test('v2: choice preview matches dispatch and does not consume RNG', () => {
   assert.equal(E.choicePreview(t, d, 'japan_1965_1'), null);
 });
 test('v2: projectEffects clamps to metric ranges', () => {
-  const s = governing(); s.stats.liberty = 98;
-  assert.deepEqual(E.projectEffects(s, d, { liberty: 7 }), [{ id: 'liberty', delta: 7, before: 98, after: 100 }]);
+  const s = governing(); s.stats.liberty = 98; s.stats.debt = 99990;
+  assert.deepEqual(E.projectEffects(s, noBalance, { liberty: 7 }), [{ id: 'liberty', delta: 7, before: 98, after: 100 }]);
+  assert.deepEqual(E.projectEffects(s, d, { debt: 50 }), [{ id: 'debt', delta: 50, before: 99990, after: 99999 }]);
 });
 test('v2: event context follows the campaign path, not the real timeline', () => {
   const buma = d.events.find(e => e.id === 'buma_1979'), yushin = d.events.find(e => e.id === 'yushin_1972');
@@ -176,6 +179,14 @@ test('save v1 files from the original kit migrate and keep playing', () => {
     assert.deepEqual(importSave(exportSave(next), d), next);
   }
 });
+test('format 2 saves from data 1.1.0 continue under the 1.2.0 rules', () => {
+  const raw = fs.readFileSync(new URL('fixtures/v2_data110_1964_bills_and_projects.json', import.meta.url), 'utf8'), old = JSON.parse(raw).state;
+  assert.equal(old.dataVersion, '1.1.0');
+  const s = importSave(raw, d); assert.equal(s.dataVersion, d.meta.version);
+  for (const k of ['turn', 'rng', 'ap', 'stats', 'support', 'relations', 'policies', 'bills', 'projects', 'queue', 'delayed', 'flags', 'report', 'monthActions', 'log']) assert.deepEqual(s[k], old[k], k);
+  const next = advance(s, 3); checkInvariants(next, d); assert.deepEqual(importSave(exportSave(next), d), next);
+  for (const v of ['1.0.0', '1.1.1', '9.9.9', 1.1]) { const p = JSON.parse(raw); p.state.dataVersion = v; assert.throws(() => importSave(JSON.stringify(p), d), String(v)); }
+});
 test('migrateSave rejects mismatched legacy data and unknown versions', () => {
   const raw = fs.readFileSync(new URL('fixtures/v1_1964_governing.json', import.meta.url), 'utf8');
   for (const mutate of [p => p.state.dataVersion = '0.9.0', p => p.state.version = 2, p => p.state.gameId = 'other', p => p.version = 3, p => p.format = 'OTHER', p => p.state.stats.gdp = NaN]) { const p = JSON.parse(raw); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d)); }
@@ -196,10 +207,58 @@ test('v2 save rejects tampered report, monthActions and log metadata', () => {
   assert.deepEqual(importSave(JSON.stringify(withReport), d), t);
 });
 
+/* ===== 데이터 1.2.0 밸런스 규칙 ===== */
+test('balance: gains shrink above 60, never reach 100, and losses are never reduced', () => {
+  const s = governing();
+  for (const [v, f] of [[30, 1], [60, 1], [70, .75], [80, .5], [90, .25], [99, .025]]) { s.stats.liberty = v; assert.ok(Math.abs(E.gainScale(s, d, 'liberty') - f) < 1e-12, `liberty ${v}`); }
+  s.stats.liberty = 50; assert.ok(Math.abs(E.gainScale(s, d, 'liberty', 'fictional_system') - .35) < 1e-12); assert.equal(E.gainScale(s, d, 'liberty', 'historical_anchor'), 1);
+  for (const id of ['gdp', 'treasury', 'debt', 'inflation', 'unemployment']) assert.equal(E.gainScale(s, d, id, 'fictional_system'), 1, id);
+  assert.equal(E.gainScale(s, noBalance, 'liberty', 'fictional_system'), 1);
+  s.stats.liberty = 99.9; const [x] = E.projectEffects(s, d, { liberty: 9 }); assert.ok(x.after < 100 && x.base === 9);
+  const [y] = E.projectEffects(s, d, { liberty: -9 }); assert.equal(y.delta, -9); assert.equal(y.base, undefined);
+});
+test('balance: fictional event bonuses are reduced, historical anchors and costs are not, and the preview matches', () => {
+  let s = governing(); s.queue = ['sys_journal']; s.stats.liberty = 42; s.stats.legitimacy = 45;
+  const p = E.choicePreview(s, d, 'sys_journal_1');
+  assert.deepEqual(p.stats.map(x => [x.id, +x.delta.toFixed(6), x.base]), [['liberty', .7, 2], ['legitimacy', .7, 2]]);
+  const t = exec(s, { type: 'choose', choiceId: 'sys_journal_1' }); for (const x of p.stats) assert.equal(t.stats[x.id], x.after);
+  s = governing(); s.queue = ['sys_grain']; const q = E.choicePreview(s, d, 'sys_grain_1'); assert.equal(q.cost, 5);
+  assert.equal(q.stats.find(x => x.id === 'treasury').delta, -5); assert.ok(Math.abs(q.stats.find(x => x.id === 'welfare').delta - 1.05) < 1e-12);
+  let a = createState(d); a.turn = 16; a.queue = ['may_1961'];
+  const civ = E.choicePreview(a, d, 'may_1961_1'), mil = E.choicePreview(a, d, 'may_1961_2');
+  assert.equal(civ.stats.find(x => x.id === 'liberty').delta, 5); assert.equal(mil.stats.find(x => x.id === 'liberty').delta, -12);
+});
+test('balance: the monthly report names rising expectations, military-rule and authoritarian costs', () => {
+  let s = governing(); s.stats.legitimacy = 80; s.stats.admin = 50;
+  let r = exec(s, { type: 'endMonth' }).report;
+  const exp = r.ledger.legitimacy.find(x => x[0] === '높아진 기대'); assert.ok(exp && Math.abs(exp[1] + (80 - 55) * .015) < .002, String(exp)); // 사회 추세가 먼저 조금 움직인 값 기준
+  assert.ok(!r.ledger.admin?.some(x => x[0] === '높아진 기대'));
+  s = governing(); s.phase = 'transition'; s.flags.route = 'military';
+  r = exec(s, { type: 'endMonth' }).report; assert.deepEqual(r.ledger.legitimacy.find(x => x[0] === '군정의 비용'), ['군정의 비용', -.08]);
+  const plain = governing(), auth = governing(); auth.flags.authoritarian = true;
+  const p1 = exec(plain, { type: 'endMonth' }), p2 = exec(auth, { type: 'endMonth' });
+  const cost = Object.fromEntries(p2.report.ledger.liberty.concat(p2.report.ledger.legitimacy).filter(x => x[0] === '권력 집중의 비용').map((x, i) => [i ? 'legitimacy' : 'liberty', x[1]]));
+  assert.deepEqual(cost, { liberty: -.22, legitimacy: -.3 });
+  assert.ok(p2.support.students < p1.support.students && p2.support.opposition < p1.support.opposition && p2.relations.international < p1.relations.international);
+  s = governing(); s.flags.authoritarian = true; s.stats.liberty = 30; assert.equal(E.gainScale(s, d, 'liberty'), .7); assert.equal(E.gainScale(s, d, 'legitimacy'), .5);
+});
+test('balance: an authoritarian legacy outranks industrial success when liberty stays below 40', () => {
+  const s = governing(); for (const m of d.metrics) s.stats[m.id] = m.initial;
+  Object.assign(s.stats, { industry: 85, gdp: 300, liberty: 30, legitimacy: 50 }); evaluateEnding(s, d, true); assert.equal(s.ending.id, 'authoritarian');
+  const t = governing(); for (const m of d.metrics) t.stats[m.id] = m.initial;
+  Object.assign(t.stats, { industry: 85, gdp: 300, liberty: 45, legitimacy: 50 }); evaluateEnding(t, d, true); assert.equal(t.ending.id, 'industrial');
+});
+test('balance: production growth leans more on investment than in 1.1.0', () => {
+  const s = governing();
+  const trend = data => dispatch(s, data, { type: 'endMonth' }).state.report.ledger.gdp.find(x => x[0] === '생산 추세')[1];
+  assert.ok(Math.abs(trend(noBalance) - trend(d) - s.stats.gdp * (.0025 - d.balance.growthBase)) < 1e-9);
+});
+
 /* ===== v1 참조 엔진과의 회귀 비교 =====
- * v2는 v1의 수식을 그대로 쓰고 법안 확률·외교 횟수·종료 직전 착수 제한만 바꿨다.
- * 이 세 규칙을 건드리지 않는 진행에서는 두 엔진의 상태가 매달 같아야 한다. */
-test('regression: v2 reproduces the v1 reference engine where rules are unchanged', () => {
+ * v2는 v1의 수식을 그대로 쓰고 법안 확률·외교 횟수·종료 직전 착수 제한만 바꿨다. 데이터 1.2.0의 밸런스 규칙은
+ * balance 블록에만 있으므로, 블록을 뺀 같은 데이터(noBalance)로 돌리면 두 엔진의 상태가 매달 같아야 한다. */
+test('regression: v2 without the balance block reproduces the v1 reference engine where rules are unchanged', () => {
+  const d = noBalance;
   const shared = ['turn', 'rng', 'phase', 'ap', 'influence', 'seats', 'stats', 'support', 'relations', 'budget', 'policies', 'projects', 'advisers', 'flags', 'queue', 'lastEvents', 'delayed', 'history', 'ending', 'lastFinance'];
   const pick = s => Object.fromEntries(shared.map(k => [k, s[k]]));
   for (const [seed, route] of [[11, 'may_1961_1'], [2024, 'may_1961_2'], [777, 'may_1961_3']]) {
@@ -230,10 +289,11 @@ test('regression: v2 reproduces the v1 reference engine where rules are unchange
 
 /* ===== 자동 캠페인: 교착·NaN·무한 반복·빈 사건·미완공 사업·깨진 엔딩 검사 ===== */
 test(`campaign sweep: ${SEEDS} seeds x ${Object.keys(STRATEGIES).length} strategies keep every invariant`, () => {
-  const events = new Set(), endings = {}, finals = {};
+  const events = new Set(), endings = {}, finals = {}, index = d.balance.diminishing.metrics;
+  const noCeiling = x => { for (const id of index) if (x.stats[id] >= 100) throw new Error(`${id}가 100에 도달 (t${x.turn})`); };
   for (const strategy of Object.keys(STRATEGIES)) {
     for (let seed = 1; seed <= SEEDS; seed++) {
-      const { state: s, seen } = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: x => checkInvariants(x, d) });
+      const { state: s, seen } = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: x => { checkInvariants(x, d); noCeiling(x); } });
       for (const id of seen.events) events.add(id);
       endings[s.ending.id] = (endings[s.ending.id] || 0) + 1; (finals[strategy] ||= {})[s.ending.id] = (finals[strategy][s.ending.id] || 0) + 1;
       assert.ok(d.endings.some(e => e.id === s.ending.id)); assert.ok(s.turn <= 240);
@@ -244,6 +304,10 @@ test(`campaign sweep: ${SEEDS} seeds x ${Object.keys(STRATEGIES).length} strateg
     }
   }
   console.log('Sweep endings by strategy', JSON.stringify(finals));
+  // 밸런스 1.2.0: 플레이 방식마다 의도한 엔딩이 실제로 나온다(한 엔딩이 모든 방식을 덮지 않는다).
+  const intended = { constitutional: ['balanced', 'constitutional'], military: ['authoritarian'], welfare: ['welfare'], green: ['green'], hardline: ['rights_crisis'], growth: ['industrial'], passive: ['unfinished'] };
+  for (const [strategy, ids] of Object.entries(intended)) assert.ok(ids.some(id => finals[strategy][id]), `${strategy}: ${JSON.stringify(finals[strategy])}`);
+  assert.ok(!finals.passive.balanced || finals.passive.balanced * 4 <= SEEDS, `소극 플레이가 균형 엔딩을 자주 받음 ${JSON.stringify(finals.passive)}`);
   console.log(`Events seen ${events.size}/${d.events.length}`, d.events.filter(e => !events.has(e.id)).map(e => e.id).join(','));
   assert.ok(events.size >= d.events.length - 2, `사건 도달 ${events.size}`);
 });

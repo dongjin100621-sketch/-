@@ -1,6 +1,6 @@
 {
   "name": "korea1960-chronicle",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "대한민국 1960: 선택의 연대기 — 월 단위 역사 정치·경제 시뮬레이션. 실행·테스트에 외부 의존성이 없다. 모든 수치와 선택 결과는 가상.",

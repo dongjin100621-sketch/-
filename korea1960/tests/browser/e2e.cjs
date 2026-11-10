@@ -51,7 +51,8 @@ async function run(viewport, tag) {
   await page.waitForTimeout(100); await page.screenshot({ path: `${out}/${tag}_02_overview.png` }); await audit(page, 'overview(사건)');
   // 키보드로 첫 선택지
   await page.focus('.choice >> nth=0'); await page.keyboard.press('Enter'); await page.waitForTimeout(100);
-  s = await S(page); check(s.queue.length === 0 && s.log.some(l => l.type === 'event' && l.choiceId === 'opening_1' && l.changes?.admin === 1), '키보드 Enter로 선택, 연대기에 변화 기록');
+  // 데이터 1.2.0: 가상 사건의 보너스는 eventGain(0.35)만큼 줄어든 값으로 기록된다(행정 +1 → +0.35).
+  s = await S(page); check(s.queue.length === 0 && s.log.some(l => l.type === 'event' && l.choiceId === 'opening_1' && l.changes?.admin > 0 && l.changes.admin <= 1), '키보드 Enter로 선택, 연대기에 변화 기록');
   for (let i = 0; i < 3; i++) await page.click('.calm [data-action="prepare"]');
   s = await S(page); check(s.ap === 0 && s.influence === 31, `사전 준비 3회: AP 0, 영향력 ${s.influence}`);
   check(await page.isDisabled('.calm [data-action="prepare"]'), 'AP 0이면 준비 버튼 비활성');

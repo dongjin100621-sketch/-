@@ -23,14 +23,14 @@ const arrow = delta => Math.abs(delta) < 1e-9 ? '–' : delta > 0 ? '▲' : '▼
 
 /* ---------- 설명 문구 (가상 모형의 규칙을 사람이 읽는 말로) ---------- */
 const METRIC_HELP = {
-  gdp: '매월 성장률 = 0.25% + 산업×0.003% + 교육×0.0012% + 기반 시설×0.0018% − (물가−12)×0.015% − 실업률×0.004%, 월 −1%~+1.2%로 제한. 세입과 기본 지출도 생산 지수에 비례한다.',
+  gdp: '매월 성장률 = 기본 성장률 + 산업×0.003% + 교육×0.0012% + 기반 시설×0.0018% − (물가−12)×0.015% − 실업률×0.004%, 월 −1%~+1.2%로 제한. 세입과 기본 지출도 생산 지수에 비례한다.',
   treasury: '매월 수입 − 기본 지출 − 이자 − 유지비만큼 변한다. 0보다 작아지면 부족분이 자동으로 부채가 된다.',
   debt: '국고 부족분이 자동으로 더해지고 상환하면 줄어든다. 매월 부채의 0.3%가 이자. 220을 넘으면 물가를 밀어 올리고, 700 이상이면 재정위기 엔딩.',
   reserves: '수출 금융·외교 다변화·항만 사업·경제협력 사건으로 오르고, 에너지 충격·기술 교류 비용으로 줄 수 있다.',
   inflation: '매월 8을 향해 1.2%씩 되돌아가고, 부채가 220을 넘으면 초과분×0.01%씩 오른다. 12를 넘으면 성장률을 깎는다.',
   unemployment: '매월 12를 향해 1.2%씩 되돌아가고 산업 역량×0.03%만큼 줄어든다. 높을수록 성장률을 깎는다.',
-  legitimacy: '매월 (자유−50)×0.08% + (생활−45)×0.05%만큼 움직인다. 권력 집중 분기에서는 매월 −0.1. 법안 표결·선거에 반영되고 3 이하이면 신뢰 붕괴 엔딩.',
-  liberty: '정책·사건으로 변한다. 권력 집중 분기에서는 매월 −0.3. 3 이하이면 권리 위기 엔딩. 성장과 별개의 평가축이다.',
+  legitimacy: '매월 (자유−50)×0.08% + (생활−45)×0.05%만큼 움직인다. 법안 표결·선거에 반영되고 3 이하이면 신뢰 붕괴 엔딩.',
+  liberty: '정책·사건으로 변한다. 3 이하이면 권리 위기 엔딩. 성장과 별개의 평가축이다.',
   welfare: '예산 배분(생활)과 보건·주거 정책·사업으로 오른다. 정당성·사회 안정·분배 균형을 끌어올린다.',
   education: '예산 배분: 매월 (교육 배분율−12)×0.006. 교육 정책·사업·자문으로 더 오른다. 성장률에 반영된다.',
   infrastructure: '예산 배분: 매월 (기반 배분율−12)×0.006. 도로·철도·전력 사업으로 오른다. 성장률에 반영된다.',
@@ -42,6 +42,21 @@ const METRIC_HELP = {
   equality: '매월 생활 수준을 향해 0.2%씩 움직인다. 지역 참여·협동조합·주거 정책으로 오른다.',
   security: '예산 배분: 매월 (안보 배분율−12)×0.006. 외교 대화로 오른다. 병력·작전은 다루지 않는다.'
 };
+const pct = v => `${+(v * 100).toFixed(2)}%`;
+/** 데이터의 밸런스 규칙(balance)에서 지표별 설명을 만든다. 규칙이 없으면 1.1.0 설명. */
+function metricHelp(id) {
+  const b = data.balance, out = [METRIC_HELP[id] || ''];
+  if (id === 'gdp') out.push(`기본 성장률은 월 ${pct(b && Number.isFinite(b.growthBase) ? b.growthBase : .0025)}.`);
+  if (!b) { if (id === 'legitimacy') out.push('권력 집중 분기에서는 매월 −0.1.'); if (id === 'liberty') out.push('권력 집중 분기에서는 매월 −0.3.'); return out.join(' '); }
+  const x = b.expectations && b.expectations[id];
+  if (x && typeof x === 'object') out.push(`높아진 기대: 매월 ${x.target}을 넘는 만큼의 ${pct(x.rate)}가 줄어든다.`);
+  if (b.diminishing && b.diminishing.metrics.includes(id)) out.push(`체감: ${b.diminishing.from}을 넘으면 오르는 효과에 (100−현재값)÷${100 - b.diminishing.from}을 곱한다. 100에 가까울수록 같은 정책의 효과가 작아진다(내려가는 효과는 그대로).`);
+  const m = b.militaryRule && b.militaryRule.monthly && b.militaryRule.monthly[id];
+  if (m) out.push(`과도 군정 동안 매월 ${signed(m, 2)}.`);
+  const a = b.authoritarian;
+  if (a && (a.monthly[id] || (a.gainFactor && a.gainFactor[id] !== undefined))) out.push(`권력 집중 이후${a.monthly[id] ? ` 매월 ${signed(a.monthly[id], 2)}` : ''}${a.gainFactor && a.gainFactor[id] !== undefined ? `, 오르는 효과 ×${a.gainFactor[id]}(신뢰 할인)` : ''}.`);
+  return out.filter(Boolean).join(' ');
+}
 const PHASE = {
   prelude: { name: '관찰·준비', desc: '1960년의 당신은 대통령이 아닌 군인 박정희입니다. 국정 지표는 관찰 자료이며 국가 예산을 집행할 수 없습니다.', can: ['사건 결정', '사전 준비 (AP 1 → 준비 영향력 +3)'], cannot: '정책·법안·사업·예산·외교·내각' },
   civilian: { name: '민간 정치 준비', desc: '헌정 경로를 택했습니다. 1963년 가상 선거까지 국정을 집행하지 않고 민간 정치인으로 준비합니다.', can: ['사건 결정', '사전 준비 (AP 1 → 준비 영향력 +3)'], cannot: '정책·법안·사업·예산·외교·내각' },
@@ -112,8 +127,10 @@ const reasonLine = r => r ? `<small class="reason" role="note">사유: ${esc(r)}
 const wrap = (inline, items) => inline ? `<span class="fx">${items.map(([cls, html]) => `<span class="li ${cls}">${html}</span>`).join('')}</span>` : `<ul class="fx">${items.map(([cls, html]) => `<li class="${cls}">${html}</li>`).join('')}</ul>`;
 function fxList(items, { before = true, inline = false } = {}) {
   if (!items.length) return '';
-  return wrap(inline, items.map(x => [tone(x.id, x.delta), `<span>${esc(mlabel(x.id))}</span><b>${arrow(x.delta)} ${signed(x.delta, Math.abs(x.delta) < 1 && x.delta !== 0 ? 2 : 1)}</b>${before && x.before !== undefined ? `<small>${num(x.before, digits(x.id))}→${num(x.after, digits(x.id))}</small>` : ''}`]));
+  return wrap(inline, items.map(x => [tone(x.id, x.delta), `<span>${esc(mlabel(x.id))}</span><b>${arrow(x.delta)} ${signed(x.delta, Math.abs(x.delta) < 1 && x.delta !== 0 ? 2 : 1)}</b>${before && x.before !== undefined ? `<small>${num(x.before, digits(x.id))}→${num(x.after, digits(x.id))}${x.base !== undefined ? ` · 기본 ${signed(x.base, 1)}` : ''}</small>` : ''}`]));
 }
+/** 기본값으로 적힌 지속 효과 아래의 안내. 밸런스 규칙이 없으면 빈 문자열. */
+const dimNote = () => data.balance && data.balance.diminishing ? `<p class="muted" style="font-size:13px;margin:4px 0">데이터에 적힌 기본값입니다. 지표가 ${data.balance.diminishing.from}을 넘으면 실제로는 덜 오릅니다(체감).</p>` : '';
 function fxPlain(effects = {}, opts) { return fxList(Object.entries(effects).map(([id, delta]) => ({ id, delta })), { before: false, ...opts }); }
 function fxProjected(effects = {}) { return fxList(E.projectEffects(state, data, effects)); }
 function factionList(effects = {}, inline = false) {
@@ -281,7 +298,7 @@ function policyCard(p) {
   <h2>${esc(p.name)}</h2><p>${esc(p.description)}</p>
   <div class="cost"><span>시행비 <b>${p.cost}</b></span><span>월 유지 <b>${num(p.monthlyCost, 2)}</b></span><span>AP <b>1</b></span>${p.requiresBill ? `<span>심의 <b>5~7개월</b></span><span>현재 가결 확률 <b>${num(E.billChance(state, data) * 100, 0)}%</b></span>` : ''}</div>
   <span class="fx-title">${p.requiresBill ? '가결 시 즉시 효과' : '즉시 효과'}</span>${fxProjected(p.effects)}
-  <span class="fx-title">지속 효과 (12개월 누적)</span>${fxPlain(yearly)}${factionList(p.factionEffects)}
+  <span class="fx-title">지속 효과 (12개월 누적${data.balance && data.balance.diminishing ? ', 기본값' : ''})</span>${fxPlain(yearly)}${factionList(p.factionEffects)}
   ${stText ? `<p class="status-line">${esc(stText)}</p>` : ''}
   <div class="actions">${btn(state.policies.includes(p.id) ? '시행 중' : p.requiresBill ? '법안 발의 검토 · AP 1' : '정책 시행 검토 · AP 1', 'askPolicy', { attrs: `data-id="${p.id}"`, reason: r, cls: st === 'on' ? 'quiet' : '' })}${reasonLine(st === 'on' ? '' : r)}</div></article>`;
 }
@@ -378,7 +395,7 @@ function cabinet() {
   <div class="banner" style="background-image:url('${art('cabinet')}')" role="img" aria-label="${esc(artCaption('cabinet'))}"><div class="text"><strong>이 화면의 자문위원 여섯 명은 모두 창작 인물입니다.</strong><p style="margin:4px 0 0;font-size:14px">실제 장관·관료의 발언이나 경력을 재현하지 않습니다. 동시에 두 명까지 임명하며, 임명·해임에 AP 1을 씁니다. 지속 효과는 집행 권한이 있는 동안 매월 더해집니다.</p></div></div>
   ${!E.isExecutive(state) ? `<div class="notice">${esc(PHASE[state.phase].name)} 단계에서는 자문위원을 임명할 수 없습니다.</div>` : ''}
   <div class="cards">${data.advisers.map(a => { const on = state.advisers.includes(a.id), r = E.adviserReason(state, data, a.id); const yearly = Object.fromEntries(Object.entries(a.monthlyEffects).map(([k, v]) => [k, v * 12])); return `<article class="panel card adviser"><div class="head"><span class="initial" aria-hidden="true">${esc(a.initials)}</span><div><span class="tag fiction">가상 인물 · ${esc(a.role)}</span><h2>${esc(a.name)}</h2></div></div>
-  <blockquote>${esc(a.quote)}</blockquote><span class="fx-title">지속 효과 (12개월 누적)</span>${fxPlain(yearly)}
+  <blockquote>${esc(a.quote)}</blockquote><span class="fx-title">지속 효과 (12개월 누적${data.balance && data.balance.diminishing ? ', 기본값' : ''})</span>${fxPlain(yearly)}
   <div class="cost"><span>임명비 <b>${a.cost}</b></span><span>월 유지 <b>0.15</b></span><span>AP <b>1</b></span></div>${on ? '<p class="status-line">임명 중</p>' : ''}
   <div class="actions">${btn(on ? '해임 검토 · AP 1' : '임명 검토 · AP 1', 'askAdviser', { attrs: `data-id="${a.id}"`, reason: r, cls: on ? 'danger' : '' })}${reasonLine(r)}</div></article>`; }).join('')}</div>`;
 }
@@ -395,7 +412,7 @@ function archive() {
   <article class="panel"><div class="row" style="flex-wrap:wrap"><h2>선택의 연대기 · ${state.log.length}건</h2></div><div class="filters" role="group" aria-label="기록 종류">${LOG_FILTERS.map(([id, t]) => `<button type="button" class="btn" data-action="logFilter" data-id="${id}" aria-pressed="${ui.logFilter === id}">${t}</button>`).join('')}</div>
   <ul class="timeline">${entries.slice(0, 400).map(l => `<li><time>${esc(l.date)}</time><p><span class="tag ${l.kind === 'historical_anchor' ? 'history' : l.kind ? 'fiction' : ''}">${esc(LOG_TYPES[l.type] || l.type)}${l.kind ? ` · ${l.kind === 'historical_anchor' ? '역사 앵커, 반응은 가상' : '가상 상황'}` : ''}</span> ${esc(l.text)}</p>${l.changes ? `<span></span>${fxPlain(l.changes)}` : ''}</li>`).join('') || '<li><span></span><p class="muted">이 종류의 기록이 아직 없습니다.</p></li>'}</ul>${entries.length > 400 ? `<small>최근 400건만 표시합니다. 전체 기록은 저장 파일에 있습니다.</small>` : ''}</article>
   <details class="panel"><summary>역사 확인 자료 ${data.sources.length}건 · 확인일 ${esc(data.meta.sourceChecked)}</summary><p class="muted" style="font-size:13.5px">출처는 날짜와 사건 맥락을 확인하는 데에만 썼습니다. 선택지, 수치 효과, 선거·의석, 자문위원, 삽화는 모두 창작입니다.</p><ul class="timeline">${data.sources.map(s => `<li><time>${esc(s.id)}</time><p><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a><br><small>${esc(s.institution)} · ${esc(s.scope)}</small></p></li>`).join('')}</ul></details>
-  <details class="panel"><summary>가상 지표의 정의와 계산 규칙</summary><p style="font-size:13.5px">${esc(data.meta.disclaimer)}</p>${data.metrics.map(m => `<div class="kv" style="display:block"><strong>${esc(m.label)}</strong> <small>${esc(m.unit)} · ${m.min}~${m.max}${m.higherIsBetter ? '' : ' · 낮을수록 좋음'}</small><p style="font-size:13.5px;margin:2px 0 0">${esc(m.description)} ${esc(METRIC_HELP[m.id] || '')}</p></div>`).join('')}</details>
+  <details class="panel"><summary>가상 지표의 정의와 계산 규칙</summary><p style="font-size:13.5px">${esc(data.meta.disclaimer)}</p>${data.metrics.map(m => `<div class="kv" style="display:block"><strong>${esc(m.label)}</strong> <small>${esc(m.unit)} · ${m.min}~${m.max}${m.higherIsBetter ? '' : ' · 낮을수록 좋음'}</small><p style="font-size:13.5px;margin:2px 0 0">${esc(m.description)} ${esc(metricHelp(m.id))}</p></div>`).join('')}</details>
   <details class="panel"><summary>엔딩 12종과 판정 순서</summary><p style="font-size:13.5px">재정·신뢰·권리 위기는 매달 먼저 검사합니다. 퇴임·이양은 명시적인 선택이나 선거로만 기록됩니다. 1979년 12월이 끝나면 조건을 만족하는 엔딩 가운데 우선순위가 가장 높은 것을 고릅니다.</p>${[...data.endings].sort((a, b) => b.priority - a.priority).map(e => `<div class="kv"><span>${esc(e.title)} <small>${esc(endingRule(e))}</small></span><b>${e.priority}</b></div>`).join('')}</details>
   <details class="panel"><summary>제작·권리 표기</summary><p style="font-size:13.5px">독자 제작 게임입니다. 참조 게임의 코드·화면·대사·수치·이미지를 쓰지 않았습니다. 삽화 4점은 이 게임을 위해 생성한 그림이며 역사 사진이 아닙니다. 표지 인물은 실존 인물로 식별할 수 없는 뒷모습입니다. 한국어 글꼴 Chronicle KR은 Noto Sans KR(SIL Open Font License 1.1)의 서브셋입니다. 자문위원은 모두 가상 인물입니다. 군사정변·정치 폭력은 헌정적 결과와 제도적 비용으로만 추상화했습니다.</p><p style="font-size:13px" class="muted">데이터 ${esc(data.meta.version)} · 저장 형식 ${E.SAVE_VERSION} · 시드 상태 ${state.rng}</p></details>`;
 }
@@ -438,7 +455,7 @@ function confirmContent(m) {
     const p = byId('policies', a.id); title = `${p.requiresBill ? '법안 발의' : '정책 시행'}: ${esc(p.name)}`; go = p.requiresBill ? '발의한다' : '시행한다';
     body = `<p>${esc(p.description)}</p>${costLine(p.cost)}
     ${p.requiresBill ? `<h3>심의 일정</h3><p style="font-size:14px">5~7개월(시드 난수로 결정) 뒤 ${E.dateLabel(state.turn + 4)}~${E.dateLabel(state.turn + 6)} 말 표결. 지금 기준 가결 확률 <b>${num(E.billChance(state, data) * 100, 1)}%</b>(표결 시점의 의석·정당성·안정·지지도로 다시 계산). 부결돼도 시행비는 돌려받지 않고 다시 발의할 수 있습니다.${state.turn + 7 > 240 ? ' <b>심의가 7개월이면 1979년 12월 안에 표결하지 못할 수 있습니다.</b>' : ''}</p><h3>가결되면 즉시</h3>` : '<h3>즉시 효과</h3>'}${fxProjected(p.effects)}${factionList(p.factionEffects)}
-    <h3>${p.requiresBill ? '가결 이후' : '다음 달부터'} 매월</h3>${fxPlain(p.monthlyEffects)}<p style="font-size:14px">유지비 ${num(p.monthlyCost, 2)} → 월 수지 ${signed(f.balance, 2)} → ${p.requiresBill ? '가결 후 ' : ''}${signed(f.balance - p.monthlyCost, 2)}${f.balance - p.monthlyCost < 0 && f.balance >= 0 ? ' <b>(적자로 바뀝니다)</b>' : ''}</p>`;
+    <h3>${p.requiresBill ? '가결 이후' : '다음 달부터'} 매월</h3>${fxPlain(p.monthlyEffects)}${dimNote()}<p style="font-size:14px">유지비 ${num(p.monthlyCost, 2)} → 월 수지 ${signed(f.balance, 2)} → ${p.requiresBill ? '가결 후 ' : ''}${signed(f.balance - p.monthlyCost, 2)}${f.balance - p.monthlyCost < 0 && f.balance >= 0 ? ' <b>(적자로 바뀝니다)</b>' : ''}</p>`;
   } else if (a.type === 'project') {
     const p = byId('projects', a.id), r = byId('regions', a.regionId); title = `사업 착수: ${esc(r.name)} · ${esc(p.name)}`; go = '착수한다';
     body = `${costLine(p.cost)}<h3>공기와 준공</h3><p style="font-size:14px">${p.months}개월 · ${E.dateLabel(state.turn + p.months - 1)} 말 준공, ${E.dateLabel(state.turn + p.months)}부터 시설 수입 ${num(p.income, 2)}·유지비 ${num(p.maintenance, 2)} 반영. 권역 슬롯 ${state.projects.filter(x => x.regionId === r.id).length} → ${state.projects.filter(x => x.regionId === r.id).length + 1} / 4, 준공 시 개발도 +9.</p><h3>준공 시 한 번</h3>${fxPlain(p.effects)}<p style="font-size:13px" class="muted">공사 중에는 효과가 없고, 착수비는 돌려받을 수 없습니다.</p>`;
@@ -448,7 +465,7 @@ function confirmContent(m) {
   } else if (a.type === 'adviser') {
     const ad = byId('advisers', a.id), on = state.advisers.includes(ad.id); title = `${on ? '해임' : '임명'}: ${esc(ad.name)} (가상 인물 · ${esc(ad.role)})`; go = on ? '해임한다' : '임명한다';
     body = on ? `<p>해임하면 다음 달부터 아래 지속 효과와 유지비 0.15가 사라집니다. 이미 생긴 변화는 되돌아가지 않습니다.</p><table><tbody><tr><td>행동점수</td><td class="n">${state.ap} → ${state.ap - 1}</td></tr></tbody></table>${fxPlain(ad.monthlyEffects)}`
-      : `${costLine(ad.cost)}<h3>매월 지속 효과</h3>${fxPlain(ad.monthlyEffects)}<p style="font-size:14px">유지비 0.15 → 월 수지 ${signed(f.balance, 2)} → ${signed(f.balance - .15, 2)}</p>`;
+      : `${costLine(ad.cost)}<h3>매월 지속 효과</h3>${fxPlain(ad.monthlyEffects)}${dimNote()}<p style="font-size:14px">유지비 0.15 → 월 수지 ${signed(f.balance, 2)} → ${signed(f.balance - .15, 2)}</p>`;
   } else if (a.type === 'repay') {
     title = `부채 ${a.amount} 상환`; go = '상환한다';
     body = `${costLine(a.amount)}<table><tbody><tr><td>부채</td><td class="n">${num(state.stats.debt, 1)} → ${num(state.stats.debt - a.amount, 1)}</td></tr><tr><td>월 이자</td><td class="n">${num(f.interest, 2)} → ${num((state.stats.debt - a.amount) * .003, 2)}</td></tr></tbody></table>`;
@@ -482,13 +499,14 @@ function reportContent() {
 }
 function metricContent(id) {
   const m = metric(id), rows = state.report?.ledger?.[id] || [], change = state.report?.changes?.[id] || 0;
-  return { title: `${esc(m.label)} <small>${esc(m.unit)}</small>`, body: `<p style="font-size:28px;font-family:var(--display)">${num(state.stats[id], digits(id))}</p><p>${esc(m.description)}</p><h3>무엇이 움직이나</h3><p style="font-size:14px">${esc(METRIC_HELP[id] || '')}</p><p style="font-size:13px" class="muted">범위 ${m.min}~${m.max} · ${m.higherIsBetter ? '높을수록 좋음' : '낮을수록 좋음'}</p>
+  return { title: `${esc(m.label)} <small>${esc(m.unit)}</small>`, body: `<p style="font-size:28px;font-family:var(--display)">${num(state.stats[id], digits(id))}</p><p>${esc(m.description)}</p><h3>무엇이 움직이나</h3><p style="font-size:14px">${esc(metricHelp(id))}</p><p style="font-size:13px" class="muted">범위 ${m.min}~${m.max} · ${m.higherIsBetter ? '높을수록 좋음' : '낮을수록 좋음'}</p>
   ${state.report ? `<h3>지난달(${esc(state.report.date)}) 변화 ${signed(change, 3)}</h3><table><tbody>${rows.map(([src, v]) => `<tr><td>${esc(src)}</td><td class="n">${signed(v, 3)}</td></tr>`).join('') || '<tr><td>변화 없음</td><td></td></tr>'}</tbody></table>` : '<p class="muted">첫 결산 뒤부터 월별 변화 원인을 보여 줍니다.</p>'}`, actions: closeBtn() };
 }
 function helpContent() {
   return { title: '게임 방법', body: `<p>1960년 1월부터 1979년 12월까지 한 달이 한 턴입니다(240턴). 플레이어는 박정희라는 역사적 출발점에 있지만, 1960년에는 대통령 권한이 없습니다.</p>
   <h3>매달 하는 일</h3><ol class="steps"><li>상황판의 사건 문서에서 선택지 하나를 고릅니다. 선택은 행동점수를 쓰지 않고, 표시된 국고 비용만 지불합니다.</li><li>행동점수 3을 정책·법안·사업·외교·자문·상환·사전 준비에 씁니다. 예산 배분 수정은 무료입니다.</li><li>'다음 달'을 누르면 결산이 열립니다. 무엇이 얼마나, 왜 바뀌었는지 확인하세요.</li></ol>
-  <h3>권한의 단계</h3><p style="font-size:14px">관찰·준비(1960~61) → 1961년 5월 경로 분기(헌정: 민간 정치 준비 / 군정: 과도 통치, 대신 자유·정당성 비용) → 1963년 10월 가상 선거(준비 영향력·정당성·지지도로 당선 확률) → 12월 취임 → 국정 운영. 1967년 11월부터 48개월마다 가상 정기 선거가 있고, 득표 지표가 45 미만이면 권한을 평화롭게 넘깁니다. 장기 집권 분기를 고르면 선거가 중단되는 대신 매월 자유와 정당성을 잃습니다.</p>
+  <h3>권한의 단계</h3><p style="font-size:14px">관찰·준비(1960~61) → 1961년 5월 경로 분기(헌정: 민간 정치 준비 / 군정: 과도 통치, 대신 자유·정당성 비용) → 1963년 10월 가상 선거(준비 영향력·정당성·지지도로 당선 확률) → 12월 취임 → 국정 운영. 1967년 11월부터 48개월마다 가상 정기 선거가 있고, 득표 지표가 45 미만이면 권한을 평화롭게 넘깁니다. 장기 집권 분기를 고르면 선거가 중단되는 대신 매월 자유와 정당성을 잃고, 자유·정당성이 오르는 효과가 줄며, 학생·야당의 지지와 국제기구 관계가 꾸준히 떨어집니다. 과도 군정 기간에도 정당성 비용이 있습니다.</p>
+  ${data.balance ? `<h3>높은 지표를 지키는 법</h3><p style="font-size:14px">지표가 ${data.balance.diminishing ? data.balance.diminishing.from : 60}을 넘으면 같은 효과도 덜 오르고(체감), 정당성·생활·자유·분배·안정·행정은 매월 기대 수준만큼 조금씩 내려갑니다(높아진 기대). 가상 사건의 보너스는 작게 잡혀 있어, 높은 지표는 정책·사업·예산으로 꾸준히 유지해야 합니다. 미리보기의 ‘기본’은 데이터에 적힌 값, 큰 숫자는 지금 실제로 더해질 값입니다.</p>` : ''}
   <h3>시간이 걸리는 결정</h3><p style="font-size:14px">의회 법안은 5~7개월 심의 뒤 표결합니다. 사업은 공기가 지나야 준공 효과가 납니다. 일부 사건 선택은 몇 달 뒤에 지연 효과를 남깁니다. 1979년 12월까지 끝낼 수 없는 사업·법안은 시작할 수 없습니다.</p>
   <h3>끝나는 방식</h3><p style="font-size:14px">부채 700 이상, 정당성 3 이하, 자유 3 이하는 즉시 위기 엔딩입니다. 그 밖에는 1979년 12월에 지표로 평가합니다. 엔딩 화면은 성장·권리·생활·환경을 따로 보여 줍니다.</p>
   <h3>역사와 가상</h3><p style="font-size:14px">'실제 역사' 상자는 출처가 있는 사실 요약입니다. '이 캠페인에서는' 상자와 모든 선택 결과·수치·선거·자문위원은 가상입니다. 경로가 달라지면 역사적 사건을 그대로 강제하지 않습니다.</p>`, actions: closeBtn('알겠습니다') };

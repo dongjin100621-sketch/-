@@ -1,7 +1,7 @@
 """Validate IDs, references, no-cost choices, condition DSL and the canonical split files.
 
 python3 tools/validate_content.py          # 검사만
-python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 11개를 다시 만든 뒤 검사
+python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 12개를 다시 만든 뒤 검사
 """
 from pathlib import Path
 import json, sys, argparse
@@ -16,6 +16,10 @@ for k in keys:
     split = root / f'data/{k}.json'
     if a.sync: split.write_text(json.dumps(d[k], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     if json.loads(split.read_text(encoding='utf-8')) != d[k]: errors.append(f'split mismatch: {k}')
+if 'balance' in d:
+    split = root / 'data/balance.json'
+    if a.sync: split.write_text(json.dumps(d['balance'], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    if not split.is_file() or json.loads(split.read_text(encoding='utf-8')) != d['balance']: errors.append('split mismatch: balance')
 metrics = {x['id'] for x in d['metrics']}; sources = {x['id'] for x in d['sources']}; factions = {x['id'] for x in d['factions']}
 countries = {x['id'] for x in d['countries']}; endings = {x['id'] for x in d['endings']}; all_choices = []
 phases = {'prelude', 'civilian', 'transition', 'elected', 'governing'}
@@ -84,6 +88,41 @@ for f in d['factions']:
     if set(f['priorities']) - metrics: errors.append('faction priority ' + f['id'])
 for m in d['metrics']:
     if not (m['min'] <= m['initial'] <= m['max']): errors.append('metric initial range ' + m['id'])
+# 밸런스 규칙(데이터 1.2.0). 모르는 키·범위 밖 값을 거부한다. 엔진은 이 블록이 없으면 1.1.0 계산을 쓴다.
+def check_balance(b):
+    bad = lambda m: errors.append('balance: ' + m)
+    if not isinstance(b, dict): return bad('not object')
+    index = {m['id'] for m in d['metrics'] if m['min'] == 0 and m['max'] == 100}
+    def rules(obj, where, allowed):
+        if not isinstance(obj, dict): bad(f'{where} not object'); return {}
+        for k in obj:
+            if k != 'note' and k not in allowed: bad(f'unknown key {where}.{k}')
+        if 'note' in obj and not isinstance(obj['note'], str): bad(f'{where}.note')
+        return {k: v for k, v in obj.items() if k != 'note'}
+    def amounts(obj, where, ids, lo, hi):
+        if not isinstance(obj, dict) or not obj: bad(f'{where} must be non-empty object'); return
+        for k, v in obj.items():
+            if k not in ids or not num(v) or not (lo <= v <= hi): bad(f'{where}.{k}={v}')
+    top = rules(b, 'balance', {'diminishing', 'eventGain', 'expectations', 'growthBase', 'growthNote', 'militaryRule', 'authoritarian'})
+    if 'growthNote' in top and not isinstance(top['growthNote'], str): bad('growthNote')
+    if 'diminishing' in top:
+        x = rules(top['diminishing'], 'diminishing', {'metrics', 'from', 'minFactor'})
+        if not isinstance(x.get('metrics'), list) or not x['metrics'] or set(x['metrics']) - index: bad('diminishing.metrics must list 0~100 metrics')
+        if not num(x.get('from')) or not 0 <= x['from'] < 100: bad('diminishing.from')
+        if not num(x.get('minFactor')) or not 0 <= x['minFactor'] <= 1: bad('diminishing.minFactor')
+    if 'eventGain' in top: amounts(rules(top['eventGain'], 'eventGain', {'fictional_system', 'historical_anchor'}), 'eventGain', {'fictional_system', 'historical_anchor'}, 0, 2)
+    if 'expectations' in top:
+        for k, v in rules(top['expectations'], 'expectations', index).items():
+            if not isinstance(v, dict) or set(v) != {'target', 'rate'} or not num(v['target']) or not 0 <= v['target'] <= 100 or not num(v['rate']) or not 0 <= v['rate'] <= .2: bad(f'expectations.{k}')
+    if 'growthBase' in top and (not num(top['growthBase']) or not -.01 <= top['growthBase'] <= .012): bad('growthBase')
+    if 'militaryRule' in top: amounts(rules(top['militaryRule'], 'militaryRule', {'monthly'}).get('monthly'), 'militaryRule.monthly', metrics, -2, 2)
+    if 'authoritarian' in top:
+        x = rules(top['authoritarian'], 'authoritarian', {'monthly', 'gainFactor', 'support', 'relations'})
+        amounts(x.get('monthly'), 'authoritarian.monthly', metrics, -2, 2)
+        if 'gainFactor' in x: amounts(x['gainFactor'], 'authoritarian.gainFactor', index, 0, 1)
+        if 'support' in x: amounts(x['support'], 'authoritarian.support', factions, -2, 2)
+        if 'relations' in x: amounts(x['relations'], 'authoritarian.relations', countries, -2, 2)
+if 'balance' in d: check_balance(d['balance'])
 for asset in json.loads((root / 'assets/manifest.json').read_text(encoding='utf-8'))['assets']:
     if not (root / asset['path']).is_file(): errors.append('missing asset ' + asset['path'])
 if errors:
@@ -91,4 +130,5 @@ if errors:
 anchors = sum(e['kind'] == 'historical_anchor' for e in d['events'])
 print(f'Content OK (data {d["meta"]["version"]}): {len(d["events"])} events ({anchors} historical anchors, '
       f'{sum("context" in e for e in d["events"])} with path context), {len(all_choices)} choices, {len(d["policies"])} policies, '
-      f'{len(d["projects"])} projects, {len(d["regions"])} regions, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings.')
+      f'{len(d["projects"])} projects, {len(d["regions"])} regions, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings'
+      f'{", balance rules " + ", ".join(k for k in d["balance"] if k not in ("note", "growthNote")) if "balance" in d else ", no balance rules (1.1.0 계산)"}.')
