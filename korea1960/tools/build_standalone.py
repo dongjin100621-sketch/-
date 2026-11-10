@@ -26,13 +26,13 @@ def common(d):
 def page(css, script, title='대한민국 1960 · 선택의 연대기', artifact=False):
     script = script.replace('</script', '<\\/script')
     if artifact:
-        return (f'<title>{title}</title><meta name="theme-color" content="#0b1e24"><style>{css}</style>'
+        return (f'<title>{title}</title><meta name="theme-color" content="#1a1b1d"><style>{css}</style>'
                 '<div id="app"><p class="boot" style="padding:30px">기록을 준비하고 있습니다…</p></div>'
                 '<div id="live" class="sr-only" aria-live="polite"></div><noscript><p style="padding:30px">JavaScript를 켜면 게임을 실행할 수 있습니다.</p></noscript>'
                 '<script>document.documentElement.lang="ko";globalThis.__EMBED__="artifact";</script>'
                 f'<script type="module">{script}</script>\n')
     return ('<!doctype html>\n<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
-            '<meta name="theme-color" content="#0b1e24"><meta name="description" content="1960~1979년 대한민국을 배경으로 한 월 단위 역사 정치·경제 시뮬레이션. 모든 수치와 선택 결과는 가상이다.">'
+            '<meta name="theme-color" content="#1a1b1d"><meta name="description" content="1960~1979년 대한민국을 배경으로 한 월 단위 역사 정치·경제 시뮬레이션. 모든 수치와 선택 결과는 가상이다.">'
             f'<title>{title}</title><style>{css}</style></head><body><div id="app"><p class="boot" style="padding:30px">기록을 준비하고 있습니다…</p></div>'
             '<div id="live" class="sr-only" aria-live="polite"></div><noscript><p style="padding:30px">JavaScript를 켜면 게임을 실행할 수 있습니다.</p></noscript>'
             f'<script type="module">{script}</script></body></html>\n')

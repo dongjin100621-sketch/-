@@ -24,7 +24,7 @@
     {
       "path": "KOREA1960.html",
       "bytes": 2556177,
-      "sha256": "9c4beaef2d728f1d3a8aaace0f6b194d357703f8daae756cab329e7872118aea"
+      "sha256": "4aa55ab3fe18715c478fc453d252706f7ec0ffa2a14b5d43123192785c14414d"
     },
     {
       "path": "PLAYABLE_SAMPLE.html",
@@ -374,7 +374,7 @@
     {
       "path": "game/index.html",
       "bytes": 788,
-      "sha256": "4957ef322376c71941a361e54c8eaf2679204edb350628484b09d6b72773c9fa"
+      "sha256": "5a63ad6fe99f17844d01d3d9737466b23301038d79cdf0c53ec961ff779f7147"
     },
     {
       "path": "game/saves/1964_bills_and_projects.json",
@@ -474,7 +474,7 @@
     {
       "path": "tools/build_standalone.py",
       "bytes": 6352,
-      "sha256": "ce330270c83c9b472a40add54c8e85a3b1f39717182f03e6e72b41d33b54446a"
+      "sha256": "82911960c9f2bfada114ced4f83fef4cbcae79f77a9a25fc3ee3912fb5f9221b"
     },
     {
       "path": "tools/make_map.py",
