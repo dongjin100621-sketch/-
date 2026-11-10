@@ -245,6 +245,11 @@ test('clock: format 3 keeps the day; bad days and format 2 files with a day are 
   delete v2.state.day; const back = importSave(JSON.stringify(v2), d); assert.equal(back.day, 1); assert.equal(back.version, E.SAVE_VERSION);
 });
 
+test('map view is a valid visited screen in saves', () => {
+  const s = free(createState(d)); s.visited = ['map', 'overview']; assert.deepEqual(importSave(exportSave(s), d).visited, ['map', 'overview']);
+  const p = JSON.parse(exportSave(s)); p.state.visited = ['atlas']; assert.throws(() => importSave(JSON.stringify(p), d));
+});
+
 /* ===== 데이터 1.2.0 밸런스 규칙 ===== */
 test('balance: gains shrink above 60, never reach 100, and losses are never reduced', () => {
   const s = governing();

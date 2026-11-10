@@ -8,8 +8,8 @@
     },
     {
       "path": "CHECKPOINT.md",
-      "bytes": 9678,
-      "sha256": "f0f654ccd5f728c7b7a05bf9c6efa49f5a87fbfa9f48e6b0f0d2791eff7cda30"
+      "bytes": 10531,
+      "sha256": "1f1ecaee7f05aeaccd7ee8eafa0b48b41cca6bb77779cf41a96dce4a9da47bd9"
     },
     {
       "path": "CLAUDE_CONTEXT.md",
@@ -23,8 +23,8 @@
     },
     {
       "path": "KOREA1960.html",
-      "bytes": 2455302,
-      "sha256": "2ca4ff03ac258ffc4f6b06c86886956a2cfc12ab1297596f8b6ccb3d9a840c4a"
+      "bytes": 2516278,
+      "sha256": "7299ee5c1fd1cede967d0ed7ad7076ee7d055b1086d9b0c460c7c26ef37f0b4c"
     },
     {
       "path": "PLAYABLE_SAMPLE.html",
@@ -33,18 +33,18 @@
     },
     {
       "path": "QA_REPORT.md",
-      "bytes": 21944,
-      "sha256": "b107f307da0ddef4b5891dd5fa0eafbba42e4e8b8afd91e2b4c9e668c7e6149c"
+      "bytes": 23070,
+      "sha256": "cd29599834e5c04ed35113c46dc43a685d7d1ab9097cb3106c43281d2d397c8e"
     },
     {
       "path": "README.md",
-      "bytes": 10968,
-      "sha256": "92240f6b52f498605d50c74a0c9547556d8a59632d4eb34a00120f7556cb3fde"
+      "bytes": 11676,
+      "sha256": "891d26b75c64aa01bb6631a1a048b24004a81ba971190375f03430dc51e37312"
     },
     {
       "path": "RIGHTS_AND_ATTRIBUTION.md",
-      "bytes": 1732,
-      "sha256": "bc6015a05072b96d3c035c0cf24478c69376eee1fe975ccbac8cbab051e4bacf"
+      "bytes": 2184,
+      "sha256": "97c3cd696ca5cf32c3f9caace09445b74cabbf5c2a44363856212033e13695fe"
     },
     {
       "path": "START_WINDOWS.bat",
@@ -123,8 +123,13 @@
     },
     {
       "path": "assets/manifest.json",
-      "bytes": 5116,
-      "sha256": "a029b07aaf4b7838514ac0ea40c9c92f676ff65993da21528f711f14b6949768"
+      "bytes": 5588,
+      "sha256": "36386e75213550fecc7a16910fc737cd9ced29493146849c76a1385741def8cf"
+    },
+    {
+      "path": "assets/map/korea_map.json",
+      "bytes": 43425,
+      "sha256": "fd137fb02f97016ca9255b052e60aa66387c1909ae8c11b860ee03b73f4a1cb1"
     },
     {
       "path": "assets/ui/archive.svg",
@@ -165,6 +170,11 @@
       "path": "assets/ui/growth.svg",
       "bytes": 220,
       "sha256": "6bf03062c4e13d56c867073e424d0d55ee18449afd0f0fa9e21969561a00ef85"
+    },
+    {
+      "path": "assets/ui/map.svg",
+      "bytes": 259,
+      "sha256": "2fba5c9a6082120d9fb314c8893f500549811d65511b80b26044cd3c1f20c819"
     },
     {
       "path": "assets/ui/overview.svg",
@@ -343,13 +353,13 @@
     },
     {
       "path": "game/app.mjs",
-      "bytes": 111666,
-      "sha256": "7ba82c776c09f5038c716cf38cb8ab5f0e7e02f2be60ecd9e7d22ed8abb5f4fa"
+      "bytes": 123603,
+      "sha256": "2943eb9bbf6657364843f8a97ad295fad7fe5a27b256de3d1c5830616ffa967d"
     },
     {
       "path": "game/engine.mjs",
-      "bytes": 44942,
-      "sha256": "a1a81fc3652016036365d8f403f580bad6900c68667a7af57f248c075d267fbb"
+      "bytes": 44949,
+      "sha256": "5029cc554c2d879a890a64a038eb395cc72e0c57c48cc3e61bda32ef4df9b7d7"
     },
     {
       "path": "game/index.html",
@@ -378,8 +388,8 @@
     },
     {
       "path": "game/style.css",
-      "bytes": 29990,
-      "sha256": "b7ba617f7f27c8d04de2dee82cc47b1009a966fd23de3c99ac4e8ff2f8dd103f"
+      "bytes": 35192,
+      "sha256": "68d4d2fb99fce6944b9477ac47541895989abae7b68cc3d37fb55dd423e756cb"
     },
     {
       "path": "package-lock.json",
@@ -408,8 +418,8 @@
     },
     {
       "path": "tests/browser/e2e.cjs",
-      "bytes": 20020,
-      "sha256": "9fe702da7d23baaf3926aa77a37d500e92f62766119458a958e24a0125f3d0b2"
+      "bytes": 22428,
+      "sha256": "0e5daa9e240634303be008e739102d63a37b9bacf56cd3946357f629cb281b30"
     },
     {
       "path": "tests/engine.test.mjs",
@@ -433,8 +443,8 @@
     },
     {
       "path": "tests/game.test.mjs",
-      "bytes": 40967,
-      "sha256": "4efb151b1c6c38a5c853cc25d85ed7fddadcf79c4e44f88afe31164f8d9cb1a1"
+      "bytes": 41299,
+      "sha256": "4b2d5849a12a9039a49961d65c9bf9903a4127d05cb1cc12637cb352b64ccd23"
     },
     {
       "path": "tests/helpers/campaign.mjs",
@@ -443,8 +453,13 @@
     },
     {
       "path": "tools/build_standalone.py",
-      "bytes": 6199,
-      "sha256": "cdbc85afda0dd4f50081b0f546cf72fcc49cef7554a59e330d6e47dea246bffa"
+      "bytes": 6352,
+      "sha256": "ce330270c83c9b472a40add54c8e85a3b1f39717182f03e6e72b41d33b54446a"
+    },
+    {
+      "path": "tools/make_map.py",
+      "bytes": 7156,
+      "sha256": "88f8e4a2cb8ceba9e13e68eb1777c201f084891b87a4704662445724eeccf8cf"
     },
     {
       "path": "tools/make_sample_saves.mjs",

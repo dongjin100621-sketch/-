@@ -5,6 +5,7 @@
 @font-face{font-family:"Chronicle KR";src:url("../assets/fonts/ChronicleKR-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
 :root{
   color-scheme:dark;
+  --sea:#0d272e;--sea-line:#1d3b41;--land-x:#1f3437;
   --deep:#0b1e24;--ink:#142c31;--panel:#142c31;--panel-2:#1a363b;--line:#334a4d;--line-2:#45605f;
   --paper:#eee7d5;--paper-2:#e4dbc4;--paper-ink:#1d2f31;--paper-muted:#5b6662;--paper-line:#c9bea3;
   --muted:#a9b7af;--brass:#c5a66b;--brass-2:#dcc18e;--vermillion:#bb654f;--green:#83b39c;
@@ -344,6 +345,65 @@ blockquote{margin:6px 0;padding-left:12px;border-left:2px solid var(--brass);col
 .toast .fx{margin:6px 0 0}
 .toast button{float:right;margin:-4px -6px 0 8px}
 
+
+/* ----- 지도(화면 한가운데) ----- */
+main.main.map-mode{padding:0}
+main.main.map-mode>.foot{display:none}
+main.main.map-mode>.notice{margin:12px 16px}
+.map-wrap{position:relative;height:calc(100vh - var(--status-h,64px) - var(--ticker-h,40px));min-height:560px;background:var(--sea);overflow:hidden}
+.map-stage{position:absolute;inset:0}
+.kmap{display:block;width:100%;height:100%;cursor:grab;touch-action:none;user-select:none}
+.kmap.dragging{cursor:grabbing}
+.kmap .sea{fill:var(--sea)}
+.kmap .grat{fill:none;stroke:var(--sea-line);stroke-width:1}
+.kmap .land-x{fill:var(--land-x);stroke:#34494b;stroke-width:1}
+.kmap .land-x.prk{fill:#223538}
+.mregion{stroke:#e9e1cb;stroke-width:1.1;stroke-linejoin:round;cursor:pointer;transition:filter .15s}
+.mregion:hover{filter:brightness(1.18)}
+.mregion:focus{outline:none}
+.mregion:focus-visible,.mregion.sel{stroke:var(--brass-2);stroke-width:3.2}
+.kmap .mdl{fill:none;stroke:var(--brass);stroke-width:2.6;stroke-dasharray:9 5}
+.kmap text{font-family:var(--font);paint-order:stroke;stroke:#0b1e24;stroke-linejoin:round;pointer-events:none}
+.kmap .rname{font-size:17px;font-weight:700;fill:var(--paper);stroke-width:4px;text-anchor:middle}
+.kmap .rval{font-size:12.5px;fill:var(--brass-2);stroke-width:3.5px;text-anchor:middle;font-variant-numeric:tabular-nums}
+.kmap .lbl{fill:#7f9ea0;stroke-width:3px}
+.kmap .lbl.sea{font-size:20px;letter-spacing:8px;fill:#5d8187;font-family:var(--display)}
+.kmap .lbl.land{font-size:18px;letter-spacing:4px;fill:#89a3a4}
+.kmap .lbl.island{font-size:12px}
+.kmap .lbl.mdl-l{font-size:12px;fill:var(--brass)}
+.kmap .isle{fill:#b9c49a;stroke:#0b1e24;stroke-width:1}
+.kmap .city circle{fill:#e9e1cb;stroke:#0b1e24;stroke-width:1.2;pointer-events:none}
+.kmap .city.capital circle{fill:var(--brass)}
+.kmap .city text{font-size:11.5px;fill:#cfd6cc;stroke-width:3px}
+.kmap .city.capital text{font-size:13px;font-weight:700;fill:var(--paper)}
+.kmap .city.foreign circle{fill:#8aa0a1}
+.kmap .city.foreign text{fill:#8aa0a1}
+.pmark .pm-bg{fill:#0b1e24;stroke:#e9e1cb;stroke-width:1.2}
+.pmark.building .pm-arc{fill:none;stroke:var(--brass);stroke-width:3}
+.pmark.done .pm-bg{fill:var(--brass);stroke:#0b1e24}
+.pmark .pm-core{fill:#0b1e24}
+.map-tools{position:absolute;right:16px;bottom:16px;display:flex;gap:6px}
+.map-tools .btn{min-width:40px;min-height:40px;font-size:16px;background:rgba(20,44,49,.92)}
+.map-legend{position:absolute;left:16px;bottom:16px;max-width:min(420px,calc(100% - 200px));padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(12,32,38,.92);font-size:12px;color:var(--muted)}
+.map-legend .filters{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 8px}
+.map-legend .filters .btn{min-height:36px}
+.ramp{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ramp i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,rgb(22,46,48),rgb(33,70,65) 30%,rgb(55,104,88) 50%,rgb(110,146,104) 70%,rgb(206,196,126))}
+.map-doc{position:absolute;left:16px;top:16px;width:min(470px,48%);max-height:calc(100% - 170px);overflow:auto;border-radius:var(--r-card);box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.map-doc .decision{margin:0}
+.map-doc .decision .art{aspect-ratio:16/5}
+.map-doc .fold{position:sticky;bottom:0;display:flex;justify-content:flex-end;padding:8px 12px;background:linear-gradient(0deg,var(--paper) 70%,rgba(238,231,213,0))}
+.map-doc .fold .btn{color:var(--paper-ink);border-color:var(--paper-line)}
+.map-note{position:absolute;left:16px;top:16px;width:min(380px,46%);padding:14px 16px}
+.map-note h2{font-size:18px;margin:2px 0 10px}
+.map-card{position:absolute;right:16px;top:16px;width:min(310px,40%);max-height:calc(100% - 90px);overflow:auto;padding:14px 16px}
+.map-card h2{font-size:22px;margin:2px 0 4px}
+.map-card .kv{border-bottom-color:var(--paper-line);color:var(--paper-ink)}
+.map-card .bar{margin:2px 0 8px}
+.map-card .row .btn{color:var(--paper-ink);border-color:var(--paper-line)}
+.map-projects{list-style:none;margin:8px 0 10px;padding:0;font-size:13.5px}
+.map-projects li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed var(--paper-line)}
+.map-projects small{color:var(--paper-muted);text-align:right}
 /* ----- 반응형: 1100px 이하 브리핑을 아래로, 760px 이하 내비게이션 가로 스크롤 + 하단 행동 막대 ----- */
 @media (max-width:1100px){
   .shell{grid-template-columns:190px minmax(0,1fr);grid-template-areas:"status status" "nav main" "nav brief" "nav ticker";grid-template-rows:auto 1fr auto auto;background:linear-gradient(90deg,#0f242a 0 190px,transparent 190px)}
@@ -385,6 +445,21 @@ blockquote{margin:6px 0;padding-left:12px;border-left:2px solid var(--brass);col
   .choice{padding:12px;grid-template-columns:26px minmax(0,1fr)}
   .axes{grid-template-columns:repeat(2,minmax(0,1fr))}
   .budget-row{grid-template-columns:84px minmax(0,1fr) 64px}
+  main.main.map-mode{padding:0 0 12px}
+  .map-wrap{height:auto;min-height:0;overflow:visible;background:none}
+  .map-stage{position:relative;inset:auto;aspect-ratio:1000/950;max-height:68vh;background:var(--sea)}
+  .kmap{touch-action:pan-y;cursor:default}
+  .map-tools,.map-legend .ramp,.map-legend small{display:none}
+  .map-legend{position:static;max-width:none;margin:0;border:0;border-radius:0;background:transparent;padding:8px 16px 0}
+  .map-doc,.map-note,.map-card{position:static;width:auto;max-height:none;margin:12px 16px 0;box-shadow:none}
+  .map-doc .decision .art{aspect-ratio:16/7}
+  .kmap .rname{font-size:34px;stroke-width:7px}
+  .kmap .rval{font-size:25px;stroke-width:6px}
+  .kmap .city.minor,.kmap .city.foreign,.kmap .lbl.island,.kmap .lbl.mdl-l{display:none}
+  .kmap .city text{font-size:24px;stroke-width:5px}
+  .kmap .city.capital text{font-size:26px}
+  .kmap .lbl.sea{font-size:30px}
+  .kmap .lbl.land{font-size:28px}
   .bottombar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;gap:8px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(12,31,37,.98);border-top:1px solid var(--line)}
   .bottombar .btn{min-height:46px}
   .bottombar .btn.clock-play,.bottombar .btn.speed{min-width:46px;padding:0 10px}

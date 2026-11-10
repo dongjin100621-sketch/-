@@ -30,6 +30,7 @@ async function audit(page, tag) {
 const S = page => page.evaluate(() => window.__GAME_DEBUG__.getState());
 
 async function run(viewport, tag) {
+  const mobileView = viewport.width < 760;
   console.log(`\n## ${tag} ${viewport.width}×${viewport.height}`);
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, acceptDownloads: true });
@@ -53,6 +54,24 @@ async function run(viewport, tag) {
   await page.focus('.choice >> nth=0'); await page.keyboard.press('Enter'); await page.waitForTimeout(100);
   // 데이터 1.2.0: 가상 사건의 보너스는 eventGain(0.35)만큼 줄어든 값으로 기록된다(행정 +1 → +0.35).
   s = await S(page); check(s.queue.length === 0 && s.log.some(l => l.type === 'event' && l.choiceId === 'opening_1' && l.changes?.admin > 0 && l.changes.admin <= 1), '키보드 Enter로 선택, 연대기에 변화 기록');
+  // 지도: 화면 한가운데 기본 화면. 권역 10개, 권역 선택·색 바꾸기·확대·키보드.
+  check(await page.$$eval('.kmap .mregion', els => els.length) === 10 && await page.isVisible('.map-stage'), '지도: 시작 화면 한가운데에 권역 10개');
+  await page.screenshot({ path: `${out}/${tag}_02b_map.png` }); await audit(page, '지도');
+  await page.click('.mregion[data-id="gyeongbuk"]', { force: true }); await page.waitForSelector('.map-card');
+  check((await page.textContent('.map-card h2')).includes('경북') && (await page.textContent('.map-card')).includes('사업 슬롯'), '지도: 권역을 누르면 권역 정보');
+  const fill0 = await page.getAttribute('.mregion[data-id="capital"]', 'fill');
+  await page.click('[data-action="mapLayer"][data-id="farm"]');
+  check(await page.getAttribute('.mregion[data-id="capital"]', 'fill') !== fill0 && (await page.getAttribute('.kmap', 'aria-label')).includes('농업'), '지도: 농업 잠재력으로 색 바꾸기');
+  await page.click('[data-action="mapLayer"][data-id="dev"]');
+  if (!mobileView) { const vb0 = await page.getAttribute('.kmap', 'viewBox'); await page.click('[data-action="mapZoom"][data-id="in"]'); const vb1 = await page.getAttribute('.kmap', 'viewBox'); await page.click('[data-action="mapZoom"][data-id="reset"]'); check(vb0 !== vb1 && await page.getAttribute('.kmap', 'viewBox') === vb0, '지도: 확대와 전체 보기');
+    await page.click('.map-card [data-action="closeRegion"]'); const box = await page.$eval('.kmap', el => { const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await page.mouse.move(box.x, box.y); await page.mouse.down(); await page.mouse.move(box.x + 60, box.y + 40, { steps: 5 }); await page.mouse.up();
+    check(await page.getAttribute('.kmap', 'viewBox') !== vb0 && !(await page.$('.map-card')), '지도: 끌어서 이동(권역은 선택되지 않음)');
+    await page.click('[data-action="mapZoom"][data-id="reset"]'); }
+  await page.focus('.mregion[data-id="jeju"]'); await page.keyboard.press('Enter'); await page.waitForTimeout(50);
+  check((await page.textContent('.map-card h2')).includes('제주'), '지도: 키보드로 권역 선택');
+  await page.click('.map-card [data-action="closeRegion"]');
+  await page.click('[data-action="nav"][data-view="overview"]');
   for (let i = 0; i < 3; i++) await page.click('.calm [data-action="prepare"]');
   s = await S(page); check(s.ap === 0 && s.influence === 31, `사전 준비 3회: AP 0, 영향력 ${s.influence}`);
   check(await page.isDisabled('.calm [data-action="prepare"]'), 'AP 0이면 준비 버튼 비활성');

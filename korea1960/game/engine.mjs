@@ -33,7 +33,7 @@ export const ELECTION_THRESHOLD = 45;
 export const FISCAL_CRISIS_DEBT = 700;
 export const CRISIS_ENDINGS = ['fiscal_crisis', 'legitimacy_crisis', 'rights_crisis'];
 export const BILL_STAGES = ['introduced', 'committee', 'legal_review', 'plenary', 'passed', 'failed'];
-export const VIEWS = ['overview', 'policy', 'assembly', 'build', 'budget', 'diplomacy', 'cabinet', 'archive'];
+export const VIEWS = ['map', 'overview', 'policy', 'assembly', 'build', 'budget', 'diplomacy', 'cabinet', 'archive'];
 export const DIPLOMACY_MODES = {
   talk: { label: '정례 대화', cost: 4, relation: 4, effects: { security: 1 } },
   technology: { label: '기술 교류', cost: 7, relation: 3, effects: { education: 2, reserves: -1 } },

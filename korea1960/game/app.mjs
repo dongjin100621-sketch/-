@@ -4,6 +4,8 @@
 import * as E from './engine.mjs';
 
 const data = globalThis.__DATA__ || await fetch('../data/game.json').then(r => { if (!r.ok) throw Error('콘텐츠를 읽지 못했습니다.'); return r.json(); });
+/** 권역 지도(assets/map/korea_map.json, Natural Earth 퍼블릭 도메인을 tools/make_map.py로 단순화). 없으면 지도 대신 안내를 보인다. */
+const MAP = globalThis.__MAP__ || await fetch('../assets/map/korea_map.json').then(r => r.ok ? r.json() : null).catch(() => null);
 const STORE_KEY = 'korea1960.game.v2', LEGACY_KEY = 'korea1960.reference.v1', BACKUP_KEY = 'korea1960.game.v2.unreadable';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -79,11 +81,11 @@ const LOG_FILTERS = [['all', '전체'], ['event', '사건'], ['law', '정책·�
 const LOG_GROUP = { event: 'event', followup: 'event', preparation: 'event', start: 'event', policy: 'law', bill: 'law', construction: 'construction', finance: 'money', budget: 'money', diplomacy: 'foreign', cabinet: 'foreign', election: 'election', ending: 'election' };
 const BUDGET_LABEL = { industry: '산업', agriculture: '농업', education: '교육', welfare: '생활', infrastructure: '기반 시설', security: '안보' };
 const BUDGET_PRESETS = [['기본 배분', { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 }], ['산업 우선', { industry: 32, agriculture: 12, education: 14, welfare: 12, infrastructure: 20, security: 10 }], ['생활 우선', { industry: 14, agriculture: 18, education: 18, welfare: 28, infrastructure: 12, security: 10 }], ['인재 우선', { industry: 16, agriculture: 14, education: 30, welfare: 16, infrastructure: 14, security: 10 }]];
-const NAV = [['overview', '상황판'], ['policy', '정책'], ['assembly', '의회'], ['build', '사업·권역'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
-const NAV_GROUPS = [['국정', ['overview', 'policy', 'assembly']], ['경제·지역', ['budget', 'build']], ['대외·인사', ['diplomacy', 'cabinet']], ['기록', ['archive']]];
+const NAV = [['map', '지도'], ['overview', '상황판'], ['policy', '정책'], ['assembly', '의회'], ['build', '사업·권역'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
+const NAV_GROUPS = [['국정', ['map', 'overview', 'policy', 'assembly']], ['경제·지역', ['budget', 'build']], ['대외·인사', ['diplomacy', 'cabinet']], ['기록', ['archive']]];
 
 /* ---------- 상태 ---------- */
-const ui = { screen: 'title', view: 'overview', region: 'capital', policyCat: '전체', policyStatus: 'all', projectAll: false, logFilter: 'all', modal: null, toast: null, budgetDraft: null };
+const ui = { screen: 'title', view: 'map', mapRegion: null, mapLayer: 'dev', mapBox: null, eventFolded: false, region: 'capital', policyCat: '전체', policyStatus: 'all', projectAll: false, logFilter: 'all', modal: null, toast: null, budgetDraft: null };
 let state = null, savedInfo = null, storageNote = '';
 const storage = {
   get(key) { try { return localStorage.getItem(key); } catch { return null; } },
@@ -181,6 +183,7 @@ function syncClock() {
   document.querySelectorAll('.js-days').forEach(el => { el.textContent = String(left); });
   document.querySelectorAll('.js-bar').forEach(el => { el.style.width = `${(state.day - 1) / dim * 100}%`; });
   const prog = $('#agenda-progress'); if (prog) prog.innerHTML = progressList();
+  document.querySelectorAll('.js-countdown').forEach(el => { el.textContent = String(daysUntilMonthEnd(Number(el.dataset.months))); });
 }
 function setSpeed(n) { if (!SPEEDS[n]) return; clock.speed = n; storage.set(CLOCK_KEY, String(n)); schedule(); render(); }
 const PLAY_SVG = '<svg class="glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>';
@@ -358,6 +361,72 @@ function milestones() {
   for (const b of state.bills.filter(b => !['passed', 'failed'].includes(b.status)).slice(0, 2)) list.push([E.dateLabel(t + b.remaining - 1), `${esc(byId('policies', b.policyId).name)} 표결`]);
   list.push(['1979-12', `연대기 종료 · ${240 - t}개월 남음`]);
   return list.sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+/* ---------- 화면: 지도 ----------
+ * 화면 한가운데의 권역 지도. 권역을 개발도·농업 잠재력·사업 슬롯 중 하나로 칠하고, 사업은 권역 이름표 아래 표식으로 보인다.
+ * 권역을 누르면 권역 정보가 열린다. 마우스 끌기·휠·버튼으로 확대·이동한다(viewBox만 바꾸고 다시 그리지 않는다). */
+const MAP_LAYERS = { dev: ['개발도', id => E.regionDevelopment(state, data, id)], farm: ['농업 잠재력', id => byId('regions', id).agriculturePotential], slots: ['사업 슬롯 사용', id => state.projects.filter(p => p.regionId === id).length / byId('regions', id).slots * 100] };
+const RAMP = [[0, [22, 46, 48]], [30, [33, 70, 65]], [50, [55, 104, 88]], [70, [110, 146, 104]], [100, [206, 196, 126]]];
+function rampColor(v) {
+  const x = Math.max(0, Math.min(100, v)); let i = 0; while (i < RAMP.length - 2 && x > RAMP[i + 1][0]) i++;
+  const [a, ca] = RAMP[i], [b, cb] = RAMP[i + 1], t = (x - a) / (b - a);
+  return `rgb(${ca.map((c, k) => Math.round(c + (cb[k] - c) * t)).join(',')})`;
+}
+function projectMarks(id) {
+  const [ax, ay] = MAP.anchors[id], list = state.projects.filter(p => p.regionId === id), frac = (state.day - 1) / E.daysInMonth(state.turn);
+  return list.map((p, i) => {
+    const def = byId('projects', p.projectId), x = ax + (i - (list.length - 1) / 2) * 21, y = ay + 31, done = p.status === 'complete';
+    const prog = done ? 1 : (def.months - p.remaining + frac) / def.months, C = 2 * Math.PI * 7.5;
+    return `<g class="pmark ${done ? 'done' : 'building'}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><title>${esc(def.name)} · ${done ? '운영 중' : `공사 중, 준공까지 ${daysUntilMonthEnd(p.remaining)}일`}</title><circle r="9.5" class="pm-bg"/>${done ? '<rect x="-3.6" y="-3.6" width="7.2" height="7.2" transform="rotate(45)" class="pm-core"/>' : `<circle r="7.5" class="pm-arc" stroke-dasharray="${(prog * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90)"/>`}</g>`;
+  }).join('');
+}
+function mapSvg() {
+  const [, , W, H] = MAP.viewBox, [layerName, layerValue] = MAP_LAYERS[ui.mapLayer];
+  const regions = data.regions.map(r => {
+    const v = layerValue(r.id), sel = ui.mapRegion === r.id, used = state.projects.filter(p => p.regionId === r.id).length;
+    return `<path class="mregion ${sel ? 'sel' : ''}" d="${MAP.regions[r.id]}" fill="${rampColor(v)}" fill-rule="evenodd" data-action="mapRegion" data-id="${r.id}" role="button" tabindex="0" aria-pressed="${sel}" aria-label="${esc(r.name)} · ${layerName} ${num(v, 0)} · 사업 ${used}/${r.slots}. 권역 정보 보기"><title>${esc(r.name)} · ${layerName} ${num(v, 0)}</title></path>`;
+  }).join('');
+  const labels = data.regions.map(r => { const [x, y] = MAP.anchors[r.id]; return `<text class="rname" x="${x}" y="${y}">${esc(r.name)}</text><text class="rval" x="${x}" y="${y + 15}">${num(layerValue(r.id), 0)}</text>`; }).join('');
+  return `<svg class="kmap" viewBox="${(ui.mapBox || MAP.viewBox).join(' ')}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="권역 지도 · ${layerName}">
+  <rect class="sea" x="-500" y="-500" width="${W + 1000}" height="${H + 1000}"/>
+  <path class="grat" d="${MAP.graticule}"/>
+  ${Object.entries(MAP.neighbors).map(([k, d]) => `<path class="land-x ${k}" d="${d}"/>`).join('')}
+  <g aria-hidden="false">${regions}</g>
+  <path class="mdl" d="${MAP.mdl}"/>
+  <g aria-hidden="true">
+  ${MAP.labels.map(l => l.kind === 'dokdo' ? `<circle class="isle" cx="${l.x}" cy="${l.y}" r="3"/><text class="lbl island" x="${l.x - 6}" y="${l.y - 6}" text-anchor="end">${esc(l.name)}</text>` : `<text class="lbl ${l.kind}" x="${l.x}" y="${l.y}">${esc(l.name)}</text>`).join('')}
+  ${MAP.cities.map(c => `<g class="city ${c.kind}"><circle cx="${c.x}" cy="${c.y}" r="${c.kind === 'capital' ? 4.5 : 2.6}"/><text x="${c.x + 6}" y="${c.y - 5}">${esc(c.name)}</text></g>`).join('')}
+  <text class="lbl mdl-l" x="${MAP.anchors.gangwon[0] - 40}" y="${MAP.anchors.gangwon[1] - 118}">군사분계선</text>
+  ${labels}
+  ${data.regions.map(r => projectMarks(r.id)).join('')}
+  </g></svg>`;
+}
+function regionCard(id) {
+  const r = byId('regions', id), dev = E.regionDevelopment(state, data, id), ps = state.projects.filter(p => p.regionId === id);
+  return `<section class="paper map-card" aria-label="${esc(r.name)} 권역 정보"><div class="row"><span class="eyebrow">권역 · 가상 모형 값</span>${btn('닫기', 'closeRegion', { cls: 'small quiet' })}</div>
+  <h2>${esc(r.name)}</h2><p class="muted" style="font-size:13px;margin:0 0 8px">특성 ${r.specialties.map(x => esc(SPECIALTY[x] || x)).join(' · ')} (설명용, 효과 배율 아님)</p>
+  <div class="kv"><span>개발도</span><b>${num(dev, 0)}</b></div><div class="bar"><i style="width:${dev}%"></i></div>
+  <div class="kv"><span>농업 잠재력</span><b>${r.agriculturePotential}</b></div><div class="kv"><span>사업 슬롯</span><b>${ps.length} / ${r.slots}</b></div>
+  <ul class="map-projects">${ps.map(p => { const def = byId('projects', p.projectId); return `<li><span>${esc(def.name)}</span><small>${p.status === 'complete' ? '운영 중' : `공사 중 · 준공까지 <span class="js-countdown" data-months="${p.remaining}">${daysUntilMonthEnd(p.remaining)}</span>일`}</small></li>`; }).join('') || '<li class="muted">아직 사업이 없습니다.</li>'}</ul>
+  ${btn('이 권역의 사업 보기', 'nav', { attrs: `data-view="build" data-region="${id}"`, cls: 'small primary' })}
+  <p class="muted" style="font-size:11.5px;margin:8px 0 0">${esc(r.disclaimer)} 완공 사업마다 개발도 +9.</p></section>`;
+}
+function mapView() {
+  if (!MAP) return `<div class="notice bad">지도 자료(assets/map/korea_map.json)를 읽지 못했습니다. 상황판과 사업·권역 화면은 그대로 쓸 수 있습니다.</div>${overview()}`;
+  const e = state.queue.length && !state.ending ? byId('events', state.queue[0]) : null, [layerName] = MAP_LAYERS[ui.mapLayer];
+  const eventBox = state.ending
+    ? `<section class="paper map-note"><span class="eyebrow">연대기 종료</span><h2>${esc(state.ending.title)}</h2>${btn('엔딩 평가 보기', 'nav', { attrs: 'data-view="overview"', cls: 'small primary' })}</section>`
+    : e ? (ui.eventFolded
+      ? `<section class="paper map-note"><span class="eyebrow">결정할 사건 · ${esc(ym(state.turn))}</span><h2>${esc(e.title)}</h2><div class="row" style="justify-content:flex-start;gap:8px">${btn('사건 문서 펼치기', 'eventFold', { cls: 'small primary' })}</div></section>`
+      : `<div class="map-doc">${decisionCard()}<div class="fold">${btn('지도 보기 · 문서 접기', 'eventFold', { cls: 'small quiet' })}</div></div>`)
+    : '';
+  return `<h1 class="sr-only">${esc(ym(state.turn))} 권역 지도</h1><div class="map-wrap" data-clip-x>
+  <div class="map-stage">${mapSvg()}
+  <div class="map-tools" role="group" aria-label="지도 확대">${btn('+', 'mapZoom', { attrs: 'data-id="in" aria-label="확대"', cls: 'small' })}${btn('−', 'mapZoom', { attrs: 'data-id="out" aria-label="축소"', cls: 'small' })}${btn('전체', 'mapZoom', { attrs: 'data-id="reset" aria-label="전체 보기"', cls: 'small' })}</div></div>
+  <div class="map-legend"><div class="filters" role="group" aria-label="지도 색">${Object.entries(MAP_LAYERS).map(([k, [n]]) => `<button type="button" class="btn small ${ui.mapLayer === k ? 'primary' : 'quiet'}" data-action="mapLayer" data-id="${k}" aria-pressed="${ui.mapLayer === k}">${n}</button>`).join('')}</div>
+  <div class="ramp"><span>0</span><i></i><span>100</span></div><small>${esc(layerName)} · ◇ 운영 중 사업 · ◯ 공사 중(테두리=공정) · 권역 경계는 게임용이며 당시 행정구역이 아님</small></div>
+  ${eventBox}${ui.mapRegion ? regionCard(ui.mapRegion) : ''}</div>`;
 }
 
 /* ---------- 화면: 정책 ---------- */
@@ -684,7 +753,7 @@ function draw() {
   const focusKey = focusSignature(document.activeElement);
   const scroller = document.scrollingElement, y = scroller ? scroller.scrollTop : 0;
   if (ui.screen === 'title' || !state) { $('#app').innerHTML = title(); afterRender(focusKey); return; }
-  const pages = { overview, policy, assembly, build, budget, diplomacy, cabinet, archive };
+  const pages = { map: mapView, overview, policy, assembly, build, budget, diplomacy, cabinet, archive };
   const endReason = E.endMonthReason(state);
   const pending = state.queue.length;
   const navBtn = id => { const t = NAV.find(x => x[0] === id)[1]; return `<button type="button" class="nav" data-action="nav" data-view="${id}" ${ui.view === id ? 'aria-current="page"' : ''}>${icon(id)}<span>${t}</span>${id === 'overview' && pending ? `<span class="badge" aria-label="결정할 사건 ${pending}건">${pending}</span>` : ''}</button>`; };
@@ -695,12 +764,14 @@ function draw() {
   <aside class="sidebar"><div class="brand"><span class="kicker">THE REPUBLIC</span><strong>1960</strong><small>선택의 연대기</small></div>
   <nav class="nav-list" aria-label="주 메뉴">${NAV_GROUPS.map(([g, ids]) => `<span class="nav-group">${g}</span>${ids.map(navBtn).join('')}`).join('')}</nav>
   <div class="sidebar-note"><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${btn(`${icon('save')} 저장`, 'export', { cls: 'small quiet', title: EMBEDDED ? '저장 텍스트 복사' : '저장 파일(JSON) 내보내기. 진행은 자동 저장도 됩니다.' })}${btn('게임 방법', 'help', { cls: 'small quiet' })}</div><small style="display:block;margin-top:10px">가상 모형 · 오프라인 실행 · 데이터 ${esc(data.meta.version)}</small></div></aside>
-  <main class="main" id="main">${storageNote ? `<div class="notice bad">${esc(storageNote)}</div>` : ''}${ui.view !== 'overview' && pending ? `<div class="notice"><span>결정할 사건 ${pending}건이 남아 있습니다. 결정해야 다른 행동을 하고 시간이 흐릅니다.</span>${btn('사건으로 이동', 'nav', { attrs: 'data-view="overview"', cls: 'small primary' })}</div>` : ''}
+  <main class="main ${ui.view === 'map' ? 'map-mode' : ''}" id="main">${storageNote ? `<div class="notice bad">${esc(storageNote)}</div>` : ''}${!['overview', 'map'].includes(ui.view) && pending ? `<div class="notice"><span>결정할 사건 ${pending}건이 남아 있습니다. 결정해야 다른 행동을 하고 시간이 흐릅니다.</span>${btn('사건으로 이동', 'nav', { attrs: 'data-view="overview"', cls: 'small primary' })}</div>` : ''}
   ${pages[ui.view]()}<footer class="foot">실제 역사와 가상 반응을 구분한 독자 제작 게임 · 생성 삽화 · 모든 경제 수치는 가상 모형 값 · 한 틱은 하루, 국정 결산은 매달 말일${endReason && !state.ending ? ` · 지금은 시간이 흐를 수 없음: ${esc(endReason)}` : ''}</footer></main>
   <aside class="brief agenda" aria-label="이번 달 업무">${agenda()}</aside>
   ${ticker()}
   <nav class="bottombar" aria-label="시간과 이번 달 행동">${clockButtons({ compact: true })}<span class="today"><b class="js-date-short">${state.ending ? '종료' : `${E.calendar(Math.min(state.turn, 239)).month}월 ${state.day}일`}</b>${apDots(state.ap)}</span>${primaryAction()}</nav></div>${modal()}${toastHtml()}`;
   const bar = document.querySelector('.statusbar'); if (bar) document.documentElement.style.setProperty('--status-h', `${bar.offsetHeight}px`);
+  const tick = document.querySelector('.ticker'); document.documentElement.style.setProperty('--ticker-h', `${tick && tick.offsetParent ? tick.offsetHeight : 0}px`);
+  bindMap();
   afterRender(focusKey);
   if (scroller && !ui._scrollTop) scroller.scrollTop = y;
   ui._scrollTop = false;
@@ -723,6 +794,34 @@ function afterRender(focusKey) {
   if (!focusKey) return;
   const match = [...document.querySelectorAll('[data-action],[data-input],input[id]')].find(el => focusSignature(el) === focusKey);
   if (match && !match.disabled) match.focus({ preventScroll: true });
+}
+/* 지도 확대·이동: viewBox만 바꾼다. 원래 범위의 1/4까지 확대, 범위 밖으로 너무 나가지 않게 제한. */
+function clampBox([x, y, w, h]) {
+  const [, , W, H] = MAP.viewBox; w = Math.min(W, Math.max(W / 4, w)); h = w * H / W;
+  return [Math.min(W - w * .5, Math.max(-w * .5 + 0, x)), Math.min(H - h * .5, Math.max(-h * .5, y)), w, h].map(v => Math.round(v * 10) / 10);
+}
+function zoomMap(factor, cx, cy) {
+  if (!MAP) return;
+  if (!factor) { ui.mapBox = null; } else {
+    const [x, y, w, h] = ui.mapBox || MAP.viewBox, px = cx ?? x + w / 2, py = cy ?? y + h / 2;
+    ui.mapBox = clampBox([px - (px - x) * factor, py - (py - y) * factor, w * factor, h * factor]);
+    if (ui.mapBox[2] >= MAP.viewBox[2]) ui.mapBox = null;
+  }
+  const svg = $('.kmap'); if (svg) svg.setAttribute('viewBox', (ui.mapBox || MAP.viewBox).join(' '));
+}
+function bindMap() {
+  const svg = $('.kmap'); if (!svg || svg.dataset.bound) return; svg.dataset.bound = '1';
+  const toMap = (e, box) => { const r = svg.getBoundingClientRect(), s = Math.max(box[2] / r.width, box[3] / r.height); return [box[0] + (e.clientX - r.left - (r.width - box[2] / s) / 2) * s, box[1] + (e.clientY - r.top - (r.height - box[3] / s) / 2) * s, s]; };
+  let drag = null;
+  svg.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; drag = { x: e.clientX, y: e.clientY, box: [...(ui.mapBox || MAP.viewBox)], moved: false }; });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return; drag.moved = true; svg.classList.add('dragging');
+    const [, , s] = toMap(e, drag.box); ui.mapBox = clampBox([drag.box[0] - dx * s, drag.box[1] - dy * s, drag.box[2], drag.box[3]]); svg.setAttribute('viewBox', ui.mapBox.join(' '));
+  });
+  const end = () => { if (drag?.moved) { ui.mapDragged = true; setTimeout(() => { ui.mapDragged = false; }, 0); } drag = null; svg.classList.remove('dragging'); };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointerleave', end);
+  svg.addEventListener('wheel', e => { e.preventDefault(); const box = ui.mapBox || MAP.viewBox, [mx, my] = toMap(e, box); zoomMap(e.deltaY < 0 ? 1 / 1.2 : 1.2, mx, my); }, { passive: false });
 }
 function bindForms() {
   const form = $('#budget-form'); if (!form) return;
@@ -773,7 +872,7 @@ function startNew() {
   const raw = ($('#seed-input')?.value || '').trim();
   let seed = raw ? Number(raw) : (Date.now() ^ Math.floor(Math.random() * 4294967295)) >>> 0;
   if (raw && (!/^\d{1,10}$/.test(raw) || seed < 1 || seed > 4294967295)) { toast('시드는 1~4294967295의 정수여야 합니다.', { bad: true }); render(); return; }
-  stopClock(); state = E.createState(data, seed); ui.screen = 'game'; ui.view = 'overview'; ui.modal = null; ui.budgetDraft = null; ui.focusMain = true; save();
+  stopClock(); state = E.createState(data, seed); ui.screen = 'game'; ui.view = 'map'; ui.mapRegion = null; ui.mapBox = null; ui.modal = null; ui.budgetDraft = null; ui.focusMain = true; save();
   toast(`새 연대기를 시작했습니다. 시드 ${seed >>> 0}.`); render();
 }
 document.addEventListener('click', e => {
@@ -785,7 +884,7 @@ document.addEventListener('click', e => {
   const a = el.dataset.action, id = el.dataset.id;
   if (a === 'modalBack') { if (e.target === el && ui.modal?.type !== 'report') { ui.modal = null; render(); } return; }
   switch (a) {
-    case 'nav': ui.view = el.dataset.view; ui.toast = null; ui._scrollTop = true; if (state && !state.visited.includes(ui.view)) { state = { ...state, visited: [...state.visited, ui.view] }; save(); } render(); window.scrollTo({ top: 0 }); ui.focusMain = true; afterRender(null); return;
+    case 'nav': if (el.dataset.region) { ui.region = el.dataset.region; ui.mapRegion = el.dataset.region; } ui.view = el.dataset.view; ui.toast = null; ui._scrollTop = true; if (state && !state.visited.includes(ui.view)) { state = { ...state, visited: [...state.visited, ui.view] }; save(); } render(); window.scrollTo({ top: 0 }); ui.focusMain = true; afterRender(null); return;
     case 'policyCat': ui.policyCat = id; return render();
     case 'policyStatus': ui.policyStatus = id; return render();
     case 'projectAll': ui.projectAll = !ui.projectAll; return render();
@@ -799,7 +898,12 @@ document.addEventListener('click', e => {
     case 'continue': ui.screen = 'game'; ui.focusMain = true; stopClock(); return render();
     case 'newgame': ui.modal = { type: 'newgame' }; return render();
     case 'startNew': return startNew();
-    case 'acceptImport': stopClock(); state = ui.modal.loaded; ui.modal = null; ui.screen = 'game'; ui.view = 'overview'; ui.budgetDraft = null; save(); toast(`저장 파일을 불러왔습니다 (${ym(state.turn)}).`); return render();
+    case 'acceptImport': stopClock(); state = ui.modal.loaded; ui.modal = null; ui.screen = 'game'; ui.view = 'map'; ui.mapRegion = null; ui.budgetDraft = null; save(); toast(`저장 파일을 불러왔습니다 (${ym(state.turn)}).`); return render();
+    case 'mapRegion': if (ui.mapDragged) { ui.mapDragged = false; return; } ui.mapRegion = ui.mapRegion === id ? null : id; if (ui.mapRegion) ui.region = id; return render();
+    case 'closeRegion': ui.mapRegion = null; return render();
+    case 'mapLayer': ui.mapLayer = MAP_LAYERS[id] ? id : 'dev'; return render();
+    case 'eventFold': ui.eventFolded = !ui.eventFolded; return render();
+    case 'mapZoom': return zoomMap(id === 'in' ? 1 / 1.4 : id === 'out' ? 1.4 : 0);
     case 'clockToggle': if (clock.running) { stopClock(); render(); } else startClock(); return;
     case 'speed': return setSpeed(Number(id));
     case 'speedCycle': { const list = Object.keys(SPEEDS).map(Number); return setSpeed(list[(list.indexOf(clock.speed) + 1) % list.length]); }
@@ -821,7 +925,7 @@ document.addEventListener('click', e => {
     }
     case 'choose': { const ev = byId('events', state.queue[0]), c = ev?.choices.find(x => x.id === id); if (c?.ending) return openConfirm({ type: 'choose', choiceId: id }); run({ type: 'choose', choiceId: id }); return; }
     case 'prepare': run({ type: 'prepare' }); return;
-    case 'gotoEvent': { ui.view = 'overview'; ui._scrollTop = true; render(); const first = document.querySelector('.choice:not([aria-disabled="true"])'); if (first) { first.scrollIntoView({ block: 'center' }); first.focus({ preventScroll: true }); } return; }
+    case 'gotoEvent': { if (ui.view === 'map') { ui.eventFolded = false; render(); const c = document.querySelector('.map-event .choice:not([aria-disabled="true"])'); if (c) c.focus(); return; } ui.view = 'overview'; ui._scrollTop = true; render(); const first = document.querySelector('.choice:not([aria-disabled="true"])'); if (first) { first.scrollIntoView({ block: 'center' }); first.focus({ preventScroll: true }); } return; }
     case 'endMonth': if (ui.modal) return; run({ type: 'endMonth' }); return;
     case 'askPolicy': return openConfirm({ type: 'policy', id });
     case 'askProject': return openConfirm({ type: 'project', id, regionId: ui.region });
@@ -846,7 +950,8 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Enter' && e.target?.id === 'seed-input') { e.preventDefault(); startNew(); }
   // 스페이스: 시간 진행/멈춤, 1~4: 배속. 입력 칸·버튼·링크에 초점이 있거나 창이 열려 있으면 쓰지 않는다.
-  const typing = e.target?.closest?.('input,textarea,select,button,a,summary,[contenteditable]');
+  if ((e.key === 'Enter' || e.key === ' ') && e.target?.getAttribute?.('role') === 'button' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
+  const typing = e.target?.closest?.('input,textarea,select,button,a,summary,[contenteditable],[role="button"]');
   if (!ui.modal && !typing && state && ui.screen === 'game' && !e.ctrlKey && !e.metaKey && !e.altKey) {
     if (e.key === ' ') { e.preventDefault(); if (clock.running) { stopClock(); render(); } else startClock(); }
     else if (['1', '2', '3', '4'].includes(e.key)) setSpeed([1, 2, 4, 8][Number(e.key) - 1]);

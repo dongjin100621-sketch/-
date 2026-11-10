@@ -8,7 +8,7 @@ python3 tools/build_standalone.py --artifact --output <파일>
     # (게시할 때 골격이 씌워진다). 그 보기 화면은 파일 다운로드를 막으므로 내보내기가 '저장 텍스트 복사'로 바뀐다.
 
 엔진 모듈의 export를 지워 네임스페이스 객체 E로 감싸고, 앱의 import 줄을 지운 뒤 인라인 module로 넣는다.
-콘텐츠(game.json)·삽화 WebP 4장·SVG 아이콘·글꼴은 data: URI로 내장한다. 외부 요청이 없다.
+콘텐츠(game.json)·권역 지도(assets/map/korea_map.json)·삽화 WebP 4장·SVG 아이콘·글꼴은 내장한다. 외부 요청이 없다.
 HTML을 직접 고치면 분리 소스에 반영되지 않는다. game/·data/game.json을 고친 뒤 다시 빌드한다.
 """
 from pathlib import Path
@@ -20,7 +20,8 @@ def uri(path, mime): return f'data:{mime};base64,' + base64.b64encode(path.read_
 def common(d):
     assets = {x: uri(ROOT / f'assets/art/{x}.webp', 'image/webp') for x in ['cover', 'cabinet', 'industry', 'civic']}
     icons = {p.stem: uri(p, 'image/svg+xml') for p in sorted((ROOT / 'assets/ui').glob('*.svg'))}
-    return 'globalThis.__DATA__=' + json.dumps(d, ensure_ascii=False) + ';\nglobalThis.__ASSETS__=' + json.dumps(assets) + ';\nglobalThis.__ICONS__=' + json.dumps(icons) + ';\n'
+    mapdata = (ROOT / 'assets/map/korea_map.json').read_text(encoding='utf-8').strip()
+    return 'globalThis.__DATA__=' + json.dumps(d, ensure_ascii=False) + ';\nglobalThis.__MAP__=' + mapdata + ';\nglobalThis.__ASSETS__=' + json.dumps(assets) + ';\nglobalThis.__ICONS__=' + json.dumps(icons) + ';\n'
 
 def page(css, script, title='대한민국 1960 · 선택의 연대기', artifact=False):
     script = script.replace('</script', '<\\/script')
