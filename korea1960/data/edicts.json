@@ -1,0 +1,176 @@
+[
+  {
+    "id": "grain_drive",
+    "name": "곡창 증산 지도",
+    "requires": [
+      "rice"
+    ],
+    "cost": 6,
+    "monthlyCost": 0.2,
+    "unlockYear": 1961,
+    "monthlyEffects": {
+      "agriculture": 0.05,
+      "inflation": -0.01
+    },
+    "factionEffects": {
+      "farmers": 2
+    },
+    "description": "농사 지도원을 보내 종자와 비료 쓰는 법을 고친다."
+  },
+  {
+    "id": "mine_safety",
+    "name": "광산 안전·증산 감독",
+    "requires": [
+      "coal",
+      "ore"
+    ],
+    "cost": 6,
+    "monthlyCost": 0.25,
+    "unlockYear": 1961,
+    "monthlyEffects": {
+      "industry": 0.035,
+      "welfare": 0.01
+    },
+    "factionEffects": {
+      "workers": 1
+    },
+    "description": "안전 기준을 지키는 광산에만 증산 지원을 준다."
+  },
+  {
+    "id": "forest_protection",
+    "name": "산림 보호구역",
+    "requires": [
+      "mountain"
+    ],
+    "cost": 4,
+    "monthlyCost": 0.12,
+    "unlockYear": 1961,
+    "monthlyEffects": {
+      "environment": 0.06,
+      "agriculture": -0.01
+    },
+    "description": "벌채와 화전을 막는다. 산에 기대 살던 농가의 소득이 줄어든다."
+  },
+  {
+    "id": "fishery_management",
+    "name": "어업 자원 관리",
+    "requires": [
+      "fishery"
+    ],
+    "cost": 4,
+    "monthlyCost": 0.1,
+    "unlockYear": 1962,
+    "monthlyEffects": {
+      "agriculture": 0.02,
+      "environment": 0.025,
+      "reserves": 0.01
+    },
+    "factionEffects": {
+      "farmers": 1
+    },
+    "description": "금어기와 그물코 기준을 정해 어장을 오래 쓴다."
+  },
+  {
+    "id": "export_priority",
+    "name": "수출 공업 우선 지역",
+    "requires": [
+      "harbor"
+    ],
+    "cost": 10,
+    "monthlyCost": 0.35,
+    "unlockYear": 1962,
+    "monthlyEffects": {
+      "industry": 0.045,
+      "reserves": 0.025,
+      "environment": -0.025,
+      "equality": -0.01
+    },
+    "factionEffects": {
+      "business": 2
+    },
+    "buildDiscount": 0.15,
+    "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 사업 착수비 15% 감면."
+  },
+  {
+    "id": "tourism_opening",
+    "name": "관광 개방",
+    "requires": [
+      "scenery"
+    ],
+    "cost": 6,
+    "monthlyCost": 0.15,
+    "unlockYear": 1964,
+    "monthlyEffects": {
+      "reserves": 0.03,
+      "welfare": 0.01,
+      "environment": -0.01
+    },
+    "description": "교통편과 안내를 늘려 방문객을 받는다."
+  },
+  {
+    "id": "urban_planning",
+    "name": "도시 계획 정비",
+    "requires": [
+      "urban"
+    ],
+    "cost": 8,
+    "monthlyCost": 0.3,
+    "unlockYear": 1962,
+    "monthlyEffects": {
+      "infrastructure": 0.035,
+      "welfare": 0.02,
+      "equality": -0.01
+    },
+    "description": "도로·상하수도 계획선을 긋는다. 계획선 안 주민의 이주 문제가 남는다."
+  },
+  {
+    "id": "water_management",
+    "name": "유역 물 관리",
+    "requires": [
+      "river",
+      "hydro"
+    ],
+    "cost": 6,
+    "monthlyCost": 0.15,
+    "unlockYear": 1962,
+    "monthlyEffects": {
+      "agriculture": 0.025,
+      "environment": 0.02
+    },
+    "description": "보와 저수지 운영을 유역 단위로 묶는다."
+  },
+  {
+    "id": "lagging_region",
+    "name": "낙후 지역 개발 촉진",
+    "requires": [],
+    "maxDevelopment": 45,
+    "cost": 8,
+    "monthlyCost": 0.25,
+    "unlockYear": 1962,
+    "monthlyEffects": {
+      "equality": 0.03
+    },
+    "factionEffects": {
+      "farmers": 1,
+      "civil": 1
+    },
+    "buildDiscount": 0.25,
+    "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 사업 착수비 25% 감면."
+  },
+  {
+    "id": "local_admin",
+    "name": "지방 행정 지원",
+    "requires": [],
+    "cost": 5,
+    "monthlyCost": 0.2,
+    "unlockYear": 1961,
+    "monthlyEffects": {
+      "admin": 0.03,
+      "equality": 0.01
+    },
+    "factionEffects": {
+      "bureaucracy": 1
+    },
+    "description": "도·군 행정에 인력과 장비를 보낸다."
+  }
+]

@@ -242,7 +242,7 @@ test('clock: format 3 keeps the day; bad days and format 2 files with a day are 
   for (const day of [0, 32, '5', 1.5, null]) { const p = JSON.parse(exportSave(s)); p.state.day = day; assert.throws(() => importSave(JSON.stringify(p), d), String(day)); }
   const feb = JSON.parse(exportSave(s)); feb.state.turn = 13; feb.state.day = 29; assert.throws(() => importSave(JSON.stringify(feb), d)); // 1961년 2월은 28일
   const v2 = JSON.parse(exportSave(s)); v2.version = 2; v2.state.version = 2; assert.throws(() => importSave(JSON.stringify(v2), d)); // 형식 2에는 day가 없어야 한다
-  delete v2.state.day; const back = importSave(JSON.stringify(v2), d); assert.equal(back.day, 1); assert.equal(back.version, E.SAVE_VERSION);
+  delete v2.state.day; delete v2.state.edicts; const back = importSave(JSON.stringify(v2), d); assert.equal(back.day, 1); assert.equal(back.version, E.SAVE_VERSION); assert.deepEqual(back.edicts, []);
 });
 
 test('map view is a valid visited screen in saves', () => {
@@ -301,7 +301,8 @@ test('balance: production growth leans more on investment than in 1.1.0', () => 
  * v2는 v1의 수식을 그대로 쓰고 법안 확률·외교 횟수·종료 직전 착수 제한만 바꿨다. 데이터 1.2.0의 밸런스 규칙은
  * balance 블록에만 있으므로, 블록을 뺀 같은 데이터(noBalance)로 돌리면 두 엔진의 상태가 매달 같아야 한다. */
 test('regression: v2 without the balance block reproduces the v1 reference engine where rules are unchanged', () => {
-  const d = noBalance;
+  // v1이 모르는 1.3.0 고유 사업(requires)은 뺀다. 지역 시책은 이 비교에서 쓰지 않는다.
+  const d = { ...noBalance, projects: noBalance.projects.filter(p => !p.requires) };
   const shared = ['turn', 'rng', 'phase', 'ap', 'influence', 'seats', 'stats', 'support', 'relations', 'budget', 'policies', 'projects', 'advisers', 'flags', 'queue', 'lastEvents', 'delayed', 'history', 'ending', 'lastFinance'];
   const pick = s => Object.fromEntries(shared.map(k => [k, s[k]]));
   for (const [seed, route] of [[11, 'may_1961_1'], [2024, 'may_1961_2'], [777, 'may_1961_3']]) {
@@ -353,4 +354,87 @@ test(`campaign sweep: ${SEEDS} seeds x ${Object.keys(STRATEGIES).length} strateg
   assert.ok(!finals.passive.balanced || finals.passive.balanced * 4 <= SEEDS, `소극 플레이가 균형 엔딩을 자주 받음 ${JSON.stringify(finals.passive)}`);
   console.log(`Events seen ${events.size}/${d.events.length}`, d.events.filter(e => !events.has(e.id)).map(e => e.id).join(','));
   assert.ok(events.size >= d.events.length - 2, `사건 도달 ${events.size}`);
+});
+
+/* ===== 데이터 1.3.0: 권역 지형·자원, 고유 사업, 지역 시책 (저장 형식 4) ===== */
+const unique = d.projects.filter(p => p.requires);
+test('regions: every region has terrain and resources; each unique project fits some regions but not all', () => {
+  for (const r of d.regions) { assert.ok(r.terrain.length && r.resources.length, r.id); for (const t of [...r.terrain, ...r.resources]) assert.ok(d.traits.some(x => x.id === t), t); }
+  assert.ok(unique.length >= 10);
+  for (const p of unique) { const fit = d.regions.filter(r => E.regionHas(d, r.id, p.requires)).length; assert.ok(fit >= 1 && fit < d.regions.length, `${p.id} ${fit}`); }
+  assert.deepEqual(E.regionTags(d, 'jeju'), ['island', 'mountain', 'scenery', 'fishery']);
+});
+test('unique project: needs the region resource, names it in the reason, and adds its own development', () => {
+  let s = governing(); s.turn = 72;
+  assert.equal(projectReason(s, d, 'coal_mechanization', 'gangwon'), '');
+  assert.equal(projectReason(s, d, 'coal_mechanization', 'jeonbuk'), '이 권역에는 석탄이 없습니다.');
+  assert.equal(projectReason(s, d, 'tourism_complex', 'capital'), '이 권역에는 경관이 없습니다.');
+  assert.equal(projectReason(s, d, 'island_link', 'busan'), '이 권역에는 섬이 없습니다.');
+  assert.equal(dispatch(s, d, { type: 'project', id: 'coal_mechanization', regionId: 'jeonbuk' }).ok, false);
+  const dev0 = E.regionDevelopment(s, d, 'gangwon');
+  s = exec(s, { type: 'project', id: 'coal_mechanization', regionId: 'gangwon' }); s = exec(s, { type: 'project', id: 'local_road', regionId: 'gangwon' });
+  s = advance(s, 8);
+  assert.ok(s.projects.every(p => p.status === 'complete'));
+  assert.equal(E.regionDevelopment(s, d, 'gangwon'), dev0 + 12 + 9);
+});
+test('edict: one per region, needs its terrain or resource, costs AP and treasury, shows upkeep and monthly effects', () => {
+  let s = governing(); const t0 = s.stats.treasury, f0 = E.finance(s, d);
+  assert.match(E.edictReason(s, d, 'grain_drive', 'gangwon'), /곡창이 없습니다/);
+  assert.match(E.edictReason(s, d, 'fishery_management', 'chungbuk'), /어장이 없습니다/);
+  s = exec(s, { type: 'edict', id: 'grain_drive', regionId: 'jeonbuk' });
+  assert.equal(s.ap, 2); assert.equal(s.stats.treasury, t0 - 6); assert.deepEqual(s.edicts, [{ edictId: 'grain_drive', regionId: 'jeonbuk', startedTurn: 60 }]);
+  assert.equal(s.log.at(-1).type, 'edict'); assert.equal(s.log.at(-1).edictId, 'grain_drive');
+  assert.match(E.edictReason(s, d, 'local_admin', 'jeonbuk'), /다른 시책/); assert.match(E.edictReason(s, d, 'grain_drive', 'jeonbuk'), /이미 시행/);
+  assert.ok(Math.abs(E.finance(s, d).upkeep - f0.upkeep - .2) < 1e-9);
+  assert.deepEqual(E.financeDetail(s, d).edictUpkeep, [{ edictId: 'grain_drive', regionId: 'jeonbuk', cost: .2 }]);
+  s = exec(s, { type: 'endMonth' });
+  const row = s.report.ledger.agriculture.find(x => x[0] === '지역 시책'); assert.ok(row && row[1] > 0);
+  // 같은 시책을 다른 권역에 또 걸 수 있다
+  s = free(s); s = exec(s, { type: 'edict', id: 'grain_drive', regionId: 'chungnam' }); assert.equal(s.edicts.length, 2);
+});
+test('edict: the number at once follows administrative capacity', () => {
+  let s = governing(); s.stats.admin = 40; assert.equal(E.edictCap(s), 3); s.stats.admin = 59.9; assert.equal(E.edictCap(s), 3); s.stats.admin = 60; assert.equal(E.edictCap(s), 4); s.stats.admin = 100; assert.equal(E.edictCap(s), 5);
+  s.stats.admin = 40; s.ap = 3;
+  for (const regionId of ['capital', 'gangwon', 'chungnam']) { s = exec(s, { type: 'edict', id: 'local_admin', regionId }); s.ap = 3; }
+  assert.match(E.edictReason(s, d, 'local_admin', 'busan'), /동시에 3개까지/);
+  s.stats.admin = 61; assert.equal(E.edictReason(s, d, 'local_admin', 'busan'), '');
+});
+test('edict: build discount lowers the project cost only in that region; lagging-region edict needs low development', () => {
+  let s = governing(); s.turn = 100;
+  const steel = d.projects.find(p => p.id === 'coastal_industrial');
+  s = exec(s, { type: 'edict', id: 'export_priority', regionId: 'busan' });
+  assert.equal(E.projectCost(s, d, steel.id, 'busan'), steel.cost * .85); assert.equal(E.projectCost(s, d, steel.id, 'gyeongnam'), steel.cost);
+  const before = s.stats.treasury; s = exec(s, { type: 'project', id: steel.id, regionId: 'busan' });
+  assert.ok(Math.abs(before - s.stats.treasury - steel.cost * .85) < 1e-9); assert.match(s.log.at(-1).text, /시책 감면/);
+  assert.match(E.edictReason(s, d, 'lagging_region', 'capital'), /개발도 45 이하/);
+  assert.equal(E.edictReason(s, d, 'lagging_region', 'jeju'), '');
+});
+test('edict: revoking costs no AP, stops upkeep and later effects, and needs an active edict', () => {
+  let s = governing(); s = exec(s, { type: 'edict', id: 'forest_protection', regionId: 'gangwon' });
+  assert.match(E.revokeEdictReason(s, d, 'busan'), /시행 중인 시책이 없습니다/);
+  const ap = s.ap, up = E.finance(s, d).upkeep; s = exec(s, { type: 'revokeEdict', regionId: 'gangwon' });
+  assert.equal(s.ap, ap); assert.deepEqual(s.edicts, []); assert.ok(Math.abs(up - E.finance(s, d).upkeep - .12) < 1e-9); assert.match(s.log.at(-1).text, /거두었다/);
+  s = exec(s, { type: 'endMonth' }); assert.ok(!Object.values(s.report.ledger).flat().some(x => x[0] === '지역 시책'));
+  s = free(s); s.phase = 'elected'; assert.match(E.edictReason(s, d, 'local_admin', 'jeju'), /권한/);
+});
+test('save format 4 keeps edicts; tampered edicts are rejected; format 3 files migrate with no edicts', () => {
+  let s = governing(); s = exec(s, { type: 'edict', id: 'tourism_opening', regionId: 'jeju' }); s = exec(s, { type: 'endMonth' }); s = free(s);
+  assert.deepEqual(importSave(exportSave(s), d), s);
+  for (const mutate of [p => p.state.edicts[0].edictId = 'nope', p => p.state.edicts[0].regionId = 'capital', p => p.state.edicts.push({ ...p.state.edicts[0] }), p => p.state.edicts[0].startedTurn = 999, p => p.state.edicts[0].extra = 1, p => p.state.edicts = {}, p => delete p.state.edicts, p => p.state.log.at(-1).edictId = 'ghost']) {
+    const p = JSON.parse(exportSave(s)); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d), String(mutate));
+  }
+  const raw = fs.readFileSync(new URL('fixtures/v3_data120_1964_bills_and_projects.json', import.meta.url), 'utf8'), old = JSON.parse(raw);
+  assert.equal(old.version, 3); assert.equal(old.state.dataVersion, '1.2.0');
+  const m = E.migrateSave(old, d); assert.equal(m.migratedFrom, 3); assert.equal(m.migratedFromData, '1.2.0');
+  const t = importSave(raw, d); assert.equal(t.version, 4); assert.deepEqual(t.edicts, []); assert.equal(t.dataVersion, d.meta.version);
+  for (const k of ['turn', 'day', 'rng', 'ap', 'stats', 'support', 'relations', 'policies', 'bills', 'projects', 'queue', 'log']) assert.deepEqual(t[k], old.state[k], k);
+  const next = advance(t, 3); checkInvariants(next, d); assert.deepEqual(importSave(exportSave(next), d), next);
+  const bad = JSON.parse(raw); bad.state.edicts = []; assert.throws(() => importSave(JSON.stringify(bad), d)); // 형식 3에는 edicts가 없어야 한다
+});
+test('achievements count unique projects and edicts at once', () => {
+  let s = governing(); s.turn = 100; s.stats.admin = 70;
+  for (const [id, regionId] of [['farmland_consolidation', 'jeonbuk'], ['fishing_port', 'busan'], ['reforestation', 'jeju']]) { s = exec(s, { type: 'project', id, regionId }); s.ap = 3; }
+  for (const regionId of ['capital', 'busan', 'jeonbuk']) { s = exec(s, { type: 'edict', id: 'local_admin', regionId }); s.ap = 3; }
+  s = advance(s, 8); const ids = E.achievements(s, d).map(a => a.id);
+  assert.ok(ids.includes('local_strength')); assert.ok(ids.includes('local_rule'));
 });

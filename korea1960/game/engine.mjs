@@ -12,12 +12,14 @@
  *   4. 월 결산 보고서(report)와 지표별 변화 원인(ledger)을 상태에 남긴다.
  *   5. 행동이 남긴 연대기 항목에 지표 변화(changes)를 기록한다.
  *   6. 저장 버전 2. 버전 1 저장은 migrateSave()로 변환해 읽는다.
+ * 데이터 1.3.0(저장 버전 4): 권역 지형·자원(traits), 자원을 쓰는 고유 사업(projects[].requires),
+ *   지역 시책(edicts, 권역마다 하나, 동시 개수는 행정 역량에 따라). docs/SIMULATION_RULES.md "권역 지형·자원과 지역 시책".
  */
-export const SAVE_VERSION = 3; // 3: 날짜(day) 추가. 1·2는 불러올 때 변환한다.
+export const SAVE_VERSION = 4; // 3: 날짜(day), 4: 지역 시책(edicts). 1·2·3은 불러올 때 변환한다.
 export const SAVE_FORMAT = 'KOREA1960_SAVE';
 export const LEGACY_DATA_VERSIONS = { 1: '1.0.0' };
 /** 같은 저장 형식(2)에서 그대로 이어 받을 수 있는 이전 데이터 버전. ID·상태 구조가 같고 수치 규칙만 다르다. */
-export const COMPATIBLE_DATA_VERSIONS = ['1.1.0'];
+export const COMPATIBLE_DATA_VERSIONS = ['1.1.0', '1.2.0'];
 export const BUDGET_KEYS = ['industry', 'agriculture', 'education', 'welfare', 'infrastructure', 'security'];
 export const PHASES = ['prelude', 'civilian', 'transition', 'elected', 'governing'];
 export const EXECUTIVE_PHASES = ['transition', 'governing'];
@@ -34,6 +36,11 @@ export const FISCAL_CRISIS_DEBT = 700;
 export const CRISIS_ENDINGS = ['fiscal_crisis', 'legitimacy_crisis', 'rights_crisis'];
 export const BILL_STAGES = ['introduced', 'committee', 'legal_review', 'plenary', 'passed', 'failed'];
 export const VIEWS = ['map', 'overview', 'policy', 'assembly', 'build', 'budget', 'diplomacy', 'cabinet', 'archive'];
+/** 지역 시책 동시 개수 = EDICT_CAP_BASE + floor(행정 역량 / EDICT_CAP_ADMIN). 행정 역량 40이면 3개. */
+export const EDICT_CAP_BASE = 2;
+export const EDICT_CAP_ADMIN = 30;
+/** 사업 준공 1건이 권역 개발도에 더하는 기본값(데이터의 development가 없을 때). */
+export const DEFAULT_DEVELOPMENT = 9;
 export const DIPLOMACY_MODES = {
   talk: { label: '정례 대화', cost: 4, relation: 4, effects: { security: 1 } },
   technology: { label: '기술 교류', cost: 7, relation: 3, effects: { education: 2, reserves: -1 } },
@@ -134,7 +141,7 @@ export function createState(d, seed = 196001) {
     support: Object.fromEntries(d.factions.map(f => [f.id, f.initialSupport])),
     relations: Object.fromEntries(d.countries.map(n => [n.id, n.initialRelation])),
     budget: { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 },
-    policies: [], bills: [], projects: [], advisers: [], flags: {}, queue: [], lastEvents: {}, delayed: [],
+    policies: [], bills: [], projects: [], edicts: [], advisers: [], flags: {}, queue: [], lastEvents: {}, delayed: [],
     history: [], log: [], ending: null, lastFinance: null, visited: [],
     report: null, monthActions: []
   };
@@ -145,6 +152,21 @@ export function createState(d, seed = 196001) {
 function snapshot(s) { s.history.push({ turn: s.turn, gdp: s.stats.gdp, inflation: s.stats.inflation, liberty: s.stats.liberty, legitimacy: s.stats.legitimacy, welfare: s.stats.welfare, environment: s.stats.environment }); }
 export function supportAverage(s, d) { return d.factions.reduce((v, f) => v + s.support[f.id] * f.weight, 0); }
 export const isExecutive = s => EXECUTIVE_PHASES.includes(s.phase);
+
+/* ---------- 권역: 지형·자원, 고유 사업, 지역 시책(데이터 1.3.0) ---------- */
+/** 권역의 지형·자원 ID 목록. */
+export function regionTags(d, regionId) { const r = d.regions.find(x => x.id === regionId); return r ? [...(r.terrain || []), ...(r.resources || [])] : []; }
+/** requires(지형·자원 ID) 중 하나라도 권역에 있으면 true. 빈 목록이면 어느 권역이나. */
+export function regionHas(d, regionId, requires) { if (!requires || !requires.length) return true; const tags = regionTags(d, regionId); return requires.some(t => tags.includes(t)); }
+export const traitNames = (d, ids = []) => ids.map(id => ((d.traits || []).find(t => t.id === id) || { name: id }).name);
+/** 받침에 따라 '이/가'. 사유 문장용. */
+function iga(word) { const c = word.charCodeAt(word.length - 1) - 0xAC00; return word + (c >= 0 && c < 11172 && c % 28 ? '이' : '가'); }
+export function edictCap(s) { return EDICT_CAP_BASE + Math.floor(clamp(s.stats.admin, 0, 100) / EDICT_CAP_ADMIN); }
+export function regionEdict(s, regionId) { return (s.edicts || []).find(x => x.regionId === regionId) || null; }
+/** 권역 시책의 사업 착수비 감면 비율(0~0.5). */
+export function buildDiscount(s, d, regionId) { const a = regionEdict(s, regionId), e = a && (d.edicts || []).find(x => x.id === a.edictId); return e && finite(e.buildDiscount) ? e.buildDiscount : 0; }
+/** 이 권역에서 사업을 착수할 때 실제로 드는 비용(시책 감면 반영). */
+export function projectCost(s, d, id, regionId) { const p = d.projects.find(x => x.id === id); return p ? round(p.cost * (1 - buildDiscount(s, d, regionId)), 2) : 0; }
 
 /* ---------- 행동 가능 여부. UI와 dispatch가 같은 함수를 쓴다. ---------- */
 function baseReason(s, { ap = true, government = true, parliament = false } = {}) {
@@ -171,10 +193,29 @@ export function projectReason(s, d, id, regionId) {
   if (!p || !r) return '알 수 없는 사업 또는 권역입니다.';
   return baseReason(s)
     || (calendar(s.turn).year < p.unlockYear ? `${p.unlockYear}년부터 착수할 수 있습니다.` : '')
+    || (!regionHas(d, regionId, p.requires) ? `이 권역에는 ${iga(traitNames(d, p.requires).join('·'))} 없습니다.` : '')
     || (s.projects.filter(x => x.regionId === regionId).length >= r.slots ? '이 권역의 사업 슬롯이 모두 찼습니다.' : '')
     || (s.projects.some(x => x.regionId === regionId && x.projectId === id) ? '이 권역에 같은 사업이 있습니다.' : '')
     || (s.turn + p.months > TOTAL_TURNS ? '1979년 12월까지 준공할 수 없습니다.' : '')
-    || fundsReason(s, p.cost);
+    || fundsReason(s, projectCost(s, d, id, regionId));
+}
+export function edictReason(s, d, id, regionId) {
+  const e = (d.edicts || []).find(x => x.id === id), r = d.regions.find(x => x.id === regionId);
+  if (!e || !r) return '알 수 없는 시책 또는 권역입니다.';
+  const cur = regionEdict(s, regionId), cap = edictCap(s);
+  return baseReason(s)
+    || (calendar(s.turn).year < e.unlockYear ? `${e.unlockYear}년부터 시행할 수 있습니다.` : '')
+    || (!regionHas(d, regionId, e.requires) ? `이 권역에는 ${iga(traitNames(d, e.requires).join('·'))} 없습니다.` : '')
+    || (finite(e.maxDevelopment) && regionDevelopment(s, d, regionId) > e.maxDevelopment ? `개발도 ${e.maxDevelopment} 이하인 권역에만 시행할 수 있습니다.` : '')
+    || (cur ? (cur.edictId === id ? '이 권역에서 이미 시행 중입니다.' : '이 권역에는 다른 시책이 있습니다. 먼저 거두세요.') : '')
+    || (s.edicts.length >= cap ? `지역 시책은 동시에 ${cap}개까지입니다(행정 역량 ${EDICT_CAP_ADMIN}마다 1개 늘어남).` : '')
+    || fundsReason(s, e.cost);
+}
+/** 시책 거두기: 행동점수를 쓰지 않는다. 이미 생긴 변화와 시행비는 돌아오지 않는다. */
+export function revokeEdictReason(s, d, regionId) {
+  return baseReason(s, { ap: false })
+    || (!d.regions.some(x => x.id === regionId) ? '알 수 없는 권역입니다.' : '')
+    || (!regionEdict(s, regionId) ? '이 권역에 시행 중인 시책이 없습니다.' : '');
 }
 export function choiceReason(s, d, choiceId) {
   const e = d.events.find(x => x.id === s.queue[0]), c = e?.choices.find(x => x.id === choiceId);
@@ -262,7 +303,8 @@ export function finance(s, d) {
   const income = 11 + s.stats.gdp * .035 + completed.reduce((a, p) => a + p.income, 0);
   const base = 10 + s.stats.gdp * .014;
   const interest = s.stats.debt * .003;
-  const upkeep = active.reduce((a, p) => a + p.monthlyCost, 0) + completed.reduce((a, p) => a + p.maintenance, 0) + s.advisers.length * ADVISER_UPKEEP;
+  const edicts = (s.edicts || []).reduce((a, x) => a + d.edicts.find(e => e.id === x.edictId).monthlyCost, 0);
+  const upkeep = active.reduce((a, p) => a + p.monthlyCost, 0) + completed.reduce((a, p) => a + p.maintenance, 0) + edicts + s.advisers.length * ADVISER_UPKEEP;
   return { income, base, interest, upkeep, expense: base + interest + upkeep, balance: income - base - interest - upkeep };
 }
 /** 재정 화면의 항목별 내역. finance()와 같은 수식을 항목으로 나눈다. */
@@ -272,6 +314,7 @@ export function financeDetail(s, d) {
     taxBase: 11, taxGrowth: s.stats.gdp * .035,
     facilityIncome: completed.map(x => { const p = d.projects.find(q => q.id === x.projectId); return { projectId: p.id, regionId: x.regionId, income: p.income, maintenance: p.maintenance }; }),
     policyUpkeep: s.policies.map(id => { const p = d.policies.find(q => q.id === id); return { policyId: id, cost: p.monthlyCost }; }),
+    edictUpkeep: (s.edicts || []).map(x => ({ edictId: x.edictId, regionId: x.regionId, cost: d.edicts.find(e => e.id === x.edictId).monthlyCost })),
     adviserUpkeep: s.advisers.length * ADVISER_UPKEEP,
     baseFixed: 10, baseGrowth: s.stats.gdp * .014
   };
@@ -323,6 +366,7 @@ function month(s, d) {
   if (executive) {
     track('정책 지속 효과', () => { for (const id of s.policies) apply(s, d.policies.find(x => x.id === id).monthlyEffects, d); });
     track('자문 지속 효과', () => { for (const id of s.advisers) apply(s, d.advisers.find(x => x.id === id).monthlyEffects, d); });
+    if ((s.edicts || []).length) track('지역 시책', () => { for (const a of s.edicts) apply(s, d.edicts.find(x => x.id === a.edictId).monthlyEffects, d); });
   }
   track('사업 준공', () => {
     for (const p of s.projects) {
@@ -438,6 +482,8 @@ export function actionReason(s, d, action) {
     case 'prepare': return prepareReason(s);
     case 'policy': return policyReason(s, d, action.id);
     case 'project': return projectReason(s, d, action.id, action.regionId);
+    case 'edict': return edictReason(s, d, action.id, action.regionId);
+    case 'revokeEdict': return revokeEdictReason(s, d, action.regionId);
     case 'budget': return budgetReason(s, action.budget === undefined ? null : action.budget);
     case 'diplomacy': return diplomacyReason(s, d, action.countryId, action.mode);
     case 'adviser': return adviserReason(s, d, action.id);
@@ -483,9 +529,21 @@ export function dispatch(current, d, action) {
       break;
     }
     case 'project': {
-      const p = d.projects.find(x => x.id === action.id); s.ap--; s.stats.treasury -= p.cost;
+      const p = d.projects.find(x => x.id === action.id), cost = projectCost(s, d, p.id, action.regionId); s.ap--; s.stats.treasury -= cost;
       s.projects.push({ projectId: p.id, regionId: action.regionId, remaining: p.months, status: 'building', startedTurn: s.turn });
-      log(s, 'construction', `${d.regions.find(x => x.id === action.regionId).name} · ${p.name} 착수 (${p.months}개월, ${dateLabel(s.turn + p.months - 1)} 말 준공 예정).`, { projectId: p.id, regionId: action.regionId });
+      log(s, 'construction', `${d.regions.find(x => x.id === action.regionId).name} · ${p.name} 착수 (${p.months}개월, ${dateLabel(s.turn + p.months - 1)} 말 준공 예정${cost < p.cost ? `, 시책 감면으로 착수비 ${cost}` : ''}).`, { projectId: p.id, regionId: action.regionId });
+      break;
+    }
+    case 'edict': {
+      const e = d.edicts.find(x => x.id === action.id), r = d.regions.find(x => x.id === action.regionId);
+      s.ap--; s.stats.treasury -= e.cost; s.edicts.push({ edictId: e.id, regionId: r.id, startedTurn: s.turn }); faction(s, e.factionEffects);
+      log(s, 'edict', `${r.name} · ${e.name} 시행 (${e.cost} 재정점, 매월 유지비 ${e.monthlyCost}).`, { edictId: e.id, regionId: r.id });
+      break;
+    }
+    case 'revokeEdict': {
+      const a = regionEdict(s, action.regionId), e = d.edicts.find(x => x.id === a.edictId), r = d.regions.find(x => x.id === a.regionId);
+      s.edicts = s.edicts.filter(x => x !== a);
+      log(s, 'edict', `${r.name} · ${e.name} 시책을 거두었다 (${s.turn - a.startedTurn}개월 시행).`, { edictId: e.id, regionId: r.id });
       break;
     }
     case 'budget': {
@@ -537,18 +595,25 @@ export function migrateSave(parsed, d) {
     }
     return parsed;
   }
-  if (parsed.version === 2) {
-    // 2 → 3: 날짜가 없던 월 단위 저장. 그 달 1일로 이어 간다. 나머지 구조는 같다.
+  if (parsed.version === 3) {
+    // 3 → 4: 지역 시책이 없던 저장. 시책 없이 이어 간다. 나머지 구조는 같다.
     const s = parsed.state;
-    if (!sameData(s) || s.version !== 2 || Object.hasOwn(s, 'day')) throw new Error('버전 2 저장의 구조가 올바르지 않습니다.');
-    const next = clone(s); next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.day = 1;
+    if (!sameData(s) || s.version !== 3 || Object.hasOwn(s, 'edicts')) throw new Error('버전 3 저장의 구조가 올바르지 않습니다.');
+    const next = clone(s); next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.edicts = [];
+    return { format: SAVE_FORMAT, version: SAVE_VERSION, state: next, migratedFrom: 3, ...(s.dataVersion !== d.meta.version ? { migratedFromData: s.dataVersion } : {}) };
+  }
+  if (parsed.version === 2) {
+    // 2 → 4: 날짜가 없던 월 단위 저장. 그 달 1일, 시책 없이 이어 간다. 나머지 구조는 같다.
+    const s = parsed.state;
+    if (!sameData(s) || s.version !== 2 || Object.hasOwn(s, 'day') || Object.hasOwn(s, 'edicts')) throw new Error('버전 2 저장의 구조가 올바르지 않습니다.');
+    const next = clone(s); next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.day = 1; next.edicts = [];
     return { format: SAVE_FORMAT, version: SAVE_VERSION, state: next, migratedFrom: 2, ...(s.dataVersion !== d.meta.version ? { migratedFromData: s.dataVersion } : {}) };
   }
   if (parsed.version === 1) {
     const s = parsed.state;
     if (!object(s) || s.version !== 1 || s.dataVersion !== LEGACY_DATA_VERSIONS[1] || s.gameId !== d.meta.id) throw new Error('버전 1 저장의 구조가 올바르지 않습니다.');
     const next = clone(s);
-    next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.report = null; next.monthActions = []; next.day = 1;
+    next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.report = null; next.monthActions = []; next.day = 1; next.edicts = [];
     return { format: SAVE_FORMAT, version: SAVE_VERSION, state: next, migratedFrom: 1 };
   }
   throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
@@ -556,7 +621,7 @@ export function migrateSave(parsed, d) {
 export function importSave(raw, d) {
   if (typeof raw !== 'string' || raw.length > 2000000) throw new Error('저장 파일 크기 또는 형식이 잘못되었습니다.');
   let parsed; try { parsed = JSON.parse(raw); } catch { throw new Error('읽을 수 없는 JSON입니다.'); }
-  if (!object(parsed) || parsed.format !== SAVE_FORMAT || ![1, 2, SAVE_VERSION].includes(parsed.version)) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
+  if (!object(parsed) || parsed.format !== SAVE_FORMAT || ![1, 2, 3, SAVE_VERSION].includes(parsed.version)) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
   const fail = () => { throw new Error('저장 데이터의 구조·ID·값이 올바르지 않습니다.'); };
   try { parsed = migrateSave(parsed, d); } catch { fail(); }
   const s = parsed.state;
@@ -568,13 +633,14 @@ export function importSave(raw, d) {
   if (!object(s.support) || Object.keys(s.support).length !== d.factions.length || d.factions.some(f => !finite(s.support[f.id]) || s.support[f.id] < 0 || s.support[f.id] > 100)) fail();
   if (!object(s.relations) || Object.keys(s.relations).length !== d.countries.length || d.countries.some(n => !finite(s.relations[n.id]) || s.relations[n.id] < 0 || s.relations[n.id] > 100)) fail();
   if (!object(s.budget) || Object.keys(s.budget).length !== 6 || BUDGET_KEYS.some(k => !finite(s.budget[k]) || s.budget[k] < 0 || s.budget[k] > 100) || Math.abs(BUDGET_KEYS.reduce((a, k) => a + s.budget[k], 0) - 100) > .001) fail();
-  const validId = (key, id) => typeof id === 'string' && d[key].some(x => x.id === id), unique = arr => new Set(arr).size === arr.length;
-  for (const [key, max] of [['policies', d.policies.length], ['advisers', MAX_ADVISERS], ['queue', 10], ['bills', 1000], ['projects', d.regions.length * 4], ['delayed', 1000], ['history', TOTAL_TURNS + 1], ['log', 10000], ['visited', VIEWS.length], ['monthActions', d.countries.length]]) if (!Array.isArray(s[key]) || s[key].length > max) fail();
+  const validId = (key, id) => typeof id === 'string' && (d[key] || []).some(x => x.id === id), unique = arr => new Set(arr).size === arr.length;
+  for (const [key, max] of [['policies', d.policies.length], ['advisers', MAX_ADVISERS], ['queue', 10], ['bills', 1000], ['projects', d.regions.length * 4], ['edicts', d.regions.length], ['delayed', 1000], ['history', TOTAL_TURNS + 1], ['log', 10000], ['visited', VIEWS.length], ['monthActions', d.countries.length]]) if (!Array.isArray(s[key]) || s[key].length > max) fail();
   if (!unique(s.policies) || s.policies.some(id => !validId('policies', id)) || !unique(s.advisers) || s.advisers.some(id => !validId('advisers', id)) || s.queue.some(id => !validId('events', id))) fail();
   if (s.bills.some(b => !object(b) || !validId('policies', b.policyId) || !d.policies.find(p => p.id === b.policyId).requiresBill || !Number.isInteger(b.total) || b.total < 5 || b.total > 7 || !Number.isInteger(b.remaining) || b.remaining < 0 || b.remaining > b.total || !BILL_STAGES.includes(b.status) || !Number.isInteger(b.startedTurn) || b.startedTurn < 0 || b.startedTurn > s.turn || (b.probability !== undefined && (!finite(b.probability) || b.probability < 0 || b.probability > 1)) || (b.roll !== undefined && (!finite(b.roll) || b.roll < 0 || b.roll >= 1)))) fail();
   if (!unique(s.bills.filter(b => !['passed', 'failed'].includes(b.status)).map(b => b.policyId))) fail();
   if (s.projects.some(p => !object(p) || !validId('projects', p.projectId) || !validId('regions', p.regionId) || !Number.isInteger(p.remaining) || p.remaining < 0 || p.remaining > d.projects.find(x => x.id === p.projectId).months || !['building', 'complete'].includes(p.status) || !Number.isInteger(p.startedTurn) || p.startedTurn < 0 || p.startedTurn > s.turn || (p.status === 'complete' && p.remaining !== 0))) fail();
   if (!unique(s.projects.map(p => p.regionId + ':' + p.projectId)) || d.regions.some(r => s.projects.filter(p => p.regionId === r.id).length > r.slots)) fail();
+  if (s.edicts.some(x => !object(x) || Object.keys(x).length !== 3 || !validId('edicts', x.edictId) || !validId('regions', x.regionId) || !Number.isInteger(x.startedTurn) || x.startedTurn < 0 || x.startedTurn > s.turn || !regionHas(d, x.regionId, d.edicts.find(e => e.id === x.edictId).requires)) || !unique(s.edicts.map(x => x.regionId))) fail();
   if (!object(s.flags) || Object.entries(s.flags).some(([k, v]) => !FLAG_KEYS.includes(k) || !['string', 'boolean'].includes(typeof v))) fail();
   if (!object(s.lastEvents) || Object.entries(s.lastEvents).some(([k, v]) => !validId('events', k) || !Number.isInteger(v) || v < 0 || v > s.turn)) fail();
   const validEffects = (e, ids = d.metrics) => object(e) && Object.entries(e).every(([k, v]) => ids.some(m => m.id === k) && finite(v) && Math.abs(v) < 100000);
@@ -588,6 +654,7 @@ export function importSave(raw, d) {
     || (l.policyId !== undefined && !validId('policies', l.policyId))
     || (l.projectId !== undefined && !validId('projects', l.projectId))
     || (l.regionId !== undefined && !validId('regions', l.regionId))
+    || (l.edictId !== undefined && !validId('edicts', l.edictId))
     || (l.countryId !== undefined && !validId('countries', l.countryId)))) fail();
   if (s.visited.some(x => typeof x !== 'string' || !VIEWS.includes(x))) fail();
   if (!unique(s.monthActions) || s.monthActions.some(x => typeof x !== 'string' || !x.startsWith('diplomacy:') || !validId('countries', x.slice(10)))) fail();
@@ -615,13 +682,19 @@ export function importSave(raw, d) {
 }
 
 /* ---------- 파생 값 ---------- */
-export function regionDevelopment(s, d, id) { const r = d.regions.find(x => x.id === id); return clamp(r.initialDevelopment + s.projects.filter(p => p.regionId === id && p.status === 'complete').length * 9, 0, 100); }
+/** 권역 개발도 = 초기값 + 준공 사업마다 development(없으면 9). 고유 사업은 12~14. */
+export function regionDevelopment(s, d, id) {
+  const r = d.regions.find(x => x.id === id);
+  return clamp(r.initialDevelopment + s.projects.filter(p => p.regionId === id && p.status === 'complete').reduce((a, p) => { const def = d.projects.find(x => x.id === p.projectId); return a + (finite(def.development) ? def.development : DEFAULT_DEVELOPMENT); }, 0), 0, 100);
+}
 export function achievements(s, d) {
   return d.achievements.filter(a => Object.entries(a.condition).every(([k, v]) =>
     k === 'policies' ? s.policies.length >= v
       : k === 'passedBills' ? s.bills.filter(x => x.status === 'passed').length >= v
         : k === 'completedProjects' ? s.projects.filter(x => x.status === 'complete').length >= v
           : k === 'regionsBuilt' ? new Set(s.projects.filter(x => x.status === 'complete').map(x => x.regionId)).size >= v
+            : k === 'uniqueProjects' ? s.projects.filter(x => x.status === 'complete' && d.projects.find(p => p.id === x.projectId).requires).length >= v
+              : k === 'edicts' ? (s.edicts || []).length >= v
             : k === 'turn' ? s.turn >= v
               : k === 'ending' ? !!s.ending
                 : k === 'view' ? s.visited.includes(v)

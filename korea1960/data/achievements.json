@@ -94,5 +94,21 @@
     "condition": {
       "ending": true
     }
+  },
+  {
+    "id": "local_strength",
+    "name": "땅이 가진 것",
+    "description": "권역 자원을 쓰는 고유 사업 3건 준공.",
+    "condition": {
+      "uniqueProjects": 3
+    }
+  },
+  {
+    "id": "local_rule",
+    "name": "권역 맞춤 행정",
+    "description": "지역 시책 3개를 동시에 시행.",
+    "condition": {
+      "edicts": 3
+    }
   }
 ]

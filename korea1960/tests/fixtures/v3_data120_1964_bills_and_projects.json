@@ -1,0 +1,2485 @@
+{
+  "format": "KOREA1960_SAVE",
+  "version": 3,
+  "state": {
+    "version": 3,
+    "gameId": "korea1960",
+    "dataVersion": "1.2.0",
+    "turn": 56,
+    "day": 1,
+    "rng": 2380594875,
+    "phase": "governing",
+    "ap": 1,
+    "influence": 527,
+    "seats": 0.5495968072078334,
+    "stats": {
+      "gdp": 114.33174328840327,
+      "treasury": 290.47151410130175,
+      "debt": 80,
+      "reserves": 45.7,
+      "inflation": 8.508614686990704,
+      "unemployment": 12.772792069283867,
+      "legitimacy": 69.03433808425757,
+      "liberty": 57.270000000000024,
+      "welfare": 41.394000000000055,
+      "education": 33.044000000000054,
+      "infrastructure": 27.04400000000005,
+      "industry": 21.70999999999993,
+      "agriculture": 44.016000000000076,
+      "environment": 64.92324885000001,
+      "stability": 51.21587179579792,
+      "admin": 51.10000000000004,
+      "equality": 46.181339719157734,
+      "security": 46
+    },
+    "support": {
+      "workers": 42.55851914590288,
+      "farmers": 44.160102715454926,
+      "business": 34.54133945648371,
+      "students": 52.83327571676097,
+      "civil": 49.29278459852651,
+      "bureaucracy": 47.50734300607578,
+      "military": 51.351972304081414,
+      "opposition": 53.79341126791469
+    },
+    "relations": {
+      "usa": 65,
+      "japan": 29,
+      "north": 15,
+      "europe": 45,
+      "nonaligned": 35,
+      "international": 50
+    },
+    "budget": {
+      "industry": 22,
+      "agriculture": 18,
+      "education": 16,
+      "welfare": 16,
+      "infrastructure": 16,
+      "security": 12
+    },
+    "policies": [
+      "press_freedom",
+      "farm_extension"
+    ],
+    "bills": [
+      {
+        "policyId": "press_freedom",
+        "total": 5,
+        "remaining": 0,
+        "status": "passed",
+        "startedTurn": 48,
+        "probability": 0.5854868133226884,
+        "roll": 0.30699512362480164,
+        "resolvedTurn": 52
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "rural_clinic",
+        "regionId": "jeonnam",
+        "remaining": 0,
+        "status": "complete",
+        "startedTurn": 48,
+        "completedTurn": 52
+      }
+    ],
+    "advisers": [
+      "min"
+    ],
+    "flags": {
+      "route": "constitutional",
+      "won1963": true
+    },
+    "queue": [],
+    "lastEvents": {
+      "opening": 0,
+      "prep_study": 43,
+      "election_1960": 2,
+      "april_1960": 3,
+      "prep_principle": 42,
+      "prep_reading": 41,
+      "prep_public": 44,
+      "republic2": 7,
+      "may_1961": 16,
+      "plan_1962": 24,
+      "election_1963": 45,
+      "inauguration_1963": 47,
+      "sys_safety": 48,
+      "sys_education_gap": 49,
+      "sys_pension": 50,
+      "sys_housing": 51,
+      "sys_competition": 52,
+      "sys_railfare": 53,
+      "sys_coal": 54,
+      "sys_tourism": 55,
+      "sys_diplomats": 56
+    },
+    "delayed": [],
+    "history": [
+      {
+        "turn": 0,
+        "gdp": 100,
+        "inflation": 9,
+        "liberty": 42,
+        "legitimacy": 45,
+        "welfare": 35,
+        "environment": 65
+      },
+      {
+        "turn": 0,
+        "gdp": 100.22899999999998,
+        "inflation": 8.988,
+        "liberty": 42,
+        "legitimacy": 44.988612,
+        "welfare": 35.024,
+        "environment": 64.993679
+      },
+      {
+        "turn": 1,
+        "gdp": 100.45889492854887,
+        "inflation": 8.976144,
+        "liberty": 42,
+        "legitimacy": 44.977236000000005,
+        "welfare": 35.048,
+        "environment": 64.987337
+      },
+      {
+        "turn": 2,
+        "gdp": 100.68968718853388,
+        "inflation": 8.964430272,
+        "liberty": 42,
+        "legitimacy": 46.965872000000005,
+        "welfare": 35.072,
+        "environment": 64.980974
+      },
+      {
+        "turn": 3,
+        "gdp": 100.92137920520982,
+        "inflation": 8.952857108736,
+        "liberty": 42,
+        "legitimacy": 49.95452,
+        "welfare": 35.096000000000004,
+        "environment": 64.97459
+      },
+      {
+        "turn": 4,
+        "gdp": 101.15397342616805,
+        "inflation": 8.941422823431168,
+        "liberty": 42,
+        "legitimacy": 50.29318000000001,
+        "welfare": 35.120000000000005,
+        "environment": 64.968185
+      },
+      {
+        "turn": 5,
+        "gdp": 101.38747232130709,
+        "inflation": 8.930125749549994,
+        "liberty": 42,
+        "legitimacy": 50.28185200000001,
+        "welfare": 35.144000000000005,
+        "environment": 64.961759
+      },
+      {
+        "turn": 6,
+        "gdp": 101.62187838280475,
+        "inflation": 8.918964240555393,
+        "liberty": 42,
+        "legitimacy": 50.62053600000001,
+        "welfare": 35.168000000000006,
+        "environment": 64.955312
+      },
+      {
+        "turn": 7,
+        "gdp": 101.85719412509178,
+        "inflation": 8.907936669668729,
+        "liberty": 42,
+        "legitimacy": 52.609232000000006,
+        "welfare": 35.19200000000001,
+        "environment": 64.94884400000001
+      },
+      {
+        "turn": 8,
+        "gdp": 102.0934220848271,
+        "inflation": 8.897041429632704,
+        "liberty": 42,
+        "legitimacy": 52.94794000000001,
+        "welfare": 35.21600000000001,
+        "environment": 64.942355
+      },
+      {
+        "turn": 9,
+        "gdp": 102.33056482087443,
+        "inflation": 8.886276932477111,
+        "liberty": 42,
+        "legitimacy": 52.93666000000001,
+        "welfare": 35.24000000000001,
+        "environment": 64.935845
+      },
+      {
+        "turn": 10,
+        "gdp": 102.5686249142805,
+        "inflation": 8.875641609287387,
+        "liberty": 42,
+        "legitimacy": 53.27539200000001,
+        "welfare": 35.26400000000001,
+        "environment": 64.929314
+      },
+      {
+        "turn": 11,
+        "gdp": 102.8076049682547,
+        "inflation": 8.865133909975938,
+        "liberty": 42,
+        "legitimacy": 53.61413600000001,
+        "welfare": 35.28800000000001,
+        "environment": 64.922762
+      },
+      {
+        "turn": 12,
+        "gdp": 103.04750760815011,
+        "inflation": 8.854752303056227,
+        "liberty": 42,
+        "legitimacy": 53.95289200000001,
+        "welfare": 35.31200000000001,
+        "environment": 64.916189
+      },
+      {
+        "turn": 13,
+        "gdp": 103.28833548144624,
+        "inflation": 8.844495275419552,
+        "liberty": 42,
+        "legitimacy": 53.94166000000001,
+        "welfare": 35.33600000000001,
+        "environment": 64.909595
+      },
+      {
+        "turn": 14,
+        "gdp": 103.5300912577328,
+        "inflation": 8.834361332114518,
+        "liberty": 42,
+        "legitimacy": 54.28044000000001,
+        "welfare": 35.360000000000014,
+        "environment": 64.90298
+      },
+      {
+        "turn": 15,
+        "gdp": 103.77277762869525,
+        "inflation": 8.824348996129144,
+        "liberty": 42,
+        "legitimacy": 54.26923200000001,
+        "welfare": 35.384000000000015,
+        "environment": 64.896344
+      },
+      {
+        "turn": 16,
+        "gdp": 104.01639730810157,
+        "inflation": 8.814456808175594,
+        "liberty": 47,
+        "legitimacy": 60.18310546000001,
+        "welfare": 35.408000000000015,
+        "environment": 64.889687
+      },
+      {
+        "turn": 17,
+        "gdp": 104.26095303179046,
+        "inflation": 8.804683326477488,
+        "liberty": 47,
+        "legitimacy": 60.0982826381,
+        "welfare": 35.432000000000016,
+        "environment": 64.883009
+      },
+      {
+        "turn": 18,
+        "gdp": 104.50644755766098,
+        "inflation": 8.795027126559757,
+        "liberty": 47,
+        "legitimacy": 60.358646905041375,
+        "welfare": 35.45600000000002,
+        "environment": 64.87631
+      },
+      {
+        "turn": 19,
+        "gdp": 104.75288366566346,
+        "inflation": 8.78548680104104,
+        "liberty": 47,
+        "legitimacy": 60.27121460146576,
+        "welfare": 35.48000000000002,
+        "environment": 64.86959
+      },
+      {
+        "turn": 20,
+        "gdp": 105.00026415779185,
+        "inflation": 8.776060959428548,
+        "liberty": 47,
+        "legitimacy": 60.527518071597385,
+        "welfare": 35.50400000000002,
+        "environment": 64.862849
+      },
+      {
+        "turn": 21,
+        "gdp": 105.24859185807739,
+        "inflation": 8.766748227915405,
+        "liberty": 47,
+        "legitimacy": 60.77777979414385,
+        "welfare": 35.52800000000002,
+        "environment": 64.856087
+      },
+      {
+        "turn": 22,
+        "gdp": 105.49786961258359,
+        "inflation": 8.757547249180421,
+        "liberty": 47,
+        "legitimacy": 61.022142467630914,
+        "welfare": 35.55200000000002,
+        "environment": 64.849304
+      },
+      {
+        "turn": 23,
+        "gdp": 105.74810028940261,
+        "inflation": 8.748456682190255,
+        "liberty": 47,
+        "legitimacy": 60.92480501061645,
+        "welfare": 35.57600000000002,
+        "environment": 64.8425
+      },
+      {
+        "turn": 24,
+        "gdp": 106.00055575585631,
+        "inflation": 8.739475202003973,
+        "liberty": 47,
+        "legitimacy": 60.82893943545721,
+        "welfare": 35.60000000000002,
+        "environment": 64.835675
+      },
+      {
+        "turn": 25,
+        "gdp": 106.2539759949229,
+        "inflation": 8.730601499579926,
+        "liberty": 47,
+        "legitimacy": 60.734523663925344,
+        "welfare": 35.624000000000024,
+        "environment": 64.828829
+      },
+      {
+        "turn": 26,
+        "gdp": 106.50836397539975,
+        "inflation": 8.721834281584966,
+        "liberty": 47,
+        "legitimacy": 60.97995527313801,
+        "welfare": 35.648000000000025,
+        "environment": 64.821962
+      },
+      {
+        "turn": 27,
+        "gdp": 106.76372268825335,
+        "inflation": 8.713172270205947,
+        "liberty": 47,
+        "legitimacy": 61.21960191453058,
+        "welfare": 35.672000000000025,
+        "environment": 64.815074
+      },
+      {
+        "turn": 28,
+        "gdp": 107.02005514662335,
+        "inflation": 8.704614202963475,
+        "liberty": 47,
+        "legitimacy": 61.11936166581262,
+        "welfare": 35.696000000000026,
+        "environment": 64.808165
+      },
+      {
+        "turn": 29,
+        "gdp": 107.27736438582802,
+        "inflation": 8.696158832527914,
+        "liberty": 47,
+        "legitimacy": 61.020636840825425,
+        "welfare": 35.72000000000003,
+        "environment": 64.801235
+      },
+      {
+        "turn": 30,
+        "gdp": 107.5356534633708,
+        "inflation": 8.687804926537579,
+        "liberty": 47,
+        "legitimacy": 60.92340470821305,
+        "welfare": 35.74400000000003,
+        "environment": 64.794284
+      },
+      {
+        "turn": 31,
+        "gdp": 107.79492545894823,
+        "inflation": 8.679551267419129,
+        "liberty": 47,
+        "legitimacy": 61.164434283260945,
+        "welfare": 35.76800000000003,
+        "environment": 64.787312
+      },
+      {
+        "turn": 32,
+        "gdp": 108.05518347445896,
+        "inflation": 8.671396652210099,
+        "liberty": 47,
+        "legitimacy": 61.06506882901203,
+        "welfare": 35.79200000000003,
+        "environment": 64.780319
+      },
+      {
+        "turn": 33,
+        "gdp": 108.3164306340142,
+        "inflation": 8.663339892383577,
+        "liberty": 47,
+        "legitimacy": 60.96720567657685,
+        "welfare": 35.81600000000003,
+        "environment": 64.77330500000001
+      },
+      {
+        "turn": 34,
+        "gdp": 108.57867008394922,
+        "inflation": 8.655379813674974,
+        "liberty": 47,
+        "legitimacy": 60.870822291428205,
+        "welfare": 35.84000000000003,
+        "environment": 64.76627
+      },
+      {
+        "turn": 35,
+        "gdp": 108.84190499283606,
+        "inflation": 8.647515255910875,
+        "liberty": 47,
+        "legitimacy": 61.11314107743254,
+        "welfare": 35.86400000000003,
+        "environment": 64.759214
+      },
+      {
+        "turn": 36,
+        "gdp": 109.10613855149752,
+        "inflation": 8.639745072839945,
+        "liberty": 47,
+        "legitimacy": 61.014592301271044,
+        "welfare": 35.888000000000034,
+        "environment": 64.752137
+      },
+      {
+        "turn": 37,
+        "gdp": 109.37137397302233,
+        "inflation": 8.632068131965866,
+        "liberty": 47,
+        "legitimacy": 61.2535390593554,
+        "welfare": 35.912000000000035,
+        "environment": 64.745039
+      },
+      {
+        "turn": 38,
+        "gdp": 109.63761449278137,
+        "inflation": 8.624483314382276,
+        "liberty": 47,
+        "legitimacy": 61.48685401369725,
+        "welfare": 35.936000000000035,
+        "environment": 64.73792
+      },
+      {
+        "turn": 39,
+        "gdp": 109.90486336844526,
+        "inflation": 8.616989514609688,
+        "liberty": 47,
+        "legitimacy": 61.38273500349179,
+        "welfare": 35.960000000000036,
+        "environment": 64.73078
+      },
+      {
+        "turn": 40,
+        "gdp": 110.17312388000305,
+        "inflation": 8.609585640434371,
+        "liberty": 47,
+        "legitimacy": 61.613022151128064,
+        "welfare": 35.98400000000004,
+        "environment": 64.723619
+      },
+      {
+        "turn": 41,
+        "gdp": 110.4423993297819,
+        "inflation": 8.602270612749159,
+        "liberty": 47,
+        "legitimacy": 61.50703425886115,
+        "welfare": 36.00800000000004,
+        "environment": 64.716437
+      },
+      {
+        "turn": 42,
+        "gdp": 110.71269304246822,
+        "inflation": 8.595043365396169,
+        "liberty": 47,
+        "legitimacy": 61.73440925345967,
+        "welfare": 36.03200000000004,
+        "environment": 64.709234
+      },
+      {
+        "turn": 43,
+        "gdp": 110.98400836512965,
+        "inflation": 8.587902845011415,
+        "liberty": 47,
+        "legitimacy": 61.62662419465777,
+        "welfare": 36.05600000000004,
+        "environment": 64.70201
+      },
+      {
+        "turn": 44,
+        "gdp": 111.25634866723841,
+        "inflation": 8.580848010871279,
+        "liberty": 47,
+        "legitimacy": 61.851198264460194,
+        "welfare": 36.08000000000004,
+        "environment": 64.694765
+      },
+      {
+        "turn": 45,
+        "gdp": 111.52971734069563,
+        "inflation": 8.573877834740824,
+        "liberty": 47,
+        "legitimacy": 64.55992773870629,
+        "welfare": 36.10400000000004,
+        "environment": 64.687499
+      },
+      {
+        "turn": 46,
+        "gdp": 111.80411779985688,
+        "inflation": 8.566991300723934,
+        "liberty": 47,
+        "legitimacy": 64.40979536262569,
+        "welfare": 36.12800000000004,
+        "environment": 64.680212
+      },
+      {
+        "turn": 47,
+        "gdp": 112.07955348155878,
+        "inflation": 8.560187405115247,
+        "liberty": 49,
+        "legitimacy": 67.76913794896767,
+        "welfare": 36.152000000000044,
+        "environment": 64.672904
+      },
+      {
+        "turn": 48,
+        "gdp": 112.3560278451467,
+        "inflation": 8.553465156253864,
+        "liberty": 49.760000000000005,
+        "legitimacy": 68.15250169572957,
+        "welfare": 36.176000000000045,
+        "environment": 64.665575
+      },
+      {
+        "turn": 49,
+        "gdp": 112.63448816313759,
+        "inflation": 8.546823574378818,
+        "liberty": 49.82000000000001,
+        "legitimacy": 67.97472803200591,
+        "welfare": 36.200000000000045,
+        "environment": 64.658225
+      },
+      {
+        "turn": 50,
+        "gdp": 112.91399882257195,
+        "inflation": 8.540261691486272,
+        "liberty": 49.88000000000001,
+        "legitimacy": 67.80015585064467,
+        "welfare": 36.92400000000005,
+        "environment": 64.650854
+      },
+      {
+        "turn": 51,
+        "gdp": 113.19456337691697,
+        "inflation": 8.533778551188437,
+        "liberty": 49.94000000000001,
+        "legitimacy": 68.1830188027922,
+        "welfare": 36.94800000000005,
+        "environment": 64.643462
+      },
+      {
+        "turn": 52,
+        "gdp": 113.47618540238982,
+        "inflation": 8.527373208574176,
+        "liberty": 57.000000000000014,
+        "legitimacy": 69.60502217159164,
+        "welfare": 40.97200000000005,
+        "environment": 64.636049
+      },
+      {
+        "turn": 53,
+        "gdp": 113.76029829792775,
+        "inflation": 8.521044730071285,
+        "liberty": 57.09000000000002,
+        "legitimacy": 69.41159837695696,
+        "welfare": 40.99600000000005,
+        "environment": 64.628615
+      },
+      {
+        "turn": 54,
+        "gdp": 114.04548303157556,
+        "inflation": 8.514792193310429,
+        "liberty": 57.18000000000002,
+        "legitimacy": 69.2214308983955,
+        "welfare": 41.370000000000054,
+        "environment": 64.62116
+      },
+      {
+        "turn": 55,
+        "gdp": 114.33174328840327,
+        "inflation": 8.508614686990704,
+        "liberty": 57.270000000000024,
+        "legitimacy": 69.03433808425757,
+        "welfare": 41.394000000000055,
+        "environment": 64.92324885000001
+      }
+    ],
+    "log": [
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "start",
+        "text": "1960년 1월. 국정 지표를 관찰하며 공적 역할의 원칙을 준비한다."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "event",
+        "text": "겨울의 업무일지 — 경제·사회 자료부터 검토한다",
+        "eventId": "opening",
+        "choiceId": "opening_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "event",
+        "text": "3·15 선거와 정국의 균열 — 정치적 중립과 적법 절차를 강조한다",
+        "eventId": "election_1960",
+        "choiceId": "election_1960_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 2
+        }
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "event",
+        "text": "4월의 시민들 — 시민 보호와 정치적 중립을 지지한다",
+        "eventId": "april_1960",
+        "choiceId": "april_1960_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 3
+        }
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "event",
+        "text": "제2공화국의 출범 — 정치에 개입하지 않는 원칙을 세운다",
+        "eventId": "republic2",
+        "choiceId": "republic2_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 2
+        }
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "event",
+        "text": "1961년 5월: 권력과 절차 — 헌정 질서 존중과 민간 정치 경로를 선택한다",
+        "eventId": "may_1961",
+        "choiceId": "may_1961_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 6,
+          "liberty": 5
+        }
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3491
+        }
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3476
+        }
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3454
+        }
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3432
+        }
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "event",
+        "text": "개발 계획의 출발 — 산업·사회 기반을 함께 검토한다",
+        "eventId": "plan_1962",
+        "choiceId": "plan_1962_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S03"
+        ],
+        "changes": {
+          "education": 1,
+          "admin": 2
+        }
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3436
+        }
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3414
+        }
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3419
+        }
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3424
+        }
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3411
+        }
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.339
+        }
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3379
+        }
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3368
+        }
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3358
+        }
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "event",
+        "text": "선거를 통한 권한의 확인 — 공개 토론과 절차를 존중하는 선거에 참여한다",
+        "eventId": "election_1963",
+        "choiceId": "election_1963_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S04"
+        ],
+        "changes": {
+          "legitimacy": 2.8612
+        }
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "election",
+        "text": "1963년 가상 선거: 당선 확률 90.0%, 당선.",
+        "probability": 90,
+        "roll": 89.85086239408702
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 47,
+        "date": "1963-12-01",
+        "type": "event",
+        "text": "새로운 정부의 책임 — 경제 발전과 권리 보장을 함께 약속한다",
+        "eventId": "inauguration_1963",
+        "choiceId": "inauguration_1963_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S05"
+        ],
+        "changes": {
+          "legitimacy": 3.559,
+          "liberty": 2
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "event",
+        "text": "공장 안전 보고서 — 노동자 참여 점검을 보장한다",
+        "eventId": "sys_safety",
+        "choiceId": "sys_safety_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.564,
+          "liberty": 0.7
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "bill",
+        "text": "언론 자유 보장 발의. 예상 심의 5개월. 시행비 8 재정점은 부결되어도 돌려받지 않는다.",
+        "policyId": "press_freedom",
+        "changes": {
+          "treasury": -8
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "construction",
+        "text": "전남 · 농촌 보건 거점 착수 (5개월, 1964-05 말 준공 예정).",
+        "projectId": "rural_clinic",
+        "regionId": "jeonnam",
+        "changes": {
+          "treasury": -22
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "cabinet",
+        "text": "민하경 자문위원 임명 (가상 인물, 임명비 12).",
+        "changes": {
+          "treasury": -12
+        }
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-01",
+        "type": "event",
+        "text": "도시와 농촌의 진학 격차 — 교재와 진학 정보를 함께 제공한다",
+        "eventId": "sys_education_gap",
+        "choiceId": "sys_education_gap_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "education": 0.7,
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 50,
+        "date": "1964-03-01",
+        "type": "event",
+        "text": "노후의 생활비 — 지역 돌봄 서비스를 연결한다",
+        "eventId": "sys_pension",
+        "choiceId": "sys_pension_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "welfare": 0.7,
+          "equality": 0.35
+        }
+      },
+      {
+        "turn": 51,
+        "date": "1964-04-01",
+        "type": "event",
+        "text": "불어난 도시의 방 한 칸 — 세입자와 임대인의 공개 협의를 연다",
+        "eventId": "sys_housing",
+        "choiceId": "sys_housing_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.5635,
+          "stability": 0.35
+        }
+      },
+      {
+        "turn": 52,
+        "date": "1964-05-01",
+        "type": "event",
+        "text": "대기업과 작은 납품업체 — 계약 분쟁 조정 절차를 만든다",
+        "eventId": "sys_competition",
+        "choiceId": "sys_competition_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.7,
+          "equality": 0.7
+        }
+      },
+      {
+        "turn": 52,
+        "date": "1964-05-31",
+        "type": "construction",
+        "text": "전남 · 농촌 보건 거점 준공.",
+        "projectId": "rural_clinic",
+        "regionId": "jeonnam",
+        "changes": {
+          "welfare": 4,
+          "equality": 2
+        }
+      },
+      {
+        "turn": 52,
+        "date": "1964-05-31",
+        "type": "bill",
+        "text": "언론 자유 보장: 가결 (가상 통과 확률 58.5%).",
+        "policyId": "press_freedom",
+        "changes": {
+          "liberty": 7,
+          "legitimacy": 2
+        }
+      },
+      {
+        "turn": 53,
+        "date": "1964-06-01",
+        "type": "event",
+        "text": "오르는 통근 비용 — 혼잡 시간대 운행을 조정한다",
+        "eventId": "sys_railfare",
+        "choiceId": "sys_railfare_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "infrastructure": 0.7
+        }
+      },
+      {
+        "turn": 54,
+        "date": "1964-07-01",
+        "type": "event",
+        "text": "겨울 연료의 부담 — 지역 공동 구매를 지원한다",
+        "eventId": "sys_coal",
+        "choiceId": "sys_coal_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "welfare": 0.35,
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 55,
+        "date": "1964-08-01",
+        "type": "event",
+        "text": "작은 섬의 방문객 — 방문 수요를 단계적으로 관리한다",
+        "eventId": "sys_tourism",
+        "choiceId": "sys_tourism_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "environment": 0.3096,
+          "admin": 0.7
+        }
+      },
+      {
+        "turn": 56,
+        "date": "1964-09-01",
+        "type": "event",
+        "text": "새로운 교역 상대 — 소규모 시범 교역을 추진한다",
+        "eventId": "sys_diplomats",
+        "choiceId": "sys_diplomats_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "reserves": 0.7,
+          "industry": 0.35
+        }
+      },
+      {
+        "turn": 56,
+        "date": "1964-09-01",
+        "type": "policy",
+        "text": "농업 기술 보급 시행. 10 재정점 지출, 매월 유지비 0.28.",
+        "policyId": "farm_extension",
+        "changes": {
+          "treasury": -10,
+          "agriculture": 4
+        }
+      },
+      {
+        "turn": 56,
+        "date": "1964-09-01",
+        "type": "diplomacy",
+        "text": "일본 · 정례 대화 (4 재정점, 관계 +4).",
+        "countryId": "japan",
+        "changes": {
+          "treasury": -4,
+          "security": 1
+        }
+      }
+    ],
+    "ending": null,
+    "lastFinance": {
+      "income": 15.141591906105145,
+      "base": 11.596636762442058,
+      "interest": 0.24,
+      "upkeep": 0.44999999999999996,
+      "expense": 12.286636762442058,
+      "balance": 2.8549551436630862,
+      "turn": 55
+    },
+    "visited": [],
+    "report": {
+      "turn": 55,
+      "date": "1964-08",
+      "finance": {
+        "income": 15.141591906105145,
+        "base": 11.596636762442058,
+        "interest": 0.24,
+        "upkeep": 0.44999999999999996,
+        "expense": 12.286636762442058,
+        "balance": 2.8549551436630862
+      },
+      "borrowed": 0,
+      "completed": [],
+      "bills": [],
+      "followups": [],
+      "election": null,
+      "events": [
+        "sys_diplomats"
+      ],
+      "ending": null,
+      "changes": {
+        "gdp": 0.28626,
+        "treasury": 2.854955,
+        "inflation": -0.006178,
+        "unemployment": -0.015872,
+        "legitimacy": -0.187093,
+        "liberty": 0.09,
+        "welfare": 0.024,
+        "education": 0.024,
+        "infrastructure": 0.024,
+        "industry": 0.06,
+        "agriculture": 0.036,
+        "environment": -0.007476,
+        "stability": 0.142298,
+        "equality": -0.009594
+      },
+      "support": {
+        "workers": 0.14675,
+        "farmers": -0.03623,
+        "business": -0.035214,
+        "students": 0.007252,
+        "civil": 0.082519,
+        "bureaucracy": 0.09108,
+        "military": 0.095678,
+        "opposition": 0.094918
+      },
+      "relations": {},
+      "ledger": {
+        "treasury": [
+          [
+            "월 재정 수지",
+            2.854955
+          ]
+        ],
+        "gdp": [
+          [
+            "생산 추세",
+            0.28626
+          ]
+        ],
+        "welfare": [
+          [
+            "예산 배분",
+            0.024
+          ]
+        ],
+        "education": [
+          [
+            "예산 배분",
+            0.024
+          ]
+        ],
+        "infrastructure": [
+          [
+            "예산 배분",
+            0.024
+          ]
+        ],
+        "industry": [
+          [
+            "예산 배분",
+            0.06
+          ]
+        ],
+        "agriculture": [
+          [
+            "예산 배분",
+            0.036
+          ]
+        ],
+        "inflation": [
+          [
+            "물가 추세·부채 압력",
+            -0.006178
+          ]
+        ],
+        "unemployment": [
+          [
+            "고용 추세",
+            -0.015872
+          ]
+        ],
+        "environment": [
+          [
+            "산업화의 환경 부담",
+            -0.007476
+          ]
+        ],
+        "legitimacy": [
+          [
+            "사회 추세",
+            0.003032
+          ],
+          [
+            "높아진 기대",
+            -0.213367
+          ],
+          [
+            "자문 지속 효과",
+            0.023242
+          ]
+        ],
+        "stability": [
+          [
+            "사회 추세",
+            0.142298
+          ]
+        ],
+        "equality": [
+          [
+            "사회 추세",
+            -0.009594
+          ]
+        ],
+        "liberty": [
+          [
+            "정책 지속 효과",
+            0.03
+          ],
+          [
+            "자문 지속 효과",
+            0.06
+          ]
+        ]
+      }
+    },
+    "monthActions": [
+      "diplomacy:japan"
+    ]
+  }
+}

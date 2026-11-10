@@ -119,3 +119,30 @@
 * 군정 경로의 1963년 첫 선거 당선 확률은 약 70%(헌정 경로 90%)라 군정 전략의 절반가량이 이때 낙선한다. 사전 준비를 할 수 없는 과도 통치 기간의 규칙(v1)이다.
 * 기술 교류 외교를 매달 반복하면 교육이 99 가까이 오른다(100에는 닿지 않음).
 * 자동 전략은 사람의 플레이가 아니다. 체감 난이도는 사람이 하는 플레이테스트로 확인해야 한다.
+
+## 권역 지형·자원과 지역 시책 (데이터 1.3.0, 저장 형식 4)
+
+모든 수치는 게임 설계 값이다. 지형·자원 배정은 1960~70년대 산업 지리를 크게 단순화한 것이며 당시 통계가 아니다.
+
+* **고유 사업**: `requires`의 지형·자원 중 하나가 권역에 있어야 착수할 수 있다(사유: "이 권역에는 석탄이 없습니다."). 그 밖의 규칙(슬롯 4, 같은 권역 중복 금지, 1979년 12월까지 준공 가능, 공기 뒤 한 번 효과, 준공 다음 달부터 시설 수입·유지비)은 공통 사업과 같다. 개발도 = 초기값 + Σ 준공 사업의 `development`(없으면 9).
+* **지역 시책**: 권역마다 하나. 시행 조건은 국정 집행 단계, AP 1, 시행비, 해금 연도, 지형·자원(`requires`), `maxDevelopment`(있으면 그 권역 개발도 이하), 동시 개수 상한 2 + floor(행정 역량 ÷ 30). 시행하면 시행비를 내고 집단 지지(`factionEffects`)가 바로 바뀐다.
+* **매월**: 결산에서 국정 집행 단계일 때만 `monthlyEffects`를 더한다(원인 이름 '지역 시책'). 정책 지속 효과와 같이 체감(1.2.0 `diminishing`)이 적용된다. 유지비 `monthlyCost`는 단계와 관계없이 월 재정의 유지비에 들어간다.
+* **착수비 감면**: 시책의 `buildDiscount`만큼 그 권역의 사업 착수비가 줄어든다(`projectCost`). 다른 권역에는 영향이 없다.
+* **거두기**: AP 없이 언제든(국정 집행 단계) 거둘 수 있다. 다음 결산부터 효과·유지비·감면이 멈추고, 이미 생긴 변화와 시행비는 돌아오지 않는다. 행정 역량이 떨어져 상한보다 많아져도 이미 건 시책은 유지되고 새로 걸 수만 없다.
+
+### 1.3.0 측정 결과 (`node tools/simulate.mjs`, 전략마다 40개 시드)
+
+자동 전략에 시책·고유 사업을 쓰게 한 뒤의 엔딩 분포. 괄호는 같은 시드의 1.2.0 결과.
+
+| 전략 | 1.3.0 | (1.2.0) |
+| --- | --- | --- |
+| 헌정 | balanced 30 · constitutional 6 · peaceful_transfer 4 | (같음) |
+| 군정 | peaceful_transfer 22 · authoritarian 18 | (peaceful_transfer 23 · authoritarian 16 · rights_crisis 1) |
+| 복지 | welfare 26 · constitutional 8 · peaceful_transfer 6 | (welfare 34 · peaceful_transfer 6) |
+| 환경 | green 34 · peaceful_transfer 5 · balanced 1 | (green 23 · unfinished 9 · peaceful_transfer 5 · balanced 3) |
+| 강경 | rights_crisis 23 · peaceful_transfer 17 | (같음) |
+| 성장 | industrial 34 · peaceful_transfer 6 | (같음) |
+| 소극 | unfinished 25 · constitutional 9 · peaceful_transfer 6 | (같음, 시책을 쓰지 않음) |
+| 무작위 | peaceful_transfer 20 · retired 12 · authoritarian 4 · balanced 2 · unfinished 2 | (무작위 행동 종류가 늘어 직접 비교 불가) |
+
+시책은 목표가 분명한 전략(환경)을 조금 더 쉽게 만들고, 행동하지 않는 전략에는 영향이 없다. 사건 63/63, 엔딩 10/12 도달은 그대로다(fiscal_crisis·legitimacy_crisis는 자동 전략으로 도달하지 않음). 사람의 플레이에서 시책이 너무 강하거나 약한지는 아직 확인하지 않았다.

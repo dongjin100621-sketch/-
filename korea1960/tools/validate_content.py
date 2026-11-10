@@ -1,7 +1,7 @@
 """Validate IDs, references, no-cost choices, condition DSL and the canonical split files.
 
 python3 tools/validate_content.py          # 검사만
-python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 12개를 다시 만든 뒤 검사
+python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 14개를 다시 만든 뒤 검사
 """
 from pathlib import Path
 import json, sys, argparse
@@ -9,7 +9,7 @@ root = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser(); p.add_argument('--sync', action='store_true'); a = p.parse_args()
 d = json.loads((root / 'data/game.json').read_text(encoding='utf-8'))
 errors = []
-keys = ['metrics', 'factions', 'regions', 'countries', 'policies', 'projects', 'advisers', 'events', 'endings', 'achievements', 'sources']
+keys = ['metrics', 'factions', 'traits', 'regions', 'countries', 'policies', 'projects', 'edicts', 'advisers', 'events', 'endings', 'achievements', 'sources']
 for k in keys:
     ids = [x['id'] for x in d[k]]
     if len(ids) != len(set(ids)): errors.append(f'duplicate {k} ID')
@@ -82,6 +82,35 @@ for x in d['endings']:
         if key != 'explicit' and key not in metrics: errors.append('ending condition ' + x['id'])
 for x in d['regions']:
     if x['slots'] != 4: errors.append('region slots ' + x['id'])
+# 1.3.0: 권역 지형·자원, 고유 사업(requires), 지역 시책(edicts)
+traits = {x['id']: x for x in d['traits']}
+for t in d['traits']:
+    if t.get('kind') not in ('terrain', 'resource') or not t.get('name') or not isinstance(t.get('mark'), str) or not 1 <= len(t['mark']) <= 2: errors.append('trait ' + t['id'])
+for x in d['regions']:
+    for key, kind in (('terrain', 'terrain'), ('resources', 'resource')):
+        v = x.get(key)
+        if not isinstance(v, list) or not v or len(v) != len(set(v)) or any(t not in traits or traits[t]['kind'] != kind for t in v): errors.append(f'region {key} ' + x['id'])
+region_tags = {x['id']: set(x['terrain']) | set(x['resources']) for x in d['regions']}
+for x in d['projects']:
+    if 'requires' in x:
+        if not isinstance(x['requires'], list) or not x['requires'] or any(t not in traits for t in x['requires']): errors.append('project requires ' + x['id'])
+        elif not any(set(x['requires']) & tags for tags in region_tags.values()): errors.append('project buildable nowhere ' + x['id'])
+    if 'development' in x and (not isinstance(x['development'], int) or not 0 <= x['development'] <= 30): errors.append('project development ' + x['id'])
+edict_keys = {'id', 'name', 'requires', 'maxDevelopment', 'cost', 'monthlyCost', 'unlockYear', 'monthlyEffects', 'factionEffects', 'buildDiscount', 'description'}
+for x in d['edicts']:
+    if set(x) - edict_keys: errors.append('edict unknown key ' + x['id'])
+    if not x.get('name') or not x.get('description'): errors.append('edict text ' + x['id'])
+    if not isinstance(x.get('requires'), list) or any(t not in traits for t in x['requires']): errors.append('edict requires ' + x['id'])
+    elif x['requires'] and not any(set(x['requires']) & tags for tags in region_tags.values()): errors.append('edict usable nowhere ' + x['id'])
+    for k in ('cost', 'monthlyCost'):
+        if not num(x.get(k)) or x[k] < 0: errors.append(f'edict {k} ' + x['id'])
+    if not isinstance(x.get('unlockYear'), int): errors.append('edict unlockYear ' + x['id'])
+    check_effects(x.get('monthlyEffects'), metrics, x['id']); check_effects(x.get('factionEffects', {}), factions, x['id'])
+    if 'buildDiscount' in x and (not num(x['buildDiscount']) or not 0 < x['buildDiscount'] <= .5): errors.append('edict buildDiscount ' + x['id'])
+    if 'maxDevelopment' in x and (not num(x['maxDevelopment']) or not 0 < x['maxDevelopment'] < 100): errors.append('edict maxDevelopment ' + x['id'])
+achievement_keys = {'policies', 'passedBills', 'completedProjects', 'regionsBuilt', 'uniqueProjects', 'edicts', 'turn', 'ending', 'view'} | metrics
+for x in d['achievements']:
+    if not isinstance(x.get('condition'), dict) or set(x['condition']) - achievement_keys: errors.append('achievement condition ' + x['id'])
 if len(all_choices) != len(set(all_choices)): errors.append('duplicate choice ID')
 if abs(sum(x['weight'] for x in d['factions']) - 1) > .000001: errors.append('faction weights must sum to 1')
 for f in d['factions']:
@@ -130,5 +159,5 @@ if errors:
 anchors = sum(e['kind'] == 'historical_anchor' for e in d['events'])
 print(f'Content OK (data {d["meta"]["version"]}): {len(d["events"])} events ({anchors} historical anchors, '
       f'{sum("context" in e for e in d["events"])} with path context), {len(all_choices)} choices, {len(d["policies"])} policies, '
-      f'{len(d["projects"])} projects, {len(d["regions"])} regions, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings'
+      f'{len(d["projects"])} projects ({sum("requires" in x for x in d["projects"])} region-unique), {len(d["edicts"])} regional edicts, {len(d["regions"])} regions, {len(d["traits"])} traits, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings'
       f'{", balance rules " + ", ".join(k for k in d["balance"] if k not in ("note", "growthNote")) if "balance" in d else ", no balance rules (1.1.0 계산)"}.')

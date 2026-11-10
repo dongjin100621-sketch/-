@@ -222,5 +222,251 @@
     },
     "unlockYear": 1965,
     "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "coal_mechanization",
+    "name": "탄광 기계화·갱도 안전",
+    "requires": [
+      "coal"
+    ],
+    "cost": 34,
+    "months": 8,
+    "maintenance": 0.25,
+    "income": 0.7,
+    "effects": {
+      "industry": 3,
+      "infrastructure": 1,
+      "unemployment": -1,
+      "environment": -2
+    },
+    "unlockYear": 1962,
+    "development": 12,
+    "description": "갱도 지보와 환기, 운반 설비를 바꿔 같은 탄전에서 더 안전하게 더 많이 캔다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "cement_plant",
+    "name": "시멘트 공장",
+    "requires": [
+      "limestone"
+    ],
+    "cost": 40,
+    "months": 10,
+    "maintenance": 0.3,
+    "income": 0.8,
+    "effects": {
+      "industry": 4,
+      "infrastructure": 3,
+      "environment": -3
+    },
+    "unlockYear": 1962,
+    "development": 12,
+    "description": "석회석 산지 가까이에 소성로를 세워 건설 자재를 직접 만든다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "ore_smelter",
+    "name": "금속 광물 선광·제련",
+    "requires": [
+      "ore"
+    ],
+    "cost": 38,
+    "months": 10,
+    "maintenance": 0.3,
+    "income": 0.85,
+    "effects": {
+      "reserves": 4,
+      "industry": 2,
+      "environment": -3
+    },
+    "unlockYear": 1963,
+    "development": 12,
+    "description": "캐낸 광석을 가려 정련해 수출 단가를 높인다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "multipurpose_dam",
+    "name": "다목적 댐",
+    "requires": [
+      "hydro"
+    ],
+    "cost": 60,
+    "months": 18,
+    "maintenance": 0.3,
+    "income": 0.6,
+    "effects": {
+      "infrastructure": 5,
+      "agriculture": 3,
+      "environment": -2
+    },
+    "unlockYear": 1965,
+    "development": 12,
+    "description": "발전·용수·홍수 조절을 함께 맡는 댐. 착수비에 수몰 지역 이주 보상이 들어 있다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "farmland_consolidation",
+    "name": "곡창 경지 정리",
+    "requires": [
+      "rice"
+    ],
+    "cost": 26,
+    "months": 6,
+    "maintenance": 0.1,
+    "income": 0.35,
+    "effects": {
+      "agriculture": 5,
+      "inflation": -0.4
+    },
+    "unlockYear": 1962,
+    "development": 12,
+    "description": "작은 논배미를 반듯하게 묶고 물길을 다시 낸다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "reclamation",
+    "name": "간척지 조성",
+    "requires": [
+      "tidal"
+    ],
+    "cost": 45,
+    "months": 14,
+    "maintenance": 0.15,
+    "income": 0.5,
+    "effects": {
+      "agriculture": 5,
+      "environment": -4
+    },
+    "unlockYear": 1966,
+    "development": 12,
+    "description": "방조제를 쌓아 갯벌을 농지로 바꾼다. 갯벌의 생태 기능은 잃는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "fishing_port",
+    "name": "어항·수산 가공",
+    "requires": [
+      "fishery"
+    ],
+    "cost": 24,
+    "months": 6,
+    "maintenance": 0.12,
+    "income": 0.45,
+    "effects": {
+      "agriculture": 2,
+      "reserves": 2,
+      "welfare": 1
+    },
+    "unlockYear": 1962,
+    "development": 12,
+    "description": "방파제와 냉동·가공 시설로 잡은 고기를 덜 버리고 더 멀리 판다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "coastal_industrial",
+    "name": "임해 중화학 공업지구",
+    "requires": [
+      "harbor"
+    ],
+    "cost": 70,
+    "months": 18,
+    "maintenance": 0.55,
+    "income": 1.25,
+    "effects": {
+      "industry": 9,
+      "reserves": 3,
+      "environment": -6
+    },
+    "unlockYear": 1968,
+    "development": 14,
+    "description": "깊은 항만 옆에 원료 부두와 대형 공장을 한데 모은다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "export_zone",
+    "name": "수출 자유 지역",
+    "requires": [
+      "harbor"
+    ],
+    "cost": 38,
+    "months": 9,
+    "maintenance": 0.25,
+    "income": 0.9,
+    "effects": {
+      "reserves": 4,
+      "industry": 3,
+      "unemployment": -1,
+      "equality": -1
+    },
+    "unlockYear": 1970,
+    "development": 12,
+    "description": "관세를 면제한 가공 수출 구역. 일자리가 생기지만 이익은 고르게 나뉘지 않는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "reforestation",
+    "name": "산림 녹화·사방 사업",
+    "requires": [
+      "mountain"
+    ],
+    "cost": 20,
+    "months": 8,
+    "maintenance": 0.08,
+    "income": 0.05,
+    "effects": {
+      "environment": 6,
+      "agriculture": 1
+    },
+    "unlockYear": 1962,
+    "development": 12,
+    "description": "헐벗은 산에 나무를 심고 사태를 막는 둑을 쌓는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "tourism_complex",
+    "name": "관광 단지",
+    "requires": [
+      "scenery"
+    ],
+    "cost": 32,
+    "months": 9,
+    "maintenance": 0.2,
+    "income": 0.6,
+    "effects": {
+      "reserves": 2,
+      "welfare": 1,
+      "environment": -1
+    },
+    "unlockYear": 1966,
+    "development": 12,
+    "description": "숙박·교통 시설을 갖춰 국내외 방문객을 맞는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "urban_rail",
+    "name": "도시 철도",
+    "requires": [
+      "market"
+    ],
+    "cost": 62,
+    "months": 20,
+    "maintenance": 0.35,
+    "income": 0.5,
+    "effects": {
+      "infrastructure": 7,
+      "welfare": 2,
+      "environment": 1
+    },
+    "unlockYear": 1971,
+    "development": 12,
+    "description": "대도시 안을 잇는 전철. 공기가 길고 비싸지만 출퇴근길을 바꾼다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+  },
+  {
+    "id": "island_link",
+    "name": "섬 연락선·도서 전력",
+    "requires": [
+      "island"
+    ],
+    "cost": 22,
+    "months": 6,
+    "maintenance": 0.1,
+    "income": 0.2,
+    "effects": {
+      "welfare": 2,
+      "equality": 2,
+      "infrastructure": 1
+    },
+    "unlockYear": 1963,
+    "development": 12,
+    "description": "정기 여객선과 작은 발전소로 섬 마을을 뭍과 잇는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
   }
 ]

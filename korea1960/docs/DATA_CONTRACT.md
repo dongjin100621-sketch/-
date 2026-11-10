@@ -41,11 +41,11 @@ v2(game/engine.mjs) 추가 인터페이스: `actionReason(state,data,action)`(�
 
 ## 저장 상태
 
-**현재 형식: format=KOREA1960_SAVE, version=3, dataVersion=1.2.0.** 버전 3 state는 버전 2에 `day`(그 달의 날짜, 1~말일 정수, 종료 상태는 1)를 더한다. 버전 2 state는 아래 버전 1의 필드에 `report`(월 결산, 없으면 null)와 `monthActions`(이번 달 외교 상대 기록)를 더한다. 연대기 항목은 선택적으로 `changes`(지표 변화), `eventId`·`choiceId`·`kind`·`sourceIds`, `policyId`·`projectId`·`regionId`·`countryId`를 갖고, 불러올 때 모두 ID·수치를 검사한다. `report`는 허용된 키만 받는다.
+**현재 형식: format=KOREA1960_SAVE, version=4, dataVersion=1.3.0.** 버전 4 state는 버전 3에 `edicts`(시행 중인 지역 시책 `{edictId, regionId, startedTurn}` 배열, 권역마다 하나, 시책의 지형·자원 조건을 만족해야 함)를 더한다. 연대기 항목은 `edictId`를 가질 수 있다. 버전 3 state는 버전 2에 `day`(그 달의 날짜, 1~말일 정수, 종료 상태는 1)를 더한다. 버전 2 state는 아래 버전 1의 필드에 `report`(월 결산, 없으면 null)와 `monthActions`(이번 달 외교 상대 기록)를 더한다. 연대기 항목은 선택적으로 `changes`(지표 변화), `eventId`·`choiceId`·`kind`·`sourceIds`, `policyId`·`projectId`·`regionId`·`countryId`를 갖고, 불러올 때 모두 ID·수치를 검사한다. `report`는 허용된 키만 받는다.
 
-**버전 2 저장**(게임 2.0~2.1)은 `day: 1`을 더해 버전 3으로 바꾼다. 이미 `day`가 들어 있는 버전 2 파일은 조작으로 보고 거부한다. **데이터 1.1.0의 저장**은 그대로 받아 dataVersion만 1.2.0으로 바꾼다(`COMPATIBLE_DATA_VERSIONS`). 1.2.0은 ID·상태 구조가 같고 `balance` 규칙만 더했으므로, 불러온 뒤의 달부터 새 규칙으로 계산된다. 이미 쌓인 지표 값은 바꾸지 않는다. 그 밖의 데이터 버전(예: 1.1.1)은 거부한다.
+**버전 3 저장**(게임 2.2)은 `edicts: []`를 더해 버전 4로 바꾼다. 이미 `edicts`가 들어 있는 버전 3 파일은 거부한다. **버전 2 저장**(게임 2.0~2.1)은 `day: 1`과 `edicts: []`를 더해 버전 4로 바꾼다. 이미 `day`나 `edicts`가 들어 있는 버전 2 파일은 조작으로 보고 거부한다. **데이터 1.1.0·1.2.0의 저장**은 받아서 dataVersion만 1.3.0으로 바꾼다(`COMPATIBLE_DATA_VERSIONS`). 1.2.0은 `balance` 규칙만, 1.3.0은 지형·자원·고유 사업·지역 시책만 더했고 기존 ID는 그대로이므로, 불러온 뒤의 달부터 새 규칙으로 계산된다. 이미 쌓인 지표 값은 바꾸지 않는다. 그 밖의 데이터 버전(예: 1.1.1)은 거부한다.
 
-버전 1(데이터 1.0.0) 저장은 `migrateSave`가 순수 변환한다: 버전·데이터 버전을 올리고 `report:null`, `monthActions:[]`, `day:1`을 더한다. 콘텐츠 ID와 수치는 그대로이므로 안전하다. 그 밖의 버전, 데이터 버전이 다른 버전 1, 다른 게임 ID는 거부한다. 자동 저장은 브라우저 localStorage의 `korea1960.game.v2`에 두고, 예전 키 `korea1960.reference.v1`이 있으면 변환해 옮긴다. 읽지 못한 자동 저장은 지우지 않고 `korea1960.game.v2.unreadable`에 보관한다.
+버전 1(데이터 1.0.0) 저장은 `migrateSave`가 순수 변환한다: 버전·데이터 버전을 올리고 `report:null`, `monthActions:[]`, `day:1`, `edicts:[]`를 더한다. 콘텐츠 ID와 수치는 그대로이므로 안전하다. 그 밖의 버전, 데이터 버전이 다른 버전 1, 다른 게임 ID는 거부한다. 자동 저장은 브라우저 localStorage의 `korea1960.game.v2`에 두고, 예전 키 `korea1960.reference.v1`이 있으면 변환해 옮긴다. 읽지 못한 자동 저장은 지우지 않고 `korea1960.game.v2.unreadable`에 보관한다.
 
 버전 1의 구조: format=KOREA1960_SAVE, version=1. state에는 version,gameId,dataVersion,turn,rng,phase,ap,influence,seats,stats,support,relations,budget,policies,bills,projects,advisers,flags,queue,lastEvents,delayed,history,log,ending,lastFinance,visited가 들어간다.
 
@@ -71,3 +71,13 @@ TypeScript 참고 타입은 data/types.d.ts에 있다. 스키마의 기본 형�
 | `authoritarian` | `{monthly, gainFactor?, support?, relations?}` | monthly ±2, gainFactor 0~1(0~100 지표), support는 집단 ID, relations는 외교 상대 ID, ±2 |
 
 수식은 docs/SIMULATION_RULES.md "데이터 1.2.0 밸런스", 타입은 `data/types.d.ts`의 `BalanceRules`.
+
+## 권역 지형·자원, 고유 사업, 지역 시책 (데이터 1.3.0)
+
+* `traits`: `{id, kind: "terrain"|"resource", name, mark(지도 글자 1~2자), description}`. 지형 6개, 자원 11개.
+* `regions[].terrain`, `regions[].resources`: 위 ID 배열(각각 1개 이상, 중복 없음, 종류가 맞아야 함).
+* `projects[].requires`(선택): 지형·자원 ID 배열. 권역에 하나라도 있으면 착수할 수 있다. 어느 권역에도 맞지 않는 값은 검증에서 거부한다. `projects[].development`(선택, 0~30 정수): 준공 시 개발도 증가, 없으면 9.
+* `edicts`: `{id, name, requires(빈 배열이면 어느 권역이나), maxDevelopment?, cost, monthlyCost, unlockYear, monthlyEffects, factionEffects?, buildDiscount?(0~0.5), description}`. 모르는 키는 거부한다.
+* `achievements[].condition`에 `uniqueProjects`(고유 사업 준공 수), `edicts`(동시에 시행 중인 시책 수)를 쓸 수 있다.
+* 엔진 인터페이스: 행동 `{type:'edict', id, regionId}`(AP 1), `{type:'revokeEdict', regionId}`(AP 없음). 읽기 함수 `regionTags`, `regionHas`, `edictCap`, `regionEdict`, `buildDiscount`, `projectCost`, `edictReason`, `revokeEdictReason`. `financeDetail().edictUpkeep`.
+* 검증: `tools/validate_content.py`(참조·범위), `data/game.schema.json`(형태), `data/types.d.ts`(`TraitDef`, `RegionDef`, `EdictDef`, `ActiveEdict`, `SaveStateV4Extra`).

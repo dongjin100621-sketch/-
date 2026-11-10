@@ -110,9 +110,9 @@ async function run(viewport, tag) {
   // 버전 1 저장 파일 불러오기 (실제 파일 입력)
   await page.click('[data-action="nav"][data-view="archive"]');
   await page.setInputFiles('[data-input="import"]', fixture); await page.waitForSelector('[role="dialog"]');
-  check((await page.textContent('[role="dialog"]')).includes('버전 1 → 3으로 변환'), '버전 1 저장 → 변환 안내');
+  check((await page.textContent('[role="dialog"]')).includes('버전 1 → 4로 변환'), '버전 1 저장 → 변환 안내');
   await page.click('[data-action="acceptImport"]'); await page.waitForTimeout(100);
-  s = await S(page); check(s.version === 3 && s.day === 1 && s.phase === 'governing' && s.turn === 48, `저장 불러오기: ${s.turn} ${s.phase}`);
+  s = await S(page); check(s.version === 4 && s.day === 1 && s.phase === 'governing' && s.turn === 48 && Array.isArray(s.edicts) && !s.edicts.length, `저장 불러오기: ${s.turn} ${s.phase}`);
   if (s.queue.length) { await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
   check(s.ap === 0, '검토용 저장은 AP를 모두 쓴 상태(버튼 비활성 사유 확인)');
   await page.click('[data-action="nav"][data-view="policy"]'); await page.click('[data-action="policyStatus"][data-id="open"]');
@@ -167,11 +167,40 @@ async function run(viewport, tag) {
   await page.screenshot({ path: `${out}/${tag}_10_budget.png`, fullPage: true }); await audit(page, '재정');
   const repay = await page.$('button[data-action="askRepay"][data-id="10"]:not([disabled])');
   if (repay) { const debt = s.stats.debt; await repay.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(Math.abs(s.stats.debt - (debt - 10)) < 1e-9, '부채 10 상환'); }
+  // 권역(데이터 1.3.0): 지형·자원 지도, 권역 카드에서 지역 시책 시행·거두기, 고유 사업 착수
+  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.statusbar [data-action="endMonth"]');
+  if (await page.$('[role="dialog"]')) await page.click('[role="dialog"] [data-action="closeModal"]');
+  s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); }
+  await page.click('[data-action="nav"][data-view="map"]'); await page.click('[data-action="mapLayer"][data-id="res"]');
+  check(await page.$$eval('.kmap .rbadges', els => els.length) === 10 && await page.isVisible('.mark-key'), '지도: 지형·자원 표식과 범례');
+  await page.click('.mregion[data-id="gangwon"]', { force: true }); await page.waitForSelector('.map-card .edict-box');
+  check((await page.textContent('.map-card')).includes('석탄') && await page.$('.map-card .unique-list') !== null, '권역 카드: 지형·자원, 지역 시책, 고유 사업');
+  await page.screenshot({ path: `${out}/${tag}_07b_map_resources.png`, fullPage: mobileView }); await audit(page, '지도(지형·자원)');
+  const ap1 = (await S(page)).ap;
+  await page.click('.map-card [data-action="askEdict"][data-id="mine_safety"]'); await page.waitForSelector('[role="dialog"]');
+  check((await page.textContent('[role="dialog"]')).includes('다음 결산부터 매월'), '지역 시책 확인 창');
+  await page.screenshot({ path: `${out}/${tag}_07c_edict_confirm.png` });
+  await page.click('[data-action="confirm"]'); s = await S(page);
+  check(s.edicts.length === 1 && s.edicts[0].regionId === 'gangwon' && s.ap === ap1 - 1, `지역 시책 시행: 강원 ${s.edicts.map(x => x.edictId)} AP ${ap1}→${s.ap}`);
+  check(await page.$('.kmap .epill') !== null && (await page.textContent('.map-card .edict-box')).includes('광산 안전'), '지도와 권역 카드에 시행 중인 시책 표시');
+  await page.click('.map-card [data-action="askProject"][data-id="coal_mechanization"]'); await page.waitForSelector('[role="dialog"]');
+  check((await page.textContent('[role="dialog"]')).includes('고유 사업'), '고유 사업 확인 창');
+  await page.click('[data-action="confirm"]'); s = await S(page);
+  check(s.projects.some(p => p.projectId === 'coal_mechanization' && p.regionId === 'gangwon' && p.status === 'building'), '권역 카드에서 고유 사업 착수: 강원 탄광 기계화');
+  await page.click('.map-card [data-action="askRevoke"]'); await page.waitForSelector('[role="dialog"]'); await page.click('[data-action="confirm"]'); s = await S(page);
+  check(s.edicts.length === 0 && s.ap === ap1 - 2, `시책 거두기는 AP를 쓰지 않음 (AP ${s.ap})`);
+  await page.click('[data-action="mapLayer"][data-id="dev"]');
+  await page.click('[data-action="nav"][data-view="build"]'); await page.click('[data-action="region"][data-id="jeonbuk"]');
+  const buildText = await page.textContent('main');
+  check(buildText.includes('전북의 고유 사업') && buildText.includes('곡창 경지 정리') && buildText.includes('지역 시책'), '사업 화면: 권역 고유 사업과 지역 시책');
+  await page.click('[data-action="projectAll"]');
+  check((await page.textContent('main')).includes('이 권역에는 석탄이 없습니다'), '다른 권역 고유 사업은 사유와 함께 표시');
+  await page.click('[data-action="projectAll"]');
   // 기록실: 내보내기 → 다시 불러오기, 손상 파일 거부
   await page.click('[data-action="nav"][data-view="archive"]'); s = await S(page);
   const [download] = await Promise.all([page.waitForEvent('download'), page.click('main [data-action="export"]')]);
   const savePath = path.join(out, `${tag}_export.json`); await download.saveAs(savePath);
-  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 3 && exported.state.turn === s.turn && exported.state.day === s.day, '저장 파일 내보내기 (버전 3, 날짜 포함)');
+  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 4 && exported.state.turn === s.turn && exported.state.day === s.day && exported.state.edicts.length === s.edicts.length, '저장 파일 내보내기 (버전 4, 날짜·지역 시책 포함)');
   await page.setInputFiles('[data-input="import"]', savePath); await page.click('[data-action="acceptImport"]');
   const s2 = await S(page); check(JSON.stringify(s2) === JSON.stringify(s), '내보낸 파일을 다시 불러오면 상태가 같음');
   await page.click('[data-action="nav"][data-view="archive"]');

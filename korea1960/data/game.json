@@ -2,7 +2,7 @@
   "meta": {
     "id": "korea1960",
     "title": "대한민국 1960: 선택의 연대기",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "schemaVersion": 1,
     "language": "ko",
     "start": "1960-01",
@@ -10,7 +10,7 @@
     "turns": 240,
     "sourceChecked": "2026-11-10",
     "disclaimer": "참조 게임에서 착안한 독자 제작용 자료. 원작의 코드·화면·대사·수치·이미지를 복제하지 않는다. 모든 수치·선택 효과·가상 인물·가상 선거 결과는 게임 설계 값이다.",
-    "changes": "1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
+    "changes": "1.3.0: 권역 지형·자원(traits), 자원·지형을 쓰는 고유 사업 13개(requires, development), 지역 시책 10개(edicts), 기록 표식 2개를 추가했다. 기존 사건·정책·사업의 ID와 수치는 1.2.0과 같다. 1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
   },
   "metrics": [
     {
@@ -292,6 +292,127 @@
       "description": "정책 감시와 권력 교체 가능성을 중시한다."
     }
   ],
+  "traits": [
+    {
+      "id": "plain",
+      "kind": "terrain",
+      "name": "넓은 들",
+      "mark": "들",
+      "description": "논밭이 넓게 펼쳐진 평야."
+    },
+    {
+      "id": "mountain",
+      "kind": "terrain",
+      "name": "산지",
+      "mark": "산",
+      "description": "산과 골짜기가 많은 땅."
+    },
+    {
+      "id": "coast",
+      "kind": "terrain",
+      "name": "해안",
+      "mark": "해",
+      "description": "바다를 끼고 있다."
+    },
+    {
+      "id": "river",
+      "kind": "terrain",
+      "name": "큰 강",
+      "mark": "강",
+      "description": "큰 강의 유역."
+    },
+    {
+      "id": "island",
+      "kind": "terrain",
+      "name": "섬",
+      "mark": "섬",
+      "description": "섬이 많거나 섬 자체인 권역."
+    },
+    {
+      "id": "urban",
+      "kind": "terrain",
+      "name": "대도시",
+      "mark": "도",
+      "description": "인구가 모인 큰 도시."
+    },
+    {
+      "id": "coal",
+      "kind": "resource",
+      "name": "석탄",
+      "mark": "탄",
+      "description": "연료용 무연탄 탄전."
+    },
+    {
+      "id": "limestone",
+      "kind": "resource",
+      "name": "석회석",
+      "mark": "회",
+      "description": "시멘트 원료가 되는 석회석 광상."
+    },
+    {
+      "id": "ore",
+      "kind": "resource",
+      "name": "금속 광물",
+      "mark": "광",
+      "description": "텅스텐 등 수출용 금속 광물."
+    },
+    {
+      "id": "timber",
+      "kind": "resource",
+      "name": "산림",
+      "mark": "림",
+      "description": "가꾸면 다시 자라는 숲."
+    },
+    {
+      "id": "hydro",
+      "kind": "resource",
+      "name": "수력",
+      "mark": "수",
+      "description": "댐을 세울 만한 협곡과 수량."
+    },
+    {
+      "id": "rice",
+      "kind": "resource",
+      "name": "곡창",
+      "mark": "곡",
+      "description": "벼농사에 알맞은 너른 논."
+    },
+    {
+      "id": "tidal",
+      "kind": "resource",
+      "name": "갯벌",
+      "mark": "갯",
+      "description": "간척할 수도, 지킬 수도 있는 갯벌."
+    },
+    {
+      "id": "fishery",
+      "kind": "resource",
+      "name": "어장",
+      "mark": "어",
+      "description": "가까운 바다의 좋은 어장."
+    },
+    {
+      "id": "harbor",
+      "kind": "resource",
+      "name": "깊은 항만",
+      "mark": "항",
+      "description": "큰 배가 드나들 수 있는 만과 항구."
+    },
+    {
+      "id": "market",
+      "kind": "resource",
+      "name": "대도시 시장",
+      "mark": "시",
+      "description": "물건과 사람이 모이는 큰 시장."
+    },
+    {
+      "id": "scenery",
+      "kind": "resource",
+      "name": "경관",
+      "mark": "경",
+      "description": "찾아올 만한 산과 바다 풍경."
+    }
+  ],
   "regions": [
     {
       "id": "capital",
@@ -305,7 +426,17 @@
         "education"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "plain",
+        "river",
+        "coast",
+        "urban"
+      ],
+      "resources": [
+        "harbor",
+        "market"
+      ]
     },
     {
       "id": "gangwon",
@@ -319,7 +450,19 @@
         "forestry"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "mountain",
+        "coast"
+      ],
+      "resources": [
+        "coal",
+        "limestone",
+        "ore",
+        "timber",
+        "hydro",
+        "fishery"
+      ]
     },
     {
       "id": "chungnam",
@@ -333,7 +476,16 @@
         "logistics"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "plain",
+        "coast",
+        "river"
+      ],
+      "resources": [
+        "rice",
+        "tidal"
+      ]
     },
     {
       "id": "chungbuk",
@@ -347,7 +499,16 @@
         "materials"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "mountain",
+        "river"
+      ],
+      "resources": [
+        "limestone",
+        "hydro",
+        "timber"
+      ]
     },
     {
       "id": "jeonbuk",
@@ -361,7 +522,15 @@
         "food"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "plain",
+        "coast"
+      ],
+      "resources": [
+        "rice",
+        "tidal"
+      ]
     },
     {
       "id": "gyeongbuk",
@@ -375,7 +544,18 @@
         "materials"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "mountain",
+        "river",
+        "coast"
+      ],
+      "resources": [
+        "harbor",
+        "hydro",
+        "fishery",
+        "timber"
+      ]
     },
     {
       "id": "jeonnam",
@@ -389,7 +569,18 @@
         "port"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "plain",
+        "coast",
+        "island"
+      ],
+      "resources": [
+        "rice",
+        "tidal",
+        "fishery",
+        "harbor"
+      ]
     },
     {
       "id": "gyeongnam",
@@ -403,7 +594,16 @@
         "manufacturing"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "coast",
+        "plain",
+        "river"
+      ],
+      "resources": [
+        "harbor",
+        "fishery"
+      ]
     },
     {
       "id": "busan",
@@ -417,7 +617,16 @@
         "trade"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "coast",
+        "urban"
+      ],
+      "resources": [
+        "harbor",
+        "market",
+        "fishery"
+      ]
     },
     {
       "id": "jeju",
@@ -431,7 +640,15 @@
         "tourism"
       ],
       "slots": 4,
-      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+      "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+      "terrain": [
+        "island",
+        "mountain"
+      ],
+      "resources": [
+        "scenery",
+        "fishery"
+      ]
     }
   ],
   "countries": [
@@ -1190,6 +1407,428 @@
       },
       "unlockYear": 1965,
       "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "coal_mechanization",
+      "name": "탄광 기계화·갱도 안전",
+      "requires": [
+        "coal"
+      ],
+      "cost": 34,
+      "months": 8,
+      "maintenance": 0.25,
+      "income": 0.7,
+      "effects": {
+        "industry": 3,
+        "infrastructure": 1,
+        "unemployment": -1,
+        "environment": -2
+      },
+      "unlockYear": 1962,
+      "development": 12,
+      "description": "갱도 지보와 환기, 운반 설비를 바꿔 같은 탄전에서 더 안전하게 더 많이 캔다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "cement_plant",
+      "name": "시멘트 공장",
+      "requires": [
+        "limestone"
+      ],
+      "cost": 40,
+      "months": 10,
+      "maintenance": 0.3,
+      "income": 0.8,
+      "effects": {
+        "industry": 4,
+        "infrastructure": 3,
+        "environment": -3
+      },
+      "unlockYear": 1962,
+      "development": 12,
+      "description": "석회석 산지 가까이에 소성로를 세워 건설 자재를 직접 만든다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "ore_smelter",
+      "name": "금속 광물 선광·제련",
+      "requires": [
+        "ore"
+      ],
+      "cost": 38,
+      "months": 10,
+      "maintenance": 0.3,
+      "income": 0.85,
+      "effects": {
+        "reserves": 4,
+        "industry": 2,
+        "environment": -3
+      },
+      "unlockYear": 1963,
+      "development": 12,
+      "description": "캐낸 광석을 가려 정련해 수출 단가를 높인다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "multipurpose_dam",
+      "name": "다목적 댐",
+      "requires": [
+        "hydro"
+      ],
+      "cost": 60,
+      "months": 18,
+      "maintenance": 0.3,
+      "income": 0.6,
+      "effects": {
+        "infrastructure": 5,
+        "agriculture": 3,
+        "environment": -2
+      },
+      "unlockYear": 1965,
+      "development": 12,
+      "description": "발전·용수·홍수 조절을 함께 맡는 댐. 착수비에 수몰 지역 이주 보상이 들어 있다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "farmland_consolidation",
+      "name": "곡창 경지 정리",
+      "requires": [
+        "rice"
+      ],
+      "cost": 26,
+      "months": 6,
+      "maintenance": 0.1,
+      "income": 0.35,
+      "effects": {
+        "agriculture": 5,
+        "inflation": -0.4
+      },
+      "unlockYear": 1962,
+      "development": 12,
+      "description": "작은 논배미를 반듯하게 묶고 물길을 다시 낸다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "reclamation",
+      "name": "간척지 조성",
+      "requires": [
+        "tidal"
+      ],
+      "cost": 45,
+      "months": 14,
+      "maintenance": 0.15,
+      "income": 0.5,
+      "effects": {
+        "agriculture": 5,
+        "environment": -4
+      },
+      "unlockYear": 1966,
+      "development": 12,
+      "description": "방조제를 쌓아 갯벌을 농지로 바꾼다. 갯벌의 생태 기능은 잃는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "fishing_port",
+      "name": "어항·수산 가공",
+      "requires": [
+        "fishery"
+      ],
+      "cost": 24,
+      "months": 6,
+      "maintenance": 0.12,
+      "income": 0.45,
+      "effects": {
+        "agriculture": 2,
+        "reserves": 2,
+        "welfare": 1
+      },
+      "unlockYear": 1962,
+      "development": 12,
+      "description": "방파제와 냉동·가공 시설로 잡은 고기를 덜 버리고 더 멀리 판다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "coastal_industrial",
+      "name": "임해 중화학 공업지구",
+      "requires": [
+        "harbor"
+      ],
+      "cost": 70,
+      "months": 18,
+      "maintenance": 0.55,
+      "income": 1.25,
+      "effects": {
+        "industry": 9,
+        "reserves": 3,
+        "environment": -6
+      },
+      "unlockYear": 1968,
+      "development": 14,
+      "description": "깊은 항만 옆에 원료 부두와 대형 공장을 한데 모은다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "export_zone",
+      "name": "수출 자유 지역",
+      "requires": [
+        "harbor"
+      ],
+      "cost": 38,
+      "months": 9,
+      "maintenance": 0.25,
+      "income": 0.9,
+      "effects": {
+        "reserves": 4,
+        "industry": 3,
+        "unemployment": -1,
+        "equality": -1
+      },
+      "unlockYear": 1970,
+      "development": 12,
+      "description": "관세를 면제한 가공 수출 구역. 일자리가 생기지만 이익은 고르게 나뉘지 않는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "reforestation",
+      "name": "산림 녹화·사방 사업",
+      "requires": [
+        "mountain"
+      ],
+      "cost": 20,
+      "months": 8,
+      "maintenance": 0.08,
+      "income": 0.05,
+      "effects": {
+        "environment": 6,
+        "agriculture": 1
+      },
+      "unlockYear": 1962,
+      "development": 12,
+      "description": "헐벗은 산에 나무를 심고 사태를 막는 둑을 쌓는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "tourism_complex",
+      "name": "관광 단지",
+      "requires": [
+        "scenery"
+      ],
+      "cost": 32,
+      "months": 9,
+      "maintenance": 0.2,
+      "income": 0.6,
+      "effects": {
+        "reserves": 2,
+        "welfare": 1,
+        "environment": -1
+      },
+      "unlockYear": 1966,
+      "development": 12,
+      "description": "숙박·교통 시설을 갖춰 국내외 방문객을 맞는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "urban_rail",
+      "name": "도시 철도",
+      "requires": [
+        "market"
+      ],
+      "cost": 62,
+      "months": 20,
+      "maintenance": 0.35,
+      "income": 0.5,
+      "effects": {
+        "infrastructure": 7,
+        "welfare": 2,
+        "environment": 1
+      },
+      "unlockYear": 1971,
+      "development": 12,
+      "description": "대도시 안을 잇는 전철. 공기가 길고 비싸지만 출퇴근길을 바꾼다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    },
+    {
+      "id": "island_link",
+      "name": "섬 연락선·도서 전력",
+      "requires": [
+        "island"
+      ],
+      "cost": 22,
+      "months": 6,
+      "maintenance": 0.1,
+      "income": 0.2,
+      "effects": {
+        "welfare": 2,
+        "equality": 2,
+        "infrastructure": 1
+      },
+      "unlockYear": 1963,
+      "development": 12,
+      "description": "정기 여객선과 작은 발전소로 섬 마을을 뭍과 잇는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+    }
+  ],
+  "edicts": [
+    {
+      "id": "grain_drive",
+      "name": "곡창 증산 지도",
+      "requires": [
+        "rice"
+      ],
+      "cost": 6,
+      "monthlyCost": 0.2,
+      "unlockYear": 1961,
+      "monthlyEffects": {
+        "agriculture": 0.05,
+        "inflation": -0.01
+      },
+      "factionEffects": {
+        "farmers": 2
+      },
+      "description": "농사 지도원을 보내 종자와 비료 쓰는 법을 고친다."
+    },
+    {
+      "id": "mine_safety",
+      "name": "광산 안전·증산 감독",
+      "requires": [
+        "coal",
+        "ore"
+      ],
+      "cost": 6,
+      "monthlyCost": 0.25,
+      "unlockYear": 1961,
+      "monthlyEffects": {
+        "industry": 0.035,
+        "welfare": 0.01
+      },
+      "factionEffects": {
+        "workers": 1
+      },
+      "description": "안전 기준을 지키는 광산에만 증산 지원을 준다."
+    },
+    {
+      "id": "forest_protection",
+      "name": "산림 보호구역",
+      "requires": [
+        "mountain"
+      ],
+      "cost": 4,
+      "monthlyCost": 0.12,
+      "unlockYear": 1961,
+      "monthlyEffects": {
+        "environment": 0.06,
+        "agriculture": -0.01
+      },
+      "description": "벌채와 화전을 막는다. 산에 기대 살던 농가의 소득이 줄어든다."
+    },
+    {
+      "id": "fishery_management",
+      "name": "어업 자원 관리",
+      "requires": [
+        "fishery"
+      ],
+      "cost": 4,
+      "monthlyCost": 0.1,
+      "unlockYear": 1962,
+      "monthlyEffects": {
+        "agriculture": 0.02,
+        "environment": 0.025,
+        "reserves": 0.01
+      },
+      "factionEffects": {
+        "farmers": 1
+      },
+      "description": "금어기와 그물코 기준을 정해 어장을 오래 쓴다."
+    },
+    {
+      "id": "export_priority",
+      "name": "수출 공업 우선 지역",
+      "requires": [
+        "harbor"
+      ],
+      "cost": 10,
+      "monthlyCost": 0.35,
+      "unlockYear": 1962,
+      "monthlyEffects": {
+        "industry": 0.045,
+        "reserves": 0.025,
+        "environment": -0.025,
+        "equality": -0.01
+      },
+      "factionEffects": {
+        "business": 2
+      },
+      "buildDiscount": 0.15,
+      "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 사업 착수비 15% 감면."
+    },
+    {
+      "id": "tourism_opening",
+      "name": "관광 개방",
+      "requires": [
+        "scenery"
+      ],
+      "cost": 6,
+      "monthlyCost": 0.15,
+      "unlockYear": 1964,
+      "monthlyEffects": {
+        "reserves": 0.03,
+        "welfare": 0.01,
+        "environment": -0.01
+      },
+      "description": "교통편과 안내를 늘려 방문객을 받는다."
+    },
+    {
+      "id": "urban_planning",
+      "name": "도시 계획 정비",
+      "requires": [
+        "urban"
+      ],
+      "cost": 8,
+      "monthlyCost": 0.3,
+      "unlockYear": 1962,
+      "monthlyEffects": {
+        "infrastructure": 0.035,
+        "welfare": 0.02,
+        "equality": -0.01
+      },
+      "description": "도로·상하수도 계획선을 긋는다. 계획선 안 주민의 이주 문제가 남는다."
+    },
+    {
+      "id": "water_management",
+      "name": "유역 물 관리",
+      "requires": [
+        "river",
+        "hydro"
+      ],
+      "cost": 6,
+      "monthlyCost": 0.15,
+      "unlockYear": 1962,
+      "monthlyEffects": {
+        "agriculture": 0.025,
+        "environment": 0.02
+      },
+      "description": "보와 저수지 운영을 유역 단위로 묶는다."
+    },
+    {
+      "id": "lagging_region",
+      "name": "낙후 지역 개발 촉진",
+      "requires": [],
+      "maxDevelopment": 45,
+      "cost": 8,
+      "monthlyCost": 0.25,
+      "unlockYear": 1962,
+      "monthlyEffects": {
+        "equality": 0.03
+      },
+      "factionEffects": {
+        "farmers": 1,
+        "civil": 1
+      },
+      "buildDiscount": 0.25,
+      "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 사업 착수비 25% 감면."
+    },
+    {
+      "id": "local_admin",
+      "name": "지방 행정 지원",
+      "requires": [],
+      "cost": 5,
+      "monthlyCost": 0.2,
+      "unlockYear": 1961,
+      "monthlyEffects": {
+        "admin": 0.03,
+        "equality": 0.01
+      },
+      "factionEffects": {
+        "bureaucracy": 1
+      },
+      "description": "도·군 행정에 인력과 장비를 보낸다."
     }
   ],
   "advisers": [
@@ -4599,6 +5238,22 @@
       "description": "엔딩에 도달한다.",
       "condition": {
         "ending": true
+      }
+    },
+    {
+      "id": "local_strength",
+      "name": "땅이 가진 것",
+      "description": "권역 자원을 쓰는 고유 사업 3건 준공.",
+      "condition": {
+        "uniqueProjects": 3
+      }
+    },
+    {
+      "id": "local_rule",
+      "name": "권역 맞춤 행정",
+      "description": "지역 시책 3개를 동시에 시행.",
+      "condition": {
+        "edicts": 3
       }
     }
   ],

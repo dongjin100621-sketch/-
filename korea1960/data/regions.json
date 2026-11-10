@@ -11,7 +11,17 @@
       "education"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "plain",
+      "river",
+      "coast",
+      "urban"
+    ],
+    "resources": [
+      "harbor",
+      "market"
+    ]
   },
   {
     "id": "gangwon",
@@ -25,7 +35,19 @@
       "forestry"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "mountain",
+      "coast"
+    ],
+    "resources": [
+      "coal",
+      "limestone",
+      "ore",
+      "timber",
+      "hydro",
+      "fishery"
+    ]
   },
   {
     "id": "chungnam",
@@ -39,7 +61,16 @@
       "logistics"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "plain",
+      "coast",
+      "river"
+    ],
+    "resources": [
+      "rice",
+      "tidal"
+    ]
   },
   {
     "id": "chungbuk",
@@ -53,7 +84,16 @@
       "materials"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "mountain",
+      "river"
+    ],
+    "resources": [
+      "limestone",
+      "hydro",
+      "timber"
+    ]
   },
   {
     "id": "jeonbuk",
@@ -67,7 +107,15 @@
       "food"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "plain",
+      "coast"
+    ],
+    "resources": [
+      "rice",
+      "tidal"
+    ]
   },
   {
     "id": "gyeongbuk",
@@ -81,7 +129,18 @@
       "materials"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "mountain",
+      "river",
+      "coast"
+    ],
+    "resources": [
+      "harbor",
+      "hydro",
+      "fishery",
+      "timber"
+    ]
   },
   {
     "id": "jeonnam",
@@ -95,7 +154,18 @@
       "port"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "plain",
+      "coast",
+      "island"
+    ],
+    "resources": [
+      "rice",
+      "tidal",
+      "fishery",
+      "harbor"
+    ]
   },
   {
     "id": "gyeongnam",
@@ -109,7 +179,16 @@
       "manufacturing"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "coast",
+      "plain",
+      "river"
+    ],
+    "resources": [
+      "harbor",
+      "fishery"
+    ]
   },
   {
     "id": "busan",
@@ -123,7 +202,16 @@
       "trade"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "coast",
+      "urban"
+    ],
+    "resources": [
+      "harbor",
+      "market",
+      "fishery"
+    ]
   },
   {
     "id": "jeju",
@@ -137,6 +225,14 @@
       "tourism"
     ],
     "slots": 4,
-    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음."
+    "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
+    "terrain": [
+      "island",
+      "mountain"
+    ],
+    "resources": [
+      "scenery",
+      "fishery"
+    ]
   }
 ]

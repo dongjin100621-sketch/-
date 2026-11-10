@@ -1,4 +1,4 @@
-/* 검토용 저장 파일(버전 2)을 game/saves/에 다시 만든다.
+/* 검토용 저장 파일(저장 형식 4)을 game/saves/에 다시 만든다.
  *   node tools/make_sample_saves.mjs
  * example/saves/의 두 파일은 제작 패키지 v1이 만든 버전 1 저장이며, 변환(migrateSave) 검사용으로 그대로 둔다. */
 import fs from 'node:fs';
@@ -21,5 +21,11 @@ action({ type: 'policy', id: 'press_freedom' }); action({ type: 'project', id: '
 until(56);
 action({ type: 'policy', id: 'farm_extension' }); action({ type: 'diplomacy', countryId: 'japan', mode: 'talk' });
 write('1964_bills_and_projects.json', '법안 결과·사업 준공 이후, AP 1 남음');
+until(60);
+action({ type: 'edict', id: 'grain_drive', regionId: 'jeonbuk' }); action({ type: 'project', id: 'farmland_consolidation', regionId: 'jeonbuk' }); action({ type: 'edict', id: 'forest_protection', regionId: 'gangwon' });
+until(61);
+action({ type: 'project', id: 'coal_mechanization', regionId: 'gangwon' }); action({ type: 'edict', id: 'export_priority', regionId: 'busan' });
+until(74);
+write('1966_regional_edicts.json', '지역 시책 3개(전북 곡창·강원 산림·부산 수출 공업)와 고유 사업 2건 준공 이후');
 until(156);
 write('1973_policy_choices.json', '1973년 1월 중화학공업 사건 직후');

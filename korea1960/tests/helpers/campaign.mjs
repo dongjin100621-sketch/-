@@ -34,6 +34,9 @@ export function checkInvariants(s, d) {
   }
   if (new Set(s.policies).size !== s.policies.length) fail('정책 중복');
   for (const r of d.regions) if (s.projects.filter(p => p.regionId === r.id).length > r.slots) fail(`슬롯 초과 ${r.id}`);
+  for (const p of s.projects) if (!E.regionHas(d, p.regionId, d.projects.find(x => x.id === p.projectId).requires)) fail(`지형·자원 없는 고유 사업 ${p.projectId}@${p.regionId}`);
+  if (!Array.isArray(s.edicts) || new Set(s.edicts.map(x => x.regionId)).size !== s.edicts.length) fail('권역마다 시책 하나');
+  for (const x of s.edicts) { const e = d.edicts.find(y => y.id === x.edictId); if (!e || !E.regionHas(d, x.regionId, e.requires) || x.startedTurn > s.turn) fail(`시책 오류 ${x.edictId}@${x.regionId}`); }
   for (const x of s.delayed) if (x.due <= s.turn) fail(`지연 효과 미적용 ${x.text}`);
   if (s.report) {
     const r = s.report;
@@ -48,6 +51,12 @@ export function checkInvariants(s, d) {
 const exec = (s, d, a) => { const r = E.dispatch(s, d, a); if (!r.ok) throw new Error(`${a.type} 실패: ${r.error} @t${s.turn}`); return r.state; };
 const tryDo = (s, d, a) => { const r = E.dispatch(s, d, a); return r.ok ? r.state : s; };
 const regionsByDev = (s, d) => [...d.regions].sort((a, b) => E.regionDevelopment(s, d, a.id) - E.regionDevelopment(s, d, b.id));
+/** 지역 시책: 목록 순서대로, 개발이 늦은 권역부터 한 달에 하나까지 건다. */
+function edicts(s, d, ids, reserve) {
+  if (!ids || s.ap < 1 || s.stats.treasury < reserve) return s;
+  for (const id of ids) for (const reg of regionsByDev(s, d)) { const n = tryDo(s, d, { type: 'edict', id, regionId: reg.id }); if (n !== s) return n; }
+  return s;
+}
 
 /** 정해진 우선순위로 사건을 고르고 정책·사업·자문·외교를 쓰는 전략을 만든다. */
 function focused(cfg) {
@@ -66,6 +75,7 @@ function focused(cfg) {
       const reserve = cfg.minTreasury ?? 35;
       for (const id of cfg.policies) { if (s.ap < 2 || s.stats.treasury < reserve) break; s = tryDo(s, d, { type: 'policy', id }); }
       if (s.advisers.length < 2 && s.ap > 0) for (const id of cfg.advisers) s = tryDo(s, d, { type: 'adviser', id });
+      s = edicts(s, d, cfg.edicts, reserve + 10);
       if (s.ap > 0 && s.stats.treasury > reserve + 5) {
         outer: for (const reg of regionsByDev(s, d)) for (const id of cfg.projects) { const n = tryDo(s, d, { type: 'project', id, regionId: reg.id }); if (n !== s) { s = n; break outer; } }
       }
@@ -94,8 +104,9 @@ export const STRATEGIES = {
       const order = ['press_freedom', 'association', 'judicial_review', 'labor_inspection', 'primary_school', 'health_centers', 'open_accounts', 'civil_service', 'local_council', 'clean_water', 'farm_extension', 'rural_coops', 'housing', 'technical_school', 'small_business', 'export_credit', 'price_stability', 'civilian_oversight', 'energy_efficiency', 'research_fund', 'grid_planning', 'rail_priority', 'grain_buffer', 'diplomatic_diversity'];
       for (const id of order) { if (s.ap < 2 || s.stats.treasury < 40) break; s = tryDo(s, d, { type: 'policy', id }); }
       if (s.advisers.length < 2 && s.ap > 0) for (const id of ['min', 'yun']) s = tryDo(s, d, { type: 'adviser', id });
+      s = edicts(s, d, ['local_admin', 'lagging_region', 'forest_protection', 'grain_drive', 'fishery_management'], 55);
       if (s.ap > 0 && s.stats.treasury > 45) {
-        const projects = ['rural_clinic', 'primary_campus', 'waterworks', 'irrigation', 'local_road', 'river_restoration', 'public_housing', 'technical_campus', 'market_storage', 'research_campus'];
+        const projects = ['rural_clinic', 'primary_campus', 'farmland_consolidation', 'reforestation', 'island_link', 'waterworks', 'irrigation', 'local_road', 'river_restoration', 'public_housing', 'technical_campus', 'market_storage', 'research_campus'];
         outer: for (const reg of regionsByDev(s, d)) for (const id of projects) { const n = tryDo(s, d, { type: 'project', id, regionId: reg.id }); if (n !== s) { s = n; break outer; } }
       }
       if (s.ap > 0 && s.stats.debt > 150 && s.stats.treasury > 60) s = tryDo(s, d, { type: 'repay', amount: 25 });
@@ -119,9 +130,10 @@ export const STRATEGIES = {
       for (const id of ['export_credit', 'small_business', 'technical_school', 'rail_priority', 'grid_planning', 'diplomatic_diversity', 'price_stability', 'civil_service', 'research_fund']) { if (s.ap < 1 || s.stats.treasury < 30) break; s = tryDo(s, d, { type: 'policy', id }); }
       if (s.advisers.length < 2 && s.ap > 0) for (const id of ['cho', 'han']) s = tryDo(s, d, { type: 'adviser', id });
       for (let i = 0; i < 2 && s.ap > 0; i++) {
-        const projects = ['steel_complex', 'shipyard', 'light_industry', 'port_upgrade', 'power_grid', 'rail_hub', 'technical_campus', 'local_road'];
+        const projects = ['coastal_industrial', 'steel_complex', 'shipyard', 'cement_plant', 'coal_mechanization', 'light_industry', 'port_upgrade', 'power_grid', 'rail_hub', 'technical_campus', 'local_road'];
         outer: for (const reg of [...d.regions].sort(() => r() - .5)) for (const id of projects) { const n = tryDo(s, d, { type: 'project', id, regionId: reg.id }); if (n !== s) { s = n; break outer; } }
       }
+      s = edicts(s, d, ['export_priority', 'mine_safety', 'urban_planning'], 40);
       if (s.ap > 0) s = tryDo(s, d, { type: 'diplomacy', countryId: 'usa', mode: 'technology' });
       return s;
     }
@@ -132,7 +144,8 @@ export const STRATEGIES = {
     weights: { welfare: 3, equality: 2.5, education: 1, legitimacy: .3, treasury: .05 },
     budget: { industry: 12, agriculture: 18, education: 22, welfare: 30, infrastructure: 10, security: 8 },
     policies: ['health_centers', 'housing', 'primary_school', 'labor_inspection', 'rural_coops', 'local_council', 'small_business', 'farm_extension', 'grain_buffer', 'price_stability'],
-    projects: ['rural_clinic', 'public_housing', 'primary_campus', 'waterworks', 'market_storage', 'irrigation'],
+    projects: ['rural_clinic', 'public_housing', 'island_link', 'primary_campus', 'fishing_port', 'waterworks', 'market_storage', 'irrigation'],
+    edicts: ['lagging_region', 'local_admin', 'grain_drive'],
     advisers: ['kang', 'yun'], diplomacy: 'humanitarian'
   }),
   /** 환경 우선: 헌정 경로, 환경 부담을 줄이며 완만한 성장. */
@@ -141,7 +154,8 @@ export const STRATEGIES = {
     weights: { environment: 3, welfare: 1, agriculture: 1, education: 1, industry: -.5, treasury: .05 },
     budget: { industry: 16, agriculture: 20, education: 20, welfare: 16, infrastructure: 18, security: 10 },
     policies: ['clean_water', 'energy_efficiency', 'grid_planning', 'research_fund', 'technical_school', 'export_credit', 'farm_extension', 'rail_priority', 'small_business', 'primary_school'],
-    projects: ['river_restoration', 'waterworks', 'research_campus', 'technical_campus', 'irrigation', 'rail_hub', 'port_upgrade'],
+    projects: ['reforestation', 'river_restoration', 'waterworks', 'research_campus', 'technical_campus', 'irrigation', 'urban_rail', 'rail_hub', 'port_upgrade'],
+    edicts: ['forest_protection', 'fishery_management', 'water_management'],
     advisers: ['yun', 'kang'], diplomacy: 'technology'
   }),
   /** 강경: 군정·권력 집중 경로에서 통제와 동원을 우선한다. 위기 엔딩 도달 확인용. */
@@ -159,7 +173,8 @@ export const STRATEGIES = {
     weights: { industry: 3, infrastructure: 1.5, reserves: 1, legitimacy: .5, treasury: .1 },
     budget: { industry: 34, agriculture: 12, education: 16, welfare: 8, infrastructure: 22, security: 8 },
     policies: ['export_credit', 'small_business', 'technical_school', 'rail_priority', 'grid_planning', 'research_fund', 'price_stability', 'diplomatic_diversity', 'civil_service'],
-    projects: ['steel_complex', 'shipyard', 'light_industry', 'port_upgrade', 'power_grid', 'rail_hub', 'technical_campus', 'research_campus'],
+    projects: ['coastal_industrial', 'steel_complex', 'shipyard', 'export_zone', 'cement_plant', 'multipurpose_dam', 'light_industry', 'port_upgrade', 'power_grid', 'rail_hub', 'technical_campus', 'research_campus'],
+    edicts: ['export_priority', 'mine_safety', 'local_admin'],
     advisers: ['cho', 'han'], diplomacy: 'technology'
   }),
   /** 소극: 사건에서 첫 번째로 가능한 선택만 고르고 국정 행동을 하지 않는다. */
@@ -172,7 +187,7 @@ export const STRATEGIES = {
     choose(s, d, e, r) { const ok = e.choices.filter(c => !E.choiceReason(s, d, c.id)); return ok[Math.floor(r() * ok.length)].id; },
     act(s, d, r) {
       for (let i = 0; i < 6 && s.ap > 0; i++) {
-        const k = Math.floor(r() * 8);
+        const k = Math.floor(r() * 10);
         const a = k === 0 ? { type: 'prepare' }
           : k === 1 ? { type: 'policy', id: d.policies[Math.floor(r() * d.policies.length)].id }
             : k === 2 ? { type: 'project', id: d.projects[Math.floor(r() * d.projects.length)].id, regionId: d.regions[Math.floor(r() * d.regions.length)].id }
@@ -180,7 +195,9 @@ export const STRATEGIES = {
                 : k === 4 ? { type: 'adviser', id: d.advisers[Math.floor(r() * d.advisers.length)].id }
                   : k === 5 ? { type: 'repay', amount: 10 }
                     : k === 6 ? { type: 'budget', budget: (() => { const w = E.BUDGET_KEYS.map(() => 1 + Math.floor(r() * 10)); const t = w.reduce((a, b) => a + b, 0); const v = w.map(x => Math.floor(x / t * 100)); v[0] += 100 - v.reduce((a, b) => a + b, 0); return Object.fromEntries(E.BUDGET_KEYS.map((key, j) => [key, v[j]])); })() }
-                      : { type: 'endMonth' };
+                      : k === 7 ? { type: 'edict', id: d.edicts[Math.floor(r() * d.edicts.length)].id, regionId: d.regions[Math.floor(r() * d.regions.length)].id }
+                        : k === 8 ? { type: 'revokeEdict', regionId: d.regions[Math.floor(r() * d.regions.length)].id }
+                          : { type: 'endMonth' };
         if (a.type === 'endMonth') break;
         s = tryDo(s, d, a);
       }

@@ -1,0 +1,121 @@
+[
+  {
+    "id": "plain",
+    "kind": "terrain",
+    "name": "넓은 들",
+    "mark": "들",
+    "description": "논밭이 넓게 펼쳐진 평야."
+  },
+  {
+    "id": "mountain",
+    "kind": "terrain",
+    "name": "산지",
+    "mark": "산",
+    "description": "산과 골짜기가 많은 땅."
+  },
+  {
+    "id": "coast",
+    "kind": "terrain",
+    "name": "해안",
+    "mark": "해",
+    "description": "바다를 끼고 있다."
+  },
+  {
+    "id": "river",
+    "kind": "terrain",
+    "name": "큰 강",
+    "mark": "강",
+    "description": "큰 강의 유역."
+  },
+  {
+    "id": "island",
+    "kind": "terrain",
+    "name": "섬",
+    "mark": "섬",
+    "description": "섬이 많거나 섬 자체인 권역."
+  },
+  {
+    "id": "urban",
+    "kind": "terrain",
+    "name": "대도시",
+    "mark": "도",
+    "description": "인구가 모인 큰 도시."
+  },
+  {
+    "id": "coal",
+    "kind": "resource",
+    "name": "석탄",
+    "mark": "탄",
+    "description": "연료용 무연탄 탄전."
+  },
+  {
+    "id": "limestone",
+    "kind": "resource",
+    "name": "석회석",
+    "mark": "회",
+    "description": "시멘트 원료가 되는 석회석 광상."
+  },
+  {
+    "id": "ore",
+    "kind": "resource",
+    "name": "금속 광물",
+    "mark": "광",
+    "description": "텅스텐 등 수출용 금속 광물."
+  },
+  {
+    "id": "timber",
+    "kind": "resource",
+    "name": "산림",
+    "mark": "림",
+    "description": "가꾸면 다시 자라는 숲."
+  },
+  {
+    "id": "hydro",
+    "kind": "resource",
+    "name": "수력",
+    "mark": "수",
+    "description": "댐을 세울 만한 협곡과 수량."
+  },
+  {
+    "id": "rice",
+    "kind": "resource",
+    "name": "곡창",
+    "mark": "곡",
+    "description": "벼농사에 알맞은 너른 논."
+  },
+  {
+    "id": "tidal",
+    "kind": "resource",
+    "name": "갯벌",
+    "mark": "갯",
+    "description": "간척할 수도, 지킬 수도 있는 갯벌."
+  },
+  {
+    "id": "fishery",
+    "kind": "resource",
+    "name": "어장",
+    "mark": "어",
+    "description": "가까운 바다의 좋은 어장."
+  },
+  {
+    "id": "harbor",
+    "kind": "resource",
+    "name": "깊은 항만",
+    "mark": "항",
+    "description": "큰 배가 드나들 수 있는 만과 항구."
+  },
+  {
+    "id": "market",
+    "kind": "resource",
+    "name": "대도시 시장",
+    "mark": "시",
+    "description": "물건과 사람이 모이는 큰 시장."
+  },
+  {
+    "id": "scenery",
+    "kind": "resource",
+    "name": "경관",
+    "mark": "경",
+    "description": "찾아올 만한 산과 바다 풍경."
+  }
+]

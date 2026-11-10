@@ -20,6 +20,8 @@ const signed = (v, n = 1) => (v > 0 ? '+' : v < 0 ? '−' : '±') + num(Math.abs
 const digits = id => id === 'gdp' ? 0 : 1;
 const ym = turn => { const c = E.calendar(Math.min(turn, 239)); return `${c.year}년 ${c.month}월`; };
 const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+/** 숫자 뒤 '로/으로'(일·이·사·오·칠·팔·구 → 로, 삼·육·영·십 → 으로). */
+const roParticle = n => ['으로', '로', '로', '으로', '로', '로', '으로', '로', '로', '로'][Math.abs(Math.trunc(n)) % 10];
 /** '1961년 5월 16일 (화)'. 요일은 실제 달력. */
 const fullDate = (turn, day) => { const c = E.calendar(Math.min(turn, 239)); return `${c.year}년 ${c.month}월 ${day}일 (${WEEK[new Date(Date.UTC(c.year, c.month - 1, day)).getUTCDay()]})`; };
 /** 오늘부터 앞으로 n번째 달 말일까지 남은 날 수(오늘 포함). n=1이면 이번 달 말일까지. */
@@ -75,10 +77,9 @@ const PHASE = {
   governing: { name: '국정 운영', desc: '모든 정책·입법·사업·외교·내각 행동을 할 수 있습니다. 정기 선거와 의회 표결이 권한을 확인합니다.', can: ['정책 시행·법안 발의', '사업 착수', '예산 배분', '외교', '자문 임명·해임', '부채 상환'], cannot: '' }
 };
 const STATUS = { introduced: '발의', committee: '상임위', legal_review: '법제 검토', plenary: '본회의', passed: '가결', failed: '부결' };
-const SPECIALTY = { services: '서비스', education: '교육', mining: '광업', forestry: '임업', agriculture: '농업', logistics: '물류', materials: '소재', food: '식품', manufacturing: '제조', port: '항만', shipbuilding: '조선', trade: '교역', tourism: '관광' };
-const LOG_TYPES = { start: '시작', event: '사건', preparation: '준비', policy: '정책', bill: '법안', construction: '사업', budget: '예산', diplomacy: '외교', cabinet: '내각', finance: '재정', followup: '후속', election: '선거', ending: '엔딩' };
-const LOG_FILTERS = [['all', '전체'], ['event', '사건'], ['law', '정책·법안'], ['construction', '사업'], ['money', '재정·예산'], ['foreign', '외교·내각'], ['election', '선거·엔딩']];
-const LOG_GROUP = { event: 'event', followup: 'event', preparation: 'event', start: 'event', policy: 'law', bill: 'law', construction: 'construction', finance: 'money', budget: 'money', diplomacy: 'foreign', cabinet: 'foreign', election: 'election', ending: 'election' };
+const LOG_TYPES = { start: '시작', event: '사건', preparation: '준비', policy: '정책', bill: '법안', construction: '사업', edict: '시책', budget: '예산', diplomacy: '외교', cabinet: '내각', finance: '재정', followup: '후속', election: '선거', ending: '엔딩' };
+const LOG_FILTERS = [['all', '전체'], ['event', '사건'], ['law', '정책·법안'], ['construction', '사업·시책'], ['money', '재정·예산'], ['foreign', '외교·내각'], ['election', '선거·엔딩']];
+const LOG_GROUP = { event: 'event', followup: 'event', preparation: 'event', start: 'event', policy: 'law', bill: 'law', construction: 'construction', edict: 'construction', finance: 'money', budget: 'money', diplomacy: 'foreign', cabinet: 'foreign', election: 'election', ending: 'election' };
 const BUDGET_LABEL = { industry: '산업', agriculture: '농업', education: '교육', welfare: '생활', infrastructure: '기반 시설', security: '안보' };
 const BUDGET_PRESETS = [['기본 배분', { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 }], ['산업 우선', { industry: 32, agriculture: 12, education: 14, welfare: 12, infrastructure: 20, security: 10 }], ['생활 우선', { industry: 14, agriculture: 18, education: 18, welfare: 28, infrastructure: 12, security: 10 }], ['인재 우선', { industry: 16, agriculture: 14, education: 30, welfare: 16, infrastructure: 14, security: 10 }]];
 const NAV = [['map', '지도'], ['overview', '상황판'], ['policy', '정책'], ['assembly', '의회'], ['build', '사업·권역'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
@@ -252,8 +253,8 @@ function chart(key, color) {
   const first = series[0], last = series.at(-1);
   return `<article class="panel chart"><div class="row"><h3>${esc(mlabel(key))}</h3><strong>${num(last, digits(key))}</strong></div>
   <svg viewBox="0 0 500 112" role="img" aria-label="${esc(mlabel(key))} 추이: 1960년 1월 ${num(first, digits(key))}에서 현재 ${num(last, digits(key))}. 최저 ${num(min, digits(key))}, 최고 ${num(max, digits(key))}.">
-  <line x1="10" y1="100" x2="490" y2="100" stroke="#334a4d"/><line x1="10" y1="20" x2="490" y2="20" stroke="#26403f" stroke-dasharray="3 4"/>
-  <polyline fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" points="${pts}"/><circle cx="${x(n - 1)}" cy="${y(last)}" r="3.4" fill="${color}"/></svg>
+  <line class="axis-base" x1="10" y1="100" x2="490" y2="100"/><line class="axis-top" x1="10" y1="20" x2="490" y2="20" stroke-dasharray="3 4"/>
+  <polyline fill="none" style="stroke:${color}" stroke-width="2.4" stroke-linejoin="round" points="${pts}"/><circle cx="${x(n - 1)}" cy="${y(last)}" r="3.4" style="fill:${color}"/></svg>
   <div class="scale"><span>${years[0]}년</span><span>최저 ${num(min, digits(key))} · 최고 ${num(max, digits(key))}</span><span>${years.at(-1)}년</span></div></article>`;
 }
 
@@ -342,7 +343,7 @@ function overview() {
   ${state.report ? btn('지난달 결산 보기', 'report', { cls: 'block quiet' }) : ''}</article>
   <article class="panel"><h2>다가오는 일정</h2><ul class="milestones">${milestones().map(([t, text]) => `<li><time>${esc(t)}</time><span>${text}</span></li>`).join('')}</ul></article>
   </div></div></div>
-  <div class="charts">${chart('gdp', '#c5a66b')}${chart('liberty', '#83b39c')}${chart('welfare', '#bca6cd')}${chart('environment', '#79a7b3')}</div>
+  <div class="charts">${chart('gdp', '#6e4f16')}${chart('liberty', '#2c6a43')}${chart('welfare', '#5d4380')}${chart('environment', '#245a76')}</div>
   <article class="panel"><div class="row"><h2>사회 각계의 반응</h2><small>각 집단은 중시하는 지표 세 개의 평균을 향해 매월 2.5%씩 움직인다</small></div><div class="factions">${data.factions.map(f => { const dv = state.report?.support?.[f.id] || 0; return `<div><div class="row"><span>${esc(f.name)} <small style="display:inline">비중 ${Math.round(f.weight * 100)}%</small></span><strong>${num(state.support[f.id], 0)} <small class="delta ${dv > 0 ? 'good' : dv < 0 ? 'bad' : 'flat'}" style="display:inline">${arrow(dv)}${signed(dv, 1)}</small></strong></div><div class="bar"><i style="width:${state.support[f.id]}%"></i></div><small>중시: ${f.priorities.map(mlabel).map(esc).join(' · ')}</small></div>`; }).join('')}</div></article>
   <article class="panel"><h2>국가 역량 전체</h2><p class="muted" style="font-size:13px">타일을 누르면 계산 규칙과 지난달 변화 원인을 볼 수 있습니다.</p><div class="metric-grid">${data.metrics.map(m => kpi(m.id, { compact: true })).join('')}</div></article>`;
 }
@@ -366,8 +367,54 @@ function milestones() {
 /* ---------- 화면: 지도 ----------
  * 화면 한가운데의 권역 지도. 권역을 개발도·농업 잠재력·사업 슬롯 중 하나로 칠하고, 사업은 권역 이름표 아래 표식으로 보인다.
  * 권역을 누르면 권역 정보가 열린다. 마우스 끌기·휠·버튼으로 확대·이동한다(viewBox만 바꾸고 다시 그리지 않는다). */
-const MAP_LAYERS = { dev: ['개발도', id => E.regionDevelopment(state, data, id)], farm: ['농업 잠재력', id => byId('regions', id).agriculturePotential], slots: ['사업 슬롯 사용', id => state.projects.filter(p => p.regionId === id).length / byId('regions', id).slots * 100] };
-const RAMP = [[0, [22, 46, 48]], [30, [33, 70, 65]], [50, [55, 104, 88]], [70, [110, 146, 104]], [100, [206, 196, 126]]];
+const MAP_LAYERS = { dev: ['개발도', id => E.regionDevelopment(state, data, id)], res: ['지형·자원', id => E.regionTags(data, id).length], farm: ['농업 잠재력', id => byId('regions', id).agriculturePotential], slots: ['사업 슬롯 사용', id => state.projects.filter(p => p.regionId === id).length / byId('regions', id).slots * 100] };
+/* ---------- 권역: 지형·자원, 지역 시책, 고유 사업(데이터 1.3.0) ---------- */
+const trait = id => byId('traits', id);
+const needs = list => (list || []).map(id => trait(id).name).join('·');
+/** 지도 글자 배율. 휴대폰 폭에서는 지도 전체가 작게 보이므로 표식을 키운다. */
+const mapScale = () => (typeof matchMedia === 'function' && matchMedia('(max-width:760px)').matches ? 1.9 : 1);
+function traitChips(r) {
+  return `<ul class="traits" aria-label="지형과 자원">${[...r.terrain, ...r.resources].map(id => { const x = trait(id); return `<li class="trait ${x.kind}" title="${esc(x.description)}"><i aria-hidden="true">${esc(x.mark)}</i>${esc(x.name)}</li>`; }).join('')}</ul>`;
+}
+/** 권역의 지역 시책: 시행 중이면 내용과 거두기, 아니면 걸 수 있는 시책 목록. */
+function edictPanel(regionId) {
+  const r = byId('regions', regionId), cur = E.regionEdict(state, regionId), cap = E.edictCap(state);
+  const head = `<div class="row"><h3>지역 시책</h3><small>전국 ${state.edicts.length} / ${cap}개</small></div>`;
+  if (cur) {
+    const e = byId('edicts', cur.edictId), reason = E.revokeEdictReason(state, data, regionId);
+    return `<div class="edict-box on">${head}<strong>${esc(e.name)}</strong><small class="sub">${esc(E.dateLabel(cur.startedTurn))}부터 · 매월 유지비 ${num(e.monthlyCost, 2)}${e.buildDiscount ? ` · 이 권역 사업 착수비 ${Math.round(e.buildDiscount * 100)}% 감면` : ''}</small><span class="fx-title">매월</span>${fxPlain(e.monthlyEffects)}
+    <div class="actions">${btn('시책 거두기 · AP 없음', 'askRevoke', { attrs: `data-region="${regionId}" aria-label="${esc(r.name)}의 ${esc(e.name)} 거두기 검토"`, cls: 'small quiet', reason })}${reasonLine(reason)}</div></div>`;
+  }
+  const general = E.governmentReason(state, 0), list = data.edicts.filter(e => E.regionHas(data, regionId, e.requires));
+  return `<div class="edict-box">${head}<p class="hint">권역마다 하나. 시행비와 AP 1을 쓰고 다음 결산부터 매월 효과와 유지비가 붙습니다. 동시 개수는 행정 역량 ${E.EDICT_CAP_ADMIN}마다 1개씩 늘어납니다.</p>${general ? reasonLine(general) : ''}
+  <ul class="edict-list">${list.map(e => { const reason = E.edictReason(state, data, e.id, regionId); return `<li><div><strong>${esc(e.name)}</strong><small>${e.requires.length ? `${esc(needs(e.requires))} · ` : ''}시행비 ${e.cost} · 월 ${num(e.monthlyCost, 2)}${e.buildDiscount ? ` · 착수비 ${Math.round(e.buildDiscount * 100)}% 감면` : ''}${e.maxDevelopment ? ` · 개발도 ${e.maxDevelopment} 이하` : ''}</small>${fxPlain(e.monthlyEffects, { inline: true })}${reason && !general ? `<small class="reason">${esc(reason)}</small>` : ''}</div>${btn('검토', 'askEdict', { attrs: `data-id="${e.id}" data-region="${regionId}" aria-label="${esc(r.name)}에 ${esc(e.name)} 시행 검토"`, cls: 'small', reason })}</li>`; }).join('')}</ul></div>`;
+}
+/** 권역의 지형·자원을 쓰는 고유 사업 목록(지도 권역 카드용). */
+function uniqueList(regionId) {
+  const r = byId('regions', regionId), list = data.projects.filter(p => p.requires && E.regionHas(data, regionId, p.requires));
+  if (!list.length) return '<p class="muted">이 권역의 지형·자원을 쓰는 고유 사업이 없습니다.</p>';
+  return `<ul class="unique-list">${list.map(p => {
+    const here = state.projects.find(x => x.regionId === regionId && x.projectId === p.id), reason = here ? '' : E.projectReason(state, data, p.id, regionId), cost = E.projectCost(state, data, p.id, regionId);
+    return `<li><div><strong>${esc(p.name)}</strong><small>${esc(needs(p.requires))} · 착수비 ${num(cost, cost % 1 ? 1 : 0)}${cost < p.cost ? ` (감면 전 ${p.cost})` : ''} · ${p.months}개월 · ${p.unlockYear}년~ · 개발도 +${p.development ?? E.DEFAULT_DEVELOPMENT}</small>${fxPlain(p.effects, { inline: true })}</div>${here ? `<span class="tag ${here.status === 'complete' ? 'ok' : ''}">${here.status === 'complete' ? '운영 중' : '공사 중'}</span>` : btn('검토', 'askProject', { attrs: `data-id="${p.id}" data-region="${regionId}" aria-label="${esc(r.name)}에 ${esc(p.name)} 착수 검토"`, cls: 'small', reason })}</li>`;
+  }).join('')}</ul>`;
+}
+/** 지도 위 권역 표식: 지형·자원 글자 배지(자원 레이어). 자원(●) 먼저, 지형(■) 다음, 한 줄에 4개씩.
+ *  휴대폰 폭에서는 지도가 작아 자원만 크게 3개씩 보여 준다(지형은 권역 카드와 범례에서 본다). */
+function regionBadges(id) {
+  const [ax, ay] = MAP.anchors[id], k = mapScale(), small = k > 1, r = byId('regions', id);
+  const tags = small ? r.resources : [...r.resources, ...r.terrain], per = small ? 3 : 4, w = 19 * k;
+  return `<g class="rbadges" transform="translate(${ax} ${(ay + 22 * k).toFixed(1)})">${tags.map((tid, i) => {
+    const x = trait(tid), row = Math.floor(i / per), inRow = Math.min(per, tags.length - row * per), cx = ((i % per - (inRow - 1) / 2) * w).toFixed(1), cy = (row * w).toFixed(1);
+    return x.kind === 'resource'
+      ? `<g class="rb res" transform="translate(${cx} ${cy})"><circle r="${9 * k}"/><text y="${4 * k}" font-size="${11 * k}">${esc(x.mark)}</text></g>`
+      : `<g class="rb ter" transform="translate(${cx} ${cy})"><rect x="${-8.5 * k}" y="${-8.5 * k}" width="${17 * k}" height="${17 * k}" rx="${2 * k}"/><text y="${4 * k}" font-size="${11 * k}">${esc(x.mark)}</text></g>`; }).join('')}</g>`;
+}
+function edictPill(id) {
+  if (!E.regionEdict(state, id)) return '';
+  const [ax, ay] = MAP.anchors[id], k = mapScale();
+  return `<g class="epill" transform="translate(${ax} ${(ay - 25 * k).toFixed(1)})"><title>${esc(byId('edicts', E.regionEdict(state, id).edictId).name)} 시행 중</title><rect x="${-18 * k}" y="${-9 * k}" width="${36 * k}" height="${17 * k}" rx="${3 * k}"/><text y="${4 * k}" font-size="${11 * k}">시책</text></g>`;
+}
+const RAMP = [[0, [31, 43, 64]], [30, [43, 64, 100]], [50, [59, 89, 139]], [70, [98, 132, 178]], [100, [184, 200, 218]]]; // 짙은 남색 → 옅은 강철빛 파랑
 function rampColor(v) {
   const x = Math.max(0, Math.min(100, v)); let i = 0; while (i < RAMP.length - 2 && x > RAMP[i + 1][0]) i++;
   const [a, ca] = RAMP[i], [b, cb] = RAMP[i + 1], t = (x - a) / (b - a);
@@ -382,12 +429,13 @@ function projectMarks(id) {
   }).join('');
 }
 function mapSvg() {
-  const [, , W, H] = MAP.viewBox, [layerName, layerValue] = MAP_LAYERS[ui.mapLayer];
+  const [, , W, H] = MAP.viewBox, [layerName, layerValue] = MAP_LAYERS[ui.mapLayer], res = ui.mapLayer === 'res';
   const regions = data.regions.map(r => {
-    const v = layerValue(r.id), sel = ui.mapRegion === r.id, used = state.projects.filter(p => p.regionId === r.id).length;
-    return `<path class="mregion ${sel ? 'sel' : ''}" d="${MAP.regions[r.id]}" fill="${rampColor(v)}" fill-rule="evenodd" data-action="mapRegion" data-id="${r.id}" role="button" tabindex="0" aria-pressed="${sel}" aria-label="${esc(r.name)} · ${layerName} ${num(v, 0)} · 사업 ${used}/${r.slots}. 권역 정보 보기"><title>${esc(r.name)} · ${layerName} ${num(v, 0)}</title></path>`;
+    const v = layerValue(r.id), sel = ui.mapRegion === r.id, used = state.projects.filter(p => p.regionId === r.id).length, cur = E.regionEdict(state, r.id);
+    const what = res ? `지형·자원 ${needs(E.regionTags(data, r.id))}` : `${layerName} ${num(v, 0)}`;
+    return `<path class="mregion ${sel ? 'sel' : ''} ${res ? 'res' : ''}" d="${MAP.regions[r.id]}" fill="${res ? '#4d5b6e' : rampColor(v)}" fill-rule="evenodd" data-action="mapRegion" data-id="${r.id}" role="button" tabindex="0" aria-pressed="${sel}" aria-label="${esc(r.name)} · ${esc(what)} · 사업 ${used}/${r.slots}${cur ? ` · 시책 ${esc(byId('edicts', cur.edictId).name)}` : ''}. 권역 정보 보기"><title>${esc(r.name)} · ${esc(what)}</title></path>`;
   }).join('');
-  const labels = data.regions.map(r => { const [x, y] = MAP.anchors[r.id]; return `<text class="rname" x="${x}" y="${y}">${esc(r.name)}</text><text class="rval" x="${x}" y="${y + 15}">${num(layerValue(r.id), 0)}</text>`; }).join('');
+  const labels = data.regions.map(r => { const [x, y] = MAP.anchors[r.id]; return `<text class="rname" x="${x}" y="${y}">${esc(r.name)}</text>${res ? '' : `<text class="rval" x="${x}" y="${y + 15}">${num(layerValue(r.id), 0)}</text>`}`; }).join('');
   return `<svg class="kmap" viewBox="${(ui.mapBox || MAP.viewBox).join(' ')}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="권역 지도 · ${layerName}">
   <rect class="sea" x="-500" y="-500" width="${W + 1000}" height="${H + 1000}"/>
   <path class="grat" d="${MAP.graticule}"/>
@@ -399,18 +447,21 @@ function mapSvg() {
   ${MAP.cities.map(c => `<g class="city ${c.kind}"><circle cx="${c.x}" cy="${c.y}" r="${c.kind === 'capital' ? 4.5 : 2.6}"/><text x="${c.x + 6}" y="${c.y - 5}">${esc(c.name)}</text></g>`).join('')}
   <text class="lbl mdl-l" x="${MAP.anchors.gangwon[0] - 40}" y="${MAP.anchors.gangwon[1] - 118}">군사분계선</text>
   ${labels}
-  ${data.regions.map(r => projectMarks(r.id)).join('')}
+  ${data.regions.map(r => res ? regionBadges(r.id) : projectMarks(r.id)).join('')}
+  ${data.regions.map(r => edictPill(r.id)).join('')}
   </g></svg>`;
 }
 function regionCard(id) {
   const r = byId('regions', id), dev = E.regionDevelopment(state, data, id), ps = state.projects.filter(p => p.regionId === id);
   return `<section class="paper map-card" aria-label="${esc(r.name)} 권역 정보"><div class="row"><span class="eyebrow">권역 · 가상 모형 값</span>${btn('닫기', 'closeRegion', { cls: 'small quiet' })}</div>
-  <h2>${esc(r.name)}</h2><p class="muted" style="font-size:13px;margin:0 0 8px">특성 ${r.specialties.map(x => esc(SPECIALTY[x] || x)).join(' · ')} (설명용, 효과 배율 아님)</p>
+  <h2>${esc(r.name)}</h2>${traitChips(r)}
   <div class="kv"><span>개발도</span><b>${num(dev, 0)}</b></div><div class="bar"><i style="width:${dev}%"></i></div>
   <div class="kv"><span>농업 잠재력</span><b>${r.agriculturePotential}</b></div><div class="kv"><span>사업 슬롯</span><b>${ps.length} / ${r.slots}</b></div>
   <ul class="map-projects">${ps.map(p => { const def = byId('projects', p.projectId); return `<li><span>${esc(def.name)}</span><small>${p.status === 'complete' ? '운영 중' : `공사 중 · 준공까지 <span class="js-countdown" data-months="${p.remaining}">${daysUntilMonthEnd(p.remaining)}</span>일`}</small></li>`; }).join('') || '<li class="muted">아직 사업이 없습니다.</li>'}</ul>
-  ${btn('이 권역의 사업 보기', 'nav', { attrs: `data-view="build" data-region="${id}"`, cls: 'small primary' })}
-  <p class="muted" style="font-size:11.5px;margin:8px 0 0">${esc(r.disclaimer)} 완공 사업마다 개발도 +9.</p></section>`;
+  ${edictPanel(id)}
+  <h3 class="card-h">고유 사업 <small>이 권역의 지형·자원을 쓴다</small></h3>${uniqueList(id)}
+  ${btn('이 권역의 사업 전체 보기', 'nav', { attrs: `data-view="build" data-region="${id}"`, cls: 'small primary' })}
+  <p class="muted" style="font-size:11.5px;margin:8px 0 0">${esc(r.disclaimer)} 준공 사업마다 개발도 +9(고유 사업 +12~14).</p></section>`;
 }
 function mapView() {
   if (!MAP) return `<div class="notice bad">지도 자료(assets/map/korea_map.json)를 읽지 못했습니다. 상황판과 사업·권역 화면은 그대로 쓸 수 있습니다.</div>${overview()}`;
@@ -425,7 +476,8 @@ function mapView() {
   <div class="map-stage">${mapSvg()}
   <div class="map-tools" role="group" aria-label="지도 확대">${btn('+', 'mapZoom', { attrs: 'data-id="in" aria-label="확대"', cls: 'small' })}${btn('−', 'mapZoom', { attrs: 'data-id="out" aria-label="축소"', cls: 'small' })}${btn('전체', 'mapZoom', { attrs: 'data-id="reset" aria-label="전체 보기"', cls: 'small' })}</div></div>
   <div class="map-legend"><div class="filters" role="group" aria-label="지도 색">${Object.entries(MAP_LAYERS).map(([k, [n]]) => `<button type="button" class="btn small ${ui.mapLayer === k ? 'primary' : 'quiet'}" data-action="mapLayer" data-id="${k}" aria-pressed="${ui.mapLayer === k}">${n}</button>`).join('')}</div>
-  <div class="ramp"><span>0</span><i></i><span>100</span></div><small>${esc(layerName)} · ◇ 운영 중 사업 · ◯ 공사 중(테두리=공정) · 권역 경계는 게임용이며 당시 행정구역이 아님</small></div>
+  ${ui.mapLayer === 'res' ? `<ul class="mark-key" aria-label="지형·자원 표식">${data.traits.map(x => `<li class="${x.kind}"><i aria-hidden="true">${esc(x.mark)}</i>${esc(x.name)}</li>`).join('')}</ul><small>● 자원 · ■ 지형 · 권역을 누르면 고유 사업과 지역 시책을 볼 수 있습니다 · 게임용 단순화</small>`
+    : `<div class="ramp"><span>0</span><i></i><span>100</span></div><small>${esc(layerName)} · ◇ 운영 중 사업 · ◯ 공사 중(테두리=공정) · '시책' 표시는 지역 시책 시행 중 · 권역 경계는 게임용이며 당시 행정구역이 아님</small>`}</div>
   ${eventBox}${ui.mapRegion ? regionCard(ui.mapRegion) : ''}</div>`;
 }
 
@@ -481,7 +533,7 @@ function billCard(b) {
   const p = byId('policies', b.policyId), progress = b.total - b.remaining;
   const order = ['introduced', 'committee', 'legal_review', 'plenary'];
   const nowIdx = order.indexOf(b.status);
-  return `<div style="padding:10px 0;border-bottom:1px solid #26403f"><div class="row"><strong>${esc(p.name)}</strong><span class="tag">${STATUS[b.status]}</span></div>
+  return `<div style="padding:10px 0;border-bottom:1px solid var(--soft-line)"><div class="row"><strong>${esc(p.name)}</strong><span class="tag">${STATUS[b.status]}</span></div>
   <div class="stages" aria-label="심의 단계">${[...order, 'vote'].map((x, i) => `<span class="${i < nowIdx ? 'done' : i === nowIdx ? 'now' : ''}">${x === 'vote' ? '표결' : STATUS[x]}</span>`).join('')}</div>
   <small>${progress}/${b.total}개월 경과 · ${E.dateLabel(state.turn + b.remaining - 1)} 말 표결 예정 · 지금 기준 가결 확률 ${num(E.billChance(state, data) * 100, 0)}%</small></div>`;
 }
@@ -489,24 +541,30 @@ function billCard(b) {
 /* ---------- 화면: 사업·권역 ---------- */
 function build() {
   const r = byId('regions', ui.region), mine = state.projects.filter(p => p.regionId === r.id);
-  const list = data.projects.filter(p => ui.projectAll || !E.projectReason(state, data, p.id, r.id) || mine.some(m => m.projectId === p.id));
-  return `<div class="page-head"><div><span class="eyebrow">PUBLIC WORKS · 사업·권역</span><h1>지역에 남는 투자</h1><p>착수비와 AP 1을 쓰고, 정해진 개월이 지나면 준공 효과가 한 번 발동합니다. 준공 다음 달부터 시설 수입과 유지비가 재정에 붙습니다. 권역마다 진행 중·준공 사업을 합쳐 4개까지, 같은 사업은 한 권역에 한 번만 지을 수 있습니다.</p></div></div>
+  const local = data.projects.filter(p => p.requires && E.regionHas(data, r.id, p.requires));
+  const common = data.projects.filter(p => !p.requires && (ui.projectAll || !E.projectReason(state, data, p.id, r.id) || mine.some(m => m.projectId === p.id)));
+  const elsewhere = ui.projectAll ? data.projects.filter(p => p.requires && !E.regionHas(data, r.id, p.requires)) : [];
+  return `<div class="page-head"><div><span class="eyebrow">PUBLIC WORKS · 사업·권역</span><h1>지역에 남는 투자</h1><p>착수비와 AP 1을 쓰고, 정해진 개월이 지나면 준공 효과가 한 번 발동합니다. 준공 다음 달부터 시설 수입과 유지비가 재정에 붙습니다. 권역마다 진행 중·준공 사업을 합쳐 4개까지, 같은 사업은 한 권역에 한 번만 지을 수 있습니다. 고유 사업은 그 권역의 지형·자원이 있어야 지을 수 있고, 지역 시책은 권역마다 하나씩 겁니다.</p></div></div>
   ${!E.isExecutive(state) ? `<div class="notice">${esc(PHASE[state.phase].name)} 단계에서는 사업을 착수할 수 없습니다.</div>` : ''}
-  <div class="build-grid"><article class="panel"><h2>권역 선택</h2><div class="region-board" role="group" aria-label="권역">${data.regions.map(x => { const ps = state.projects.filter(p => p.regionId === x.id); return `<button type="button" class="region" data-action="region" data-id="${x.id}" aria-pressed="${ui.region === x.id}" style="grid-column:${x.mapCol + 1};grid-row:${x.mapRow + 1}" aria-label="${esc(x.name)}, 개발도 ${num(E.regionDevelopment(state, data, x.id), 0)}, 슬롯 ${ps.length}/4"><strong>${esc(x.name)}</strong><span class="slots" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i class="${ps[i] ? ps[i].status === 'complete' ? 'done' : 'building' : ''}"></i>`).join('')}</span><small>개발 ${num(E.regionDevelopment(state, data, x.id), 0)}</small></button>`; }).join('')}</div>
+  <div class="build-grid"><article class="panel"><h2>권역 선택</h2><div class="region-board" role="group" aria-label="권역">${data.regions.map(x => { const ps = state.projects.filter(p => p.regionId === x.id); return `<button type="button" class="region" data-action="region" data-id="${x.id}" aria-pressed="${ui.region === x.id}" style="grid-column:${x.mapCol + 1};grid-row:${x.mapRow + 1}" aria-label="${esc(x.name)}, 개발도 ${num(E.regionDevelopment(state, data, x.id), 0)}, 슬롯 ${ps.length}/4"><strong>${esc(x.name)}${E.regionEdict(state, x.id) ? ' <span class="edict-dot">시책</span>' : ''}</strong><span class="slots" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i class="${ps[i] ? ps[i].status === 'complete' ? 'done' : 'building' : ''}"></i>`).join('')}</span><small>개발 ${num(E.regionDevelopment(state, data, x.id), 0)}</small></button>`; }).join('')}</div>
   <p class="board-note">■ 준공 ▨ 공사 중 □ 빈 슬롯 · 지리적 축척과 당시 행정 경계를 재현하지 않은 도식</p></article>
   <article class="panel"><span class="eyebrow">SELECTED REGION</span><h2>${esc(r.name)}</h2><div class="kv"><span>개발도</span><b>${num(E.regionDevelopment(state, data, r.id), 0)} / 100</b></div><div class="bar" style="margin:4px 0 10px"><i style="width:${E.regionDevelopment(state, data, r.id)}%"></i></div>
-  <small>특성: ${r.specialties.map(x => SPECIALTY[x] || x).join(' · ')}. 이 판에서는 권역 특성이 효과 배율로 쓰이지 않고 사업 효과는 전국 지표에 더해진다. 준공 1건마다 개발도 +9.</small>
-  <h3 style="margin-top:14px">사업 슬롯 ${mine.length} / 4</h3><ul class="slot-list">${mine.map(p => { const def = byId('projects', p.projectId); return `<li><div class="row"><strong>${esc(def.name)}</strong><small>${p.status === 'complete' ? `준공 ${E.dateLabel(p.completedTurn)}` : `${p.remaining}개월 남음 · ${E.dateLabel(state.turn + p.remaining - 1)} 말 준공`}</small></div><div class="bar ${p.status === 'complete' ? 'green' : ''}" style="margin-top:5px"><i style="width:${p.status === 'complete' ? 100 : (1 - p.remaining / def.months) * 100}%"></i></div></li>`; }).join('')}${Array.from({ length: 4 - mine.length }, () => '<li class="muted">빈 슬롯</li>').join('')}</ul></article></div>
-  <div class="row" style="margin-bottom:12px"><h2 style="font-size:18px">${esc(r.name)}에 지을 수 있는 사업</h2><div class="filters" style="margin:0"><button type="button" class="btn" data-action="projectAll" aria-pressed="${ui.projectAll}">${ui.projectAll ? '전체 사업 표시 중' : '착수 가능만 표시 중'}</button></div></div>
-  <div class="cards">${list.map(p => projectCard(p, r)).join('') || `<p class="muted">지금 이 권역에서 착수할 수 있는 사업이 없습니다.${E.governmentReason(state, 0) ? ` 사유: ${esc(E.governmentReason(state, 0))}` : ''} '전체 사업'으로 바꾸면 사업마다 이유를 볼 수 있습니다.</p>`}</div>`;
+  ${traitChips(r)}<small>지형·자원은 고유 사업과 지역 시책의 조건입니다. 사업 효과는 전국 지표에 더해집니다. 준공 1건마다 개발도 +9(고유 사업 +12~14).</small>
+  <h3 style="margin-top:14px">사업 슬롯 ${mine.length} / 4</h3><ul class="slot-list">${mine.map(p => { const def = byId('projects', p.projectId); return `<li><div class="row"><strong>${esc(def.name)}</strong><small>${p.status === 'complete' ? `준공 ${E.dateLabel(p.completedTurn)}` : `${p.remaining}개월 남음 · ${E.dateLabel(state.turn + p.remaining - 1)} 말 준공`}</small></div><div class="bar ${p.status === 'complete' ? 'green' : ''}" style="margin-top:5px"><i style="width:${p.status === 'complete' ? 100 : (1 - p.remaining / def.months) * 100}%"></i></div></li>`; }).join('')}${Array.from({ length: 4 - mine.length }, () => '<li class="muted">빈 슬롯</li>').join('')}</ul>
+  ${edictPanel(r.id)}</article></div>
+  <div class="row" style="margin-bottom:12px"><h2 style="font-size:18px">${esc(r.name)}의 고유 사업 <small class="muted">지형·자원 ${esc(needs(E.regionTags(data, r.id)))}</small></h2><div class="filters" style="margin:0"><button type="button" class="btn" data-action="projectAll" aria-pressed="${ui.projectAll}">${ui.projectAll ? '전체 사업 표시 중' : '착수 가능만 표시 중'}</button></div></div>
+  <div class="cards" style="margin-bottom:22px">${local.map(p => projectCard(p, r)).join('') || '<p class="muted">이 권역의 지형·자원을 쓰는 고유 사업이 없습니다.</p>'}</div>
+  <h2 style="font-size:18px;margin-bottom:12px">어느 권역에나 짓는 공통 사업</h2>
+  <div class="cards">${common.map(p => projectCard(p, r)).join('') || `<p class="muted">지금 이 권역에서 착수할 수 있는 공통 사업이 없습니다.${E.governmentReason(state, 0) ? ` 사유: ${esc(E.governmentReason(state, 0))}` : ''} '전체 사업'으로 바꾸면 사업마다 이유를 볼 수 있습니다.</p>`}</div>
+  ${elsewhere.length ? `<h2 style="font-size:18px;margin:22px 0 12px">다른 권역의 고유 사업</h2><div class="cards">${elsewhere.map(p => projectCard(p, r)).join('')}</div>` : ''}`;
 }
 function projectCard(p, r) {
-  const reason = E.projectReason(state, data, p.id, r.id), net = p.income - p.maintenance, here = state.projects.find(x => x.regionId === r.id && x.projectId === p.id);
-  return `<article class="panel card"><div class="row"><span class="tag">${p.unlockYear}년~ · 공기 ${p.months}개월</span>${here ? `<span class="tag ${here.status === 'complete' ? 'ok' : ''}">${here.status === 'complete' ? '준공' : '공사 중'}</span>` : ''}</div>
-  <h2>${esc(p.name)}</h2><div class="cost"><span>착수비 <b>${p.cost}</b></span><span>AP <b>1</b></span><span>준공 후 월 수입 <b>${num(p.income, 2)}</b></span><span>월 유지 <b>${num(p.maintenance, 2)}</b></span><span>순 <b>${signed(net, 2)}</b></span></div>
-  <span class="fx-title">준공 효과 · 지금 착수하면 ${E.dateLabel(state.turn + p.months - 1)} 말</span>${fxPlain(p.effects)}
+  const reason = E.projectReason(state, data, p.id, r.id), net = p.income - p.maintenance, here = state.projects.find(x => x.regionId === r.id && x.projectId === p.id), cost = E.projectCost(state, data, p.id, r.id);
+  return `<article class="panel card ${p.requires ? 'unique' : ''}"><div class="row"><span class="tag">${p.unlockYear}년~ · 공기 ${p.months}개월</span>${p.requires ? `<span class="tag unique">고유 · ${esc(needs(p.requires))}</span>` : ''}${here ? `<span class="tag ${here.status === 'complete' ? 'ok' : ''}">${here.status === 'complete' ? '준공' : '공사 중'}</span>` : ''}</div>
+  <h2>${esc(p.name)}</h2>${p.requires ? `<p>${esc(p.description.replace(/ 게임용 가상 사업.*$/, ''))}</p>` : ''}<div class="cost"><span>착수비 <b>${num(cost, cost % 1 ? 1 : 0)}</b>${cost < p.cost ? ` <s>${p.cost}</s>` : ''}</span><span>AP <b>1</b></span><span>준공 후 월 수입 <b>${num(p.income, 2)}</b></span><span>월 유지 <b>${num(p.maintenance, 2)}</b></span><span>순 <b>${signed(net, 2)}</b></span></div>
+  <span class="fx-title">준공 효과 · 지금 착수하면 ${E.dateLabel(state.turn + p.months - 1)} 말 · 개발도 +${p.development ?? E.DEFAULT_DEVELOPMENT}</span>${fxPlain(p.effects)}
   <small>게임용 가상 사업. 수치와 공기는 실제 통계가 아니다.</small>
-  <div class="actions">${btn(`${esc(r.name)}에 착수 검토 · AP 1`, 'askProject', { attrs: `data-id="${p.id}"`, reason })}${reasonLine(reason)}</div></article>`;
+  <div class="actions">${btn(`${esc(r.name)}에 착수 검토 · AP 1`, 'askProject', { attrs: `data-id="${p.id}" data-region="${r.id}"`, reason })}${reasonLine(reason)}</div></article>`;
 }
 
 /* ---------- 화면: 재정 ---------- */
@@ -523,6 +581,7 @@ function budget() {
   <div class="kv"><span>이자 (부채의 0.3%)</span><b>${minus(f.interest)}</b></div>
   <div class="kv"><span>정책 유지비 (${fd.policyUpkeep.length}개)</span><b>${minus(fd.policyUpkeep.reduce((a, x) => a + x.cost, 0))}</b></div>
   <div class="kv"><span>시설 유지비</span><b>${minus(fd.facilityIncome.reduce((a, x) => a + x.maintenance, 0))}</b></div>
+  <div class="kv"><span>지역 시책 유지비 (${fd.edictUpkeep.length}개)</span><b>${minus(fd.edictUpkeep.reduce((a, x) => a + x.cost, 0))}</b></div>
   <div class="kv"><span>자문위원 유지비 (${state.advisers.length}명 × 0.15)</span><b>${minus(fd.adviserUpkeep)}</b></div>
   <div class="kv"><strong>월 수지</strong><b class="delta ${f.balance >= 0 ? 'good' : 'bad'}">${arrow(f.balance)} ${signed(f.balance, 2)}</b></div>
   ${state.lastFinance ? `<small>지난달(${E.dateLabel(state.lastFinance.turn)}) 실제 수지 ${signed(state.lastFinance.balance, 2)}${state.report?.borrowed ? ` · 부족분 ${num(state.report.borrowed, 1)} 차입` : ''}</small>` : ''}
@@ -537,7 +596,7 @@ function budget() {
   <div class="filters" role="group" aria-label="배분 예시">${BUDGET_PRESETS.map(([name], i) => `<button type="button" class="btn small" data-action="preset" data-id="${i}" ${canBudget ? '' : 'disabled'}>${name}</button>`).join('')}</div>
   <div class="row" style="justify-content:flex-start;flex-wrap:wrap">${btn('배분 적용 (무료)', 'applyBudget', { cls: 'primary', reason: E.budgetReason(state) || (Math.abs(sum - 100) > .001 ? '합계가 100이어야 합니다.' : '') })}${btn('되돌리기', 'resetBudget', { cls: 'quiet', reason: canBudget ? '' : '권한이 없습니다.' })}</div>
   ${reasonLine(E.budgetReason(state) || (Math.abs(sum - 100) > .001 ? '합계가 100이어야 적용할 수 있습니다.' : ''))}</form></article></div>
-  ${fd.policyUpkeep.length || fd.facilityIncome.length ? `<article class="panel"><h2>유지비 내역</h2><div class="two"><div>${fd.policyUpkeep.map(x => `<div class="kv"><span>${esc(byId('policies', x.policyId).name)}</span><b>${minus(x.cost)}</b></div>`).join('') || '<p class="muted">시행 중인 정책 없음</p>'}</div><div>${fd.facilityIncome.map(x => `<div class="kv"><span>${esc(byId('regions', x.regionId).name)} ${esc(byId('projects', x.projectId).name)}</span><b>${signed(x.income - x.maintenance, 2)}</b></div>`).join('') || '<p class="muted">준공 시설 없음</p>'}</div></div></article>` : ''}`;
+  ${fd.policyUpkeep.length || fd.facilityIncome.length || fd.edictUpkeep.length ? `<article class="panel"><h2>유지비 내역</h2><div class="two"><div>${fd.policyUpkeep.map(x => `<div class="kv"><span>${esc(byId('policies', x.policyId).name)}</span><b>${minus(x.cost)}</b></div>`).join('') || '<p class="muted">시행 중인 정책 없음</p>'}${fd.edictUpkeep.map(x => `<div class="kv"><span>시책 · ${esc(byId('regions', x.regionId).name)} ${esc(byId('edicts', x.edictId).name)}</span><b>${minus(x.cost)}</b></div>`).join('')}</div><div>${fd.facilityIncome.map(x => `<div class="kv"><span>${esc(byId('regions', x.regionId).name)} ${esc(byId('projects', x.projectId).name)}</span><b>${signed(x.income - x.maintenance, 2)}</b></div>`).join('') || '<p class="muted">준공 시설 없음</p>'}</div></div></article>` : ''}`;
 }
 
 /* ---------- 화면: 외교 ---------- */
@@ -605,7 +664,7 @@ function agenda() {
   if (state.report) item('info', `${esc(ym(state.report.turn))} 결산`, `월 수지 ${signed(state.report.finance.balance, 2)}${state.report.borrowed ? ` · 차입 ${num(state.report.borrowed, 1)}` : ''}`, btn('결산 보기', 'report', { cls: 'small' }));
   return `<section><h2>이번 달 업무 <small>${esc(ym(state.turn))}</small></h2><ul class="tasks">${items.join('') || '<li class="task"><div><small>지금 할 일이 없습니다. 시간을 흐르게 하세요.</small></div></li>'}</ul></section>
   <section><h2>진행 중</h2><ul class="progress" id="agenda-progress">${progressList()}</ul></section>
-  <section><h2>권한과 자원</h2><div class="kv"><span>권한</span><b>${esc(PHASE[state.phase].name)}</b></div><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div><div class="kv"><span>다음 결산 월 수지</span><b class="delta ${E.finance(state, data).balance >= 0 ? 'good' : 'bad'}">${signed(E.finance(state, data).balance, 2)}</b></div><div class="kv"><span>종합 지지도</span><b>${num(E.supportAverage(state, data))}</b></div></section>
+  <section><h2>권한과 자원</h2><div class="kv"><span>권한</span><b>${esc(PHASE[state.phase].name)}</b></div><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div><div class="kv"><span>다음 결산 월 수지</span><b class="delta ${E.finance(state, data).balance >= 0 ? 'good' : 'bad'}">${signed(E.finance(state, data).balance, 2)}</b></div><div class="kv"><span>종합 지지도</span><b>${num(E.supportAverage(state, data))}</b></div><div class="kv"><span>지역 시책</span><b>${state.edicts.length} / ${E.edictCap(state)}</b></div></section>
   <section><h2>최근 기록</h2><ul class="log">${state.log.slice(-4).reverse().map(l => `<li><time>${esc(l.date)} · ${esc(LOG_TYPES[l.type] || l.type)}</time>${esc(l.text)}${l.changes ? fxPlain(l.changes) : ''}</li>`).join('')}</ul>${btn('연대기 전체', 'nav', { attrs: 'data-view="archive"', cls: 'small quiet' })}</section>`;
 }
 /** 진행 중인 법안·사업. 하루가 지날 때마다 막대와 남은 날이 바뀐다. */
@@ -647,8 +706,15 @@ function confirmContent(m) {
     ${p.requiresBill ? `<h3>심의 일정</h3><p style="font-size:14px">5~7개월(시드 난수로 결정) 뒤 ${E.dateLabel(state.turn + 4)}~${E.dateLabel(state.turn + 6)} 말 표결. 지금 기준 가결 확률 <b>${num(E.billChance(state, data) * 100, 1)}%</b>(표결 시점의 의석·정당성·안정·지지도로 다시 계산). 부결돼도 시행비는 돌려받지 않고 다시 발의할 수 있습니다.${state.turn + 7 > 240 ? ' <b>심의가 7개월이면 1979년 12월 안에 표결하지 못할 수 있습니다.</b>' : ''}</p><h3>가결되면 즉시</h3>` : '<h3>즉시 효과</h3>'}${fxProjected(p.effects)}${factionList(p.factionEffects)}
     <h3>${p.requiresBill ? '가결 이후' : '다음 달부터'} 매월</h3>${fxPlain(p.monthlyEffects)}${dimNote()}<p style="font-size:14px">유지비 ${num(p.monthlyCost, 2)} → 월 수지 ${signed(f.balance, 2)} → ${p.requiresBill ? '가결 후 ' : ''}${signed(f.balance - p.monthlyCost, 2)}${f.balance - p.monthlyCost < 0 && f.balance >= 0 ? ' <b>(적자로 바뀝니다)</b>' : ''}</p>`;
   } else if (a.type === 'project') {
-    const p = byId('projects', a.id), r = byId('regions', a.regionId); title = `사업 착수: ${esc(r.name)} · ${esc(p.name)}`; go = '착수한다';
-    body = `${costLine(p.cost)}<h3>공기와 준공</h3><p style="font-size:14px">${p.months}개월 · ${E.dateLabel(state.turn + p.months - 1)} 말 준공, ${E.dateLabel(state.turn + p.months)}부터 시설 수입 ${num(p.income, 2)}·유지비 ${num(p.maintenance, 2)} 반영. 권역 슬롯 ${state.projects.filter(x => x.regionId === r.id).length} → ${state.projects.filter(x => x.regionId === r.id).length + 1} / 4, 준공 시 개발도 +9.</p><h3>준공 시 한 번</h3>${fxPlain(p.effects)}<p style="font-size:13px" class="muted">공사 중에는 효과가 없고, 착수비는 돌려받을 수 없습니다.</p>`;
+    const p = byId('projects', a.id), r = byId('regions', a.regionId), cost = E.projectCost(state, data, p.id, r.id); title = `사업 착수: ${esc(r.name)} · ${esc(p.name)}`; go = '착수한다';
+    body = `${p.requires ? `<p>${esc(p.description)}</p><p style="font-size:14px">고유 사업 · ${esc(r.name)}의 ${esc(needs(p.requires.filter(x => E.regionTags(data, r.id).includes(x))))}을(를) 씁니다.</p>` : ''}${costLine(cost)}${cost < p.cost ? `<p style="font-size:13px" class="muted">지역 시책 감면으로 착수비 ${p.cost} → ${num(cost, 1)}.</p>` : ''}<h3>공기와 준공</h3><p style="font-size:14px">${p.months}개월 · ${E.dateLabel(state.turn + p.months - 1)} 말 준공, ${E.dateLabel(state.turn + p.months)}부터 시설 수입 ${num(p.income, 2)}·유지비 ${num(p.maintenance, 2)} 반영. 권역 슬롯 ${state.projects.filter(x => x.regionId === r.id).length} → ${state.projects.filter(x => x.regionId === r.id).length + 1} / 4, 준공 시 개발도 +${p.development ?? E.DEFAULT_DEVELOPMENT}.</p><h3>준공 시 한 번</h3>${fxPlain(p.effects)}<p style="font-size:13px" class="muted">공사 중에는 효과가 없고, 착수비는 돌려받을 수 없습니다.</p>`;
+  } else if (a.type === 'edict') {
+    const e = byId('edicts', a.id), r = byId('regions', a.regionId); title = `지역 시책: ${esc(r.name)} · ${esc(e.name)}`; go = '시행한다';
+    body = `<p>${esc(e.description)}</p>${costLine(e.cost)}${e.factionEffects ? `<h3>즉시</h3>${factionList(e.factionEffects)}` : ''}<h3>다음 결산부터 매월</h3>${fxPlain(e.monthlyEffects)}${dimNote()}<p style="font-size:14px">유지비 ${num(e.monthlyCost, 2)} → 월 수지 ${signed(f.balance, 2)} → ${signed(f.balance - e.monthlyCost, 2)}${e.buildDiscount ? `<br>시행하는 동안 ${esc(r.name)}의 사업 착수비 ${Math.round(e.buildDiscount * 100)}% 감면.` : ''}</p><p style="font-size:13px" class="muted">권역마다 시책은 하나입니다(지금 전국 ${state.edicts.length} / ${E.edictCap(state)}개). 거두면 다음 결산부터 효과와 유지비가 멈추고, 시행비는 돌려받지 않습니다. 국정 집행 권한이 없는 단계에서는 매월 효과가 멈추고 유지비만 나갑니다.</p>`;
+  } else if (a.type === 'revokeEdict') {
+    const cur = E.regionEdict(state, a.regionId), e = cur ? byId('edicts', cur.edictId) : null, r = byId('regions', a.regionId), mc = e ? e.monthlyCost : 0;
+    title = `시책 거두기: ${esc(r.name)}${e ? ` · ${esc(e.name)}` : ''}`; go = '거둔다';
+    body = `<p>행동점수를 쓰지 않습니다. 다음 결산부터 아래 매월 효과와 유지비 ${num(mc, 2)}가 사라집니다. 이미 생긴 변화와 시행비는 돌아오지 않습니다.</p>${e ? fxPlain(e.monthlyEffects) : ''}<p style="font-size:14px">월 수지 ${signed(f.balance, 2)} → ${signed(f.balance + mc, 2)}${e && e.buildDiscount ? ` · ${esc(r.name)} 사업 착수비 감면 종료` : ''}</p>`;
   } else if (a.type === 'diplomacy') {
     const n = byId('countries', a.countryId), o = E.DIPLOMACY_MODES[a.mode]; title = `외교: ${esc(n.name)} · ${esc(o.label)}`; go = '진행한다';
     body = `${costLine(o.cost)}<h3>즉시 효과</h3>${relationList({ [n.id]: o.relation })}${fxProjected(o.effects)}<p style="font-size:13px" class="muted">같은 상대와는 이번 달에 더 이상 외교 행동을 할 수 없게 됩니다.</p>`;
@@ -698,6 +764,7 @@ function helpContent() {
   <h3>한 달에 하는 일</h3><ol class="steps"><li><span>1일에 온 사건 문서에서 선택지 하나를 고릅니다. 선택은 행동점수를 쓰지 않고, 표시된 국고 비용만 지불합니다.</span></li><li><span>그 달 안에 언제든 행동점수 3을 정책·법안·사업·외교·자문·상환·사전 준비에 씁니다. 남은 점수는 다음 달로 넘어가지 않습니다. 예산 배분 수정은 무료입니다.</span></li><li><span>말일이 지나면 결산합니다. 오른쪽 '이번 달 업무'의 <b>결산 보기</b>로 무엇이 얼마나, 왜 바뀌었는지 확인하세요.</span></li></ol>
   <h3>권한의 단계</h3><p style="font-size:14px">관찰·준비(1960~61) → 1961년 5월 경로 분기(헌정: 민간 정치 준비 / 군정: 과도 통치, 대신 자유·정당성 비용) → 1963년 10월 가상 선거(준비 영향력·정당성·지지도로 당선 확률) → 12월 취임 → 국정 운영. 1967년 11월부터 48개월마다 가상 정기 선거가 있고, 득표 지표가 45 미만이면 권한을 평화롭게 넘깁니다. 장기 집권 분기를 고르면 선거가 중단되는 대신 매월 자유와 정당성을 잃고, 자유·정당성이 오르는 효과가 줄며, 학생·야당의 지지와 국제기구 관계가 꾸준히 떨어집니다. 과도 군정 기간에도 정당성 비용이 있습니다.</p>
   ${data.balance ? `<h3>높은 지표를 지키는 법</h3><p style="font-size:14px">지표가 ${data.balance.diminishing ? data.balance.diminishing.from : 60}을 넘으면 같은 효과도 덜 오르고(체감), 정당성·생활·자유·분배·안정·행정은 매월 기대 수준만큼 조금씩 내려갑니다(높아진 기대). 가상 사건의 보너스는 작게 잡혀 있어, 높은 지표는 정책·사업·예산으로 꾸준히 유지해야 합니다. 미리보기의 ‘기본’은 데이터에 적힌 값, 큰 숫자는 지금 실제로 더해질 값입니다.</p>` : ''}
+  <h3>권역: 지형·자원과 지역 시책</h3><p style="font-size:14px">권역마다 지형(산지·해안·섬 등)과 자원(석탄·곡창·깊은 항만 등)이 있습니다. 지도의 <b>지형·자원</b> 색 기준에서 볼 수 있습니다. <b>고유 사업</b>은 그 지형·자원이 있는 권역에서만 지을 수 있고 개발도를 더 올립니다. <b>지역 시책</b>은 권역마다 하나씩 거는 지속 명령으로, 시행비와 AP 1을 쓰고 매월 효과와 유지비가 붙습니다. 동시에 걸 수 있는 수는 행정 역량에 따라 늘어나고(30마다 1개), 거두는 데는 AP가 들지 않습니다. 일부 시책은 그 권역의 사업 착수비를 깎아 줍니다.</p>
   <h3>시간이 걸리는 결정</h3><p style="font-size:14px">의회 법안은 5~7개월 심의 뒤 표결합니다. 사업은 공기가 지나야 준공 효과가 납니다. 일부 사건 선택은 몇 달 뒤에 지연 효과를 남깁니다. 1979년 12월까지 끝낼 수 없는 사업·법안은 시작할 수 없습니다.</p>
   <h3>끝나는 방식</h3><p style="font-size:14px">부채 700 이상, 정당성 3 이하, 자유 3 이하는 즉시 위기 엔딩입니다. 그 밖에는 1979년 12월에 지표로 평가합니다. 엔딩 화면은 성장·권리·생활·환경을 따로 보여 줍니다.</p>
   <h3>역사와 가상</h3><p style="font-size:14px">'실제 역사' 상자는 출처가 있는 사실 요약입니다. '이 캠페인에서는' 상자와 모든 선택 결과·수치·선거·자문위원은 가상입니다. 경로가 달라지면 역사적 사건을 그대로 강제하지 않습니다.</p>`, actions: closeBtn('알겠습니다') };
@@ -720,7 +787,7 @@ function newGameContent() {
 }
 function importContent(m) {
   const s = m.loaded;
-  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? `버전 ${m.migrated} → ${E.SAVE_VERSION}으로 변환` : `버전 ${E.SAVE_VERSION}`}${m.fromData && m.fromData !== data.meta.version ? ` · 데이터 ${esc(m.fromData)} → ${esc(data.meta.version)}` : ''}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
+  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? `버전 ${m.migrated} → ${E.SAVE_VERSION}${roParticle(E.SAVE_VERSION)} 변환` : `버전 ${E.SAVE_VERSION}`}${m.fromData && m.fromData !== data.meta.version ? ` · 데이터 ${esc(m.fromData)} → ${esc(data.meta.version)}` : ''}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
 }
 
 /* ---------- 타이틀 ---------- */
@@ -928,7 +995,9 @@ document.addEventListener('click', e => {
     case 'gotoEvent': { if (ui.view === 'map') { ui.eventFolded = false; render(); const c = document.querySelector('.map-event .choice:not([aria-disabled="true"])'); if (c) c.focus(); return; } ui.view = 'overview'; ui._scrollTop = true; render(); const first = document.querySelector('.choice:not([aria-disabled="true"])'); if (first) { first.scrollIntoView({ block: 'center' }); first.focus({ preventScroll: true }); } return; }
     case 'endMonth': if (ui.modal) return; run({ type: 'endMonth' }); return;
     case 'askPolicy': return openConfirm({ type: 'policy', id });
-    case 'askProject': return openConfirm({ type: 'project', id, regionId: ui.region });
+    case 'askProject': return openConfirm({ type: 'project', id, regionId: el.dataset.region || ui.region });
+    case 'askEdict': return openConfirm({ type: 'edict', id, regionId: el.dataset.region });
+    case 'askRevoke': return openConfirm({ type: 'revokeEdict', regionId: el.dataset.region });
     case 'askDiplomacy': return openConfirm({ type: 'diplomacy', countryId: id, mode: el.dataset.mode });
     case 'askAdviser': return openConfirm({ type: 'adviser', id });
     case 'askRepay': return openConfirm({ type: 'repay', amount: Number(id) });
