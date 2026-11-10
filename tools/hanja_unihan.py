@@ -18,8 +18,8 @@ DATA = os.path.join(ROOT, 'hanja', 'js', 'data.js')
 OUT = os.path.join(ROOT, 'hanja', 'js', 'unihan.js')
 URL = 'https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip'
 
-GRADES = {'8': 50, '7Ⅱ': 50, '7': 50, '6Ⅱ': 75, '6': 75, '5Ⅱ': 100, '5': 100}
-LEVEL_SIZE = {'beginner': 150, 'mid': 150, 'adv': 200}
+GRADES = {'8': 50, '7Ⅱ': 50, '7': 50, '6Ⅱ': 75, '6': 75, '5Ⅱ': 100, '5': 100, '4Ⅱ': 250, '4': 250}
+LEVEL_SIZE = {'beginner': 150, 'mid': 150, 'adv': 200, 'master': 500}
 
 # 강희자전 부수 214자와 이름
 RADICAL_CHARS = ('一丨丶丿乙亅二亠人儿入八冂冖冫几凵刀力勹匕匚匸十卜卩厂厶又口囗土士夂夊夕大女子宀寸小尢尸屮山巛工己巾干幺广廴廾弋弓彐彡彳'
@@ -44,9 +44,9 @@ RADICAL_NAMES = (
     '솥 정,북 고,쥐 서,코 비,가지런할 제,이 치,용 룡,거북 귀,피리 약').split(',')
 assert len(RADICAL_CHARS) == 214 and len(RADICAL_NAMES) == 214
 
-SPECIAL_WORDS = {'六月': '유월', '十月': '시월'}  # 활음조로 굳어진 읽기
+SPECIAL_WORDS = {'六月': '유월', '十月': '시월', '困難': '곤란'}  # 활음조로 굳어진 읽기
 # Unihan kHangul 에 빠진, 사전에 실린 읽기
-KNOWN_READINGS = {'畫': {'획'}, '則': {'즉'}}
+KNOWN_READINGS = {'畫': {'획'}, '則': {'즉'}, '布': {'보'}, '推': {'퇴'}, '覆': {'부'}}
 
 # ---------------- 한글 음절 ----------------
 CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'

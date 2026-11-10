@@ -1,5 +1,5 @@
 'use strict';
-/* 한자 서당 — 초급·중급·고급 한자·한문 학습 (사파리 대응 단일 페이지 앱)
+/* 한자 서당 — 초급·중급·고급·심화 한자·한문 학습 (사파리 대응 단일 페이지 앱)
    화면은 주소의 # 뒤(#/level/beginner …)로 나뉘고, 기록은 이 브라우저(localStorage)에만 저장된다. */
 (function () {
   /* ======================= 도우미 ======================= */
@@ -128,15 +128,16 @@
 
   const PHRASES = [];
   (function parsePhrases() {
-    let unit = null;
+    let level = LV.adv, unit = null;
     PHRASE_SRC.split('\n').forEach((raw) => {
       const line = raw.trim();
       if (!line) return;
-      if (line[0] === '#') { unit = { name: line.slice(1).trim(), items: [], index: LV.adv.phraseUnits.length }; LV.adv.phraseUnits.push(unit); return; }
+      if (line[0] === '@') { level = LV[line.slice(1).trim()]; return; }
+      if (line[0] === '#') { unit = { name: line.slice(1).trim(), items: [], index: level.phraseUnits.length }; level.phraseUnits.push(unit); return; }
       const f = line.split('|');
       const gloss = {};
       (f[4] || '').split(';').forEach((g) => { if (g) { const p = g.split('='); gloss[p[0]] = p[1]; } });
-      const p = { id: 'p' + (PHRASES.length + 1), h: f[0], r: f[1], mean: f[2], src: f[3] || '', gloss, unit: unit.index };
+      const p = { id: 'p' + (PHRASES.length + 1), h: f[0], r: f[1], mean: f[2], src: f[3] || '', gloss, level: level.id, unit: unit.index };
       PHRASES.push(p);
       unit.items.push(p);
     });
@@ -333,7 +334,7 @@
       '<span class="words">' + t.words.map((w) => '<span class="han">' + w.h + '</span> ' + w.r).join(' · ') + '</span></span></button>' +
       '<h2 class="sec">단계 고르기</h2><div class="levels">' + levels + '</div>' +
       '<a class="card row-link" href="#/review"><span class="ic-box">' + ic('note') + '</span><span class="grow">오답 노트<small>틀렸거나 다시 보기로 한 한자·성어·명구</small></span><span class="count' + (wrongN ? '' : ' zero') + '">' + wrongN + '</span></a>' +
-      '<a class="card row-link" href="#/list?l=all"><span class="ic-box">' + ic('search') + '</span><span class="grow">한자 찾기<small>500자를 뜻·소리·한자로 찾아보기</small></span>' + ic('right') + '</a>' +
+      '<a class="card row-link" href="#/list?l=all"><span class="ic-box">' + ic('search') + '</span><span class="grow">한자 찾기<small>' + ALL_CHARS.length + '자를 뜻·소리·한자로 찾아보기</small></span>' + ic('right') + '</a>' +
       '</div>';
     render(html, {
       act: { tip() { S.tipClosed = true; save(); const el = $('.tip'); if (el) el.remove(); } }
@@ -370,7 +371,7 @@
       action('#/write?l=' + l.id + '&u=' + nu, 'pen', '쓰기 연습', '손가락이나 펜으로 따라 쓰기') +
       action('#/list?l=' + l.id, 'grid', '한자 목록', l.chars.length + '자 한눈에 보기 · 찾기') +
       (idioms.length ? action('#/idioms?l=' + l.id, 'msg', '사자성어', idioms.length + '개 · 글자 풀이와 이야기') : '') +
-      (phrases.length ? action('#/phrases', 'scroll', '한문 명구', phrases.length + '구 · 《논어》《맹자》《명심보감》') : '') +
+      (phrases.length ? action('#/phrases?l=' + l.id, 'scroll', '한문 명구', phrases.length + '구 · 《논어》《맹자》《명심보감》') : '') +
       '</div><h2 class="sec">단원 (' + l.units.length + ')</h2><ol class="units">' + units + '</ol></div>';
     render(html);
   }
@@ -707,7 +708,7 @@
       return repeatTo(items, n).map((it) => makeQ(it, 'i', t));
     }
     if (k === 'phrase') {
-      const items = u === 'all' ? PHRASES : (l.phraseUnits[+u] || { items: [] }).items;
+      const items = u === 'all' ? l.phraseUnits.reduce((a, x) => a.concat(x.items), []) : (l.phraseUnits[+u] || { items: [] }).items;
       return repeatTo(items, n).map((p) => makeQ(p, 'p', t));
     }
     const pool = u === 'all' ? l.chars : (l.units[+u] || { chars: [] }).chars;
@@ -722,7 +723,7 @@
     let back = '#/';
     if (k === 'review') back = '#/review';
     else if (l && k === 'idiom') back = '#/idioms?l=' + l.id + (u !== 'all' ? '&u=' + u : '');
-    else if (l && k === 'phrase') back = '#/phrases' + (u !== 'all' ? '?u=' + u : '');
+    else if (l && k === 'phrase') back = '#/phrases?l=' + l.id + (u !== 'all' ? '&u=' + u : '');
     else if (l) back = '#/level/' + l.id;
     const title = k === 'review' ? '오답 퀴즈' : k === 'idiom' ? '사자성어 퀴즈' : k === 'phrase' ? '한문 명구 퀴즈' : (l ? l.name : '') + ' 한자 퀴즈';
     const st = { qs: buildQuiz(q), i: 0, score: 0, wrong: [], answered: false, timer: 0 };
@@ -936,10 +937,10 @@
       '<div class="src">' + (k >= 2 ? '<span class="tag" style="float:left;background:var(--good-bg);color:var(--good)">익힘</span>' : k === 1 ? '<span class="tag" style="float:left;background:var(--bad-bg);color:var(--bad)">다시 보기</span>' : '') + esc(p.src) + '</div></article>';
   }
   function viewCollection(kind, q) {
-    const l = kind === 'idiom' ? (LV[q.get('l')] && LV[q.get('l')].idiomUnits.length ? LV[q.get('l')] : LV.mid) : LV.adv;
+    const l = kind === 'idiom' ? (LV[q.get('l')] && LV[q.get('l')].idiomUnits.length ? LV[q.get('l')] : LV.mid) : (LV[q.get('l')] && LV[q.get('l')].phraseUnits.length ? LV[q.get('l')] : LV.adv);
     const units = kind === 'idiom' ? l.idiomUnits : l.phraseUnits;
     const st = { u: Math.max(0, Math.min(units.length - 1, +q.get('u') || 0)), hide: false };
-    const title = kind === 'idiom' ? l.name + ' 사자성어' : '한문 명구';
+    const title = l.name + (kind === 'idiom' ? ' 사자성어' : ' 한문 명구');
     function draw() {
       const u = units[st.u];
       $('#tabs').innerHTML = units.map((x, i) => '<button class="chip" data-act="unit" data-i="' + i + '" aria-pressed="' + (i === st.u) + '">' + esc(x.name) + '</button>').join('');
@@ -956,7 +957,7 @@
       '<div class="idioms" id="col"></div>' +
       '<a class="btn seal wide" id="colQuiz" style="margin-top:16px">' + ic('quiz') + '이 묶음 퀴즈 풀기</a></div>', {
       act: {
-        unit(el) { st.u = +el.dataset.i; draw(); window.scrollTo(0, 0); history.replaceState(null, '', '#/' + (kind === 'idiom' ? 'idioms?l=' + l.id + '&u=' : 'phrases?u=') + st.u); },
+        unit(el) { st.u = +el.dataset.i; draw(); window.scrollTo(0, 0); history.replaceState(null, '', '#/' + (kind === 'idiom' ? 'idioms?l=' + l.id + '&u=' : 'phrases?l=' + l.id + '&u=') + st.u); },
         hide() { st.hide = !st.hide; draw(); },
         reveal(el, e) { if (st.hide && !e.target.closest('button,summary,a')) el.classList.toggle('revealed'); }
       }
@@ -1014,7 +1015,7 @@
       '<div class="row"><div class="grow">기록 내보내기<small>다른 기기로 옮기거나 보관할 때 (JSON 파일)</small></div><button class="btn small" data-act="export">' + ic('down') + '내보내기</button></div>' +
       '<div class="row"><div class="grow">기록 불러오기</div><button class="btn small" data-act="import">' + ic('up') + '불러오기</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>' +
       '<div class="row"><div class="grow">처음부터 다시<small>익힌 한자, 오답 노트, 공부한 날을 모두 지워요</small></div><button class="btn small" data-act="reset" style="color:var(--bad)">' + ic('trash') + '지우기</button></div></section>' +
-      '<p class="about">급수와 훈음은 한국어문회 한자능력검정시험 배정 한자(8급~5급 500자)를 따랐고, 획수와 부수는 Unicode Unihan 자료에서 가져왔어요. 기록은 이 기기의 브라우저에만 저장돼요.</p></div>';
+      '<p class="about">급수와 훈음은 한국어문회 한자능력검정시험 배정 한자(8급~4급 1,000자)를 따랐고, 획수와 부수는 Unicode Unihan 자료에서 가져왔어요. 기록은 이 기기의 브라우저에만 저장돼요.</p></div>';
     render(html, {
       act: {
         theme(el) { S.settings.theme = el.dataset.v; save(); applySettings(); viewSettings(); },
@@ -1096,7 +1097,7 @@
   function refsOf(c) {
     const out = [];
     IDIOMS.forEach((it) => { if (it.h.indexOf(c) >= 0) out.push('<a href="#/idioms?l=' + it.level + '&u=' + it.unit + '"><span class="han">' + it.h + '</span>' + it.r + ' <small>' + esc(it.mean) + '</small></a>'); });
-    PHRASES.forEach((p) => { if (p.h.indexOf(c) >= 0) out.push('<a href="#/phrases?u=' + p.unit + '"><span class="han">' + esc(p.h) + '</span><small>' + esc(p.mean) + '</small></a>'); });
+    PHRASES.forEach((p) => { if (p.h.indexOf(c) >= 0) out.push('<a href="#/phrases?l=' + p.level + '&u=' + p.unit + '"><span class="han">' + esc(p.h) + '</span><small>' + esc(p.mean) + '</small></a>'); });
     return out;
   }
   function openChar(c) {

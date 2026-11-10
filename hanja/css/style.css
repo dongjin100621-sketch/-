@@ -18,7 +18,8 @@
   --lv-beginner: #3b8656;
   --lv-mid: #2c6597;
   --lv-adv: #8e3a2c;
-  --lv-beginner-soft: #e3efe5; --lv-mid-soft: #e1eaf3; --lv-adv-soft: #f3e3de;
+  --lv-master: #5b4a8a;
+  --lv-beginner-soft: #e3efe5; --lv-mid-soft: #e1eaf3; --lv-adv-soft: #f3e3de; --lv-master-soft: #e9e4f2;
   --grid-line: rgba(179, 54, 44, .38);
   --guide: rgba(30, 26, 21, .12);
   --shadow: 0 1px 2px rgba(70, 48, 16, .06), 0 6px 18px rgba(70, 48, 16, .07);
@@ -35,8 +36,8 @@
     --paper: #15130f; --paper-2: #1c1914; --card: #221e18; --ink: #efe7d8; --ink-2: #d1c8b7; --muted: #9e9584;
     --line: #36312a; --line-2: #4a4339; --seal: #e2685b; --seal-ink: #1b0f0c; --seal-soft: #3a211d;
     --good: #72c48f; --good-bg: #1c3125; --bad: #ef8072; --bad-bg: #3a211d;
-    --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76;
-    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c;
+    --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0;
+    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438;
     --grid-line: rgba(226, 104, 91, .42); --guide: rgba(239, 231, 216, .13);
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
     color-scheme: dark;
@@ -46,8 +47,8 @@
   --paper: #15130f; --paper-2: #1c1914; --card: #221e18; --ink: #efe7d8; --ink-2: #d1c8b7; --muted: #9e9584;
   --line: #36312a; --line-2: #4a4339; --seal: #e2685b; --seal-ink: #1b0f0c; --seal-soft: #3a211d;
   --good: #72c48f; --good-bg: #1c3125; --bad: #ef8072; --bad-bg: #3a211d;
-  --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76;
-    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c;
+  --lv-beginner: #72c48f; --lv-mid: #7fb0dc; --lv-adv: #e38f76; --lv-master: #b3a2e0;
+    --lv-beginner-soft: #1d3326; --lv-mid-soft: #1b2a38; --lv-adv-soft: #3a231c; --lv-master-soft: #2a2438;
   --grid-line: rgba(226, 104, 91, .42); --guide: rgba(239, 231, 216, .13);
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
   color-scheme: dark;
