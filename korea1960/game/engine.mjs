@@ -13,7 +13,7 @@
  *   5. 행동이 남긴 연대기 항목에 지표 변화(changes)를 기록한다.
  *   6. 저장 버전 2. 버전 1 저장은 migrateSave()로 변환해 읽는다.
  */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3; // 3: 날짜(day) 추가. 1·2는 불러올 때 변환한다.
 export const SAVE_FORMAT = 'KOREA1960_SAVE';
 export const LEGACY_DATA_VERSIONS = { 1: '1.0.0' };
 /** 같은 저장 형식(2)에서 그대로 이어 받을 수 있는 이전 데이터 버전. ID·상태 구조가 같고 수치 규칙만 다르다. */
@@ -50,6 +50,10 @@ const round = (v, n = 4) => Math.round(v * 10 ** n) / 10 ** n;
 
 export function calendar(turn) { return { year: 1960 + Math.floor(turn / 12), month: turn % 12 + 1 }; }
 export function dateLabel(turn) { const d = calendar(turn); return `${d.year}-${String(d.month).padStart(2, '0')}`; }
+/** 그 달의 날 수(실제 달력, 1960·1964·1968·1972·1976년은 윤년). */
+export function daysInMonth(turn) { const { year, month } = calendar(Math.min(turn, TOTAL_TURNS - 1)); return month === 2 ? (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28) : [4, 6, 9, 11].includes(month) ? 30 : 31; }
+/** 'YYYY-MM-DD'. 상태의 날짜(turn, day)를 연대기 표기로. */
+export function dayLabel(turn, day = 1) { return `${dateLabel(Math.min(turn, TOTAL_TURNS - 1))}-${String(day).padStart(2, '0')}`; }
 /** 상태에 저장되는 32비트 xorshift. 엔진만 소비한다(UI는 소비하지 않는다). */
 export function random(s) { let x = s.rng >>> 0; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; s.rng = x >>> 0; return s.rng / 4294967296; }
 
@@ -60,7 +64,7 @@ function normalize(s, d) {
   s.influence = clamp(s.influence, 0, 999);
   s.seats = clamp(s.seats, .05, .95);
 }
-function log(s, type, text, extra = {}) { s.log.push({ turn: s.turn, date: dateLabel(Math.min(s.turn, 239)), type, text, ...extra }); }
+function log(s, type, text, extra = {}) { s.log.push({ turn: s.turn, date: dayLabel(s.turn, s.day || 1), type, text, ...extra }); }
 /* ---------- 밸런스 규칙(데이터 1.2.0의 balance 블록) ----------
  * balance가 없으면 모든 배율이 1이고 새 월 항목이 없어 v1과 같은 계산이 된다(회귀 비교에 쓴다). */
 /** 지표 id에 더해질 양(+) 효과의 배율. 음(-) 효과에는 쓰지 않는다.
@@ -124,7 +128,7 @@ function queueMonth(s, d) {
 
 export function createState(d, seed = 196001) {
   const s = {
-    version: SAVE_VERSION, gameId: d.meta.id, dataVersion: d.meta.version, turn: 0,
+    version: SAVE_VERSION, gameId: d.meta.id, dataVersion: d.meta.version, turn: 0, day: 1,
     rng: (Number(seed) >>> 0) || 196001, phase: 'prelude', ap: AP_PER_MONTH, influence: 20, seats: .48,
     stats: Object.fromEntries(d.metrics.map(m => [m.id, m.initial])),
     support: Object.fromEntries(d.factions.map(f => [f.id, f.initialSupport])),
@@ -358,7 +362,7 @@ function month(s, d) {
   track('범위 제한', () => normalize(s, d));
   for (const fct of d.factions) { const desired = fct.priorities.reduce((a, id) => a + k[id], 0) / fct.priorities.length; s.support[fct.id] += (desired - s.support[fct.id]) * .025; }
   track('범위 제한', () => normalize(s, d));
-  snapshot(s); s.turn++; s.ap = AP_PER_MONTH; s.monthActions = [];
+  snapshot(s); s.turn++; s.day = 1; s.ap = AP_PER_MONTH; s.monthActions = [];
   const finish = () => {
     report.changes = diff(before, s.stats); report.support = diff(supportBefore, s.support); report.relations = diff(relationsBefore, s.relations);
     report.ledger = Object.fromEntries(Object.entries(ledger).map(([m, rows]) => [m, rows.filter(r => Math.abs(r[1]) > 1e-9).map(r => [r[0], round(r[1], 6)])]).filter(([, rows]) => rows.length));
@@ -439,6 +443,7 @@ export function actionReason(s, d, action) {
     case 'adviser': return adviserReason(s, d, action.id);
     case 'repay': return repayReason(s, action.amount);
     case 'endMonth': return endMonthReason(s);
+    case 'tick': return endMonthReason(s);
     default: return '지원하지 않는 행동입니다.';
   }
 }
@@ -446,6 +451,8 @@ export function actionReason(s, d, action) {
 export function dispatch(current, d, action) {
   const reason = actionReason(current, d, action);
   if (reason) return { ok: false, state: current, error: reason };
+  // 하루가 지나는 틱: 달 안에서는 날짜만 바뀐다(얕은 복사, 원본 불변). 그 달의 마지막 날 다음 틱은 월 결산이다.
+  if (action.type === 'tick' && current.day < daysInMonth(current.turn)) return { ok: true, state: { ...current, day: current.day + 1 } };
   const s = clone(current); const logStart = s.log.length;
   switch (action.type) {
     case 'choose': {
@@ -505,10 +512,11 @@ export function dispatch(current, d, action) {
       log(s, 'finance', `부채 ${action.amount.toFixed(1)} 재정점 상환. 다음 달 이자 ${(action.amount * .003).toFixed(2)} 감소.`);
       break;
     }
-    case 'endMonth': month(s, d); break;
+    case 'endMonth': s.day = daysInMonth(s.turn); month(s, d); break; // 남은 날을 건너뛰고 말일에 결산
+    case 'tick': month(s, d); break; // 말일 다음 날 = 다음 달 1일, 월 결산
   }
   normalize(s, d); if (!s.ending) evaluateEnding(s, d);
-  if (action.type !== 'endMonth' && s.log.length > logStart) {
+  if (action.type !== 'endMonth' && action.type !== 'tick' && s.log.length > logStart) {
     const changes = diff(current.stats, s.stats);
     if (Object.keys(changes).length) s.log[logStart].changes = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, round(v, 4)]));
   }
@@ -520,19 +528,27 @@ export function exportSave(s) { return JSON.stringify({ format: SAVE_FORMAT, ver
 /** 이전 버전 저장을 현재 구조로 바꾸는 순수 함수. 알 수 없는 버전은 거부한다. 검증은 importSave가 한다. */
 export function migrateSave(parsed, d) {
   if (!object(parsed) || parsed.format !== SAVE_FORMAT) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
+  const sameData = s => object(s) && s.gameId === d.meta.id && (s.dataVersion === d.meta.version || COMPATIBLE_DATA_VERSIONS.includes(s.dataVersion));
   if (parsed.version === SAVE_VERSION) {
     const s = parsed.state;
-    if (object(s) && s.gameId === d.meta.id && s.dataVersion !== d.meta.version && COMPATIBLE_DATA_VERSIONS.includes(s.dataVersion)) {
+    if (sameData(s) && s.dataVersion !== d.meta.version) {
       const next = clone(s); next.dataVersion = d.meta.version;
       return { ...parsed, state: next, migratedFromData: s.dataVersion };
     }
     return parsed;
   }
+  if (parsed.version === 2) {
+    // 2 → 3: 날짜가 없던 월 단위 저장. 그 달 1일로 이어 간다. 나머지 구조는 같다.
+    const s = parsed.state;
+    if (!sameData(s) || s.version !== 2 || Object.hasOwn(s, 'day')) throw new Error('버전 2 저장의 구조가 올바르지 않습니다.');
+    const next = clone(s); next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.day = 1;
+    return { format: SAVE_FORMAT, version: SAVE_VERSION, state: next, migratedFrom: 2, ...(s.dataVersion !== d.meta.version ? { migratedFromData: s.dataVersion } : {}) };
+  }
   if (parsed.version === 1) {
     const s = parsed.state;
     if (!object(s) || s.version !== 1 || s.dataVersion !== LEGACY_DATA_VERSIONS[1] || s.gameId !== d.meta.id) throw new Error('버전 1 저장의 구조가 올바르지 않습니다.');
     const next = clone(s);
-    next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.report = null; next.monthActions = [];
+    next.version = SAVE_VERSION; next.dataVersion = d.meta.version; next.report = null; next.monthActions = []; next.day = 1;
     return { format: SAVE_FORMAT, version: SAVE_VERSION, state: next, migratedFrom: 1 };
   }
   throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
@@ -540,13 +556,14 @@ export function migrateSave(parsed, d) {
 export function importSave(raw, d) {
   if (typeof raw !== 'string' || raw.length > 2000000) throw new Error('저장 파일 크기 또는 형식이 잘못되었습니다.');
   let parsed; try { parsed = JSON.parse(raw); } catch { throw new Error('읽을 수 없는 JSON입니다.'); }
-  if (!object(parsed) || parsed.format !== SAVE_FORMAT || ![1, SAVE_VERSION].includes(parsed.version)) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
+  if (!object(parsed) || parsed.format !== SAVE_FORMAT || ![1, 2, SAVE_VERSION].includes(parsed.version)) throw new Error('지원하지 않는 저장 형식 또는 버전입니다.');
   const fail = () => { throw new Error('저장 데이터의 구조·ID·값이 올바르지 않습니다.'); };
   try { parsed = migrateSave(parsed, d); } catch { fail(); }
   const s = parsed.state;
   if (!object(s) || s.version !== SAVE_VERSION || s.gameId !== d.meta.id || s.dataVersion !== d.meta.version) fail();
   if (!Number.isInteger(s.turn) || s.turn < 0 || s.turn > TOTAL_TURNS || !Number.isInteger(s.rng) || s.rng < 0 || s.rng > 4294967295 || !Number.isInteger(s.ap) || s.ap < 0 || s.ap > AP_PER_MONTH || !finite(s.influence) || s.influence < 0 || s.influence > 999 || !finite(s.seats) || s.seats < .05 || s.seats > .95) fail();
   if (!PHASES.includes(s.phase)) fail();
+  if (!Number.isInteger(s.day) || s.day < 1 || s.day > daysInMonth(s.turn) || (s.turn === TOTAL_TURNS && s.day !== 1)) fail();
   if (!object(s.stats) || Object.keys(s.stats).length !== d.metrics.length || d.metrics.some(m => !finite(s.stats[m.id]) || s.stats[m.id] < m.min || s.stats[m.id] > m.max)) fail();
   if (!object(s.support) || Object.keys(s.support).length !== d.factions.length || d.factions.some(f => !finite(s.support[f.id]) || s.support[f.id] < 0 || s.support[f.id] > 100)) fail();
   if (!object(s.relations) || Object.keys(s.relations).length !== d.countries.length || d.countries.some(n => !finite(s.relations[n.id]) || s.relations[n.id] < 0 || s.relations[n.id] > 100)) fail();

@@ -12,6 +12,7 @@ export function checkInvariants(s, d) {
   for (const n of d.countries) { const v = s.relations[n.id]; if (!Number.isFinite(v) || v < 0 || v > 100) fail(`관계 ${n.id}=${v}`); }
   if (!Number.isInteger(s.ap) || s.ap < 0 || s.ap > 3) fail(`AP ${s.ap}`);
   if (s.turn > 240) fail('turn > 240');
+  if (!Number.isInteger(s.day) || s.day < 1 || s.day > E.daysInMonth(s.turn) || (s.turn === 240 && s.day !== 1)) fail(`날짜 ${s.day}`);
   if (s.history.length !== s.turn + 1) fail(`history ${s.history.length} != turn+1`);
   for (const id of s.queue) {
     const e = d.events.find(x => x.id === id); if (!e) fail(`미등록 사건 ${id}`);

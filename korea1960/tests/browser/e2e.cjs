@@ -21,7 +21,7 @@ async function audit(page, tag) {
     const small = [...document.querySelectorAll('button, .btn, input, select, summary, a.btn, .choice, .region, .kpi')]
       .filter(el => { const b = el.getBoundingClientRect(); const st = getComputedStyle(el); return b.width > 0 && b.height > 0 && st.visibility !== 'hidden' && !el.closest('.toast') && el.type !== 'file' && el.type !== 'range' && b.height < 36; })
       .map(el => `${el.tagName.toLowerCase()}.${el.className}:${Math.round(el.getBoundingClientRect().height)}px`);
-    const wide = [...document.querySelectorAll('body *')].filter(el => { const b = el.getBoundingClientRect(); return b.right > doc.clientWidth + 1 && getComputedStyle(el).position !== 'fixed' && !el.closest('.sidebar') && !el.closest('.sr-only'); }).slice(0, 5).map(el => el.tagName + '.' + el.className);
+    const wide = [...document.querySelectorAll('body *')].filter(el => { const b = el.getBoundingClientRect(); return b.right > doc.clientWidth + 1 && getComputedStyle(el).position !== 'fixed' && !el.closest('.sidebar') && !el.closest('[data-scroll-x]') && !el.closest('[data-clip-x]') && !el.closest('.sr-only'); }).slice(0, 5).map(el => el.tagName + '.' + el.className);
     return { overflow: doc.scrollWidth > doc.clientWidth, wide, small: small.slice(0, 8) };
   });
   check(!r.overflow && !r.wide.length, `${tag}: 가로 넘침 없음 ${r.wide.join(',')}`);
@@ -56,26 +56,51 @@ async function run(viewport, tag) {
   for (let i = 0; i < 3; i++) await page.click('.calm [data-action="prepare"]');
   s = await S(page); check(s.ap === 0 && s.influence === 31, `사전 준비 3회: AP 0, 영향력 ${s.influence}`);
   check(await page.isDisabled('.calm [data-action="prepare"]'), 'AP 0이면 준비 버튼 비활성');
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.topbar [data-action="endMonth"]');
+  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.statusbar [data-action="endMonth"]');
   await page.waitForSelector('[role="dialog"]'); await page.waitForTimeout(100);
   await page.screenshot({ path: `${out}/${tag}_03_report.png` }); await audit(page, '월 결산');
   s = await S(page); check(s.turn === 1 && s.ap === 3 && s.report?.turn === 0, '월 종료: 1960-02, AP 3, 결산 기록');
   const focusedInDialog = await page.evaluate(() => !!document.activeElement.closest('[role="dialog"]')); check(focusedInDialog, '결산 창이 키보드 초점을 받음');
   await page.keyboard.press('Escape'); check(!(await page.$('[role="dialog"]')), 'Esc로 결산 창 닫기');
 
+  // 시간: 한 틱 = 하루. 사건이 남아 있으면 흐르지 않고, 결정하면 흐르며, 말일이 지나면 결산하고 새 사건에서 스스로 멈춘다.
+  const mobile = viewport.width < 760, playSel = mobile ? '.bottombar [data-action="clockToggle"]' : '.statusbar [data-action="clockToggle"]';
+  const clockOf = () => page.evaluate(() => ({ ...window.__GAME_DEBUG__.clock, timer: undefined }));
+  s = await S(page);
+  if (s.queue.length) { await page.click(playSel); await page.waitForTimeout(900); check((await S(page)).day === 1 && (await clockOf()).waiting, '사건이 남아 있으면 진행을 눌러도 날짜가 그대로(결정 대기)'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); }
+  else await page.click(playSel);
+  await page.waitForFunction(() => window.__GAME_DEBUG__.getState().day >= 4, null, { timeout: 8000 }).then(() => check(true, '결정하면 시간이 흐르고 하루씩 날짜가 넘어감'), () => check(false, '시간 진행'));
+  s = await S(page); const shown = await page.textContent(mobile ? '.js-date-short' : '.js-date');
+  check([s.day - 1, s.day, s.day + 1].some(n => shown.includes(`${n}일`)), `화면 날짜 표시: ${shown.trim()}`);
+  await page.evaluate(() => document.activeElement && document.activeElement.blur()); await page.keyboard.press(' ');
+  const pausedDay = (await S(page)).day; await page.waitForTimeout(1000);
+  check((await S(page)).day === pausedDay && !(await clockOf()).running, '스페이스로 일시정지하면 날짜가 멈춤');
+  if (mobile) { for (let i = 0; i < 3; i++) await page.click('.bottombar [data-action="speedCycle"]'); } else await page.click('.statusbar [data-action="speed"][data-id="8"]');
+  check((await clockOf()).speed === 8, '배속 ×8');
+  await page.click(playSel);
+  await page.waitForFunction(() => window.__GAME_DEBUG__.getState().turn === 2, null, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(150); s = await S(page); const c2 = await clockOf();
+  check(s.turn === 2 && s.day === 1 && s.report?.turn === 1, `말일 다음 날 월 결산 → 다음 달 1일 (${s.turn}/${s.day})`);
+  check(s.queue.length > 0 && !c2.running && c2.waiting, '새 사건이 오면 시계가 스스로 멈춤');
+  check((await page.textContent('.agenda')).includes('1960년 2월 결산'), '이번 달 업무에 지난달 결산 항목');
+  await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0');
+  check((await clockOf()).running, '사건을 결정하면 시간이 다시 흐름');
+  await page.click(playSel); check(!(await clockOf()).running, '진행 버튼으로 멈춤');
+  await page.screenshot({ path: `${out}/${tag}_03b_clock.png` }); await audit(page, '시계 진행 후');
+
   // 버전 1 저장 파일 불러오기 (실제 파일 입력)
   await page.click('[data-action="nav"][data-view="archive"]');
   await page.setInputFiles('[data-input="import"]', fixture); await page.waitForSelector('[role="dialog"]');
-  check((await page.textContent('[role="dialog"]')).includes('버전 1 → 2로 변환'), '버전 1 저장 → 변환 안내');
+  check((await page.textContent('[role="dialog"]')).includes('버전 1 → 3으로 변환'), '버전 1 저장 → 변환 안내');
   await page.click('[data-action="acceptImport"]'); await page.waitForTimeout(100);
-  s = await S(page); check(s.version === 2 && s.phase === 'governing' && s.turn === 48, `저장 불러오기: ${s.turn} ${s.phase}`);
+  s = await S(page); check(s.version === 3 && s.day === 1 && s.phase === 'governing' && s.turn === 48, `저장 불러오기: ${s.turn} ${s.phase}`);
   if (s.queue.length) { await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
   check(s.ap === 0, '검토용 저장은 AP를 모두 쓴 상태(버튼 비활성 사유 확인)');
   await page.click('[data-action="nav"][data-view="policy"]'); await page.click('[data-action="policyStatus"][data-id="open"]');
   check((await page.textContent('main')).includes('행동점수가 부족합니다'), 'AP 0일 때 시행 가능 목록이 비어 있는 이유 표시');
   await page.click('[data-action="policyStatus"][data-id="all"]');
   check((await page.textContent('main .cards')).includes('사유: 행동점수가 부족합니다'), '정책 카드마다 비활성 사유 표시');
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.topbar [data-action="endMonth"]'); await page.click('[role="dialog"] [data-action="closeModal"]');
+  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.statusbar [data-action="endMonth"]'); await page.click('[role="dialog"] [data-action="closeModal"]');
   s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
   check(s.turn === 49 && s.ap === 3, `1964-02 진행, AP 3`);
 
@@ -101,7 +126,7 @@ async function run(viewport, tag) {
   s = await S(page); check(s.ap === 0, `AP 소진: ${s.ap}`);
   check(await page.isDisabled('button[data-action="askProject"] >> nth=0'), 'AP 0이면 착수 버튼 비활성');
   // 다음 달로
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.topbar [data-action="endMonth"], .topbar [data-action="gotoEvent"]');
+  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.statusbar [data-action="endMonth"]');
   if (await page.$('[role="dialog"]')) await page.click('[role="dialog"] [data-action="closeModal"]');
   s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); }
   // 외교
@@ -127,7 +152,7 @@ async function run(viewport, tag) {
   await page.click('[data-action="nav"][data-view="archive"]'); s = await S(page);
   const [download] = await Promise.all([page.waitForEvent('download'), page.click('main [data-action="export"]')]);
   const savePath = path.join(out, `${tag}_export.json`); await download.saveAs(savePath);
-  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 2 && exported.state.turn === s.turn, '저장 파일 내보내기 (버전 2)');
+  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 3 && exported.state.turn === s.turn && exported.state.day === s.day, '저장 파일 내보내기 (버전 3, 날짜 포함)');
   await page.setInputFiles('[data-input="import"]', savePath); await page.click('[data-action="acceptImport"]');
   const s2 = await S(page); check(JSON.stringify(s2) === JSON.stringify(s), '내보낸 파일을 다시 불러오면 상태가 같음');
   await page.click('[data-action="nav"][data-view="archive"]');

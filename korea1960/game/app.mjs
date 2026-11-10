@@ -17,6 +17,14 @@ const minus = (v, n = 2) => Math.abs(v) < .5 * 10 ** -n ? num(0, n) : `−${num(
 const signed = (v, n = 1) => (v > 0 ? '+' : v < 0 ? '−' : '±') + num(Math.abs(v), n);
 const digits = id => id === 'gdp' ? 0 : 1;
 const ym = turn => { const c = E.calendar(Math.min(turn, 239)); return `${c.year}년 ${c.month}월`; };
+const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+/** '1961년 5월 16일 (화)'. 요일은 실제 달력. */
+const fullDate = (turn, day) => { const c = E.calendar(Math.min(turn, 239)); return `${c.year}년 ${c.month}월 ${day}일 (${WEEK[new Date(Date.UTC(c.year, c.month - 1, day)).getUTCDay()]})`; };
+/** 오늘부터 앞으로 n번째 달 말일까지 남은 날 수(오늘 포함). n=1이면 이번 달 말일까지. */
+const daysUntilMonthEnd = (n = 1) => { let total = E.daysInMonth(state.turn) - state.day + 1; for (let k = 1; k < n; k++) total += E.daysInMonth(state.turn + k); return total; };
+const SHORT = { liberty: '자유', legitimacy: '정당성', gdp: '생산', industry: '산업', welfare: '생활수준', equality: '분배', environment: '환경지수', treasury: '국고', debt: '부채' };
+/** 상단 지표 막대: 엔딩 평가의 네 축(성장·권리·생활·환경)과 재정. 서로 상쇄하지 않는 축이라 따로 묶는다. */
+const STAT_GROUPS = [['권리', ['liberty', 'legitimacy']], ['성장', ['gdp', 'industry']], ['생활', ['welfare', 'equality']], ['환경', ['environment']], ['재정', ['treasury', 'debt']]];
 const lowerBetter = id => metric(id) && metric(id).higherIsBetter === false;
 const tone = (id, delta) => Math.abs(delta) < 1e-9 ? 'flat' : ((delta > 0) !== lowerBetter(id) ? 'good' : 'bad');
 const arrow = delta => Math.abs(delta) < 1e-9 ? '–' : delta > 0 ? '▲' : '▼';
@@ -72,6 +80,7 @@ const LOG_GROUP = { event: 'event', followup: 'event', preparation: 'event', sta
 const BUDGET_LABEL = { industry: '산업', agriculture: '농업', education: '교육', welfare: '생활', infrastructure: '기반 시설', security: '안보' };
 const BUDGET_PRESETS = [['기본 배분', { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 }], ['산업 우선', { industry: 32, agriculture: 12, education: 14, welfare: 12, infrastructure: 20, security: 10 }], ['생활 우선', { industry: 14, agriculture: 18, education: 18, welfare: 28, infrastructure: 12, security: 10 }], ['인재 우선', { industry: 16, agriculture: 14, education: 30, welfare: 16, infrastructure: 14, security: 10 }]];
 const NAV = [['overview', '상황판'], ['policy', '정책'], ['assembly', '의회'], ['build', '사업·권역'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
+const NAV_GROUPS = [['국정', ['overview', 'policy', 'assembly']], ['경제·지역', ['budget', 'build']], ['대외·인사', ['diplomacy', 'cabinet']], ['기록', ['archive']]];
 
 /* ---------- 상태 ---------- */
 const ui = { screen: 'title', view: 'overview', region: 'capital', policyCat: '전체', policyStatus: 'all', projectAll: false, logFilter: 'all', modal: null, toast: null, budgetDraft: null };
@@ -116,8 +125,85 @@ function run(action, { quiet = false } = {}) {
     const changes = added[0]?.changes || {};
     toast(added.map(l => l.text).join(' / ') || '처리했습니다.', { changes });
   }
-  if (state.ending && !prev.ending) { ui.view = 'overview'; if (action.type !== 'endMonth') ui.modal = null; }
+  if (state.ending && !prev.ending) { ui.view = 'overview'; if (action.type !== 'endMonth') ui.modal = null; stopClock(); }
+  else if (action.type === 'choose' && clock.waiting && !state.queue.length) { clock.waiting = false; clock.running = true; schedule(); } // 결정하면 다시 흐른다
+  else if (action.type === 'endMonth') { stopClock(); } // 건너뛰기는 시계를 멈춘 채 결산 창을 연다(결정 뒤 저절로 흐르지 않는다)
   render(); return r;
+}
+
+/* ---------- 시계: 한 틱 = 하루 ----------
+ * 엔진의 tick 행동이 하루를 넘기고, 말일 다음 틱에서 월 결산을 한다. 결정할 사건이 생기면 엔진이 tick을 거부하므로
+ * 시계가 스스로 멈추고(결정 대기), 사건을 결정하면 다시 흐른다. 창(모달)이 열려 있거나 탭이 숨으면 기다린다.
+ * 하루가 지날 때는 날짜·진행 막대만 고치고, 달이 바뀔 때만 화면 전체를 다시 그린다. */
+const SPEEDS = { 1: 700, 2: 350, 4: 160, 8: 70 }; // 배속 → 하루당 밀리초
+const CLOCK_KEY = 'korea1960.clock.speed';
+const clock = { running: false, waiting: false, speed: SPEEDS[Number(storage.get(CLOCK_KEY))] ? Number(storage.get(CLOCK_KEY)) : 1, timer: null };
+function clockReason() {
+  if (!state || ui.screen !== 'game') return '진행 중인 연대기가 없습니다.';
+  if (state.ending) return '연대기가 끝났습니다.';
+  if (state.queue.length) return '결정할 사건이 있습니다. 결정하면 시간이 다시 흐릅니다.';
+  return '';
+}
+function schedule() { clearTimeout(clock.timer); clock.timer = clock.running ? setTimeout(stepDay, SPEEDS[clock.speed]) : null; }
+function startClock() {
+  const reason = clockReason();
+  if (reason) { if (state && state.queue.length && !state.ending) clock.waiting = true; toast(reason, { bad: !state?.queue.length }); render(); return; }
+  clock.running = true; clock.waiting = false; schedule(); render();
+}
+function stopClock({ waiting = false } = {}) { const was = clock.running; clock.running = false; clock.waiting = waiting; schedule(); if (was && state) save(); }
+function stepDay() {
+  clock.timer = null;
+  if (!clock.running || !state) return;
+  if (ui.modal || document.hidden || ui.screen !== 'game') { schedule(); return; }
+  const prev = state, r = E.dispatch(state, data, { type: 'tick' });
+  if (!r.ok) { stopClock({ waiting: !!state.queue.length && !state.ending }); render(); return; }
+  state = r.state;
+  if (state.turn === prev.turn) { syncClock(); schedule(); return; }
+  // 월 결산이 일어났다.
+  save();
+  const rep = state.report, f = rep.finance;
+  const notes = [`${ym(prev.turn)} 결산: 월 수지 ${signed(f.balance, 2)}`];
+  if (rep.borrowed > 0) notes.push(`부족분 ${num(rep.borrowed, 1)} 차입`);
+  if (rep.bills.length) notes.push(`법안 ${rep.bills.map(b => `${byId('policies', b.policyId).name} ${b.status === 'passed' ? '가결' : '부결'}`).join(', ')}`);
+  if (rep.completed.length) notes.push(`준공 ${rep.completed.map(x => byId('projects', x.projectId).name).join(', ')}`);
+  if (rep.election) notes.push(`가상 정기 선거 득표 지표 ${num(rep.election.share, 1)}`);
+  if (state.ending) { stopClock(); ui.view = 'overview'; ui.modal = { type: 'report' }; announce(`연대기 종료: ${state.ending.title}`); render(); return; }
+  if (state.queue.length) { stopClock({ waiting: true }); notes.push('새 사건이 도착해 시간을 멈췄습니다'); }
+  toast(notes.join(' · '));
+  render(); schedule();
+}
+/** 하루가 지날 때 바뀌는 부분만 고친다(초점·스크롤·열린 항목을 건드리지 않는다). */
+function syncClock() {
+  const dim = E.daysInMonth(state.turn), left = dim - state.day + 1;
+  document.querySelectorAll('.js-date').forEach(el => { el.textContent = fullDate(state.turn, state.day); });
+  document.querySelectorAll('.js-date-short').forEach(el => { el.textContent = `${E.calendar(state.turn).month}월 ${state.day}일`; });
+  document.querySelectorAll('.js-left').forEach(el => { el.textContent = `월 결산까지 ${left}일`; });
+  document.querySelectorAll('.js-days').forEach(el => { el.textContent = String(left); });
+  document.querySelectorAll('.js-bar').forEach(el => { el.style.width = `${(state.day - 1) / dim * 100}%`; });
+  const prog = $('#agenda-progress'); if (prog) prog.innerHTML = progressList();
+}
+function setSpeed(n) { if (!SPEEDS[n]) return; clock.speed = n; storage.set(CLOCK_KEY, String(n)); schedule(); render(); }
+const PLAY_SVG = '<svg class="glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>';
+const PAUSE_SVG = '<svg class="glyph" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" fill="currentColor"/></svg>';
+const SKIP_SVG = '<svg class="glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3v10l6-5zM8 3v10l6-5z" fill="currentColor"/></svg>';
+function clockButtons({ compact = false } = {}) {
+  const reason = clockReason();
+  const play = clock.running
+    ? `<button type="button" class="btn clock-play on" data-action="clockToggle" aria-pressed="true" title="일시정지 (스페이스)">${PAUSE_SVG}${compact ? '<span class="sr-only">일시정지</span>' : '<span>일시정지</span>'}</button>`
+    : `<button type="button" class="btn clock-play ${reason ? '' : 'primary'}" data-action="clockToggle" aria-pressed="false" ${reason && !state.queue.length ? `aria-disabled="true" disabled title="${esc(reason)}"` : `title="${esc(reason || '시간 진행 (스페이스)')}"`}>${PLAY_SVG}${compact ? '<span class="sr-only">시간 진행</span>' : '<span>진행</span>'}</button>`;
+  const speeds = compact
+    ? `<button type="button" class="btn speed" data-action="speedCycle" title="배속 바꾸기" aria-label="배속 ×${clock.speed}, 누르면 바꾸기">×${clock.speed}</button>`
+    : `<span class="speeds" role="group" aria-label="배속">${Object.keys(SPEEDS).map(n => `<button type="button" class="btn speed" data-action="speed" data-id="${n}" aria-pressed="${clock.speed === Number(n)}" title="하루 ${SPEEDS[n] / 1000}초">×${n}</button>`).join('')}</span>`;
+  return play + speeds;
+}
+function clockPanel() {
+  const dim = E.daysInMonth(state.turn), left = dim - state.day + 1;
+  const status = state.ending ? '종료' : state.queue.length ? '결정 대기' : clock.running ? '진행 중' : '멈춤';
+  return `<div class="clock" role="group" aria-label="날짜와 시간">
+  <div class="clock-date"><strong class="js-date">${esc(state.ending ? `${ym(Math.min(state.ending.turn, 239))} · 종료` : fullDate(state.turn, state.day))}</strong>
+  <small><span class="chip ${state.queue.length && !state.ending ? 'warn' : clock.running ? 'run' : ''}">${status}</span> <span class="js-left">${state.ending ? '' : `월 결산까지 ${left}일`}</span></small>
+  <span class="month-bar" aria-hidden="true"><i class="js-bar" style="width:${(state.day - 1) / dim * 100}%"></i></span></div>
+  <div class="clock-ctl">${clockButtons()}${btn(`${SKIP_SVG}<span class="sr-only">이번 달 남은 날 건너뛰기</span>`, 'endMonth', { cls: 'skip', reason: E.endMonthReason(state), title: `남은 ${left}일을 건너뛰고 월 결산` })}</div></div>`;
 }
 
 /* ---------- 작은 조각 ---------- */
@@ -149,6 +235,10 @@ function kpi(id, { compact = false } = {}) {
   const change = state.report?.changes?.[id];
   const delta = change !== undefined ? change : prev && prev[id] !== undefined ? v - prev[id] : 0;
   return `<button type="button" class="kpi" data-action="metric" data-id="${id}" aria-label="${esc(m.label)} ${num(v, digits(id))} ${esc(m.unit)}, 지난달 대비 ${signed(delta, 2)}. 설명 보기"><span>${esc(m.label)} <small>${esc(m.unit)}</small></span><strong>${num(v, digits(id))}</strong>${compact ? '' : `<small class="delta ${tone(id, delta)}">${arrow(delta)} ${signed(delta, 2)} 지난달</small>`}</button>`;
+}
+function stat(id) {
+  const m = metric(id), v = state.stats[id], change = state.report?.changes?.[id] ?? 0;
+  return `<button type="button" class="stat" data-action="metric" data-id="${id}" aria-label="${esc(m.label)} ${num(v, digits(id))}, 지난 결산 ${signed(change, 2)}. 설명 보기"><span>${esc(SHORT[id] || m.label)}</span><b>${num(v, digits(id))}</b><i class="delta ${tone(id, change)}">${arrow(change)}${num(Math.abs(change), Math.abs(change) < 10 ? 1 : 0)}</i></button>`;
 }
 function chart(key, color) {
   const series = state.history.map(h => h[key]);
@@ -204,11 +294,11 @@ function choiceButton(c, i) {
 }
 function calmCard() {
   const prep = E.PREPARE_PHASES.includes(state.phase), exec = E.isExecutive(state);
-  const steps = [['이번 달 사건을 결정한다', true], [prep ? '사전 준비로 영향력을 쌓는다 (AP 1 → +3)' : exec ? '정책·사업·외교·자문에 행동점수를 쓴다' : '준비할 수 있는 일을 확인한다', state.ap === 0], ['다음 달로 진행하고 결산을 읽는다', false]];
+  const steps = [['이번 달 사건을 결정한다', true], [prep ? '사전 준비로 영향력을 쌓는다 (AP 1 → +3)' : exec ? '정책·사업·외교·자문에 행동점수를 쓴다' : '준비할 수 있는 일을 확인한다', state.ap === 0], [`시간을 흐르게 한다 · 월 결산까지 <span class="js-days">${E.daysInMonth(state.turn) - state.day + 1}</span>일`, clock.running]];
   return `<section class="paper decision calm"><div class="body"><span class="eyebrow">이번 달의 업무 · ${esc(ym(state.turn))}</span><h2>결정할 사건이 없습니다</h2>
-  <p>${prep ? '아직 국정 권한이 없습니다. 사전 준비는 1963년 가상 선거의 준비 영향력이 됩니다.' : exec ? '정책과 사업을 검토하고 남은 행동점수를 사용하세요. 모든 점수를 쓰지 않아도 다음 달로 갈 수 있습니다.' : '이번 달에는 집행할 권한이 없습니다.'}</p>
-  <ol class="steps">${steps.map(([t, done]) => `<li class="${done ? 'done' : ''}">${esc(t)}</li>`).join('')}</ol>
-  <div class="row" style="justify-content:flex-start;flex-wrap:wrap;margin-top:12px">${prep ? btn('사전 준비 · AP 1 / 영향력 +3', 'prepare', { cls: 'primary', reason: E.prepareReason(state) }) : ''}${exec ? btn('정책 검토', 'nav', { attrs: 'data-view="policy"' }) + btn('사업 검토', 'nav', { attrs: 'data-view="build"' }) : ''}${btn('다음 달로 →', 'endMonth', { reason: E.endMonthReason(state) })}</div>
+  <p>${prep ? '아직 국정 권한이 없습니다. 사전 준비는 1963년 가상 선거의 준비 영향력이 됩니다.' : exec ? '정책과 사업을 검토하고 남은 행동점수를 사용하세요. 시간이 흐르는 동안에도 언제든 행동할 수 있고, 행동점수는 매달 1일에 다시 채워집니다.' : '이번 달에는 집행할 권한이 없습니다.'}</p>
+  <ol class="steps">${steps.map(([t, done], i) => `<li class="${done ? 'done' : ''}"><span>${i === 2 ? t : esc(t)}</span></li>`).join('')}</ol>
+  <div class="row" style="justify-content:flex-start;flex-wrap:wrap;margin-top:12px">${prep ? btn('사전 준비 · AP 1 / 영향력 +3', 'prepare', { cls: 'primary', reason: E.prepareReason(state) }) : ''}${exec ? btn('정책 검토', 'nav', { attrs: 'data-view="policy"' }) + btn('사업 검토', 'nav', { attrs: 'data-view="build"' }) : ''}${clock.running ? '' : btn(`${PLAY_SVG} 시간 진행`, 'clockToggle', { cls: 'primary', reason: clockReason() })}${btn('남은 날 건너뛰고 결산', 'endMonth', { reason: E.endMonthReason(state) })}</div>
   ${prep ? reasonLine(E.prepareReason(state)) : ''}</div></section>`;
 }
 function endingCard() {
@@ -426,14 +516,41 @@ function endingRule(e) {
 }
 
 /* ---------- 오른쪽 브리핑 ---------- */
-function brief() {
-  const building = state.projects.filter(p => p.status === 'building'), bills = state.bills.filter(b => !['passed', 'failed'].includes(b.status));
-  return `<section><h2>${esc(ym(state.turn))} 브리핑</h2>
-  <div class="kv"><span>권한</span><b>${esc(PHASE[state.phase].name)}</b></div><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div>
-  <div class="kv"><span>국고</span><b>${num(state.stats.treasury, 1)}</b></div><div class="kv"><span>부채</span><b>${num(state.stats.debt, 1)}</b></div><div class="kv"><span>다음 달 수지</span><b class="delta ${E.finance(state, data).balance >= 0 ? 'good' : 'bad'}">${signed(E.finance(state, data).balance, 2)}</b></div>
-  ${state.queue.length ? `<div class="notice" style="margin:10px 0 0">결정할 사건 ${state.queue.length}건 ${btn('사건 보기', 'nav', { attrs: 'data-view="overview"', cls: 'small' })}</div>` : ''}</section>
-  <section><h2>진행 중 · 법안 ${bills.length} · 사업 ${building.length}</h2><ul class="progress">${bills.map(b => `<li>${esc(byId('policies', b.policyId).name)} <small>${STATUS[b.status]} · ${b.remaining}개월 남음</small><div class="bar"><i style="width:${(b.total - b.remaining) / b.total * 100}%"></i></div></li>`).join('')}${building.map(p => { const def = byId('projects', p.projectId); return `<li>${esc(byId('regions', p.regionId).name)} ${esc(def.name)} <small>${p.remaining}개월 남음</small><div class="bar green"><i style="width:${(1 - p.remaining / def.months) * 100}%"></i></div></li>`; }).join('') || (bills.length ? '' : '<li class="muted">진행 중인 법안·사업이 없습니다.</li>')}</ul></section>
-  <section><h2>최근 기록</h2><ul class="log">${state.log.slice(-6).reverse().map(l => `<li><time>${esc(l.date)} · ${esc(LOG_TYPES[l.type] || l.type)}</time>${esc(l.text)}${l.changes ? fxPlain(l.changes) : ''}</li>`).join('')}</ul>${btn('연대기 전체', 'nav', { attrs: 'data-view="archive"', cls: 'small quiet' })}</section>`;
+/** 오른쪽 '이번 달 업무': 지금 해야 하거나 곧 일어날 일. */
+function agenda() {
+  const t = state.turn, items = [];
+  const item = (kind, title, text, action = '') => items.push(`<li class="task ${kind}"><div><strong>${title}</strong>${text ? `<small>${text}</small>` : ''}</div>${action}</li>`);
+  if (state.ending) item('done', '연대기 종료', esc(state.ending.title), btn('엔딩 평가', 'nav', { attrs: 'data-view="overview"', cls: 'small' }));
+  if (state.queue.length && !state.ending) item('must', `사건 ${state.queue.length}건 결정`, '결정하기 전에는 시간이 흐르지 않습니다.', btn('결정하기', 'gotoEvent', { cls: 'small primary' }));
+  if (!state.ending && state.ap > 0) {
+    if (E.PREPARE_PHASES.includes(state.phase)) item('open', `행동점수 ${state.ap} 남음`, '사전 준비는 1963년 가상 선거의 준비 영향력이 됩니다.', btn('사전 준비', 'prepare', { cls: 'small', reason: E.prepareReason(state) }));
+    else if (E.isExecutive(state)) item('open', `행동점수 ${state.ap} 남음`, '다음 달 1일에 3으로 다시 채워집니다(이월 없음).', btn('정책', 'nav', { attrs: 'data-view="policy"', cls: 'small' }) + btn('사업', 'nav', { attrs: 'data-view="build"', cls: 'small' }));
+  }
+  if (!state.ending) {
+    const left = `<span class="js-days">${daysUntilMonthEnd(1)}</span>`;
+    for (const b of state.bills.filter(b => !['passed', 'failed'].includes(b.status) && b.remaining === 1)) item('soon', `${esc(byId('policies', b.policyId).name)} 표결`, `${left}일 뒤 월 결산 때 · 지금 가결 확률 ${num(E.billChance(state, data) * 100, 0)}%`);
+    for (const p of state.projects.filter(p => p.status === 'building' && p.remaining === 1)) item('soon', `${esc(byId('regions', p.regionId).name)} ${esc(byId('projects', p.projectId).name)} 준공`, `${left}일 뒤 월 결산 때`);
+    if (E.nextElectionTurn(state) === t + 1) item('soon', '가상 정기 선거', `${left}일 뒤 · 예상 득표 지표 ${num(E.electionExpectation(state, data), 0)}±6, 45 미만이면 권한 이양`);
+    if (t >= 40 && t < 45 && !state.flags.won1963) item('soon', '1963년 10월 가상 선거', `당선 확률 약 ${num(E.firstElectionChance(state, data), 0)}%`);
+  }
+  if (state.report) item('info', `${esc(ym(state.report.turn))} 결산`, `월 수지 ${signed(state.report.finance.balance, 2)}${state.report.borrowed ? ` · 차입 ${num(state.report.borrowed, 1)}` : ''}`, btn('결산 보기', 'report', { cls: 'small' }));
+  return `<section><h2>이번 달 업무 <small>${esc(ym(state.turn))}</small></h2><ul class="tasks">${items.join('') || '<li class="task"><div><small>지금 할 일이 없습니다. 시간을 흐르게 하세요.</small></div></li>'}</ul></section>
+  <section><h2>진행 중</h2><ul class="progress" id="agenda-progress">${progressList()}</ul></section>
+  <section><h2>권한과 자원</h2><div class="kv"><span>권한</span><b>${esc(PHASE[state.phase].name)}</b></div><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div><div class="kv"><span>다음 결산 월 수지</span><b class="delta ${E.finance(state, data).balance >= 0 ? 'good' : 'bad'}">${signed(E.finance(state, data).balance, 2)}</b></div><div class="kv"><span>종합 지지도</span><b>${num(E.supportAverage(state, data))}</b></div></section>
+  <section><h2>최근 기록</h2><ul class="log">${state.log.slice(-4).reverse().map(l => `<li><time>${esc(l.date)} · ${esc(LOG_TYPES[l.type] || l.type)}</time>${esc(l.text)}${l.changes ? fxPlain(l.changes) : ''}</li>`).join('')}</ul>${btn('연대기 전체', 'nav', { attrs: 'data-view="archive"', cls: 'small quiet' })}</section>`;
+}
+/** 진행 중인 법안·사업. 하루가 지날 때마다 막대와 남은 날이 바뀐다. */
+function progressList() {
+  if (state.ending) return '<li class="muted">연대기가 끝났습니다.</li>';
+  const frac = (state.day - 1) / E.daysInMonth(state.turn);
+  const bills = state.bills.filter(b => !['passed', 'failed'].includes(b.status)), building = state.projects.filter(p => p.status === 'building');
+  return bills.map(b => `<li>${esc(byId('policies', b.policyId).name)} <small>${STATUS[b.status]} · 표결까지 ${daysUntilMonthEnd(b.remaining)}일</small><div class="bar"><i style="width:${(b.total - b.remaining + frac) / b.total * 100}%"></i></div></li>`).join('')
+    + building.map(p => { const def = byId('projects', p.projectId); return `<li>${esc(byId('regions', p.regionId).name)} ${esc(def.name)} <small>준공까지 ${daysUntilMonthEnd(p.remaining)}일</small><div class="bar green"><i style="width:${(def.months - p.remaining + frac) / def.months * 100}%"></i></div></li>`; }).join('')
+    || '<li class="muted">진행 중인 법안·사업이 없습니다.</li>';
+}
+/** 하단 연대기 막대: 최근 기록 세 건. */
+function ticker() {
+  return `<div class="ticker" aria-label="최근 연대기"><span class="ticker-label">연대기</span><p data-clip-x>${state.log.slice(-3).reverse().map(l => `<span><time>${esc(l.date)}</time> ${esc(l.text)}</span>`).join('')}</p>${btn('전체', 'nav', { attrs: 'data-view="archive"', cls: 'small quiet' })}</div>`;
 }
 
 /* ---------- 모달 ---------- */
@@ -507,8 +624,9 @@ function metricContent(id) {
   ${state.report ? `<h3>지난달(${esc(state.report.date)}) 변화 ${signed(change, 3)}</h3><table><tbody>${rows.map(([src, v]) => `<tr><td>${esc(src)}</td><td class="n">${signed(v, 3)}</td></tr>`).join('') || '<tr><td>변화 없음</td><td></td></tr>'}</tbody></table>` : '<p class="muted">첫 결산 뒤부터 월별 변화 원인을 보여 줍니다.</p>'}`, actions: closeBtn() };
 }
 function helpContent() {
-  return { title: '게임 방법', body: `<p>1960년 1월부터 1979년 12월까지 한 달이 한 턴입니다(240턴). 플레이어는 박정희라는 역사적 출발점에 있지만, 1960년에는 대통령 권한이 없습니다.</p>
-  <h3>매달 하는 일</h3><ol class="steps"><li>상황판의 사건 문서에서 선택지 하나를 고릅니다. 선택은 행동점수를 쓰지 않고, 표시된 국고 비용만 지불합니다.</li><li>행동점수 3을 정책·법안·사업·외교·자문·상환·사전 준비에 씁니다. 예산 배분 수정은 무료입니다.</li><li>'다음 달'을 누르면 결산이 열립니다. 무엇이 얼마나, 왜 바뀌었는지 확인하세요.</li></ol>
+  return { title: '게임 방법', body: `<p>1960년 1월 1일부터 1979년 12월 31일까지 시간이 하루씩 흐릅니다(한 틱 = 하루). 국정 지표는 매달 말일에 한 번 결산합니다(240번). 플레이어는 박정희라는 역사적 출발점에 있지만, 1960년에는 대통령 권한이 없습니다.</p>
+  <h3>시간</h3><p style="font-size:14px">위쪽 시계의 <b>진행</b>(스페이스)으로 시간을 흐르게 하고 다시 누르면 멈춥니다. 배속은 ×1(하루 0.7초)·×2·×4·×8이며 숫자 키 1~4로도 바꿉니다. 매달 1일에 사건이 오면 시계가 스스로 멈추고, 결정하면 다시 흐릅니다. 창을 열어 두거나 다른 탭으로 가면 시간이 기다립니다. <b>건너뛰기</b>는 이번 달 남은 날을 넘겨 바로 결산하고 결산 창을 엽니다.</p>
+  <h3>한 달에 하는 일</h3><ol class="steps"><li><span>1일에 온 사건 문서에서 선택지 하나를 고릅니다. 선택은 행동점수를 쓰지 않고, 표시된 국고 비용만 지불합니다.</span></li><li><span>그 달 안에 언제든 행동점수 3을 정책·법안·사업·외교·자문·상환·사전 준비에 씁니다. 남은 점수는 다음 달로 넘어가지 않습니다. 예산 배분 수정은 무료입니다.</span></li><li><span>말일이 지나면 결산합니다. 오른쪽 '이번 달 업무'의 <b>결산 보기</b>로 무엇이 얼마나, 왜 바뀌었는지 확인하세요.</span></li></ol>
   <h3>권한의 단계</h3><p style="font-size:14px">관찰·준비(1960~61) → 1961년 5월 경로 분기(헌정: 민간 정치 준비 / 군정: 과도 통치, 대신 자유·정당성 비용) → 1963년 10월 가상 선거(준비 영향력·정당성·지지도로 당선 확률) → 12월 취임 → 국정 운영. 1967년 11월부터 48개월마다 가상 정기 선거가 있고, 득표 지표가 45 미만이면 권한을 평화롭게 넘깁니다. 장기 집권 분기를 고르면 선거가 중단되는 대신 매월 자유와 정당성을 잃고, 자유·정당성이 오르는 효과가 줄며, 학생·야당의 지지와 국제기구 관계가 꾸준히 떨어집니다. 과도 군정 기간에도 정당성 비용이 있습니다.</p>
   ${data.balance ? `<h3>높은 지표를 지키는 법</h3><p style="font-size:14px">지표가 ${data.balance.diminishing ? data.balance.diminishing.from : 60}을 넘으면 같은 효과도 덜 오르고(체감), 정당성·생활·자유·분배·안정·행정은 매월 기대 수준만큼 조금씩 내려갑니다(높아진 기대). 가상 사건의 보너스는 작게 잡혀 있어, 높은 지표는 정책·사업·예산으로 꾸준히 유지해야 합니다. 미리보기의 ‘기본’은 데이터에 적힌 값, 큰 숫자는 지금 실제로 더해질 값입니다.</p>` : ''}
   <h3>시간이 걸리는 결정</h3><p style="font-size:14px">의회 법안은 5~7개월 심의 뒤 표결합니다. 사업은 공기가 지나야 준공 효과가 납니다. 일부 사건 선택은 몇 달 뒤에 지연 효과를 남깁니다. 1979년 12월까지 끝낼 수 없는 사업·법안은 시작할 수 없습니다.</p>
@@ -533,14 +651,14 @@ function newGameContent() {
 }
 function importContent(m) {
   const s = m.loaded;
-  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? '버전 1 → 2로 변환' : '버전 2'}${m.fromData && m.fromData !== data.meta.version ? ` · 데이터 ${esc(m.fromData)} → ${esc(data.meta.version)}` : ''}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
+  return { title: '저장 파일 불러오기', body: `<p><strong>${esc(m.name)}</strong></p><table><tbody><tr><td>시점</td><td class="n">${esc(ym(s.turn))}${s.ending ? ' · 종료됨' : ''}</td></tr><tr><td>권한</td><td class="n">${esc(PHASE[s.phase].name)}</td></tr><tr><td>시행 정책 · 진행 사업</td><td class="n">${s.policies.length} · ${s.projects.length}</td></tr><tr><td>저장 형식</td><td class="n">${m.migrated ? `버전 ${m.migrated} → ${E.SAVE_VERSION}으로 변환` : `버전 ${E.SAVE_VERSION}`}${m.fromData && m.fromData !== data.meta.version ? ` · 데이터 ${esc(m.fromData)} → ${esc(data.meta.version)}` : ''}</td></tr></tbody></table><p style="margin-top:10px">현재 진행을 이 파일의 상태로 바꿀까요?</p>`, actions: closeBtn('취소') + `<button type="button" class="btn primary" data-action="acceptImport" data-autofocus>불러오기</button>` };
 }
 
 /* ---------- 타이틀 ---------- */
 function title() {
   const auto = state;
   return `<main class="title-screen" style="--cover:url('${art('cover')}')"><div class="title-card"><span class="kicker">THE REPUBLIC · 1960–1979</span><h1>대한민국<br>1960</h1><p class="sub">선택의 연대기</p>
-  <p>한 달에 한 번, 사건을 결정하고 행동점수 셋을 씁니다. 권력에 이르는 길과 그 비용, 성장과 권리, 생활과 환경이 서로 다른 장부에 기록됩니다.</p>
+  <p>시간은 하루씩 흐르고, 매달 1일에 사건이 옵니다. 결정하고 행동점수 셋을 쓰는 동안 법안과 공사가 날마다 진행됩니다. 권력에 이르는 길과 그 비용, 성장과 권리, 생활과 환경이 서로 다른 장부에 기록됩니다.</p>
   <div class="title-actions">${auto ? `<button type="button" class="btn primary" data-action="continue" data-autofocus>이어하기 <small>${esc(ym(auto.turn))} · ${esc(auto.ending ? '종료됨' : PHASE[auto.phase].name)}</small></button>` : ''}
   <button type="button" class="btn ${auto ? '' : 'primary'}" data-action="newgame" ${auto ? '' : 'data-autofocus'}>새 연대기 시작</button>
   <label class="btn file-btn">저장 파일 불러오기<input type="file" accept="application/json,.json" data-input="import" aria-label="저장 파일 불러오기"></label>
@@ -569,16 +687,20 @@ function draw() {
   const pages = { overview, policy, assembly, build, budget, diplomacy, cabinet, archive };
   const endReason = E.endMonthReason(state);
   const pending = state.queue.length;
-  $('#app').innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><span class="kicker">THE REPUBLIC</span><strong>1960</strong><small>선택의 연대기</small></div>
-  <nav class="nav-list" aria-label="주 메뉴">${NAV.map(([id, t]) => `<button type="button" class="nav" data-action="nav" data-view="${id}" ${ui.view === id ? 'aria-current="page"' : ''}>${icon(id)}<span>${t}</span>${id === 'overview' && pending ? `<span class="badge" aria-label="결정할 사건 ${pending}건">${pending}</span>` : ''}</button>`).join('')}</nav>
-  <div class="sidebar-note"><p>역사적 출발점에서 서로 다른 미래로.</p><small>가상 모형 · 오프라인 실행 · 데이터 ${esc(data.meta.version)}</small><div style="margin-top:10px">${btn('게임 방법', 'help', { cls: 'small quiet' })}</div></div></aside>
-  <header class="topbar"><div class="when"><strong>${esc(ym(state.turn))}${state.ending ? ' · 종료' : ''}</strong><small>${esc(PHASE[state.phase].name)} · ${Math.min(state.turn, 240)} / 240개월</small></div>
-  <div class="top-actions"><span class="pill" title="매월 행동점수 3">${apDots(state.ap)} <span>AP</span> <b>${state.ap}</b></span><span class="pill">국고 <b>${num(state.stats.treasury, 0)}</b></span><span class="pill desk-only">부채 <b>${num(state.stats.debt, 0)}</b></span>
-  <span class="desk-only">${btn(`${icon('save')} 저장`, 'export', { cls: 'quiet', title: '저장 파일(JSON) 내보내기. 진행은 자동 저장도 됩니다.' })}</span><span class="desk-only">${primaryAction()}</span></div></header>
-  <main class="main" id="main">${storageNote ? `<div class="notice bad">${esc(storageNote)}</div>` : ''}${ui.view !== 'overview' && pending ? `<div class="notice"><span>결정할 사건 ${pending}건이 남아 있습니다. 사건을 결정해야 다른 행동을 할 수 있습니다.</span>${btn('사건으로 이동', 'nav', { attrs: 'data-view="overview"', cls: 'small primary' })}</div>` : ''}
-  ${pages[ui.view]()}<footer class="foot">실제 역사와 가상 반응을 구분한 독자 제작 게임 · 생성 삽화 · 모든 경제 수치는 가상 모형 값 · ${endReason && !state.ending ? `다음 달로 갈 수 없음: ${esc(endReason)}` : ''}</footer></main>
-  <aside class="brief" aria-label="월별 브리핑">${brief()}</aside>
-  <nav class="bottombar" aria-label="이번 달 행동">${apDots(state.ap)}${btn(`${icon('save')}<span>저장</span>`, 'export', { title: '저장 파일 내보내기' })}${primaryAction()}</nav></div>${modal()}${toastHtml()}`;
+  const navBtn = id => { const t = NAV.find(x => x[0] === id)[1]; return `<button type="button" class="nav" data-action="nav" data-view="${id}" ${ui.view === id ? 'aria-current="page"' : ''}>${icon(id)}<span>${t}</span>${id === 'overview' && pending ? `<span class="badge" aria-label="결정할 사건 ${pending}건">${pending}</span>` : ''}</button>`; };
+  $('#app').innerHTML = `<div class="shell"><header class="statusbar">
+  <div class="identity"><strong>대한민국 1960</strong><small>${esc(state.ending ? '연대기 종료' : PHASE[state.phase].name)} · ${Math.min(state.turn, 240)}/240개월</small></div>
+  <div class="stats" data-scroll-x role="group" aria-label="평가 축별 지표">${STAT_GROUPS.map(([name, ids]) => `<div class="stat-group"><span class="stat-axis">${name}</span><div class="stat-row">${ids.map(stat).join('')}</div></div>`).join('')}</div>
+  ${clockPanel()}</header>
+  <aside class="sidebar"><div class="brand"><span class="kicker">THE REPUBLIC</span><strong>1960</strong><small>선택의 연대기</small></div>
+  <nav class="nav-list" aria-label="주 메뉴">${NAV_GROUPS.map(([g, ids]) => `<span class="nav-group">${g}</span>${ids.map(navBtn).join('')}`).join('')}</nav>
+  <div class="sidebar-note"><div class="kv"><span>행동점수</span><b>${apDots(state.ap)} ${state.ap}</b></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${btn(`${icon('save')} 저장`, 'export', { cls: 'small quiet', title: EMBEDDED ? '저장 텍스트 복사' : '저장 파일(JSON) 내보내기. 진행은 자동 저장도 됩니다.' })}${btn('게임 방법', 'help', { cls: 'small quiet' })}</div><small style="display:block;margin-top:10px">가상 모형 · 오프라인 실행 · 데이터 ${esc(data.meta.version)}</small></div></aside>
+  <main class="main" id="main">${storageNote ? `<div class="notice bad">${esc(storageNote)}</div>` : ''}${ui.view !== 'overview' && pending ? `<div class="notice"><span>결정할 사건 ${pending}건이 남아 있습니다. 결정해야 다른 행동을 하고 시간이 흐릅니다.</span>${btn('사건으로 이동', 'nav', { attrs: 'data-view="overview"', cls: 'small primary' })}</div>` : ''}
+  ${pages[ui.view]()}<footer class="foot">실제 역사와 가상 반응을 구분한 독자 제작 게임 · 생성 삽화 · 모든 경제 수치는 가상 모형 값 · 한 틱은 하루, 국정 결산은 매달 말일${endReason && !state.ending ? ` · 지금은 시간이 흐를 수 없음: ${esc(endReason)}` : ''}</footer></main>
+  <aside class="brief agenda" aria-label="이번 달 업무">${agenda()}</aside>
+  ${ticker()}
+  <nav class="bottombar" aria-label="시간과 이번 달 행동">${clockButtons({ compact: true })}<span class="today"><b class="js-date-short">${state.ending ? '종료' : `${E.calendar(Math.min(state.turn, 239)).month}월 ${state.day}일`}</b>${apDots(state.ap)}</span>${primaryAction()}</nav></div>${modal()}${toastHtml()}`;
+  const bar = document.querySelector('.statusbar'); if (bar) document.documentElement.style.setProperty('--status-h', `${bar.offsetHeight}px`);
   afterRender(focusKey);
   if (scroller && !ui._scrollTop) scroller.scrollTop = y;
   ui._scrollTop = false;
@@ -587,8 +709,8 @@ function draw() {
 /** 상단·하단의 주 행동: 사건이 남았으면 사건으로, 끝났으면 엔딩으로, 아니면 다음 달로. */
 function primaryAction() {
   if (state.ending) return btn('엔딩 평가 보기', 'nav', { cls: 'primary', attrs: 'data-view="overview"' });
-  if (state.queue.length) return btn(`사건 ${state.queue.length}건 결정하기`, 'gotoEvent', { cls: 'primary', title: '이번 달 사건을 먼저 결정해야 다음 달로 갈 수 있습니다.' });
-  return btn(`다음 달 → <small style="color:inherit">${esc(ym(state.turn + 1 > 239 ? 239 : state.turn + 1))}</small>`, 'endMonth', { cls: 'primary', reason: E.endMonthReason(state) });
+  if (state.queue.length) return btn(`사건 ${state.queue.length}건 결정하기`, 'gotoEvent', { cls: 'primary', title: '이번 달 사건을 결정해야 시간이 흐릅니다.' });
+  return btn(`결산까지 건너뛰기 <small style="color:inherit"><span class="js-days">${E.daysInMonth(state.turn) - state.day + 1}</span>일</small>`, 'endMonth', { cls: clock.running ? '' : 'primary', reason: E.endMonthReason(state), title: '이번 달 남은 날을 건너뛰고 월 결산' });
 }
 function focusSignature(el) {
   if (!el || el === document.body || !el.dataset) return null;
@@ -644,14 +766,14 @@ async function importFile(input) {
 /** 검증된 저장을 확인 창 상태로 만든다. 잘못된 입력은 예외. */
 function importOffer(raw, name) {
   const loaded = importSave(raw);
-  let migrated = false, fromData = ''; try { const p = JSON.parse(raw); migrated = p.version === 1; fromData = String(p.state.dataVersion); } catch { /* importSave가 이미 검사 */ }
+  let migrated = 0, fromData = ''; try { const p = JSON.parse(raw); migrated = p.version < E.SAVE_VERSION ? p.version : 0; fromData = String(p.state.dataVersion); } catch { /* importSave가 이미 검사 */ }
   return { type: 'import', loaded, name, migrated, fromData };
 }
 function startNew() {
   const raw = ($('#seed-input')?.value || '').trim();
   let seed = raw ? Number(raw) : (Date.now() ^ Math.floor(Math.random() * 4294967295)) >>> 0;
   if (raw && (!/^\d{1,10}$/.test(raw) || seed < 1 || seed > 4294967295)) { toast('시드는 1~4294967295의 정수여야 합니다.', { bad: true }); render(); return; }
-  state = E.createState(data, seed); ui.screen = 'game'; ui.view = 'overview'; ui.modal = null; ui.budgetDraft = null; ui.focusMain = true; save();
+  stopClock(); state = E.createState(data, seed); ui.screen = 'game'; ui.view = 'overview'; ui.modal = null; ui.budgetDraft = null; ui.focusMain = true; save();
   toast(`새 연대기를 시작했습니다. 시드 ${seed >>> 0}.`); render();
 }
 document.addEventListener('click', e => {
@@ -674,10 +796,13 @@ document.addEventListener('click', e => {
     case 'help': ui.modal = { type: 'help' }; return render();
     case 'closeModal': ui.modal = null; return render();
     case 'dismissToast': ui.toast = null; return render();
-    case 'continue': ui.screen = 'game'; ui.focusMain = true; return render();
+    case 'continue': ui.screen = 'game'; ui.focusMain = true; stopClock(); return render();
     case 'newgame': ui.modal = { type: 'newgame' }; return render();
     case 'startNew': return startNew();
-    case 'acceptImport': state = ui.modal.loaded; ui.modal = null; ui.screen = 'game'; ui.view = 'overview'; ui.budgetDraft = null; save(); toast(`저장 파일을 불러왔습니다 (${ym(state.turn)}).`); return render();
+    case 'acceptImport': stopClock(); state = ui.modal.loaded; ui.modal = null; ui.screen = 'game'; ui.view = 'overview'; ui.budgetDraft = null; save(); toast(`저장 파일을 불러왔습니다 (${ym(state.turn)}).`); return render();
+    case 'clockToggle': if (clock.running) { stopClock(); render(); } else startClock(); return;
+    case 'speed': return setSpeed(Number(id));
+    case 'speedCycle': { const list = Object.keys(SPEEDS).map(Number); return setSpeed(list[(list.indexOf(clock.speed) + 1) % list.length]); }
     case 'export': if (!state) return; if (EMBEDDED) { ui.modal = { type: 'exportText' }; return render(); } exportFile(); return render();
     case 'exportText': if (!state) return; ui.modal = { type: 'exportText' }; return render();
     case 'copySave': {
@@ -720,11 +845,20 @@ document.addEventListener('keydown', e => {
     else if (!e.shiftKey && document.activeElement === items.at(-1)) { e.preventDefault(); items[0].focus(); }
   }
   if (e.key === 'Enter' && e.target?.id === 'seed-input') { e.preventDefault(); startNew(); }
+  // 스페이스: 시간 진행/멈춤, 1~4: 배속. 입력 칸·버튼·링크에 초점이 있거나 창이 열려 있으면 쓰지 않는다.
+  const typing = e.target?.closest?.('input,textarea,select,button,a,summary,[contenteditable]');
+  if (!ui.modal && !typing && state && ui.screen === 'game' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (e.key === ' ') { e.preventDefault(); if (clock.running) { stopClock(); render(); } else startClock(); }
+    else if (['1', '2', '3', '4'].includes(e.key)) setSpeed([1, 2, 4, 8][Number(e.key) - 1]);
+  }
 });
+
+document.addEventListener('visibilitychange', () => { if (document.hidden && state) save(); });
+window.addEventListener('pagehide', () => { if (state) save(); });
 
 /* ---------- 시작 ---------- */
 const loaded = loadAutosave();
 if (loaded) { state = loaded.state; savedInfo = { turn: state.turn }; if (loaded.migrated) { save(); storage.remove(LEGACY_KEY); toast('이전 버전(1)의 자동 저장을 새 형식으로 옮겼습니다.'); } }
 render();
 /* 검토용 디버그 훅: 상태 복사본과 dispatch. 배포판에서는 지워도 된다. */
-globalThis.__GAME_DEBUG__ = { getState: () => state && JSON.parse(JSON.stringify(state)), data, engine: E, dispatch: a => run(a), ui };
+globalThis.__GAME_DEBUG__ = { getState: () => state && JSON.parse(JSON.stringify(state)), data, engine: E, dispatch: a => run(a), ui, clock };

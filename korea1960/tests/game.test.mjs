@@ -173,7 +173,7 @@ test('save v1 files from the original kit migrate and keep playing', () => {
     const raw = fs.readFileSync(new URL(`fixtures/v1_${name}`, import.meta.url), 'utf8');
     assert.equal(JSON.parse(raw).version, 1);
     const s = importSave(raw, d);
-    assert.equal(s.version, 2); assert.equal(s.dataVersion, d.meta.version); assert.equal(s.report, null); assert.deepEqual(s.monthActions, []);
+    assert.equal(s.version, E.SAVE_VERSION); assert.equal(s.day, 1); assert.equal(s.dataVersion, d.meta.version); assert.equal(s.report, null); assert.deepEqual(s.monthActions, []);
     const old = JSON.parse(raw).state; for (const k of ['turn', 'rng', 'stats', 'support', 'policies', 'bills', 'projects', 'queue', 'delayed', 'flags']) assert.deepEqual(s[k], old[k], k);
     const next = advance(s, 3); checkInvariants(next, d); assert.ok(next.report);
     assert.deepEqual(importSave(exportSave(next), d), next);
@@ -182,7 +182,7 @@ test('save v1 files from the original kit migrate and keep playing', () => {
 test('format 2 saves from data 1.1.0 continue under the 1.2.0 rules', () => {
   const raw = fs.readFileSync(new URL('fixtures/v2_data110_1964_bills_and_projects.json', import.meta.url), 'utf8'), old = JSON.parse(raw).state;
   assert.equal(old.dataVersion, '1.1.0');
-  const s = importSave(raw, d); assert.equal(s.dataVersion, d.meta.version);
+  const s = importSave(raw, d); assert.equal(s.dataVersion, d.meta.version); assert.equal(s.version, E.SAVE_VERSION); assert.equal(s.day, 1);
   for (const k of ['turn', 'rng', 'ap', 'stats', 'support', 'relations', 'policies', 'bills', 'projects', 'queue', 'delayed', 'flags', 'report', 'monthActions', 'log']) assert.deepEqual(s[k], old[k], k);
   const next = advance(s, 3); checkInvariants(next, d); assert.deepEqual(importSave(exportSave(next), d), next);
   for (const v of ['1.0.0', '1.1.1', '9.9.9', 1.1]) { const p = JSON.parse(raw); p.state.dataVersion = v; assert.throws(() => importSave(JSON.stringify(p), d), String(v)); }
@@ -205,6 +205,44 @@ test('v2 save rejects tampered report, monthActions and log metadata', () => {
   ];
   for (const [src, mutate] of cases) { const p = JSON.parse(JSON.stringify(src)); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d), String(mutate)); }
   assert.deepEqual(importSave(JSON.stringify(withReport), d), t);
+});
+
+/* ===== 하루 단위 시계 (저장 형식 3) ===== */
+test('clock: real month lengths and day labels', () => {
+  assert.deepEqual([0, 1, 3, 13, 49, 145, 239].map(E.daysInMonth), [31, 29, 30, 28, 29, 29, 31]);
+  assert.equal(E.dayLabel(16, 16), '1961-05-16'); assert.equal(E.dayLabel(240, 1), '1979-12-01');
+});
+test('clock: a day tick only moves the date, never mutates the input and is blocked by a pending event', () => {
+  let s = free(createState(d)); const before = exportSave(s);
+  const r = dispatch(s, d, { type: 'tick' }); assert.equal(r.ok, true); assert.equal(exportSave(s), before);
+  assert.equal(r.state.day, 2); assert.equal(r.state.turn, 0); assert.deepEqual({ ...r.state, day: 1 }, s);
+  const pending = createState(d); assert.match(dispatch(pending, d, { type: 'tick' }).error, /사건/);
+});
+test('clock: ticking through a month gives exactly the same state as the month-end action', () => {
+  for (const seed of [3, 777]) {
+    let a = free(createState(d, seed)), b = a, ticks = 0;
+    for (let m = 0; m < 30; m++) {
+      a = exec(a, { type: 'endMonth' }); a = free(a);
+      const turn = b.turn; while (b.turn === turn) { b = exec(b, { type: 'tick' }); ticks++; } b = free(b);
+      const strip = x => ({ ...x, log: x.log.map(({ date, ...l }) => l) });
+      assert.deepEqual(strip(b), strip(a), `seed ${seed} month ${m}`);
+    }
+    assert.equal(ticks, Array.from({ length: 30 }, (_, t) => E.daysInMonth(t)).reduce((x, y) => x + y, 0));
+  }
+});
+test('clock: month-end settlement is dated the last day; actions are dated the day they happen', () => {
+  let s = governing(); s.day = 10; s = exec(s, { type: 'policy', id: 'farm_extension' });
+  assert.equal(s.log.at(-1).date, '1965-01-10');
+  s = exec(s, { type: 'endMonth' }); assert.equal(s.day, 1); assert.equal(s.turn, 61);
+  assert.ok(s.log.filter(l => l.turn === 60 && l.type !== 'policy').every(l => l.date === '1965-01-31'));
+});
+test('clock: format 3 keeps the day; bad days and format 2 files with a day are rejected', () => {
+  let s = free(createState(d)); for (let i = 0; i < 20; i++) s = exec(s, { type: 'tick' });
+  assert.equal(s.day, 21); assert.deepEqual(importSave(exportSave(s), d), s);
+  for (const day of [0, 32, '5', 1.5, null]) { const p = JSON.parse(exportSave(s)); p.state.day = day; assert.throws(() => importSave(JSON.stringify(p), d), String(day)); }
+  const feb = JSON.parse(exportSave(s)); feb.state.turn = 13; feb.state.day = 29; assert.throws(() => importSave(JSON.stringify(feb), d)); // 1961년 2월은 28일
+  const v2 = JSON.parse(exportSave(s)); v2.version = 2; v2.state.version = 2; assert.throws(() => importSave(JSON.stringify(v2), d)); // 형식 2에는 day가 없어야 한다
+  delete v2.state.day; const back = importSave(JSON.stringify(v2), d); assert.equal(back.day, 1); assert.equal(back.version, E.SAVE_VERSION);
 });
 
 /* ===== 데이터 1.2.0 밸런스 규칙 ===== */

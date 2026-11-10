@@ -28,6 +28,10 @@ fs.writeFileSync(path.join(SP, 'artifact/host.html'), `<!doctype html><meta char
     await f.click('[data-action="newgame"]'); await f.fill('#seed-input', '20261110'); await f.click('[data-action="startNew"]'); await f.waitForSelector('.shell');
     const S = () => f.evaluate(() => window.__GAME_DEBUG__.getState());
     let s = await S(); ok(s.turn === 0 && s.queue[0] === 'opening', '새 게임 1960-01');
+    await f.click('.choice >> nth=0');
+    const play = tag === 'mobile' ? '.bottombar [data-action="clockToggle"]' : '.statusbar [data-action="clockToggle"]';
+    await f.click(play); const ran = await f.waitForFunction(() => window.__GAME_DEBUG__.getState().day >= 3, null, { timeout: 8000 }).then(() => true, () => false);
+    await f.click(play); ok(ran && !(await f.evaluate(() => window.__GAME_DEBUG__.clock.running)), '시계: 진행하면 하루씩 흐르고 다시 누르면 멈춤');
     for (let i = 0; i < 90; i++) {
       s = await S(); if (s.ending) break;
       if (s.queue.length) { await f.click('.choice:not([aria-disabled="true"]) >> nth=0'); continue; }
