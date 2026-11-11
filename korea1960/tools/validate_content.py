@@ -200,8 +200,7 @@ def check_balance(b):
         if not isinstance(obj, dict) or not obj: bad(f'{where} must be non-empty object'); return
         for k, v in obj.items():
             if k not in ids or not num(v) or not (lo <= v <= hi): bad(f'{where}.{k}={v}')
-    top = rules(b, 'balance', {'diminishing', 'eventGain', 'expectations', 'growthBase', 'growthNote', 'militaryRule', 'authoritarian'})
-    if 'growthNote' in top and not isinstance(top['growthNote'], str): bad('growthNote')
+    top = rules(b, 'balance', {'diminishing', 'eventGain', 'expectations', 'militaryRule', 'authoritarian'})
     if 'diminishing' in top:
         x = rules(top['diminishing'], 'diminishing', {'metrics', 'from', 'minFactor'})
         if not isinstance(x.get('metrics'), list) or not x['metrics'] or set(x['metrics']) - index: bad('diminishing.metrics must list 0~100 metrics')
@@ -211,7 +210,6 @@ def check_balance(b):
     if 'expectations' in top:
         for k, v in rules(top['expectations'], 'expectations', index).items():
             if not isinstance(v, dict) or set(v) != {'target', 'rate'} or not num(v['target']) or not 0 <= v['target'] <= 100 or not num(v['rate']) or not 0 <= v['rate'] <= .2: bad(f'expectations.{k}')
-    if 'growthBase' in top and (not num(top['growthBase']) or not -.01 <= top['growthBase'] <= .012): bad('growthBase')
     if 'militaryRule' in top: amounts(rules(top['militaryRule'], 'militaryRule', {'monthly'}).get('monthly'), 'militaryRule.monthly', metrics, -2, 2)
     if 'authoritarian' in top:
         x = rules(top['authoritarian'], 'authoritarian', {'monthly', 'gainFactor', 'support', 'relations'})
@@ -229,4 +227,4 @@ print(f'Content OK (data {d["meta"]["version"]}): {len(d["events"])} events ({an
       f'{sum("context" in e for e in d["events"])} with path context), {len(all_choices)} choices, {len(d["policies"])} policies, '
       f'{len(d["goods"])} goods, {len(d["buildings"])} buildings ({sum(len(x["pm"]) for x in d["buildings"])} production methods, {sum("requires" in x for x in d["buildings"])} tied to terrain or resources), {len(d["laws"])} laws in {len(d["lawGroups"])} groups, {len(d["interestGroups"])} interest groups, '
       f'{len(d["edicts"])} regional edicts, {len(d["regions"])} regions, {len(d["traits"])} traits, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings'
-      f'{", balance rules " + ", ".join(k for k in d["balance"] if k not in ("note", "growthNote")) if "balance" in d else ", no balance rules (1.1.0 계산)"}.')
+      f', balance rules {", ".join(k for k in d["balance"] if k != "note")}.')

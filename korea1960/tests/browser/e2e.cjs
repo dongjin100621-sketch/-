@@ -131,8 +131,8 @@ async function run(viewport, tag) {
   check(await page.$$eval('table.goods tbody tr', els => els.length) === 19 && (await text('table.goods thead')).includes('판매 주문') && (await text('table.goods thead')).includes('구매 주문'), '시장: 상품 19종의 판매·구매 주문 표');
   await page.screenshot({ path: `${out}/${tag}_04_market.png`, fullPage: true }); await audit(page, '시장');
   await page.click('tr.grow[data-id="steel"]');
-  check((await text('.good-detail h2')).includes('강철') && (await text('.good-detail')).includes('수입') && (await text('.good-detail')).includes('제철소'), '시장: 상품을 누르면 누가 팔고 사는지, 만드는 건물');
-  await page.focus('tr.grow[data-id="clothes"]'); await page.keyboard.press('Enter'); check((await text('.good-detail h2')).includes('의복'), '시장: 키보드로 상품 선택');
+  check((await text('.good-detail h3')).includes('강철') && (await text('.good-detail')).includes('수입') && (await text('.good-detail')).includes('제철소'), '시장: 상품을 누르면 누가 팔고 사는지, 만드는 건물');
+  await page.focus('tr.grow[data-id="clothes"]'); await page.keyboard.press('Enter'); check((await text('.good-detail h3')).includes('의복') && await page.$$eval('.good-detail', els => els.length) === 1, '시장: 키보드로 상품 선택(상세는 한 번에 하나)');
   await page.click('[data-action="goodCat"][data-id="industrial"]'); check(await page.$$eval('table.goods tbody tr', els => els.length) === 9, '시장: 분류로 거르기(산업재 9종)');
   await page.click('[data-action="goodCat"][data-id="all"]');
   await page.click('.good-detail [data-action="nav"][data-focus="garment"]'); check((await text('main h1')).includes('수요가 있는 곳') && await page.isVisible('#c-garment'), '시장 → 그 상품을 만드는 건물 카드로 이동');

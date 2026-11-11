@@ -554,6 +554,7 @@ main.main.map-mode>.notice{margin:12px 16px}
  * 표와 막대만으로 그린다. 그림·질감·외부 글꼴은 쓰지 않는다. 값이 높은 쪽은 따뜻한 색(--bad), 낮거나 남는 쪽은 찬 색(--cool). */
 :root{--cool:#8fb3d1}
 main.main:not(.map-mode),.paper{--cool:#2a5a7c}
+.cards>.panel+.panel,.build-grid>.panel+.panel{margin-top:0}
 .kpi.plain{cursor:default}
 .kpi.plain:hover{border-color:var(--line)}
 .charts{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
@@ -566,8 +567,6 @@ main.main:not(.map-mode),.paper{--cool:#2a5a7c}
 .gchip b{font-variant-numeric:tabular-nums}
 .flag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;font-size:10.5px;font-weight:700;line-height:1.6;border:1px solid var(--tag-line);color:var(--muted);vertical-align:middle}
 .flag.in{border-color:var(--cool);color:var(--cool)} .flag.out{border-color:var(--tag-ok);color:var(--good)} .flag.short{border-color:var(--warn-line);color:var(--bad);background:var(--warn-bg)}
-.market-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:14px;align-items:start}
-.market-grid .panel+.panel{margin-top:0}
 .market-table [data-scroll-x]{overflow-x:auto;max-width:100%}
 table.goods{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
 table.goods thead th{font-size:12px;color:var(--muted);font-weight:700;text-align:left;padding:6px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
@@ -596,7 +595,13 @@ td.price .trend{display:inline-block;width:14px;text-align:center;font-size:10px
 .pbar .zero{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--line-2)}
 .pbar .dot{position:absolute;top:-3px;width:6px;height:12px;margin-left:-3px;border-radius:2px;background:var(--line-2)}
 .pbar .dot.hi{background:var(--bad)} .pbar .dot.lo{background:var(--cool)}
-.good-detail h3{margin-top:14px}
+tr.gdetail>td{padding:0;background:var(--fx-bg);border-bottom:2px solid var(--line)}
+.good-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 28px;padding:14px 16px 16px;white-space:normal}
+.good-detail .gd-head,.good-detail .gd-foot{grid-column:1 / -1}
+.good-detail .gd-head h3{font-size:16.5px;margin:0 0 2px;display:flex;align-items:center;gap:6px}
+.good-detail .gd-head p{font-size:13.5px;color:var(--muted);margin:0}
+.good-detail h4{font-size:13.5px;margin:10px 0 2px}
+.good-detail h4:first-child{margin-top:0}
 .good-detail .kv small{color:var(--muted);font-size:12px}
 .spark{width:100%;height:auto;display:block;margin-top:8px}
 .spark polyline{stroke:var(--brass);stroke-width:1.8;stroke-linejoin:round}
@@ -671,7 +676,6 @@ td.price .trend{display:inline-block;width:14px;text-align:center;font-size:10px
 .linkish{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;min-height:36px;color:var(--brass);text-decoration:underline;text-underline-offset:3px;font-weight:600}
 .linkish:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 @media (max-width:1100px){
-  .market-grid{grid-template-columns:minmax(0,1fr)}
   .law-cols{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:760px){
@@ -679,6 +683,7 @@ td.price .trend{display:inline-block;width:14px;text-align:center;font-size:10px
   .brow .b-stat{grid-column:1;grid-row:auto;justify-content:flex-start}
   .cards.groups{grid-template-columns:minmax(0,1fr)}
   .balbar,.pbar{width:48px}
+  .good-detail{grid-template-columns:minmax(0,1fr)}
   table.goods{font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
