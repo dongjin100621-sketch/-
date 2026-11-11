@@ -2,15 +2,15 @@
   "meta": {
     "id": "korea1960",
     "title": "대한민국 1960: 선택의 연대기",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "schemaVersion": 1,
     "language": "ko",
     "start": "1960-01",
     "end": "1979-12",
     "turns": 240,
-    "sourceChecked": "2026-11-10",
+    "sourceChecked": "2026-11-11",
     "disclaimer": "참조 게임들에서 착안한 독자 제작용 자료. 시장·건설·법률·이해집단의 구조는 잘 알려진 전략 게임의 규칙 틀을 따르되, 코드·화면·문구·수치·이미지를 복제하지 않았다. 모든 수치·선택 효과·가상 인물·가상 선거 결과는 게임 설계 값이다.",
-    "changes": "2.0.0: 경제를 시장 모형으로 바꿨다. 상품 19종(goods)의 판매·구매 주문과 가격, 단계와 생산방식이 있는 건물 30종(buildings), 건설점과 건설 대기열, 분류마다 하나만 유효한 법률 38개(lawGroups·laws)와 3단계 제정, 요구와 특성이 있는 이해집단 6개(interestGroups)를 넣었다. 사업(projects)·의회 법안 정책 7개·사회 집단(factions)은 이 구조로 옮겼다. 사건 63건의 ID·선택지·지표 효과는 1.3.0과 같고, 집단 지지 효과만 새 이해집단 ID로 옮겼다. 저장 형식 5(이전 형식은 불러올 수 없다). 1.3.0: 권역 지형·자원(traits), 자원·지형을 쓰는 고유 사업 13개(requires, development), 지역 시책 10개(edicts), 기록 표식 2개를 추가했다. 기존 사건·정책·사업의 ID와 수치는 1.2.0과 같다. 1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
+    "changes": "2.1.0: 국민 계정 환산(accounts)을 추가했다. 생산 지수·물가상승률·교역·재정·노동을 1960년 1월 실제 규모(1인당 국민소득 79달러, 환율 65원, 인구, 외환보유액)에 맞춘 GDP·GNP·PPP·1인당 금액·성장률·환율·달러 교역액·외환보유액·재정 비율·산업 구조·노동 인원으로 바꿔 보인다. 출처 S15~S19. 게임 규칙과 상태는 2.0.0과 같고 저장 형식도 5 그대로다(2.0.0 저장을 그대로 불러온다). 2.0.0: 경제를 시장 모형으로 바꿨다. 상품 19종(goods)의 판매·구매 주문과 가격, 단계와 생산방식이 있는 건물 30종(buildings), 건설점과 건설 대기열, 분류마다 하나만 유효한 법률 38개(lawGroups·laws)와 3단계 제정, 요구와 특성이 있는 이해집단 6개(interestGroups)를 넣었다. 사업(projects)·의회 법안 정책 7개·사회 집단(factions)은 이 구조로 옮겼다. 사건 63건의 ID·선택지·지표 효과는 1.3.0과 같고, 집단 지지 효과만 새 이해집단 ID로 옮겼다. 저장 형식 5(이전 형식은 불러올 수 없다). 1.3.0: 권역 지형·자원(traits), 자원·지형을 쓰는 고유 사업 13개(requires, development), 지역 시책 10개(edicts), 기록 표식 2개를 추가했다. 기존 사건·정책·사업의 ID와 수치는 1.2.0과 같다. 1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
   },
   "metrics": [
     {
@@ -3491,6 +3491,188 @@
     "subsistencePerAgri": 0.004,
     "wageMargin": 0.06,
     "exportSlope": 0.5
+  },
+  "accounts": {
+    "note": "국민 계정 환산. 모형의 생산 지수·물가상승률·교역·재정·노동을 1960년 1월의 실제 규모에 맞춘 원·달러 금액과 인원으로 바꿔 보인다. 1960년 1월 값만 출처에 맞췄고, 그 뒤의 값은 모두 게임 모형의 결과다. 실제 통계가 아니다. 설명: docs/SIMULATION_RULES.md \"국민 계정(데이터 2.1.0)\".",
+    "gnpPerCapita": 79,
+    "gnpPerCapitaNote": "1960년 1인당 국민소득 79달러(한국은행 계열에서 1953년 67달러, 1963년 100달러 사이). 1960년 1월의 1인당 GNP를 이 값에 맞춘다.",
+    "exchangeRate": 65,
+    "exchangeRateNote": "1960년 말 공정 환율 650환/달러. 1962년 화폐 개혁(10환 = 1원) 뒤의 원 단위로 적는다. 그 뒤 환율은 국내 물가 ÷ 미국 물가를 따라 오르고, 실질 소득이 오르면 그만큼 원화 가치가 오른다(가정).",
+    "population": {
+      "start": 24470000,
+      "growthStart": 0.0227,
+      "growthEnd": 0.0179,
+      "years": 20,
+      "note": "1960년 1월 인구(1960년 12월 총조사 24,989,241명에서 역산)와 연 인구 증가율(1960년 2.27%에서 1980년 1.79%로 곧게 줄어듦). 총조사 1970년 30,882,386명·1980년 37,436,315명에 0.5% 안으로 맞는다. 인구는 게임 선택과 관계없이 정해진 길을 따른다."
+    },
+    "laborShare": 0.3,
+    "laborShareNote": "1960년 1월 경제활동인구 = 총인구의 30%(1963년 첫 경제활동인구조사의 비율). 그 뒤 노동 인구는 모형(economy.workforce)대로 늘어난다.",
+    "priceLevel": 0.3,
+    "penn": 0.3,
+    "priceLevelNote": "구매력 평가(PPP): 1960년 한국의 물가 수준을 미국의 30%로 가정하고, 1인당 실질 소득이 오를수록 물가 수준이 (소득 배율)^0.3만큼 오른다고 가정한다. PPP 금액 = 달러 금액 ÷ 물가 수준. 국제 비교 통계가 아닌 모형 가정이다.",
+    "reservesPerPoint": 0.0018,
+    "reservesNote": "외환 여력 지수 1점 = 그 달 GDP의 0.18%. 1960년 말 외환보유액 1억 6,000만 달러 ÷ 1960년 GDP ÷ 지수 45에서 잡았다.",
+    "externalDebtShare": 0.4,
+    "externalDebtNote": "정부 부채 가운데 대외 차관의 몫(가정). 그 이자가 밖으로 나가 GNP가 GDP보다 작아진다. 해외 근로·해외 투자 소득은 다루지 않는다.",
+    "worldInflation": [
+      [
+        1960,
+        1.7
+      ],
+      [
+        1961,
+        1
+      ],
+      [
+        1962,
+        1
+      ],
+      [
+        1963,
+        1.3
+      ],
+      [
+        1964,
+        1.3
+      ],
+      [
+        1965,
+        1.6
+      ],
+      [
+        1966,
+        2.9
+      ],
+      [
+        1967,
+        3.1
+      ],
+      [
+        1968,
+        4.2
+      ],
+      [
+        1969,
+        5.5
+      ],
+      [
+        1970,
+        5.7
+      ],
+      [
+        1971,
+        4.4
+      ],
+      [
+        1972,
+        3.2
+      ],
+      [
+        1973,
+        6.2
+      ],
+      [
+        1974,
+        11
+      ],
+      [
+        1975,
+        9.1
+      ],
+      [
+        1976,
+        5.8
+      ],
+      [
+        1977,
+        6.5
+      ],
+      [
+        1978,
+        7.6
+      ],
+      [
+        1979,
+        11.3
+      ]
+    ],
+    "worldInflationNote": "미국 소비자물가(CPI-U) 연평균 상승률 %. 달러 금액과 환율에 쓴다. 게임 안의 선택으로 바뀌지 않는다.",
+    "sectors": [
+      {
+        "id": "agri",
+        "name": "농림어업",
+        "buildings": [
+          "farm",
+          "fishery",
+          "forestry",
+          "irrigation"
+        ],
+        "subsistence": true
+      },
+      {
+        "id": "mining",
+        "name": "광업",
+        "buildings": [
+          "coal_mine",
+          "ore_mine"
+        ]
+      },
+      {
+        "id": "manufacturing",
+        "name": "제조업",
+        "buildings": [
+          "cement_plant",
+          "textile_mill",
+          "garment",
+          "food_plant",
+          "fertilizer_plant",
+          "steel_mill",
+          "machinery",
+          "shipyard",
+          "electronics",
+          "arms_plant"
+        ]
+      },
+      {
+        "id": "utilities",
+        "name": "전기·건설",
+        "buildings": [
+          "power_plant",
+          "hydro_dam",
+          "construction"
+        ]
+      },
+      {
+        "id": "services",
+        "name": "상업·운수·관광",
+        "buildings": [
+          "commerce",
+          "tourism",
+          "railway",
+          "port"
+        ]
+      },
+      {
+        "id": "public",
+        "name": "공공·국방",
+        "buildings": [
+          "admin_office",
+          "school",
+          "clinic",
+          "housing",
+          "research",
+          "greenworks",
+          "barracks"
+        ]
+      }
+    ],
+    "sourceIds": [
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19"
+    ]
   },
   "traits": [
     {
@@ -8040,6 +8222,51 @@
       "scope": "1979년 10월 부산·마산의 민주항쟁과 박정희 정권 말기의 상황. 실제 사건의 강제 재현 대신 조건부 맥락으로 제시.",
       "accessed": "2026-11-10",
       "type": "institutional_history"
+    },
+    {
+      "id": "S15",
+      "title": "한국 GDP 규모 60년간 523배 증가",
+      "institution": "대한민국 정책브리핑(한국은행 「숫자로 보는 광복 60년」 정리)",
+      "url": "https://www.korea.kr/news/policyNewsView.do?newsId=80084162",
+      "scope": "1인당 국민총소득 1953년 67달러·1963년 100달러, 1960년 말 외환보유액 1억 6,000만 달러, 1963년 경제활동인구가 총인구의 30%. 국민 계정 환산의 1960년 기준점.",
+      "accessed": "2026-11-11",
+      "type": "statistics"
+    },
+    {
+      "id": "S16",
+      "title": "땀과 헌신으로 일군 한국 60년",
+      "institution": "한국경제신문 생글생글",
+      "url": "https://sgsg.hankyung.com/article/2015010912251",
+      "scope": "1960년 1인당 국민소득 79달러. 언론의 정리이며 한국은행 원자료와 구별.",
+      "accessed": "2026-11-11",
+      "type": "press"
+    },
+    {
+      "id": "S17",
+      "title": "우리 돈의 대외 가치",
+      "institution": "국사편찬위원회 우리역사넷",
+      "url": "https://contents.history.go.kr/front/km/print.do?levelId=km_008_0070_0040_0040",
+      "scope": "원화의 대달러 환율: 1960년 말 65.0원(650환), 1970년 말 316.7원. 게임의 환율은 1960년 값에서 출발한 모형 값.",
+      "accessed": "2026-11-11",
+      "type": "statistics"
+    },
+    {
+      "id": "S18",
+      "title": "우리나라 권역별 인구 현황",
+      "institution": "국토지리정보원 대한민국 국가지도집",
+      "url": "https://nationalatlas.ngii.go.kr/pages/download.php?dir=/nationalatlas/kor_c/pdf&file=4(074-081).pdf",
+      "scope": "총조사 인구 1960년 24,989,241명, 1970년 30,882,386명, 1980년 37,436,315명.",
+      "accessed": "2026-11-11",
+      "type": "statistics"
+    },
+    {
+      "id": "S19",
+      "title": "Historical Consumer Price Index for All Urban Consumers (CPI-U)",
+      "institution": "U.S. Bureau of Labor Statistics",
+      "url": "https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202412.pdf",
+      "scope": "미국 소비자물가 연평균 상승률 1960~1979년. 게임의 달러 금액·환율에 쓰는 세계 물가.",
+      "accessed": "2026-11-11",
+      "type": "statistics"
     }
   ]
 }

@@ -1,4 +1,4 @@
-/* 대한민국 1960 · 선택의 연대기 — UI v3 (색 구성 2.3.0, 시장·건물·법률·이해집단 화면 추가)
+/* 대한민국 1960 · 선택의 연대기 — UI v3.1 (색 구성 2.3.0, 시장·건물·법률·이해집단 화면, 경제 지표 화면)
  * 어두운 금속 테두리(위 지표 막대·왼쪽 메뉴·오른쪽 업무·아래 연대기) + 회색 종이 본문 + 짙은 회청색 바다.
  * 색은 아래 토큰으로만 정한다. 본문(main, 지도 제외)과 종이 문서(.paper)는 같은 토큰을 밝은 바탕용 값으로 다시 정의한다.
  * 질감·이미지·글꼴은 쓰지 않고 단색과 그림자만 쓴다. 카드 반경 6, 버튼 반경 4, 최소 터치 44px. */
@@ -686,6 +686,40 @@ tr.gdetail>td{padding:0;background:var(--fx-bg);border-bottom:2px solid var(--li
   .good-detail{grid-template-columns:minmax(0,1fr)}
   table.goods{font-size:13px}
 }
+/* ----- 경제 지표(국민 계정, 화면 v3.1) -----
+ * 금액 카드는 숫자를 크게, 단위를 작게. 그래프는 한 계열씩(두 눈금 축을 겹치지 않는다), 성장은 찬 색, 감소는 따뜻한 색. */
+.kpi small{word-break:keep-all}
+.kpi strong .unit{display:inline-block;font:700 12.5px/1 var(--font);color:var(--muted);margin-left:3px;white-space:nowrap}
+.acc-cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));margin-bottom:16px}
+.acc-cards .kv small{display:inline}
+.panel h2 small,.panel h3 small{font-weight:400}
+.sectors li{padding:7px 0;border-bottom:1px solid var(--soft-line)}
+.sectors li:last-child{border-bottom:0}
+.sectors .row{font-size:14px}
+.sectors .row b{font-variant-numeric:tabular-nums}
+.sbar{position:relative;height:10px;background:var(--bar-bg);border-radius:3px;margin:5px 0 3px}
+.sbar i{position:absolute;left:0;top:0;bottom:0;background:var(--cool);border-radius:3px;min-width:2px}
+.sbar em{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--paper);border-radius:1px}
+.ychart{width:100%;height:auto;display:block;overflow:visible}
+.ychart text{font-size:11px;fill:var(--muted);font-family:var(--font)}
+.ychart text.end{fill:var(--paper);font-weight:700}
+.ychart .axis-base{stroke:var(--line-2)}
+.ychart .axis-top{stroke:var(--line)}
+.ychart .line{fill:none;stroke:var(--cool);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ychart circle{fill:var(--cool);stroke:var(--panel);stroke-width:2}
+.ychart .hit{fill:transparent;stroke:none}
+.ychart .pt:hover circle:not(.hit),.ychart .pt:hover rect:not(.hit){opacity:.75}
+.ychart rect.pos{fill:var(--cool)}
+.ychart rect.neg{fill:var(--bad)}
+.chart-empty{padding:28px 0;text-align:center;font-size:13px}
+.year-table [data-scroll-x]{overflow-x:auto;max-width:100%}
+.year-table{min-width:0;max-width:100%}
+.year-table>summary{cursor:pointer;min-height:44px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;list-style-position:inside}
+.year-table>summary h2{display:inline}
+.year-table[open]>summary{margin-bottom:10px}
+.method{display:grid;gap:6px;margin:4px 0 8px;padding-left:18px;list-style:disc;font-size:13.5px;line-height:1.65}
+.method li{word-break:keep-all}
+@media (max-width:720px){.acc-cards{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media print{.sidebar,.statusbar,.bottombar,.brief,.ticker{display:none}.shell{display:block}}
 /* 저장 텍스트(다운로드가 막힌 화면용) */

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "대한민국 1960 콘텐츠(data/game.json) 스키마 — 데이터 2.0.0",
+  "title": "대한민국 1960 콘텐츠(data/game.json) 스키마 — 데이터 2.1.0",
   "type": "object",
   "required": [
     "meta",
@@ -11,6 +11,7 @@
     "laws",
     "interestGroups",
     "economy",
+    "accounts",
     "traits",
     "regions",
     "countries",
@@ -665,6 +666,120 @@
         "depreciation",
         "budgetDemand"
       ]
+    },
+    "accounts": {
+      "type": "object",
+      "description": "2.1.0: 국민 계정 환산. 1960년 1월 기준값(1인당 GNP·환율·인구·노동 비율·물가 수준)과 미국 물가표, 산업 분류. 설명은 docs/SIMULATION_RULES.md '국민 계정'.",
+      "required": [
+        "gnpPerCapita",
+        "exchangeRate",
+        "population",
+        "laborShare",
+        "priceLevel",
+        "penn",
+        "reservesPerPoint",
+        "externalDebtShare",
+        "worldInflation",
+        "sectors",
+        "sourceIds"
+      ],
+      "properties": {
+        "gnpPerCapita": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "exchangeRate": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "population": {
+          "type": "object",
+          "required": [
+            "start",
+            "growthStart",
+            "growthEnd",
+            "years"
+          ]
+        },
+        "laborShare": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "priceLevel": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "penn": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reservesPerPoint": {
+          "type": "number",
+          "minimum": 0
+        },
+        "externalDebtShare": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "worldInflation": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "sectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "buildings"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "buildings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "subsistence": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "sourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "traits": {
       "type": "array",

@@ -1,7 +1,7 @@
 """Validate IDs, references, no-cost choices, condition DSL and the canonical split files.
 
 python3 tools/validate_content.py          # 검사만
-python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 18개를 다시 만든 뒤 검사
+python3 tools/validate_content.py --sync   # data/game.json(정본)에서 분리본 19개를 다시 만든 뒤 검사
 """
 from pathlib import Path
 import json, sys, argparse
@@ -18,7 +18,7 @@ for k in keys:
     split = root / f'data/{k}.json'
     if a.sync: split.write_text(json.dumps(d[k], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     if json.loads(split.read_text(encoding='utf-8')) != d[k]: errors.append(f'split mismatch: {k}')
-for k in ('balance', 'economy'):
+for k in ('balance', 'economy', 'accounts'):
     split = root / f'data/{k}.json'
     if a.sync: split.write_text(json.dumps(d[k], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     if not split.is_file() or json.loads(split.read_text(encoding='utf-8')) != d[k]: errors.append(f'split mismatch: {k}')
@@ -218,6 +218,22 @@ def check_balance(b):
         if 'support' in x: amounts(x['support'], 'authoritarian.support', factions, -2, 2)
         if 'relations' in x: amounts(x['relations'], 'authoritarian.relations', countries, -2, 2)
 if 'balance' in d: check_balance(d['balance'])
+# 국민 계정 환산(데이터 2.1.0). 엔진 계산과 화면이 쓰는 값의 범위와 빠짐을 검사한다.
+A = d.get('accounts')
+if not isinstance(A, dict): errors.append('accounts missing')
+else:
+    for key in ('gnpPerCapita', 'exchangeRate', 'laborShare', 'priceLevel', 'penn', 'reservesPerPoint', 'externalDebtShare'):
+        if not num(A.get(key)) or A[key] < 0: errors.append('accounts.' + key)
+    if not errors or not any(e.startswith('accounts.') for e in errors):
+        if not (0 < A['laborShare'] < 1 and 0 < A['priceLevel'] <= 1 and 0 <= A['penn'] <= 1 and 0 <= A['externalDebtShare'] <= 1 and A['gnpPerCapita'] > 0 and A['exchangeRate'] > 0): errors.append('accounts ranges')
+    P = A.get('population') or {}
+    if not all(num(P.get(k)) for k in ('start', 'growthStart', 'growthEnd', 'years')) or P['start'] <= 0 or P['years'] <= 0 or not (-.05 < P['growthStart'] < .1 and -.05 < P['growthEnd'] < .1): errors.append('accounts.population')
+    wi = A.get('worldInflation') or []
+    if [x[0] for x in wi] != list(range(1960, 1980)) or not all(len(x) == 2 and num(x[1]) and -10 < x[1] < 50 for x in wi): errors.append('accounts.worldInflation must list 1960~1979')
+    listed = [b for x in A.get('sectors', []) for b in x.get('buildings', [])]
+    if sorted(listed) != sorted(b['id'] for b in d['buildings']): errors.append('accounts.sectors must list every building exactly once')
+    if any(not x.get('id') or not x.get('name') for x in A.get('sectors', [])) or len({x.get('id') for x in A.get('sectors', [])}) != len(A.get('sectors', [])) or sum(bool(x.get('subsistence')) for x in A.get('sectors', [])) != 1: errors.append('accounts.sectors ids/subsistence')
+    if not A.get('sourceIds') or any(x not in sources for x in A['sourceIds']): errors.append('accounts.sourceIds')
 for asset in json.loads((root / 'assets/manifest.json').read_text(encoding='utf-8'))['assets']:
     if not (root / asset['path']).is_file(): errors.append('missing asset ' + asset['path'])
 if errors:
@@ -227,4 +243,4 @@ print(f'Content OK (data {d["meta"]["version"]}): {len(d["events"])} events ({an
       f'{sum("context" in e for e in d["events"])} with path context), {len(all_choices)} choices, {len(d["policies"])} policies, '
       f'{len(d["goods"])} goods, {len(d["buildings"])} buildings ({sum(len(x["pm"]) for x in d["buildings"])} production methods, {sum("requires" in x for x in d["buildings"])} tied to terrain or resources), {len(d["laws"])} laws in {len(d["lawGroups"])} groups, {len(d["interestGroups"])} interest groups, '
       f'{len(d["edicts"])} regional edicts, {len(d["regions"])} regions, {len(d["traits"])} traits, {len(d["countries"])} countries, {len(d["advisers"])} advisers, {len(d["endings"])} endings'
-      f', balance rules {", ".join(k for k in d["balance"] if k != "note")}.')
+      f', balance rules {", ".join(k for k in d["balance"] if k != "note")}, national accounts ({len(d["accounts"]["sectors"])} sectors).')

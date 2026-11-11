@@ -2,7 +2,7 @@
 
 > **데이터 2.0.0 · 저장 형식 5부터** `factions`·`projects`와 정책의 `requiresBill`이 없어지고 상품·건물·법률·이해집단·시장 상수가 들어왔다. 맨 아래 "데이터 2.0.0" 절이 이 문서의 이전 절(사회 집단·사업·법안·저장 형식 1~4·고유 사업)보다 우선한다. 이전 형식의 저장은 변환하지 않고 거부한다.
 
-`data/game.json`이 정본이다. 분리 JSON 18개(목록 16개와 `balance.json`·`economy.json`)는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
+`data/game.json`이 정본이다. 분리 JSON 19개(목록 16개와 `balance.json`·`economy.json`·`accounts.json`)는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
 
 ## 콘텐츠 레코드
 
@@ -114,3 +114,11 @@ TypeScript 참고 타입은 data/types.d.ts에 있다. 스키마의 기본 형�
 * `counters{built,privateBuilt,resourceBuilt,lawsEnacted,lawsFailed,regions}`.
 * `report`에는 `completed[{buildingId,regionId,private}]`, `started`, `laws[{lawId,result,chance}]`, `market{gdp,unemployment,cpi,exports,imports,points,used,pool}`가 들어간다. 연대기 항목은 `buildingId`·`lawId`·`igId`를 가질 수 있고 모두 등록된 ID여야 한다.
 * 파일은 3MB 이하. 형식 1~4는 `migrateSave`가 "경제 구조가 달라 이어 할 수 없다"는 오류로 거부한다(변환하지 않는다).
+
+## 데이터 2.1.0: 국민 계정 환산(`accounts`)
+
+* 새 최상위 블록 `accounts`(`economy` 다음). 분리본 `data/accounts.json`. 키: `gnpPerCapita`(1960년 1월 1인당 GNP, 달러), `exchangeRate`(원/달러), `population{start, growthStart, growthEnd, years}`, `laborShare`, `priceLevel`, `penn`, `reservesPerPoint`, `externalDebtShare`, `worldInflation`(`[연도, %]`, 1960~1979년 빠짐없이), `sectors[{id, name, buildings, subsistence?}]`(모든 건물이 정확히 한 번, `subsistence`는 한 부문만), `sourceIds`. `…Note`·`note`는 설명 문자열. `validate_content.py`가 범위와 빠짐을 검사한다.
+* 출처 S15~S19 추가(`type`: `statistics`, `press`).
+* 엔진 인터페이스: `E.econ.accounts(s, d, R?)`, `accountsSeries(s, d)`, `population(d, turn)`, `priceLevels(s, d)`, `worldInflation(d, year)`. `compute()`의 건물 기록에 `va`(부가가치), 결과에 `subsistenceValue`가 더해졌다. 모두 읽기 전용이다. `E.VIEWS`에 `economy`(경제 지표 화면)가 들어왔다.
+* 저장: 형식 5 그대로. `E.COMPATIBLE_DATA = { '2.1.0': ['2.0.0'] }`: 데이터 2.0.0으로 만든 저장은 불러올 때 `dataVersion`만 2.1.0으로 바꿔 받는다(상태 구조가 같다). 그 밖의 데이터 판은 거부한다.
+

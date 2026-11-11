@@ -1,30 +1,30 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "files": [
     {
       "path": "00_START_HERE.md",
-      "bytes": 3210,
-      "sha256": "dfce413ae30865148292c391f2392686aeee012406b1148965132b8897897d0e"
+      "bytes": 3234,
+      "sha256": "1f047702ec973e8aa13c7a7f8139da3198d4d23e2b8e80027a4601e0adf89e8a"
     },
     {
       "path": "CHECKPOINT.md",
-      "bytes": 15905,
-      "sha256": "873abc2b82004d63e8b8ceffb363c563dc4871797afaba45cd0e4c7b723ef4c1"
+      "bytes": 18388,
+      "sha256": "28967c0d222a2faf6b2f41e4a0d9f4d669af85e8693d32145b203557400be9ff"
     },
     {
       "path": "CLAUDE_CONTEXT.md",
-      "bytes": 42891,
-      "sha256": "518d0aa99717439b6a55145144c5d967cb07b6b9d63afef221d0f8fdab221e64"
+      "bytes": 43014,
+      "sha256": "a30927ec512b877e33f69ffd71f513e57d3c136fd685ffba920676b6cf031fde"
     },
     {
       "path": "CONTENT_INDEX.md",
-      "bytes": 6540,
-      "sha256": "fac339da495be6789ef7a48a0492525a982bc2a3db09ee84111954c8729513bb"
+      "bytes": 6695,
+      "sha256": "ebecec91636536f7a475b4be3164f7bce5cc1851c45f7d58f3003859eebf6691"
     },
     {
       "path": "KOREA1960.html",
-      "bytes": 2710718,
-      "sha256": "fb4574740e2a7ae39fddfc154a2f4cb16996d6c80e34e2330d30204045d96549"
+      "bytes": 2744177,
+      "sha256": "f42922382a39bafc7cdf1e029ac6167747aa7ccbea9bbdea3babaaae605ee309"
     },
     {
       "path": "PLAYABLE_SAMPLE.html",
@@ -33,18 +33,18 @@
     },
     {
       "path": "QA_REPORT.md",
-      "bytes": 30007,
-      "sha256": "d5400602708a573d8a9ccd4071355fb4bb8ad616d2021d64963e82691ae96d0b"
+      "bytes": 32883,
+      "sha256": "9ebab5b7baf75cc39daf9d5a5968a380958269ffe4bd5c1a356d013fdec6ccfb"
     },
     {
       "path": "README.md",
-      "bytes": 18052,
-      "sha256": "2c5de80d9ce5437babca9555adf7563b1892d37877b73806a53f4c7c2d1cb4bd"
+      "bytes": 21104,
+      "sha256": "f581c428fd9fa3b5d199fce97348c829eefedd6fa81a364585787180ea004f32"
     },
     {
       "path": "RIGHTS_AND_ATTRIBUTION.md",
-      "bytes": 4072,
-      "sha256": "e35c5355f37234601545b70faba6fd424b7abdf28d7219ab1139fa10c1607ba6"
+      "bytes": 4534,
+      "sha256": "4e28fb570a50cc82b523e723dae23d31ac1a26064e88f0c043ee7ecae3888326"
     },
     {
       "path": "START_WINDOWS.bat",
@@ -98,8 +98,8 @@
     },
     {
       "path": "assets/fonts/ChronicleKR-Bold.woff2",
-      "bytes": 71120,
-      "sha256": "174a83e5a0215f893f59bfd9b975f656ea6e9c63960a4278d17b44302b81d2f6"
+      "bytes": 71480,
+      "sha256": "b2fa9e8831a3c91acf5556ce5532ee0919401bd51a17c5f9b5bb6ceeb8516c1c"
     },
     {
       "path": "assets/fonts/ChronicleKR-Regular.ttf",
@@ -108,8 +108,8 @@
     },
     {
       "path": "assets/fonts/ChronicleKR-Regular.woff2",
-      "bytes": 69804,
-      "sha256": "cb7c10c174de7ac513936e601ae49262f14fb3cf6b1e957de8a30598686fd5a7"
+      "bytes": 70212,
+      "sha256": "cc9261b21dcc37950de8f816439cf3654198ec198599086e81b73166cdde19cb"
     },
     {
       "path": "assets/fonts/OFL.txt",
@@ -123,8 +123,8 @@
     },
     {
       "path": "assets/manifest.json",
-      "bytes": 5596,
-      "sha256": "78b8d39dab6670ff4a9c83a5134cb93275b5c3b2f917d636fd427c6ab74d83f5"
+      "bytes": 5789,
+      "sha256": "5eaa36ae5892b28dcca38e739f651a770593906cdb4b0e6ec998138826e517fb"
     },
     {
       "path": "assets/map/korea_map.json",
@@ -167,6 +167,11 @@
       "sha256": "37ebafeb1656ac7034711e44b6c2db2ba43fd26fa9dd551f828c7ea86d4028b5"
     },
     {
+      "path": "assets/ui/economy.svg",
+      "bytes": 225,
+      "sha256": "fa2343d88ec4913fb796d63392a66ee4895a424e74eb2a090843c62103446ee2"
+    },
+    {
       "path": "assets/ui/growth.svg",
       "bytes": 220,
       "sha256": "6bf03062c4e13d56c867073e424d0d55ee18449afd0f0fa9e21969561a00ef85"
@@ -205,6 +210,11 @@
       "path": "assets/ui/tokens.json",
       "bytes": 1050,
       "sha256": "7819b247b0b240cf215e6e5f590d3faffacad1671d5ca5c9ebfea39354eb2880"
+    },
+    {
+      "path": "data/accounts.json",
+      "bytes": 4529,
+      "sha256": "07d6d9033e3772276024580ece55065d4d877d758d669bdd20396e195de15dd3"
     },
     {
       "path": "data/achievements.json",
@@ -253,13 +263,13 @@
     },
     {
       "path": "data/game.json",
-      "bytes": 208269,
-      "sha256": "c6793482449f9b320dd71cc056de8a86b0925ca68fe839af4dc76f3b325fcbb9"
+      "bytes": 215962,
+      "sha256": "e9385c7b6865af457e19ab2308571e279f02c7b68390643f23c26ca68e4b9b9a"
     },
     {
       "path": "data/game.schema.json",
-      "bytes": 32680,
-      "sha256": "46aa71b77c20fdc4499f6b1b41d06f59710199744bc0b8d25750e788f7dafc7f"
+      "bytes": 35465,
+      "sha256": "70d36b55ebe55316110a8054a29638ff2ffa5ad656a1a3e2c470ae6e7fdc6a1f"
     },
     {
       "path": "data/goods.json",
@@ -298,8 +308,8 @@
     },
     {
       "path": "data/sources.json",
-      "bytes": 5274,
-      "sha256": "7b5f38e022f645d438469d868ca3dcc0fa403ad775991c23a641854ba76e9fac"
+      "bytes": 7466,
+      "sha256": "8fd5e0cf977358a350a34c065073fc5e714e5b7a78fa26a8ec35e3cf67a2b598"
     },
     {
       "path": "data/traits.json",
@@ -308,8 +318,8 @@
     },
     {
       "path": "data/types.d.ts",
-      "bytes": 8446,
-      "sha256": "1f7bf867f988e4d5fdc71ae0fe47489cd41d2cdda82d7297cdd7f430573efc1b"
+      "bytes": 10303,
+      "sha256": "7c4321b5481db857fd53f50fa628d551fd948e6d12415afcd8b66d0dde06c125"
     },
     {
       "path": "docs/ART_DIRECTION.md",
@@ -318,8 +328,8 @@
     },
     {
       "path": "docs/DATA_CONTRACT.md",
-      "bytes": 16127,
-      "sha256": "4ae1fec53aafdffb52598f211ca9cd1015b84e07e53071e438a69f5f58d8ae6e"
+      "bytes": 17421,
+      "sha256": "5c270179a8a7d317f25218f15b8a51a507e002b842a823a7ec6a99272fab835c"
     },
     {
       "path": "docs/DEVELOPMENT_HANDOFF.md",
@@ -338,13 +348,13 @@
     },
     {
       "path": "docs/SIMULATION_RULES.md",
-      "bytes": 32865,
-      "sha256": "f91906514a1683fed95cc1ac203bc85217416e7184ccf3367fbaa1f3084fbecc"
+      "bytes": 37152,
+      "sha256": "e05dfbffbc6a66e81752464b16a208af3018369a23aca40e2deebc6ae0efc1a4"
     },
     {
       "path": "docs/SOURCES_AND_HISTORY.md",
-      "bytes": 6359,
-      "sha256": "dae6576668caf0ff82f2644231d8d8dca01af536a0d4aee05b58e86118345eed"
+      "bytes": 8448,
+      "sha256": "416b25eb9e44c0d17948616175fc173c3adb9aec050bb0d20e7990594b7678bc"
     },
     {
       "path": "example/app.mjs",
@@ -388,18 +398,18 @@
     },
     {
       "path": "game/app.mjs",
-      "bytes": 178634,
-      "sha256": "209dc1503c38a5d2dc64ca4c446687ff7bc74aeb8d8ac12933703a49227193ce"
+      "bytes": 195305,
+      "sha256": "299fa1879bae14e527a8e90cd44c78c95652e23745376aa6c011d5dcc623f708"
     },
     {
       "path": "game/economy.mjs",
-      "bytes": 34758,
-      "sha256": "24c55fc524cb650321423a05231e8b8946689bdd07d0af76434564e58aa0d409"
+      "bytes": 41373,
+      "sha256": "9f44374cd9d30af6d709885e81e18ca4aa336134a88b4d34b1f52ad15290429d"
     },
     {
       "path": "game/engine.mjs",
-      "bytes": 65183,
-      "sha256": "72709aa2e11e7afbc78453bc37a3ef0d76a831da5fb54ade1e369382ad3ccc38"
+      "bytes": 65568,
+      "sha256": "8c1db1458722b7a2609b12f63f345cefbcf85ec1eb9ae069f087a0da3e591d43"
     },
     {
       "path": "game/index.html",
@@ -409,22 +419,22 @@
     {
       "path": "game/saves/1964_start_governing.json",
       "bytes": 99344,
-      "sha256": "fb64b730dfa8d6df717c6ae9055bcaaed1461f52ed75f1f75f777dd86f713e66"
+      "sha256": "cd41b9d38eb131cb8c8ea2b5222c7c03c387e030049335ee713b084d48e4f61c"
     },
     {
       "path": "game/saves/1965_market_and_laws.json",
       "bytes": 113073,
-      "sha256": "9d9af512eaa896ad35c12172c730fb7e5280a268f4c506471badcff11817b1d7"
+      "sha256": "9bcbea8eb3434c215f9c6033faec4fb8d08b734dbaf227a41d3d2bedca2420e6"
     },
     {
       "path": "game/saves/1966_regional_edicts.json",
       "bytes": 126863,
-      "sha256": "2291418b3ce19c588e87eddf0869b486af6edea0c52dc01d3854d8b8afb977c3"
+      "sha256": "f639b7ba86a8f70943b8e806d5e8f443a0907e25d9325abb90c8897f5b4e488a"
     },
     {
       "path": "game/saves/1973_policy_choices.json",
       "bytes": 190486,
-      "sha256": "a7d149582d1fd5503c15ae0a738607cc5bf4fe877eddbcb27770ea82f83f756c"
+      "sha256": "63179d8ec4ef53ae177b7efe4ecf0d7d128dce9fbe54ac3faf9773de5200ab5e"
     },
     {
       "path": "game/saves/README.md",
@@ -433,18 +443,18 @@
     },
     {
       "path": "game/style.css",
-      "bytes": 53483,
-      "sha256": "5799669176163aa4e34ae6e6e71783b2f6907d3266e027aa0b09a20fa8594f7f"
+      "bytes": 55799,
+      "sha256": "4a861563aa64fd9ef1cc3acb9f5226e314f8421e593b905a530394b088056323"
     },
     {
       "path": "package-lock.json",
       "bytes": 252,
-      "sha256": "28eecb3cba3c2da533c424e562ed830acbed8c29dad2fa6872f26e24089974f8"
+      "sha256": "b6506b88dc7e82e46c59e23dffa4894310a3091ec9df14405ada93806701b5f1"
     },
     {
       "path": "package.json",
       "bytes": 1226,
-      "sha256": "1947a6314cf781869614aba23fe5861c4ca544ac7a69094f85429011871b66fa"
+      "sha256": "0be193924fd7e5aed538916ce6df907a714dd108d2ca3834ef4037dfabd978a8"
     },
     {
       "path": "prompts/CLAUDE_MASTER_PROMPT.md",
@@ -458,13 +468,13 @@
     },
     {
       "path": "tests/browser/artifact.cjs",
-      "bytes": 8225,
-      "sha256": "4b4a8b5a620fbdc3e9aa9e25cb27c58b4e17c888171304496cdd8c55cbbffbd6"
+      "bytes": 8541,
+      "sha256": "be27f83da016e0f966525215981ca60d2d483897f7b4a1dc7f7247fabba62d02"
     },
     {
       "path": "tests/browser/e2e.cjs",
-      "bytes": 32766,
-      "sha256": "0274c95e9f99e59ebf303e1c42da446c60c1cddf07b0424db3afb07ec16d6c9e"
+      "bytes": 35160,
+      "sha256": "b8bd7256d00da86ef99bff489342ff3bc1a55068fffb64c153de381c44ccfc7b"
     },
     {
       "path": "tests/engine.test.mjs",
@@ -498,8 +508,8 @@
     },
     {
       "path": "tests/game.test.mjs",
-      "bytes": 62831,
-      "sha256": "1688f29a074dda64c26cf8ac6b6b4c914039de24b5db9c4c4ba88145fbe24d34"
+      "bytes": 67384,
+      "sha256": "4ee37da115ae2833b9111d7a6fefd2af0c1fa83fb5fc23a24192bb9d7a3b7f0b"
     },
     {
       "path": "tests/helpers/campaign.mjs",
@@ -543,8 +553,8 @@
     },
     {
       "path": "tools/validate_content.py",
-      "bytes": 21293,
-      "sha256": "89bd97a98da6650d172e40a676220484b8e033b7df0e7a337a07953c2b5e3de2"
+      "bytes": 23170,
+      "sha256": "ead99bc63a1d01ebeb08475a83a1451d26bf15b46c98774f84608ebfedbf2cd0"
     }
   ]
 }

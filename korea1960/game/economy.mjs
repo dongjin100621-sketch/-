@@ -1,4 +1,4 @@
-/* 대한민국 1960: 선택의 연대기 — 시장 경제 모형(데이터 2.0.0)
+/* 대한민국 1960: 선택의 연대기 — 시장 경제 모형(데이터 2.0.0)과 국민 계정 환산(데이터 2.1.0)
  *
  * 의존성 없는 순수 모듈. DOM·저장소·네트워크·난수를 쓰지 않는다. 모든 수치는 게임 설계용 가상 값이다.
  *
@@ -276,9 +276,9 @@ export function compute(s, d) {
     for (const [g, q] of Object.entries(rec.out)) rev += q * NP[g];
     for (const [g, q] of Object.entries(rec.in)) cost += q * NP[g];
     rec.revenue = rev; rec.inputCost = cost;
-    if (def.gov || def.construction) { govWages += rec.wages; govGoods += cost; va += rec.wages; rec.profit = null; rec.ok = true; continue; }
+    if (def.gov || def.construction) { govWages += rec.wages; govGoods += cost; va += rec.wages; rec.va = rec.wages; rec.profit = null; rec.ok = true; continue; }
     const profit = rev - cost - rec.wages, ss = b.state / L, ps = 1 - ss;
-    rec.profit = profit; rec.margin = profit / Math.max(1, rev); va += rev - cost; marketRevenue += rev; marketProfit += profit;
+    rec.profit = profit; rec.margin = profit / Math.max(1, rev); rec.va = rev - cost; va += rev - cost; marketRevenue += rev; marketProfit += profit;
     if (def.category === 'agri') landBase += rev;
     if (profit >= 0) {
       stateDividend += profit * ss * m.stateDividend;
@@ -325,10 +325,82 @@ export function compute(s, d) {
     labor: { workforce: W, employed, subsistence, unemployed, rate, pool: laborPool, margin },
     construction: { points, rawPoints: rawPts, sectorPoints: sectorPts, used, usedGov, usedPriv, gains, costPerPoint: costPerPoint * u, materials: mat, privateShare: m.privateShare, matShort },
     trade: { capacity: tradeCap * u, used: Math.min(tradeValue, tradeCap) * u, exports: exportValue * u, imports: importValue * u, tariffs: tariffs * u, subsidy: exportSubsidy * u, importScale },
-    finance, detail, value: va, gdp: ec.gdpUnit > 0 ? va / ec.gdpUnit : 100, pollution, privateProfit: privateProfit * u,
+    finance, detail, value: va, subsistenceValue: subsValue, gdp: ec.gdpUnit > 0 ? va / ec.gdpUnit : 100, pollution, privateProfit: privateProfit * u,
     pool: { now: ec.pool, in: poolIn * u, out: construction.private * u },
     next: { prices: nextPrices, short: nextShort, staff: nextStaff, wage: nextWage, dividends: nextDividends }
   };
+}
+
+/* ---------- 국민 계정: 모형 값을 1960년 1월의 실제 규모에 맞춘 원·달러 금액과 인원으로 ----------
+ * 상태를 바꾸지 않는다. 기록(history)의 생산 지수·물가상승률과 현재 상태만 써서, 저장 형식에 새 값을 두지 않는다.
+ * 1960년 1월 값만 출처(accounts.sourceIds)에 맞췄고 그 뒤는 모형의 결과다. 규칙: docs/SIMULATION_RULES.md "국민 계정". */
+/** 그 달(turn) 초의 인구. 증가율이 곧게 줄어드는 정해진 길을 따른다(게임 선택과 무관). */
+export function population(d, turn) {
+  const P = d.accounts.population, y = Math.max(0, turn) / 12;
+  return P.start * Math.exp(P.growthStart * y + (P.growthEnd - P.growthStart) * y * y / (2 * P.years));
+}
+/** 그 해 미국 소비자물가 상승률(%). 표에 없는 해는 가장 가까운 앞의 해. */
+export function worldInflation(d, year) { let r = d.accounts.worldInflation[0][1]; for (const [y, v] of d.accounts.worldInflation) if (year >= y) r = v; return r; }
+/** 물가 수준 계열(1960년 1월 = 1). D[t]: 국내(기록의 물가상승률을 달마다 쌓음), W[t]: 미국. t = 0..기록 길이−1 */
+export function priceLevels(s, d) {
+  const D = [1], W = [1];
+  for (let t = 1; t < s.history.length; t++) {
+    D.push(D[t - 1] * (1 + s.history[t].inflation / 100) ** (1 / 12));
+    W.push(W[t - 1] * (1 + worldInflation(d, yearOf(t - 1)) / 100) ** (1 / 12));
+  }
+  return { D, W };
+}
+/** 1960년 1월 기준값: 한 달 GDP(재정점)와 연율 GDP(달러·원). 1인당 GNP가 accounts.gnpPerCapita가 되도록 GDP를 잡는다. */
+function accountsBase(s, d) {
+  const A = d.accounts, E = d.economy, P0 = A.population.start, Y0 = 100 * s.econ.gdpUnit * E.unit;
+  const debt0 = d.metrics.find(m => m.id === 'debt').initial, out0 = debt0 * E.interest * A.externalDebtShare / Math.max(1e-9, Y0);
+  const usd0 = A.gnpPerCapita * P0 / (1 - out0);
+  return { A, E, P0, Y0, usd0, won0: usd0 * A.exchangeRate };
+}
+/** 생산 지수(idx)와 그 달의 물가 수준(D, W)을 금액으로 바꾸는 환산.
+ * 환율 = 1960년 환율 × 국내 물가 ÷ 미국 물가 ÷ (1인당 실질 소득 배율)^penn. 그래서 달러 GDP = 1960년 GDP × 생산 배율 × 미국 물가 × 소득 배율^penn. */
+function accountsAt(d, B, idx, turn, D, W) {
+  const A = B.A, pop = population(d, turn), penn = Math.max(.05, idx / 100 / (pop / B.P0)) ** A.penn;
+  const fx = A.exchangeRate * D / W / penn, gdpWon = B.won0 * idx / 100 * D, pointWon = B.won0 / (12 * B.Y0) * D;
+  return { pop, penn, fx, gdpWon, gdpUsd: gdpWon / fx, realWon: B.won0 * idx / 100, pointWon, pointUsd: pointWon / fx, priceLevel: A.priceLevel * penn };
+}
+/** 이번 달 계산(R)의 국민 계정. 금액은 연율(한 달 값 × 12), GDP·GNP는 달러·원, PPP는 국제 달러. */
+export function accounts(s, d, R = compute(s, d)) {
+  const B = accountsBase(s, d), A = B.A, E = B.E, u = E.unit, k = s.stats, L = priceLevels(s, d), t = L.D.length - 1;
+  const D = L.D[t], W = L.W[t], c = accountsAt(d, B, R.gdp, s.turn, D, W);
+  const outflow = k.debt * E.interest * A.externalDebtShare * 12 * c.pointUsd; // 대외 차관 이자(연, 달러)
+  const gnpUsd = c.gdpUsd - outflow, monthly = Math.max(1e-9, R.value * u);
+  const h = s.history, prev = h.length >= 13 ? h[h.length - 12].gdp : null; // 열두 달 전 그 달의 생산(기록 h[t]는 t−1월의 결산 값)
+  const exportsUsd = R.trade.exports * 12 * c.pointUsd, importsUsd = R.trade.imports * 12 * c.pointUsd;
+  const reservesUsd = c.gdpUsd * k.reserves * A.reservesPerPoint, ppu = A.laborShare * B.P0 / E.workforce;
+  const of = new Map(); A.sectors.forEach((x, i) => x.buildings.forEach(b => of.set(b, i)));
+  const value = A.sectors.map(x => x.subsistence ? R.subsistenceValue : 0);
+  for (const rec of R.buildings) { const i = of.get(rec.def.id); if (i !== undefined) value[i] += rec.va || 0; }
+  const total = value.reduce((a, v) => a + Math.max(0, v), 0) || 1;
+  return {
+    turn: s.turn, year: yearOf(s.turn), population: c.pop, fx: c.fx, priceLevel: c.priceLevel, cpi: D * 100, worldCpi: W * 100, inflation: k.inflation,
+    gdp: { index: R.gdp, won: c.gdpWon, usd: c.gdpUsd, real: c.realWon, ppp: c.gdpUsd / c.priceLevel, perCapita: c.gdpUsd / c.pop, pppPerCapita: c.gdpUsd / c.priceLevel / c.pop },
+    gnp: { usd: gnpUsd, won: gnpUsd * c.fx, perCapita: gnpUsd / c.pop, factorIncome: -outflow },
+    growth: prev > 0 ? R.gdp / prev - 1 : null,
+    trade: { exports: exportsUsd, imports: importsUsd, balance: exportsUsd - importsUsd, openness: (exportsUsd + importsUsd) / c.gdpUsd },
+    reserves: { usd: reservesUsd, months: importsUsd > 0 ? reservesUsd / (importsUsd / 12) : null, index: k.reserves },
+    finance: { revenue: R.finance.income / monthly, expense: R.finance.expense / monthly, balance: R.finance.balance / monthly, debt: k.debt / (12 * monthly), debtWon: k.debt * c.pointWon, debtUsd: k.debt * c.pointUsd, treasuryWon: k.treasury * c.pointWon },
+    labor: { force: R.labor.workforce * ppu, employed: (R.labor.employed + R.labor.subsistence) * ppu, wageEarners: R.labor.employed * ppu, farmers: R.labor.subsistence * ppu, unemployed: R.labor.unemployed * ppu, rate: R.labor.rate, wageWon: R.wage * u * c.pointWon / ppu, wageUsd: R.wage * u * c.pointUsd / ppu },
+    sectors: A.sectors.map((x, i) => ({ id: x.id, name: x.name, share: Math.max(0, value[i]) / total, usd: Math.max(0, value[i]) / total * c.gdpUsd }))
+  };
+}
+/** 해마다(결산을 마친 달만) 연평균 GDP(달러)·1인당 GDP·1인당 PPP·실질 성장률(앞 해 대비)·물가상승률. */
+export function accountsSeries(s, d) {
+  const B = accountsBase(s, d), L = priceLevels(s, d), years = new Map();
+  for (let t = 1; t < s.history.length; t++) {
+    const y = yearOf(t - 1), idx = s.history[t].gdp, c = accountsAt(d, B, idx, t - 1, L.D[t], L.W[t]);
+    const e = years.get(y) || { year: y, months: 0, idx: 0, usd: 0, pc: 0, ppp: 0, inflation: 0 };
+    e.months++; e.idx += idx; e.usd += c.gdpUsd; e.pc += c.gdpUsd / c.pop; e.ppp += c.gdpUsd / c.priceLevel / c.pop; e.inflation += s.history[t].inflation;
+    years.set(y, e);
+  }
+  const list = [...years.values()].map(e => ({ year: e.year, months: e.months, index: e.idx / e.months, gdpUsd: e.usd / e.months, perCapita: e.pc / e.months, pppPerCapita: e.ppp / e.months, inflation: e.inflation / e.months }));
+  list.forEach((e, i) => { e.growth = i > 0 && list[i - 1].months === 12 ? e.index / list[i - 1].index - 1 : null; });
+  return list;
 }
 
 /* ---------- 이해집단: 세력·요구·지지도 ---------- */

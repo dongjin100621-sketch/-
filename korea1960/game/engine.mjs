@@ -1,4 +1,4 @@
-/* 대한민국 1960: 선택의 연대기 — 계산 엔진 v3 (게임 3.0.0, 데이터 2.0.0, 저장 형식 5)
+/* 대한민국 1960: 선택의 연대기 — 계산 엔진 v3 (게임 3.1.0, 데이터 2.1.0, 저장 형식 5)
  *
  * 의존성 없는 순수 모듈이다. DOM·localStorage·네트워크를 사용하지 않는다. 모든 수치는 게임 설계용 가상 값이다.
  *
@@ -31,7 +31,9 @@ export const ELECTION_THRESHOLD = 45;
 export const FISCAL_CRISIS_DEBT = 700;
 export const CRISIS_ENDINGS = ['fiscal_crisis', 'legitimacy_crisis', 'rights_crisis'];
 export const LAW_STAGES = ['committee', 'review', 'plenary'];
-export const VIEWS = ['map', 'overview', 'market', 'build', 'laws', 'groups', 'policy', 'budget', 'diplomacy', 'cabinet', 'archive'];
+export const VIEWS = ['map', 'overview', 'market', 'build', 'laws', 'groups', 'policy', 'budget', 'diplomacy', 'cabinet', 'archive', 'economy'];
+/** 이 데이터 판이 그대로 불러오는 이전 데이터 판. 상태 구조가 같고 화면·설명만 다르다(2.1.0은 국민 계정 환산만 더했다). */
+export const COMPATIBLE_DATA = { '2.1.0': ['2.0.0'] };
 /** 지역 시책 동시 개수 = EDICT_CAP_BASE + floor(행정 역량 / EDICT_CAP_ADMIN) + 법률 보정. */
 export const EDICT_CAP_BASE = 2;
 export const EDICT_CAP_ADMIN = 30;
@@ -738,6 +740,7 @@ export function importSave(raw, d) {
   if (typeof raw !== 'string' || raw.length > 3000000) throw new Error('저장 파일 크기 또는 형식이 잘못되었습니다.');
   let parsed; try { parsed = JSON.parse(raw); } catch { throw new Error('읽을 수 없는 JSON입니다.'); }
   parsed = migrateSave(parsed);
+  if (object(parsed.state) && (COMPATIBLE_DATA[d.meta.version] || []).includes(parsed.state.dataVersion)) parsed.state.dataVersion = d.meta.version;
   const fail = () => { throw new Error('저장 데이터의 구조·ID·값이 올바르지 않습니다.'); };
   const s = parsed.state, E = d.economy;
   if (!object(s) || s.version !== SAVE_VERSION || s.gameId !== d.meta.id || s.dataVersion !== d.meta.version) fail();

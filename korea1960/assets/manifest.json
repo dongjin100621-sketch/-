@@ -113,6 +113,13 @@
       "historicalEvidence": false
     },
     {
+      "id": "economy",
+      "path": "assets/ui/economy.svg",
+      "kind": "original_vector",
+      "use": "UI 아이콘(경제 지표 화면)",
+      "historicalEvidence": false
+    },
+    {
       "id": "overview",
       "path": "assets/ui/overview.svg",
       "kind": "original_vector",

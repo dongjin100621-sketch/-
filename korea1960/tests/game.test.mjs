@@ -1,4 +1,4 @@
-/* game/engine.mjs·game/economy.mjs(v3, 데이터 2.0.0, 저장 형식 5) 검증.
+/* game/engine.mjs·game/economy.mjs(v3, 데이터 2.1.0, 저장 형식 5) 검증.
  * 사건·권한·시계·저장 규칙(v2에서 이어진 것)과 시장·건설·법률·이해집단(v3에서 새로 든 것), 자동 캠페인 불변식.
  * 실행: node --test tests/          (CAMPAIGN_SEEDS=40 처럼 환경 변수로 자동 캠페인 수를 늘릴 수 있다)
  */
@@ -82,6 +82,64 @@ test('finance: income minus expense is the balance, and negative cash borrows ex
 });
 test('delayed effects apply once at the specified month boundary', () => { let s = governing(); s.queue = ['japan_1965']; s.turn = 65; s = exec(s, { type: 'choose', choiceId: 'japan_1965_1' }); assert.equal(s.delayed.length, 1); s = advance(s, 3); assert.equal(s.delayed.length, 1); s = advance(s, 1); assert.equal(s.delayed.length, 0); assert.equal(s.log.filter(l => l.type === 'followup').length, 1); s = advance(s, 2); assert.equal(s.log.filter(l => l.type === 'followup').length, 1); });
 test('identical seed and actions produce identical campaign state', () => { assert.deepEqual(advance(createState(d, 777), 30), advance(createState(d, 777), 30)); assert.notDeepEqual(advance(createState(d, 777), 30).log, advance(createState(d, 778), 30).log); });
+/* ===== 국민 계정(데이터 2.1.0) ===== */
+test('national accounts: January 1960 matches the sourced anchors (GNP per capita 79 dollars, 65 won, census population)', () => {
+  const s = createState(d), before = clone(s), a = EC.accounts(s, d), A = d.accounts;
+  assert.deepEqual(clone(s), before, 'accounts()는 상태를 바꾸지 않는다');
+  near(a.gnp.perCapita, A.gnpPerCapita, 1e-3); near(a.fx, A.exchangeRate, 1e-4); near(a.cpi, 100, 1e-9); near(a.worldCpi, 100, 1e-9);
+  near(a.population, A.population.start, 1e-6); near(a.priceLevel, A.priceLevel, 1e-6); near(a.gdp.index, 100, 1e-4);
+  assert.equal(a.growth, null);
+  assert.ok(a.gdp.usd > 1.8e9 && a.gdp.usd < 2.1e9, `1960년 GDP ${a.gdp.usd}`);
+  near(a.gdp.won, a.gdp.usd * a.fx, 1); near(a.gdp.ppp, a.gdp.usd / a.priceLevel, 1); near(a.gnp.usd, a.gdp.usd + a.gnp.factorIncome, 1);
+  assert.ok(a.gnp.factorIncome < 0 && a.gnp.factorIncome > -a.gdp.usd * .01, '대외 차관 이자는 GDP의 1% 미만');
+  near(a.sectors.reduce((x, y) => x + y.share, 0), 1, 1e-9);
+  assert.ok(a.sectors.find(x => x.id === 'agri').share > a.sectors.find(x => x.id === 'manufacturing').share, '1960년에는 농림어업이 제조업보다 크다');
+  near(a.labor.force, A.laborShare * A.population.start, 1);
+  assert.ok(a.labor.employed + a.labor.unemployed - a.labor.force < 1 && a.labor.wageWon > 0 && a.reserves.usd > 0 && a.finance.revenue > 0);
+  near(a.reserves.usd, a.gdp.usd * s.stats.reserves * A.reservesPerPoint, 1);
+});
+test('national accounts: census population and US price level follow the sourced path', () => {
+  near(EC.population(d, 129) / 30882386, 1, .01); near(EC.population(d, 250) / 37436315, 1, .01); near(EC.population(d, 11) / 24989241, 1, .001);
+  assert.equal(EC.worldInflation(d, 1974), 11); assert.equal(EC.worldInflation(d, 1960), 1.7); assert.equal(EC.worldInflation(d, 1985), 11.3);
+  const s = createState(d); s.history = Array.from({ length: 241 }, (_, i) => ({ ...s.history[0], turn: i, inflation: 0 }));
+  const L = EC.priceLevels(s, d); near(L.D[240], 1, 1e-12);
+  const us = d.accounts.worldInflation.reduce((x, [, v]) => x * (1 + v / 100), 1); near(L.W[240], us, 1e-9);
+  near(us / (1 + d.accounts.worldInflation[0][1] / 100), 72.6 / 29.6, .01); // BLS CPI-U 연평균 1960 29.6 → 1979 72.6(1961~1979년 상승률의 곱)
+});
+test('national accounts: nominal money grows with recorded inflation, dollars follow the exchange-rate rule, growth compares twelve months', () => {
+  const s = months(createState(d), 14);
+  const R = EC.compute(s, d), a = EC.accounts(s, d, R), L = EC.priceLevels(s, d), A = d.accounts;
+  assert.equal(L.D.length, s.turn + 1);
+  near(a.cpi, L.D.at(-1) * 100, 1e-9);
+  const penn = (R.gdp / 100 / (EC.population(d, s.turn) / A.population.start)) ** A.penn;
+  near(a.fx, A.exchangeRate * L.D.at(-1) / L.W.at(-1) / penn, 1e-9);
+  near(a.growth, R.gdp / s.history[s.turn - 11].gdp - 1, 1e-12);
+  near(a.trade.balance, a.trade.exports - a.trade.imports, 1e-3);
+  const series = EC.accountsSeries(s, d);
+  assert.equal(series.length, Math.floor((s.turn - 1) / 12) + 1);
+  assert.equal(series.reduce((x, e) => x + e.months, 0), s.turn);
+  assert.ok(series.every((e, i) => Number.isFinite(e.gdpUsd) && e.perCapita > 0 && (i === 0 ? e.growth === null : Number.isFinite(e.growth))));
+});
+test('national accounts stay finite and consistent through whole campaigns', () => {
+  for (const strategy of ['growth', 'passive', 'welfare']) {
+    let last = null;
+    playCampaign(d, { seed: 11, strategy, onMonth: s => {
+      if (s.turn % 24) return; last = s;
+      const a = EC.accounts(s, d);
+      for (const v of [a.gdp.usd, a.gdp.won, a.gdp.ppp, a.gnp.usd, a.gnp.perCapita, a.fx, a.cpi, a.trade.exports, a.trade.imports, a.reserves.usd, a.finance.debt, a.labor.force, a.labor.wageWon]) assert.ok(Number.isFinite(v), `${strategy} t${s.turn} ${v}`);
+      assert.ok(a.gdp.usd > 0 && a.gnp.usd > 0 && a.fx > 0 && a.priceLevel > 0 && a.labor.unemployed >= -1e-6);
+      near(a.sectors.reduce((x, y) => x + y.share, 0), 1, 1e-9);
+    } });
+    assert.ok(EC.accountsSeries(last, d).length >= 9);
+  }
+});
+test('saves written with data 2.0.0 load unchanged under 2.1.0; other data versions are refused', () => {
+  const s = months(governing(), 2), raw = JSON.parse(exportSave(s));
+  raw.state.dataVersion = '2.0.0';
+  const back = importSave(JSON.stringify(raw), d);
+  assert.equal(back.dataVersion, d.meta.version); assert.equal(back.turn, s.turn);
+  raw.state.dataVersion = '1.9.0'; assert.throws(() => importSave(JSON.stringify(raw), d));
+});
 test('rounding never produces negative zero, so saves round-trip exactly', () => { assert.ok(Object.is(EC.round(-1e-9, 6), 0)); assert.ok(Object.is(EC.round(-0), 0)); assert.equal(EC.round(-1.23456, 2), -1.23); });
 test('RNG produces finite range and calendar handles endpoints', () => { const s = createState(d); for (let i = 0; i < 500; i++) { const n = random(s); assert.ok(n >= 0 && n < 1); } assert.equal(dateLabel(239), '1979-12'); });
 test('ending precedence keeps fiscal failure above other failures', () => { const s = governing(); s.stats.debt = 700; s.stats.liberty = 0; s.stats.legitimacy = 0; evaluateEnding(s, d); assert.equal(s.ending.id, 'fiscal_crisis'); });

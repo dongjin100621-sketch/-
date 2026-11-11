@@ -137,6 +137,18 @@ async function run(viewport, tag) {
   await page.click('[data-action="goodCat"][data-id="all"]');
   await page.click('.good-detail [data-action="nav"][data-focus="garment"]'); check((await text('main h1')).includes('수요가 있는 곳') && await page.isVisible('#c-garment'), '시장 → 그 상품을 만드는 건물 카드로 이동');
 
+  // 경제 지표(국민 계정, 데이터 2.1.0): 시장의 금액 카드 → 경제 지표 화면
+  await page.click('[data-action="nav"][data-view="market"]');
+  check((await text('main .kpis')).includes('명목 GDP') && (await text('main .kpis')).includes('억 달러') && (await text('main .kpis')).includes('외환보유액') && (await text('main .kpis')).includes('무역수지'), '시장: GDP·외환보유액·무역수지를 달러 금액으로');
+  await page.click('main .kpis .kpi[data-view="economy"] >> nth=0');
+  check((await text('main h1')).includes('국민 계정'), '시장의 GDP 카드 → 경제 지표 화면');
+  { const t = await text('main'); check(['명목 GDP', '1인당 GNP', '1인당 PPP', '실질 성장률', '환율', 'GNP', '국제달러', '소비자물가지수', '경제활동인구', '외환보유액', '국가채무', '산업 구조', '원/달러'].every(x => t.includes(x)), '경제 지표: GDP·GNP·PPP·물가·환율·고용·대외·재정·산업 구조'); }
+  check(await page.$$eval('.sectors li', els => els.length) === 6 && await page.$$eval('svg.ychart', els => els.length) === 2, '경제 지표: 산업 6부문 막대와 연도별 그래프 둘');
+  { const t = await text('.acc-cards'); const m = t.match(/1인당 GDP · 1인당 GNP\s*([\d,]+) · ([\d,]+)달러/); check(m && +m[2].replace(/,/g, '') > 50 && +m[2].replace(/,/g, '') < 5000, `경제 지표: 1인당 GNP가 달러 금액(${m && m[2]})`); }
+  await page.click('details.year-table >> nth=0 >> summary'); await page.waitForTimeout(50);
+  { const rows = await page.$$eval('details.year-table >> nth=0 >> tbody tr', els => els.length).catch(() => 0); const st = await S(page); check(rows === Math.floor((st.turn - 1) / 12) + 1, `경제 지표: 연도별 표 ${rows}행`); }
+  await page.screenshot({ path: `${out}/${tag}_04b_economy.png`, fullPage: true }); await audit(page, '경제 지표');
+
   // 이해집단: 여섯 집단, 집권 연합에 넣기
   await page.click('[data-action="nav"][data-view="groups"]');
   check(await page.$$eval('.card.group', els => els.length) === 6 && (await text('main')).includes('요구하는 건물') && (await text('main')).includes('바라는 법'), '이해집단: 여섯 집단의 지지도·요구·바라는 법');
@@ -250,9 +262,13 @@ async function run(viewport, tag) {
   await page.screenshot({ path: `${out}/${tag}_13_archive.png`, fullPage: true }); await audit(page, '기록실');
   s = await S(page); check(s.visited.includes('archive') && s.visited.includes('market'), '화면 방문 기록');
   // 지표 설명 창
-  await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.kpi[data-id="gdp"]');
-  check((await text('[role="dialog"]')).includes('부가가치'), '지표 설명 창'); await page.keyboard.press('Escape');
-  if (!mobileView) { await page.click('[data-action="help"]'); check((await text('[role="dialog"]')).includes('판매 주문') && (await text('[role="dialog"]')).includes('집권 연합'), '게임 방법: 시장·법률·이해집단 설명'); await page.keyboard.press('Escape'); }
+  await page.click('[data-action="nav"][data-view="overview"]');
+  check((await text('main .ov-kpis')).includes('1인당 GNP') && (await text('main .ov-kpis')).includes('달러'), '상황판: 1인당 GNP 카드');
+  await page.click('.kpi[data-id="unemployment"]');
+  check((await text('[role="dialog"]')).includes('노동 인구'), '지표 설명 창'); await page.keyboard.press('Escape');
+  await page.click('.stat[data-id="gdp"]');
+  check((await text('[role="dialog"]')).includes('부가가치') && (await text('[role="dialog"]')).includes('79달러'), '생산 지수 설명: 금액 환산 안내'); await page.keyboard.press('Escape');
+  if (!mobileView) { await page.click('[data-action="help"]'); check((await text('[role="dialog"]')).includes('판매 주문') && (await text('[role="dialog"]')).includes('집권 연합') && (await text('[role="dialog"]')).includes('경제 지표'), '게임 방법: 경제 지표·시장·법률·이해집단 설명'); await page.keyboard.press('Escape'); }
   await page.screenshot({ path: `${out}/${tag}_14_overview_governing.png`, fullPage: true }); await audit(page, '상황판(국정)');
 
   // 끝까지 진행 (화면 디버그 훅으로 빠르게, 매달 화면을 다시 그림)

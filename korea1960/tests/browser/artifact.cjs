@@ -52,6 +52,7 @@ fs.writeFileSync(path.join(SP, 'artifact/host.html'), `<!doctype html><meta char
     await f.click('main [data-action="pasteImport"]'); await f.$eval('#paste-text', (el, v) => { el.value = v; }, text); await f.click('[data-action="importText"]'); await f.click('[data-action="acceptImport"]'); // 붙여넣기를 흉내 낸다(fill은 긴 텍스트에서 매우 느리다)
     ok(JSON.stringify(await S()) === JSON.stringify(JSON.parse(text).state), '붙여 넣은 저장 텍스트로 이전 진행 복원');
     await f.click('[data-action="nav"][data-view="market"]'); ok(await f.$$eval('table.goods tbody tr', els => els.length) === 19, '시장 화면: 상품 19종');
+    await f.click('[data-action="nav"][data-view="economy"]'); { const t = await f.textContent('main'); ok(['명목 GDP', '1인당 GNP', '1인당 PPP', '환율'].every(w => t.includes(w)) && await f.$$eval('.sectors .sbar', els => els.length) === 6, '경제 지표 화면: GDP·GNP·PPP·환율·산업 6부문'); }
     await f.click('[data-action="nav"][data-view="laws"]'); ok(await f.$$eval('.law-row', els => els.length) === 14, '법률 화면: 분류 14개');
     await f.click('[data-action="nav"][data-view="groups"]'); ok(await f.$$eval('.card.group', els => els.length) === 6, '이해집단 화면: 여섯 집단');
     await f.click('[data-action="nav"][data-view="build"]'); ok((await f.textContent('main')).includes('이번 달 건설점'), '건물·건설 화면');

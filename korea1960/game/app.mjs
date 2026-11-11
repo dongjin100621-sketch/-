@@ -1,4 +1,4 @@
-/* 대한민국 1960: 선택의 연대기 — 화면 v3 (시장·건물·법률·이해집단 화면 추가)
+/* 대한민국 1960: 선택의 연대기 — 화면 v3.1 (시장·건물·법률·이해집단 화면, 경제 지표(국민 계정) 화면)
  * 입력을 engine.dispatch로 보내고 돌려받은 상태만 그린다. 비용·결과를 화면에서 따로 계산해 상태를 바꾸지 않는다.
  * 예외: 화면 방문 기록(state.visited)만 UI가 갱신한다(기록 표식 '기록을 읽는 사람' 판정용). */
 import * as E from './engine.mjs';
@@ -37,7 +37,7 @@ const arrow = delta => Math.abs(delta) < 1e-9 ? '–' : delta > 0 ? '▲' : '▼
 const pct = v => `${+(v * 100).toFixed(2)}%`;
 const EK = data.economy;
 const METRIC_HELP = {
-  gdp: '건물이 만든 부가가치(산출의 값 − 투입의 값)에 자급 농가의 산출과 정부 인건비를 더해 1960년 1월을 100으로 놓은 지수. 값이 오른 상품을 더 만들수록, 더 많은 사람이 일할수록 오른다.',
+  gdp: '건물이 만든 부가가치(산출의 값 − 투입의 값)에 자급 농가의 산출과 정부 인건비를 더해 1960년 1월을 100으로 놓은 지수. 값이 오른 상품을 더 만들수록, 더 많은 사람이 일할수록 오른다. 경제 지표 화면은 이 지수를 1960년 1월 1인당 국민소득 79달러에 맞춘 금액(GDP·GNP·PPP·1인당 금액)으로 바꿔 보인다.',
   treasury: '매월 세입(소비세·임금세·이익세·토지세·관세·국영 배당) − 기본 지출 − 이자 − 정부 인건비·물자 − 건설 자재값 − 보조금·유지비만큼 변한다. 0보다 작아지면 부족분이 자동으로 부채가 된다.',
   debt: `국고 부족분이 자동으로 더해지고 상환하면 줄어든다. 매월 부채의 ${pct(EK.interest)}가 이자. ${EK.inflation.debtFrom}을 넘으면 물가를 밀어 올리고, 700 이상이면 재정위기 엔딩.`,
   reserves: `매월 (수출 − 수입) × ${EK.forexScale}과 원조(1970년까지 줄어든다)만큼 움직인다. ${EK.forexFloor} 아래로 내려가면 수입이 줄어든다. 정책·사건으로도 변한다.`,
@@ -83,10 +83,10 @@ const LOG_FILTERS = [['all', '전체'], ['event', '사건'], ['law', '정책·�
 const LOG_GROUP = { event: 'event', followup: 'event', preparation: 'event', start: 'event', policy: 'law', law: 'law', government: 'law', construction: 'construction', edict: 'construction', finance: 'money', budget: 'money', diplomacy: 'foreign', cabinet: 'foreign', election: 'election', ending: 'election' };
 const BUDGET_LABEL = { industry: '산업', agriculture: '농업', education: '교육', welfare: '생활', infrastructure: '기반 시설', security: '안보' };
 const BUDGET_PRESETS = [['기본 배분', { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 }], ['산업 우선', { industry: 32, agriculture: 12, education: 14, welfare: 12, infrastructure: 20, security: 10 }], ['생활 우선', { industry: 14, agriculture: 18, education: 18, welfare: 28, infrastructure: 12, security: 10 }], ['인재 우선', { industry: 16, agriculture: 14, education: 30, welfare: 16, infrastructure: 14, security: 10 }]];
-const NAV = [['map', '지도'], ['overview', '상황판'], ['laws', '법률'], ['groups', '이해집단'], ['policy', '정책'], ['market', '시장'], ['build', '건물·건설'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
-const NAV_GROUPS = [['국정', ['map', 'overview', 'laws', 'groups', 'policy']], ['경제·지역', ['market', 'build', 'budget']], ['대외·인사', ['diplomacy', 'cabinet']], ['기록', ['archive']]];
+const NAV = [['map', '지도'], ['overview', '상황판'], ['laws', '법률'], ['groups', '이해집단'], ['policy', '정책'], ['economy', '경제 지표'], ['market', '시장'], ['build', '건물·건설'], ['budget', '재정'], ['diplomacy', '외교'], ['cabinet', '내각 자문'], ['archive', '기록실']];
+const NAV_GROUPS = [['국정', ['map', 'overview', 'laws', 'groups', 'policy']], ['경제·지역', ['economy', 'market', 'build', 'budget']], ['대외·인사', ['diplomacy', 'cabinet']], ['기록', ['archive']]];
 /** 새 화면은 기존 아이콘을 함께 쓴다(새 그림 파일을 만들지 않았다). */
-const NAV_ICON = { market: 'growth', laws: 'assembly', groups: 'rights' };
+const NAV_ICON = { market: 'growth', laws: 'assembly', groups: 'rights', economy: 'economy' };
 
 /* ---------- 상태 ---------- */
 const ui = { screen: 'title', view: 'map', mapRegion: null, mapLayer: 'dev', mapBox: null, eventFolded: false, region: 'capital', policyCat: '전체', policyStatus: 'all', buildAll: false, goodCat: 'all', good: null, lawGroup: null, logFilter: 'all', modal: null, toast: null, budgetDraft: null };
@@ -315,7 +315,7 @@ function endingCard() {
   return `<section class="paper decision" aria-labelledby="end-title"><div class="art" style="background-image:url('${art('cover')}')" role="img" aria-label="${esc(artCaption('cover'))}"><span class="tag">연대기 종료 · ${esc(ym(Math.min(e.turn, 239)))}</span></div>
   <div class="body"><span class="eyebrow">엔딩 평가</span><h2 id="end-title">${esc(e.title)}</h2><p>${esc(e.text)}</p>
   <p class="muted" style="font-size:13px">아래 네 축은 서로를 상쇄하지 않는 별개의 평가입니다. 경제 성과가 권리 침해의 비용을 지우지 않습니다. 모든 값은 가상 모형 값입니다.</p>
-  <div class="axes">${axis('성장', 'gdp', `산업 역량 ${num(state.stats.industry)} · 부채 ${num(state.stats.debt, 0)}`)}${axis('권리', 'liberty', `정당성 ${num(state.stats.legitimacy)}${state.flags.authoritarian ? ' · 권력 집중 분기를 택함' : ''}`)}${axis('생활', 'welfare', `분배 균형 ${num(state.stats.equality)} · 교육 ${num(state.stats.education)}`)}${axis('환경', 'environment', `산업화의 환경 부담을 포함`)}</div>
+  <div class="axes">${axis('성장', 'gdp', `1인당 GNP ${num(startAcc().gnp.perCapita, 0)}달러 → ${num(acc().gnp.perCapita, 0)}달러 · 산업 역량 ${num(state.stats.industry)} · 부채 ${num(state.stats.debt, 0)}`)}${axis('권리', 'liberty', `정당성 ${num(state.stats.legitimacy)}${state.flags.authoritarian ? ' · 권력 집중 분기를 택함' : ''}`)}${axis('생활', 'welfare', `분배 균형 ${num(state.stats.equality)} · 교육 ${num(state.stats.education)}`)}${axis('환경', 'environment', `산업화의 환경 부담을 포함`)}</div>
   <h3 style="font-size:15px;margin:12px 0 6px">연대기 요약</h3><ul class="fx">${s.map(x => `<li class="note">${esc(x)}</li>`).join('')}</ul>
   <div class="row" style="justify-content:flex-start;flex-wrap:wrap;margin-top:14px">${btn('연대기 읽기', 'nav', { attrs: 'data-view="archive"', cls: 'primary' })}${btn('저장 내보내기', 'export')}${btn('새 연대기', 'newgame')}</div></div></section>`;
 }
@@ -339,7 +339,7 @@ function overview() {
   const R = eco(), ranked = [...data.goods].filter(g => R.goods[g.id].demand > 1).sort((a, b) => R.goods[b.id].ratio - R.goods[a.id].ratio);
   const chipFor = g => { const x = R.goods[g.id], r = x.price / g.price - 1; return `<button type="button" class="gbtn" data-action="nav" data-view="market" data-good="${g.id}">${gmark(g.id)}${esc(g.name)} <b class="pct ${r > .1 ? 'hi' : r < -.1 ? 'lo' : ''}">${pctS(r)}</b></button>`; };
   return `<div class="page-head"><div><span class="eyebrow">NATIONAL BRIEF · 국가 브리핑</span><h1>${esc(ym(state.turn))}, 선택은 기록으로 남는다</h1></div><span class="tag fiction">모든 지표는 가상 모형 값</span></div>
-  <div class="ov"><div class="kpis ov-kpis">${['gdp', 'unemployment', 'legitimacy', 'liberty', 'welfare', 'treasury'].map(id => kpi(id)).join('')}</div>
+  <div class="ov"><div class="kpis ov-kpis">${accKpi('gnp')}${['unemployment', 'legitimacy', 'liberty', 'welfare', 'treasury'].map(id => kpi(id)).join('')}</div>
   <div class="overview-grid ov-main"><div>${decisionCard()}</div><div class="grid">
   <article class="panel mandate"><span class="eyebrow">YOUR MANDATE · 현재 권한</span><h2 class="phase">${esc(p.name)}</h2><p style="font-size:14px">${esc(p.desc)}</p>
   <ul>${p.can.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${p.cannot ? `<small>아직 할 수 없음: ${esc(p.cannot)}</small>` : ''}
@@ -537,6 +537,120 @@ function wantedBy(buildingId) {
   return data.interestGroups.flatMap(g => E.econ.demandStatus(state, data, g).filter(x => x.buildings.includes(buildingId)).map(x => ({ ig: g, ...x })));
 }
 
+/* ---------- 화면: 경제 지표(국민 계정, 데이터 2.1.0) ---------- */
+/** 이번 달 국민 계정. 시장 계산(eco)이 바뀔 때만 다시 계산한다. */
+const ACC = { R: null, a: null };
+const acc = () => { const R = eco(); if (ACC.R !== R) { ACC.R = R; ACC.a = E.econ.accounts(state, data, R); } return ACC.a; };
+/** 1960년 1월의 국민 계정(산업 구조·1인당 소득 비교용). 새 상태를 한 번만 만든다. */
+let START_ACC = null;
+const startAcc = () => (START_ACC ||= E.econ.accounts(E.createState(data), data));
+/** 금액 표기: 억·만 단위. 달러는 1억 이상이면 '억 달러', 원은 1조 이상이면 '조 억 원'. */
+const usdParts = (v, cur = '달러') => { const a = Math.abs(v), sg = v < 0 ? '−' : ''; return a >= 1e8 ? [sg + num(a / 1e8, a >= 1e10 ? 0 : 1), `억 ${cur}`] : a >= 1e4 ? [sg + num(a / 1e4, 0), `만 ${cur}`] : [sg + num(a, 0), cur]; };
+const usd = (v, cur) => usdParts(v, cur).join('');
+const usdSigned = v => (v > 5e5 ? '+' : '') + usd(v);
+const won = v => { const a = Math.abs(v), sg = v < 0 ? '−' : ''; if (a >= 1e12) { const jo = Math.floor(a / 1e12), eok = Math.round(a % 1e12 / 1e8); return `${sg}${num(jo, 0)}조${eok ? ` ${num(eok, 0)}억` : ''} 원`; } if (a >= 1e8) return `${sg}${num(a / 1e8, 0)}억 원`; const step = a >= 1e4 ? 100 : 10, r = Math.round(a / step) * step, man = Math.floor(r / 1e4), rest = r % 1e4; return man ? `${sg}${num(man, 0)}만${rest ? ` ${num(rest, 0)}원` : ' 원'}` : `${sg}${num(r, 0)}원`; };
+const people = v => `${num(v / 1e4, 0)}만 명`;
+const share = (v, n = 1) => `${num(v * 100, n)}%`;
+const shareS = (v, n = 1) => Math.abs(v * 100) < 0.5 * 10 ** -n ? `${num(0, n)}%` : (v > 0 ? '+' : '−') + share(Math.abs(v), n);
+/** 시장·상황판의 금액 카드. 누르면 경제 지표 화면으로 간다. */
+function accKpi(kind) {
+  const a = acc(), s0 = startAcc(), card = (label, parts, sub, aria, tone = 'flat') => `<button type="button" class="kpi" data-action="nav" data-view="economy" aria-label="${esc(aria)}. 경제 지표 보기"><span>${label}</span><strong>${parts[0]}<small class="unit">${parts[1]}</small></strong><small class="delta ${tone}">${sub}</small></button>`;
+  if (kind === 'gdp') return card('명목 GDP', usdParts(a.gdp.usd), `1인당 GNP ${num(a.gnp.perCapita, 0)}달러${a.growth === null ? '' : ` · 성장 ${pctS(a.growth, 1)}`}`, `명목 GDP 연율 ${usd(a.gdp.usd)}, 1인당 GNP ${num(a.gnp.perCapita, 0)}달러`, a.growth === null ? 'flat' : a.growth >= 0 ? 'good' : 'bad');
+  if (kind === 'gnp') return card('1인당 GNP', [num(a.gnp.perCapita, 0), '달러'], `GDP ${usd(a.gdp.usd)}${a.growth === null ? ` · 1960년 1월 ${num(s0.gnp.perCapita, 0)}달러` : ` · 성장 ${pctS(a.growth, 1)}`}`, `1인당 GNP ${num(a.gnp.perCapita, 0)}달러, GDP ${usd(a.gdp.usd)}`, a.growth === null ? 'flat' : a.growth >= 0 ? 'good' : 'bad');
+  if (kind === 'reserves') return card('외환보유액', usdParts(a.reserves.usd), `외환 여력 지수 ${num(a.reserves.index, 0)}${a.reserves.months !== null ? ` · 수입 ${num(Math.min(a.reserves.months, 999), 0)}개월분` : ''}`, `외환보유액 ${usd(a.reserves.usd)}, 외환 여력 지수 ${num(a.reserves.index, 0)}`);
+  if (kind === 'trade') return card('무역수지', usdParts(a.trade.balance).map((x, i) => i ? x : (a.trade.balance > 5e5 ? '+' : '') + x), `수출 ${usd(a.trade.exports)} · 수입 ${usd(a.trade.imports)}`, `무역수지 ${usdSigned(a.trade.balance)}, 수출 ${usd(a.trade.exports)}, 수입 ${usd(a.trade.imports)}`, a.trade.balance >= 0 ? 'flat' : 'bad');
+  return '';
+}
+/** 연도별 선 그래프(한 계열). 0에서 시작하는 세로축, 해마다 점, 점마다 설명(마우스·터치). */
+function yearLine(series, key, label, fmt) {
+  const list = series.filter(e => Number.isFinite(e[key]));
+  if (list.length < 2) return `<p class="muted chart-empty">결산 기록이 두 해 이상 쌓이면 그립니다.</p>`;
+  const top = Math.max(...list.map(e => e[key])), max = top * 1.12, n = list.length, x = i => 46 + i / (n - 1) * 440, y = v => 112 - v / max * 96;
+  const pts = list.map((e, i) => `${x(i).toFixed(1)},${y(e[key]).toFixed(1)}`).join(' ');
+  const tip = e => `${e.year}년${e.months < 12 ? `(${e.months}개월)` : ''} ${fmt(e[key])}`;
+  return `<svg class="ychart" viewBox="0 0 500 128" role="img" aria-label="${esc(label)}: ${esc(tip(list[0]))}에서 ${esc(tip(list.at(-1)))}">
+  <line class="axis-base" x1="46" y1="112" x2="490" y2="112"/><line class="axis-top" x1="46" y1="${y(top).toFixed(1)}" x2="490" y2="${y(top).toFixed(1)}" stroke-dasharray="3 4"/>
+  <text x="40" y="${(y(top) + 4).toFixed(1)}" text-anchor="end">${esc(fmt(top))}</text><text x="40" y="116" text-anchor="end">0</text>
+  <polyline class="line" points="${pts}"/>${list.map((e, i) => `<g class="pt"><circle class="hit" cx="${x(i).toFixed(1)}" cy="${y(e[key]).toFixed(1)}" r="11"/><circle cx="${x(i).toFixed(1)}" cy="${y(e[key]).toFixed(1)}" r="${i === n - 1 ? 4 : 2.6}"/><title>${esc(tip(e))}</title></g>`).join('')}
+  <text class="end" x="${Math.min(486, x(n - 1)).toFixed(1)}" y="${(y(list.at(-1)[key]) - 9).toFixed(1)}" text-anchor="end">${esc(fmt(list.at(-1)[key]))}</text></svg>
+  <div class="scale"><span>${list[0].year}년</span><span>점을 누르거나 가리키면 값</span><span>${list.at(-1).year}년</span></div>`;
+}
+/** 연도별 실질 성장률 막대. 0을 기준으로 위는 성장(찬 색), 아래는 감소(따뜻한 색). */
+function growthBars(series) {
+  const list = series.filter(e => e.growth !== null);
+  if (!list.length) return `<p class="muted chart-empty">두 번째 해부터 앞 해와 비교해 그립니다.</p>`;
+  const lim = Math.max(.05, ...list.map(e => Math.abs(e.growth))) * 1.1, n = list.length, w = 440 / Math.max(n, 8), y0 = 64, h = v => v / lim * 52;
+  const bars = list.map((e, i) => { const v = e.growth, hh = Math.max(1, Math.abs(h(v))), bx = 46 + i * w + 1.5; return `<g class="pt"><rect class="hit" x="${(46 + i * w).toFixed(1)}" y="8" width="${w.toFixed(1)}" height="112"/><rect class="${v >= 0 ? 'pos' : 'neg'}" x="${bx.toFixed(1)}" y="${(v >= 0 ? y0 - hh : y0).toFixed(1)}" width="${Math.max(2, w - 3).toFixed(1)}" height="${hh.toFixed(1)}" rx="2"/><title>${e.year}년${e.months < 12 ? `(${e.months}개월)` : ''} ${pctS(v, 1)}</title></g>`; }).join('');
+  return `<svg class="ychart" viewBox="0 0 500 128" role="img" aria-label="연도별 실질 성장률: ${list.map(e => `${e.year}년 ${pctS(e.growth, 1)}`).join(', ')}">
+  <line class="axis-top" x1="46" y1="12" x2="490" y2="12" stroke-dasharray="3 4"/><line class="axis-top" x1="46" y1="116" x2="490" y2="116" stroke-dasharray="3 4"/>
+  <text x="40" y="16" text-anchor="end">${pctS(lim, 0)}</text><text x="40" y="68" text-anchor="end">0%</text><text x="40" y="120" text-anchor="end">${pctS(-lim, 0)}</text>
+  ${bars}<line class="axis-base" x1="46" y1="${y0}" x2="490" y2="${y0}"/></svg>
+  <div class="scale"><span>${list[0].year}년</span><span>막대를 누르거나 가리키면 값</span><span>${list.at(-1).year}년</span></div>`;
+}
+function economy() {
+  const a = acc(), s0 = startAcc(), A = data.accounts, series = E.econ.accountsSeries(state, data);
+  const kv = (label, value) => `<div class="kv"><span>${label}</span><b>${value}</b></div>`;
+  const plain = (label, parts, sub, tone = 'flat') => `<div class="kpi plain"><span>${label}</span><strong>${parts[0]}<small class="unit">${parts[1]}</small></strong><small class="delta ${tone}">${sub}</small></div>`;
+  const g = a.growth, gTone = g === null ? 'flat' : g >= 0 ? 'good' : 'bad', L = a.labor, F = a.finance;
+  const srcs = A.sourceIds.map(id => byId('sources', id));
+  return `<div class="page-head"><div><span class="eyebrow">ECONOMY · 경제 지표</span><h1>국민 계정으로 본 ${esc(ym(state.turn))}</h1><p>시장에서 만든 부가가치, 물가, 교역, 재정, 고용을 원·달러 금액과 인원으로 바꿔 보여 줍니다. 1960년 1월 값만 실제 규모(1인당 국민소득 ${A.gnpPerCapita}달러, 환율 650환 = ${A.exchangeRate}원, 인구총조사, 외환보유액)에 맞췄고, 그 뒤의 값은 이 연대기의 선택이 만든 결과입니다. 금액은 이번 달 값을 한 해로 늘린 연율입니다.</p></div><span class="tag fiction">모형 추계 · 실제 통계 아님</span></div>
+  <div class="kpis">${plain('명목 GDP', usdParts(a.gdp.usd), `연율 · ${won(a.gdp.won)}`)}
+  ${plain('1인당 GNP', [num(a.gnp.perCapita, 0), '달러'], `국민소득 · 1960년 1월 ${num(s0.gnp.perCapita, 0)}달러`)}
+  ${plain('실질 성장률', g === null ? ['—', ''] : [pctS(g, 1), ''], g === null ? '1961년 1월부터 계산' : `열두 달 전 대비 · 지수 ${num(a.gdp.index, 1)}`, gTone)}
+  ${plain('1인당 PPP', [num(a.gdp.pppPerCapita, 0), '국제달러'], `구매력 평가 · 물가 수준 미국의 ${num(a.priceLevel * 100, 0)}%`)}
+  ${plain('물가상승률', [num(a.inflation, 1), '%'], `연율 · 소비자물가지수 ${num(a.cpi, 0)}`)}
+  ${plain('환율', [num(a.fx, 1), '원'], `달러당 · 1960년 1월 ${num(s0.fx, 0)}원`)}</div>
+  <div class="cards acc-cards">
+  <article class="panel"><h2>생산과 소득</h2>
+  ${kv('명목 GDP <small>국내총생산</small>', `${usd(a.gdp.usd)} · ${won(a.gdp.won)}`)}
+  ${kv('실질 GDP <small>1960년 1월 가격</small>', `${won(a.gdp.real)} · 지수 ${num(a.gdp.index, 1)}`)}
+  ${kv('해외 순수취 요소소득 <small>대외 차관 이자</small>', usdSigned(a.gnp.factorIncome))}
+  ${kv('GNP <small>국민총생산</small>', `${usd(a.gnp.usd)} · ${won(a.gnp.won)}`)}
+  ${kv('1인당 GDP · 1인당 GNP', `${num(a.gdp.perCapita, 0)} · ${num(a.gnp.perCapita, 0)}달러`)}
+  ${kv('PPP GDP <small>구매력 평가</small>', usd(a.gdp.ppp, '국제달러'))}
+  ${kv('1인당 PPP GDP', `${num(a.gdp.pppPerCapita, 0)}국제달러`)}
+  ${kv('물가 수준 <small>미국 = 100</small>', num(a.priceLevel * 100, 0))}</article>
+  <article class="panel"><h2>물가·환율·인구</h2>
+  ${kv('소비자물가지수 <small>1960년 1월 = 100</small>', num(a.cpi, 1))}
+  ${kv('물가상승률 <small>연율</small>', `${num(a.inflation, 1)}%`)}
+  ${kv('미국 물가지수 <small>1960년 1월 = 100</small>', num(a.worldCpi, 1))}
+  ${kv('환율 <small>시장 · 원/달러</small>', `${num(a.fx, 1)}원`)}
+  ${kv('PPP 환산율 <small>원/국제달러</small>', `${num(a.fx * a.priceLevel, 1)}원`)}
+  ${kv('인구 <small>추계</small>', people(a.population))}</article>
+  <article class="panel"><h2>고용</h2>
+  ${kv('경제활동인구', people(L.force))}
+  ${kv('취업자 <small>건물 일자리 · 자급 농가</small>', `${people(L.employed)} <small>(${people(L.wageEarners)} · ${people(L.farmers)})</small>`)}
+  ${kv('실업자 · 실업률', `${people(L.unemployed)} · ${share(L.rate)}`)}
+  ${kv('노동자 월평균 임금', `${won(L.wageWon)} <small>(${num(L.wageUsd, 1)}달러)</small>`)}</article>
+  <article class="panel"><h2>대외 거래 <small>연율</small></h2>
+  ${kv('수출', usd(a.trade.exports))}
+  ${kv('수입', usd(a.trade.imports))}
+  ${kv('무역수지', usdSigned(a.trade.balance))}
+  ${kv('무역 의존도 <small>수출입 ÷ GDP</small>', share(a.trade.openness, 0))}
+  ${kv('외환보유액', `${usd(a.reserves.usd)}${a.reserves.months !== null ? ` <small>(수입 ${num(Math.min(a.reserves.months, 999), 0)}개월분)</small>` : ''}`)}</article>
+  <article class="panel"><h2>정부 재정 <small>GDP 대비</small></h2>
+  ${kv('세입', share(F.revenue))}
+  ${kv('세출', share(F.expense))}
+  ${kv('재정수지', shareS(F.balance))}
+  ${kv('국가채무', `${won(F.debtWon)} <small>(GDP의 ${share(F.debt)})</small>`)}
+  ${kv('국고 잔액', won(F.treasuryWon))}</article>
+  <article class="panel"><h2>산업 구조 <small>부가가치 비중</small></h2><ul class="sectors">${a.sectors.map((x, i) => { const b = s0.sectors[i].share; return `<li><div class="row"><span>${esc(x.name)}</span><b>${share(x.share, 0)}</b></div><div class="sbar" role="img" aria-label="${esc(x.name)} ${share(x.share, 0)}, 1960년 1월 ${share(b, 0)}"><i style="width:${(x.share * 100).toFixed(1)}%"></i><em style="left:${(b * 100).toFixed(1)}%"></em></div><small>${usd(x.usd)} · 1960년 1월 ${share(b, 0)}</small></li>`; }).join('')}</ul><small class="muted">세로 눈금이 1960년 1월 비중입니다.</small></article>
+  </div>
+  <div class="charts"><article class="panel chart"><div class="row"><h3>1인당 GDP <small>달러, 연평균</small></h3><strong>${series.length ? `${num(series.at(-1).perCapita, 0)}달러` : '—'}</strong></div>${yearLine(series, 'perCapita', '연도별 1인당 GDP', v => `${num(v, 0)}달러`)}</article>
+  <article class="panel chart"><div class="row"><h3>실질 성장률 <small>연평균 생산 지수, 앞 해 대비</small></h3><strong>${series.length && series.at(-1).growth !== null ? pctS(series.at(-1).growth, 1) : '—'}</strong></div>${growthBars(series)}</article></div>
+  <article class="panel"><details class="year-table"><summary><h2>연도별 표</h2><small>결산을 마친 달의 연평균</small></summary>
+  ${series.length ? `<div data-scroll-x><table class="goods"><thead><tr><th scope="col">연도</th><th scope="col" class="n">GDP</th><th scope="col" class="n">1인당 GDP</th><th scope="col" class="n">1인당 PPP</th><th scope="col" class="n">실질 성장률</th><th scope="col" class="n">물가상승률</th></tr></thead><tbody>${series.map(e => `<tr><th scope="row">${e.year}년${e.months < 12 ? ` <small>${e.months}개월</small>` : ''}</th><td class="n">${usd(e.gdpUsd)}</td><td class="n">${num(e.perCapita, 0)}달러</td><td class="n">${num(e.pppPerCapita, 0)}국제달러</td><td class="n">${e.growth === null ? '—' : pctS(e.growth, 1)}</td><td class="n">${num(e.inflation, 1)}%</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">첫 결산 뒤부터 쌓입니다.</p>'}</details></article>
+  <article class="panel"><details class="year-table"><summary><h2>계산 방법</h2><small>모형 가정과 출처</small></summary><ul class="method">
+  <li>GDP = 건물의 부가가치(산출의 값 − 투입의 값) + 자급 농가의 산출 + 공공 인건비. 1960년 1월을 1인당 GNP ${A.gnpPerCapita}달러(GDP ${usd(s0.gdp.usd)})에 맞추고, 생산 지수만큼 늘거나 준다.</li>
+  <li>명목 원화 금액 = 실질 금액 × 소비자물가지수. 소비자물가지수는 매달의 물가상승률을 쌓은 값이다.</li>
+  <li>환율 = ${A.exchangeRate}원 × 국내 물가 ÷ 미국 물가 ÷ (1인당 실질 소득 배율)<sup>${A.penn}</sup>. 미국 물가는 실제 소비자물가 상승률(1960~1979년)을 따른다.</li>
+  <li>GNP = GDP − 대외 차관 이자. 정부 부채의 ${Math.round(A.externalDebtShare * 100)}%를 대외 차관으로 본다. 해외 근로·투자 소득은 다루지 않는다.</li>
+  <li>PPP = 달러 GDP ÷ 물가 수준. 1960년 한국 물가 수준을 미국의 ${Math.round(A.priceLevel * 100)}%로 가정하고, 1인당 실질 소득 배율의 ${A.penn}제곱만큼 오른다고 가정한다.</li>
+  <li>외환보유액 = GDP × 외환 여력 지수 × ${num(A.reservesPerPoint * 100, 2)}%. 수출입은 시장의 수출입 값을 같은 환율로 바꾼 것이다.</li>
+  <li>인구는 정해진 길(연 ${num(A.population.growthStart * 100, 2)}%에서 ${num(A.population.growthEnd * 100, 2)}%로 줄어드는 증가율)을 따르고, 경제활동인구는 1960년 1월 총인구의 ${Math.round(A.laborShare * 100)}%에서 모형의 노동 인구만큼 늘어난다.</li>
+  </ul><h3 style="font-size:14px;margin:10px 0 4px">1960년 기준값의 출처</h3><ul class="sources">${srcs.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a> <small>${esc(x.institution)} · ${esc(x.scope)}</small></li>`).join('')}</ul></details></article>`;
+}
+
 /* ---------- 화면: 시장 ---------- */
 function market() {
   const R = eco(), X = data.economy.price, list = data.goods.filter(g => ui.goodCat === 'all' || g.category === ui.goodCat);
@@ -552,9 +666,9 @@ function market() {
   };
   const t = R.trade, used = t.capacity > 0 ? t.used / t.capacity : 0;
   return `<div class="page-head"><div><span class="eyebrow">MARKET · 시장</span><h1>주문이 가격을 정한다</h1><p>판매 주문은 건물의 산출·자급 농가·수입, 구매 주문은 가계·건물의 투입·정부·건설·수출입니다. 구매가 판매보다 많으면 가격이 오르고 적으면 내립니다. 값이 오른 상품을 만드는 건물은 이익이 커져 사람을 더 쓰고, 값이 내린 상품을 만드는 건물은 사람을 줄입니다. 모든 수량과 가격은 가상 모형 값입니다.</p></div><span class="tag">물가 지수 ${num(R.cpi * 100, 0)} · 1960년 가계 소비 기준 100</span></div>
-  <div class="kpis">${['gdp', 'unemployment', 'inflation', 'reserves'].map(id => kpi(id)).join('')}
+  <div class="kpis">${accKpi('gdp')}${kpi('unemployment')}${kpi('inflation')}${accKpi('reserves')}
   <div class="kpi plain"><span>무역 역량 <small>물량 기준</small></span><strong>${num(used * 100, 0)}%</strong><small class="delta ${used > .9 ? 'bad' : 'flat'}">${num(t.used, 1)} / ${num(t.capacity, 1)}${used > .9 ? ' · 항만이 모자람' : ''}</small></div>
-  <div class="kpi plain"><span>교역 <small>재정점/월</small></span><strong>${signed(t.exports - t.imports, 1)}</strong><small class="delta flat">수출 ${num(t.exports, 1)} · 수입 ${num(t.imports, 1)}</small></div></div>
+  ${accKpi('trade')}</div>
   <article class="panel market-table"><div class="row" style="flex-wrap:wrap"><h2>상품 ${list.length}종</h2><div class="filters" role="group" aria-label="상품 분류" style="margin:0">${GOOD_CATS.map(([id, n]) => `<button type="button" class="btn small" data-action="goodCat" data-id="${id}" aria-pressed="${ui.goodCat === id}">${n}</button>`).join('')}</div></div>
   <div data-scroll-x><table class="goods"><thead><tr><th scope="col">상품</th><th scope="col" class="n">판매 주문</th><th scope="col" class="n">구매 주문</th><th scope="col">수지</th><th scope="col">시장 가격 <small>기준 대비</small></th></tr></thead><tbody>${list.map(g => row(g) + (ui.good === g.id ? `<tr class="gdetail"><td colspan="5">${goodDetail(g.id, R)}</td></tr>` : '')).join('')}</tbody></table></div>
   <small class="muted">이번 달 결산에 들어갈 주문입니다. 가격은 지난 결산 값이고 ▲▼는 다음 결산의 방향입니다. 가격은 기준가격의 ${pctS(X.floor)}~${pctS(X.ceiling)} 안에서 움직입니다. 행을 누르면 그 아래에 누가 팔고 누가 사는지 펼쳐집니다.</small></article>`;
@@ -931,7 +1045,7 @@ function reportContent() {
   const next = r.events.map(id => byId('events', id)?.title).filter(Boolean);
   const body = `<p class="muted" style="font-size:13px">${esc(ym(r.turn))}의 월말 처리: 시장(주문·가격·교역) → 세입·지출·이자 → 지표 추세 → 정책·법률·자문 지속 효과 → 충원·건설 진행·준공 → 법률 제정 검사 → 지연 효과 → 이해집단 지지도 → 선거·엔딩 판정.</p>
   <h3>재정</h3><table><tbody><tr><td>세입</td><td class="n">${num(fin.income, 2)}</td></tr><tr><td>기본 지출</td><td class="n">${minus(fin.base)}</td></tr><tr><td>이자</td><td class="n">${minus(fin.interest)}</td></tr><tr><td>인건비·물자·건설 자재·보조·유지비</td><td class="n">${minus(fin.upkeep)}</td></tr><tr><th>월 수지</th><th class="n"><span class="delta ${fin.balance >= 0 ? 'good' : 'bad'}">${arrow(fin.balance)} ${signed(fin.balance, 2)}</span></th></tr></tbody></table>
-  ${mk ? `<h3>시장</h3><table><tbody><tr><td>생산 지수 · 실업률</td><td class="n">${num(mk.gdp, 1)} · ${num(mk.unemployment, 1)}%</td></tr><tr><td>물가 지수 <small>1960년 가계 소비 기준 100</small></td><td class="n">${num(mk.cpi * 100, 0)}</td></tr><tr><td>수출 · 수입</td><td class="n">${num(mk.exports, 1)} · ${num(mk.imports, 1)}</td></tr><tr><td>건설점 쓰임 / 만든 양</td><td class="n">${num(mk.used, 1)} / ${num(mk.points, 1)}</td></tr><tr><td>민간 투자기금</td><td class="n">${num(mk.pool, 1)}</td></tr></tbody></table>` : ''}
+  ${mk ? `<h3>시장</h3><table><tbody><tr><td>GDP <small>연율, 이번 달 기준</small> · 1인당 GNP</td><td class="n">${usd(acc().gdp.usd)} · ${num(acc().gnp.perCapita, 0)}달러</td></tr><tr><td>생산 지수 · 실업률</td><td class="n">${num(mk.gdp, 1)} · ${num(mk.unemployment, 1)}%</td></tr><tr><td>물가 지수 <small>1960년 가계 소비 기준 100</small></td><td class="n">${num(mk.cpi * 100, 0)}</td></tr><tr><td>수출 · 수입</td><td class="n">${num(mk.exports, 1)} · ${num(mk.imports, 1)}</td></tr><tr><td>건설점 쓰임 / 만든 양</td><td class="n">${num(mk.used, 1)} / ${num(mk.points, 1)}</td></tr><tr><td>민간 투자기금</td><td class="n">${num(mk.pool, 1)}</td></tr></tbody></table>` : ''}
   ${events.length ? `<h3>이번 달에 일어난 일</h3><ul class="stack" style="font-size:14px">${events.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
   <h3>지표 변화와 원인 <small>(항목을 누르면 원인별 기여)</small></h3>${changes.map(([k, v]) => `<details><summary><span>${esc(mlabel(k))}</span><span class="delta ${tone(k, v)}">${arrow(v)} ${signed(v, Math.abs(v) < .1 ? 3 : 2)}</span><small>${num(state.stats[k], digits(k))}</small></summary><ul>${(r.ledger[k] || []).map(([src, dv]) => `<li><span>${esc(src)}</span><span>${signed(dv, 3)}</span></li>`).join('')}</ul></details>`).join('') || '<p>변화 없음</p>'}
   ${support.length ? `<h3>이해집단의 지지 변화</h3><ul class="fx">${support.map(([id, v]) => `<li class="${v >= 0 ? 'good' : 'bad'}"><span>${esc(byId('interestGroups', id).name)}</span><b>${arrow(v)} ${signed(v, 1)}</b><small>${num(state.support[id], 0)}</small></li>`).join('')}</ul>` : ''}
@@ -948,6 +1062,7 @@ function helpContent() {
   return { title: '게임 방법', body: `<p>1960년 1월 1일부터 1979년 12월 31일까지 시간이 하루씩 흐릅니다(한 틱 = 하루). 나라의 경제와 지표는 매달 말일에 한 번 결산합니다(240번). 플레이어는 박정희라는 역사적 출발점에 있지만, 1960년에는 대통령 권한이 없습니다.</p>
   <h3>시간</h3><p style="font-size:14px">위쪽 시계의 <b>진행</b>(스페이스)으로 시간을 흐르게 하고 다시 누르면 멈춥니다. 배속은 ×1(하루 0.7초)·×2·×4·×8이며 숫자 키 1~4로도 바꿉니다. 매달 1일에 사건이 오면 시계가 스스로 멈추고, 결정하면 다시 흐릅니다. <b>건너뛰기</b>는 이번 달 남은 날을 넘겨 바로 결산하고 결산 창을 엽니다.</p>
   <h3>한 달에 하는 일</h3><ol class="steps"><li><span>1일에 온 사건 문서에서 선택지 하나를 고릅니다. 선택은 행동점수를 쓰지 않습니다.</span></li><li><span>행동점수 3을 건물 착공·법률 발의·집권 연합·정책·외교·자문·상환에 씁니다. 생산방식 변경, 보조금, 대기열 순서, 예산 배분은 행동점수를 쓰지 않습니다.</span></li><li><span>말일이 지나면 결산합니다. '이번 달 업무'의 <b>결산 보기</b>로 무엇이 얼마나, 왜 바뀌었는지 확인하세요.</span></li></ol>
+  <h3>경제 지표</h3><p style="font-size:14px">GDP·GNP·PPP·1인당 국민소득·실질 성장률·물가·환율·수출입·외환보유액·재정 비율·산업 구조·노동 인원을 원·달러 금액과 인원으로 보여 줍니다. 1960년 1월 값만 실제 규모(1인당 국민소득 ${data.accounts.gnpPerCapita}달러, 환율 ${data.accounts.exchangeRate}원, 인구총조사)에 맞췄고, 그 뒤는 이 게임의 결과입니다. 실제 통계와 비교하는 값이 아닙니다.</p>
   <h3>시장</h3><p style="font-size:14px">상품 ${data.goods.length}종마다 <b>판매 주문</b>(건물의 산출·자급 농가·수입)과 <b>구매 주문</b>(가계·건물의 투입·정부·건설·수출)이 있습니다. 구매가 판매보다 많으면 가격이 오르고 적으면 내립니다(기준가격의 ${pctS(X.price.floor)}~${pctS(X.price.ceiling)}). 국내 가격이 세계 가격에 관세를 더한 값보다 비싸면 수입이 들어오고, 세계 가격보다 싸면 수출이 나갑니다. 교역은 무역 역량(항만) 안에서만 이루어지고, 외환 보유가 바닥나면 수입이 줄어듭니다. 구매가 판매의 ${X.shortageAt}배를 넘으면 <b>공급 부족</b>이 되어 그 상품을 쓰는 건물의 생산이 깎입니다.</p>
   <h3>건물과 건설</h3><p style="font-size:14px">건물은 단계마다 사람을 쓰고 투입재를 사서 상품을 냅니다. 이익이 나면 사람을 채우고 손실이면 줄입니다. <b>생산방식</b>을 올리면 같은 사람으로 더 만들지만 새 투입재가 들고, 산업·농업 기술 지수나 연도 조건이 있습니다. 건설은 <b>건설점</b>으로 합니다: 건설 부문이 달마다 건설점을 만들고, 대기열의 공사가 그 점수를 나눠 씁니다(한 건에 한 달 ${X.maxPerProject}점까지). 착공에는 돈이 들지 않고 진행한 만큼 자재값이 나갑니다. 건설점의 일부는 <b>민간 투자</b> 몫이라, 기업가·지주의 배당에서 쌓인 투자기금이 이익이 날 건물을 스스로 짓습니다. 지형·자원이 있어야 짓는 건물(탄광·항만·댐 등)이 있고, 권역의 기반 시설 용량을 넘겨 지으면 그 권역의 생산이 깎입니다.</p>
   <h3>법률</h3><p style="font-size:14px">분류 ${data.lawGroups.length}개마다 한 법만 유효합니다. 새 법은 <b>집권 연합</b> 안에 그 법을 현행 법보다 바라는 집단이 있어야 발의할 수 있습니다(연합 밖 여론이 세력의 ${Math.round(X.enactment.massDemand * 100)}%를 넘어도 됩니다). 정해진 달마다 검사를 받아 세 번 통과하면 제정되고, 통과하지 못하면 논쟁이나 지체가 되며 지체 세 번이면 폐기됩니다. 확률은 연합 안의 지지·반대 세력, 연합 밖 여론, 정당성, 가상 의석이 정합니다. 한 번에 한 법만 다룹니다.</p>
@@ -1009,7 +1124,7 @@ function draw() {
   const focusKey = focusSignature(document.activeElement);
   const scroller = document.scrollingElement, y = scroller ? scroller.scrollTop : 0;
   if (ui.screen === 'title' || !state) { $('#app').innerHTML = title(); afterRender(focusKey); return; }
-  const pages = { map: mapView, overview, market, build, laws, groups, policy, budget, diplomacy, cabinet, archive };
+  const pages = { map: mapView, overview, economy, market, build, laws, groups, policy, budget, diplomacy, cabinet, archive };
   const endReason = E.endMonthReason(state);
   const pending = state.queue.length;
   const navBtn = id => { const t = NAV.find(x => x[0] === id)[1]; return `<button type="button" class="nav" data-action="nav" data-view="${id}" ${ui.view === id ? 'aria-current="page"' : ''}>${icon(NAV_ICON[id] || id)}<span>${t}</span>${id === 'overview' && pending ? `<span class="badge" aria-label="결정할 사건 ${pending}건">${pending}</span>` : ''}</button>`; };

@@ -1,4 +1,4 @@
-/* data/game.json(데이터 2.0.0)과 저장 상태(형식 5)의 형. 엔진은 game/engine.mjs·game/economy.mjs. */
+/* data/game.json(데이터 2.1.0)과 저장 상태(형식 5)의 형. 엔진은 game/engine.mjs·game/economy.mjs. */
 export type Phase='prelude'|'civilian'|'transition'|'elected'|'governing';
 export type MetricId='gdp'|'treasury'|'debt'|'reserves'|'inflation'|'unemployment'|'legitimacy'|'liberty'|'welfare'|'education'|'infrastructure'|'industry'|'agriculture'|'environment'|'stability'|'admin'|'equality'|'security';
 /** 이해집단이자 인구 계층. */
@@ -32,6 +32,18 @@ export type Action={type:'choose';choiceId:string}|{type:'prepare'}|{type:'polic
   |{type:'enact';id:string}|{type:'cancelEnact'}|{type:'coalition';id:GroupId}
   |{type:'edict';id:string;regionId:string}|{type:'revokeEdict';regionId:string}
   |{type:'budget';budget:Record<'industry'|'agriculture'|'education'|'welfare'|'infrastructure'|'security',number>}|{type:'diplomacy';countryId:string;mode:'talk'|'technology'|'humanitarian'}|{type:'adviser';id:string}|{type:'repay';amount:number}|{type:'endMonth'}|{type:'tick'};
+
+/* ---- 국민 계정(데이터 2.1.0). 상태에 저장하지 않고 economy.mjs의 accounts()가 계산한다. ---- */
+/** game.json의 accounts: 1960년 1월 기준값과 미국 물가표, 산업 분류. *Note 키는 설명 문자열. */
+export interface AccountsDef{note?:string;gnpPerCapita:number;exchangeRate:number;population:{start:number;growthStart:number;growthEnd:number;years:number;note?:string};laborShare:number;priceLevel:number;penn:number;reservesPerPoint:number;externalDebtShare:number;worldInflation:[number,number][];sectors:{id:string;name:string;buildings:string[];subsistence?:boolean}[];sourceIds:string[];[note:`${string}Note`]:string|undefined;}
+/** accounts(s, d, R)의 결과. 금액은 연율, 달러는 시장 환율, PPP는 국제달러, 비율은 0~1. */
+export interface NationalAccounts{turn:number;year:number;population:number;fx:number;priceLevel:number;cpi:number;worldCpi:number;inflation:number;
+  gdp:{index:number;won:number;usd:number;real:number;ppp:number;perCapita:number;pppPerCapita:number};gnp:{usd:number;won:number;perCapita:number;factorIncome:number};growth:number|null;
+  trade:{exports:number;imports:number;balance:number;openness:number};reserves:{usd:number;months:number|null;index:number};
+  finance:{revenue:number;expense:number;balance:number;debt:number;debtWon:number;debtUsd:number;treasuryWon:number};
+  labor:{force:number;employed:number;wageEarners:number;farmers:number;unemployed:number;rate:number;wageWon:number;wageUsd:number};sectors:{id:string;name:string;share:number;usd:number}[];}
+/** accountsSeries(s, d)의 한 해(결산을 마친 달의 연평균). growth는 앞 해가 열두 달을 다 채웠을 때만. */
+export interface AccountsYear{year:number;months:number;index:number;gdpUsd:number;perCapita:number;pppPerCapita:number;inflation:number;growth:number|null;}
 
 /* ---- 저장 상태(형식 5)의 경제 부분 ---- */
 /** 권역의 건물 하나. state는 국영 단계 수, staff는 충원율(0~1), pm은 생산방식 번호. */

@@ -124,5 +124,50 @@
     "scope": "1979년 10월 부산·마산의 민주항쟁과 박정희 정권 말기의 상황. 실제 사건의 강제 재현 대신 조건부 맥락으로 제시.",
     "accessed": "2026-11-10",
     "type": "institutional_history"
+  },
+  {
+    "id": "S15",
+    "title": "한국 GDP 규모 60년간 523배 증가",
+    "institution": "대한민국 정책브리핑(한국은행 「숫자로 보는 광복 60년」 정리)",
+    "url": "https://www.korea.kr/news/policyNewsView.do?newsId=80084162",
+    "scope": "1인당 국민총소득 1953년 67달러·1963년 100달러, 1960년 말 외환보유액 1억 6,000만 달러, 1963년 경제활동인구가 총인구의 30%. 국민 계정 환산의 1960년 기준점.",
+    "accessed": "2026-11-11",
+    "type": "statistics"
+  },
+  {
+    "id": "S16",
+    "title": "땀과 헌신으로 일군 한국 60년",
+    "institution": "한국경제신문 생글생글",
+    "url": "https://sgsg.hankyung.com/article/2015010912251",
+    "scope": "1960년 1인당 국민소득 79달러. 언론의 정리이며 한국은행 원자료와 구별.",
+    "accessed": "2026-11-11",
+    "type": "press"
+  },
+  {
+    "id": "S17",
+    "title": "우리 돈의 대외 가치",
+    "institution": "국사편찬위원회 우리역사넷",
+    "url": "https://contents.history.go.kr/front/km/print.do?levelId=km_008_0070_0040_0040",
+    "scope": "원화의 대달러 환율: 1960년 말 65.0원(650환), 1970년 말 316.7원. 게임의 환율은 1960년 값에서 출발한 모형 값.",
+    "accessed": "2026-11-11",
+    "type": "statistics"
+  },
+  {
+    "id": "S18",
+    "title": "우리나라 권역별 인구 현황",
+    "institution": "국토지리정보원 대한민국 국가지도집",
+    "url": "https://nationalatlas.ngii.go.kr/pages/download.php?dir=/nationalatlas/kor_c/pdf&file=4(074-081).pdf",
+    "scope": "총조사 인구 1960년 24,989,241명, 1970년 30,882,386명, 1980년 37,436,315명.",
+    "accessed": "2026-11-11",
+    "type": "statistics"
+  },
+  {
+    "id": "S19",
+    "title": "Historical Consumer Price Index for All Urban Consumers (CPI-U)",
+    "institution": "U.S. Bureau of Labor Statistics",
+    "url": "https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202412.pdf",
+    "scope": "미국 소비자물가 연평균 상승률 1960~1979년. 게임의 달러 금액·환율에 쓰는 세계 물가.",
+    "accessed": "2026-11-11",
+    "type": "statistics"
   }
 ]
