@@ -1,46 +1,44 @@
 {
   "format": "KOREA1960_SAVE",
-  "version": 4,
+  "version": 5,
   "state": {
-    "version": 4,
+    "version": 5,
     "gameId": "korea1960",
-    "dataVersion": "1.3.0",
+    "dataVersion": "2.0.0",
     "turn": 48,
     "day": 1,
     "rng": 380824181,
     "phase": "governing",
     "ap": 3,
     "influence": 527,
-    "seats": 0.5495968072078334,
+    "seats": 0.5678008158400338,
     "stats": {
-      "gdp": 112.07955348155878,
-      "treasury": 323.047841534456,
+      "gdp": 129.93900947494419,
+      "treasury": 477.67438442098756,
       "debt": 80,
-      "reserves": 45,
-      "inflation": 8.560187405115247,
-      "unemployment": 12.904775998000614,
-      "legitimacy": 68.33317803486074,
+      "reserves": 72.82978082434725,
+      "inflation": 7.214953867058854,
+      "unemployment": 5.862868321985427,
+      "legitimacy": 68.34748254072802,
       "liberty": 49.7,
-      "welfare": 36.152000000000044,
-      "education": 32.152000000000044,
-      "infrastructure": 26.152000000000044,
-      "industry": 20.87999999999994,
-      "agriculture": 39.728000000000065,
-      "environment": 64.672904,
-      "stability": 49.743074024567,
-      "admin": 49.00000000000003,
-      "equality": 43.23010947591841,
-      "security": 45
+      "welfare": 37.88724427255761,
+      "education": 39.35536214379663,
+      "infrastructure": 30.574445143087278,
+      "industry": 19.564596872384744,
+      "agriculture": 38.26376448966549,
+      "environment": 62.92569414843707,
+      "stability": 49.77402022555781,
+      "admin": 53.32000000000019,
+      "equality": 43.88428848120275,
+      "security": 48.70060412377764
     },
     "support": {
-      "workers": 41.82086371556671,
-      "farmers": 39.62309336919426,
-      "business": 34.99456830076682,
-      "students": 46.43592729207127,
-      "civil": 48.81265746571631,
-      "bureaucracy": 46.838979697968,
-      "military": 50.58394194000193,
-      "opposition": 48.92873342134998
+      "workers": 45.39692491752721,
+      "farmers": 49.792787019964386,
+      "petite": 49.25310530691668,
+      "business": 78.86510491874661,
+      "landowners": 83.69816600342972,
+      "military": 70.38659715472993
     },
     "relations": {
       "usa": 65,
@@ -59,8 +57,6 @@
       "security": 12
     },
     "policies": [],
-    "bills": [],
-    "projects": [],
     "edicts": [],
     "advisers": [],
     "flags": {
@@ -84,6 +80,1409 @@
       "sys_safety": 48
     },
     "delayed": [],
+    "buildings": [
+      {
+        "id": "farm",
+        "regionId": "capital",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "capital",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "garment",
+        "regionId": "capital",
+        "level": 7,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "food_plant",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "capital",
+        "level": 5,
+        "pm": 0,
+        "staff": 0.8,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "power_plant",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "construction",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "admin_office",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "clinic",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gangwon",
+        "level": 2,
+        "pm": 0,
+        "staff": 0.5,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "coal_mine",
+        "regionId": "gangwon",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "ore_mine",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "forestry",
+        "regionId": "gangwon",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "chungnam",
+        "level": 6,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "chungbuk",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "forestry",
+        "regionId": "chungbuk",
+        "level": 4,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "chungbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeonbuk",
+        "level": 7,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "food_plant",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gyeongbuk",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "gyeongbuk",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gyeongbuk",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gyeongbuk",
+        "level": 6,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "gyeongbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "gyeongbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeonnam",
+        "level": 8,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "jeonnam",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeonnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "jeonnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "jeonnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gyeongnam",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gyeongnam",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "port",
+        "regionId": "busan",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "garment",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "busan",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "power_plant",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "construction",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "admin_office",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      }
+    ],
+    "construction": [
+      {
+        "id": "textile_mill",
+        "regionId": "capital",
+        "progress": 18,
+        "private": true
+      },
+      {
+        "id": "garment",
+        "regionId": "capital",
+        "progress": 0,
+        "private": true
+      }
+    ],
+    "laws": {
+      "military_role": "military_autonomy",
+      "local_gov": "central_appointment",
+      "judiciary": "executive_primacy",
+      "civil_service": "patronage",
+      "economic_system": "aid_allocation",
+      "trade": "import_substitution",
+      "taxation": "indirect_tax",
+      "land": "tenancy_tolerated",
+      "labor": "no_labor_rules",
+      "association": "restricted_association",
+      "speech": "press_control",
+      "welfare_system": "no_welfare",
+      "environment_rules": "no_env_rules",
+      "defense": "conscript_army"
+    },
+    "enactment": null,
+    "government": [
+      "landowners",
+      "business"
+    ],
+    "ig": {
+      "workers": {
+        "mod": 0,
+        "clout": 0.1384,
+        "vote": 0.3401
+      },
+      "farmers": {
+        "mod": 0,
+        "clout": 0.1829,
+        "vote": 0.5139
+      },
+      "petite": {
+        "mod": 3.5876,
+        "clout": 0.1483,
+        "vote": 0.1122
+      },
+      "business": {
+        "mod": 0,
+        "clout": 0.2546,
+        "vote": 0.0091
+      },
+      "landowners": {
+        "mod": 0,
+        "clout": 0.1984,
+        "vote": 0.013
+      },
+      "military": {
+        "mod": 0,
+        "clout": 0.0774,
+        "vote": 0.0117
+      }
+    },
+    "econ": {
+      "prices": {
+        "grain": 17.8251,
+        "fish": 20.167,
+        "groceries": 44.6329,
+        "clothes": 47.5775,
+        "services": 30.4633,
+        "transport": 27.8291,
+        "electricity": 33.0279,
+        "fabric": 23.9617,
+        "wood": 15.9024,
+        "coal": 32.6963,
+        "ore": 34.5983,
+        "steel": 69.44,
+        "cement": 34.72,
+        "tools": 62.496,
+        "fertilizer": 37.2,
+        "oil": 54.56,
+        "electronics": 98.208,
+        "ships": 90,
+        "arms": 74.4
+      },
+      "short": {
+        "grain": 0,
+        "fish": 0,
+        "groceries": 0,
+        "clothes": 0,
+        "services": 0,
+        "transport": 0,
+        "electricity": 0,
+        "fabric": 0,
+        "wood": 0,
+        "coal": 0,
+        "ore": 0,
+        "steel": 0,
+        "cement": 0,
+        "tools": 0,
+        "fertilizer": 0,
+        "oil": 0,
+        "electronics": 0,
+        "ships": 0,
+        "arms": 0
+      },
+      "wage": 37.2939,
+      "workforce": 3012.093,
+      "pool": 60,
+      "dividends": {
+        "workers": 0,
+        "farmers": 1522.2458,
+        "petite": 3499.9131,
+        "business": 12986.5398,
+        "landowners": 2009.3644,
+        "military": 0
+      },
+      "sol": {
+        "workers": 8.628,
+        "farmers": 8.314,
+        "petite": 11.466,
+        "business": 30.36,
+        "landowners": 10.225,
+        "military": 8.818
+      },
+      "sol0": {
+        "workers": 7.952,
+        "farmers": 8.401,
+        "petite": 11.136,
+        "business": 25.202,
+        "landowners": 8.41,
+        "military": 9.013
+      },
+      "needBase": {
+        "grain": 2.56436321,
+        "fish": 0.28781213,
+        "groceries": 0.08232957,
+        "clothes": 0.09315865,
+        "services": 0.60375016,
+        "transport": 0.04573865,
+        "electricity": 0.03984224,
+        "fabric": 0.19137086,
+        "wood": 0.23813014,
+        "coal": 0.06142389,
+        "ore": 0,
+        "steel": 0,
+        "cement": 0,
+        "tools": 0.00571503,
+        "fertilizer": 0,
+        "oil": 0.00357235,
+        "electronics": 0.00195337,
+        "ships": 0,
+        "arms": 0
+      },
+      "gdpUnit": 940.7461,
+      "cpi": 1.0126,
+      "hist": {
+        "grain": [
+          -0.082,
+          -0.081,
+          -0.078,
+          -0.076,
+          -0.074,
+          -0.073,
+          -0.07,
+          -0.068,
+          -0.064,
+          -0.063,
+          -0.062,
+          -0.061,
+          -0.06,
+          -0.057,
+          -0.054,
+          -0.053,
+          -0.051,
+          -0.047,
+          -0.044,
+          -0.043,
+          -0.042,
+          -0.041,
+          -0.04,
+          -0.037,
+          -0.033,
+          -0.031,
+          -0.029,
+          -0.027,
+          -0.026,
+          -0.025,
+          -0.022,
+          -0.019,
+          -0.016,
+          -0.013,
+          -0.011,
+          -0.01
+        ],
+        "fish": [
+          0.056,
+          0.052,
+          0.038,
+          0.019,
+          0.011,
+          0.007,
+          0.006,
+          0.006,
+          0.008,
+          0.009,
+          0.009,
+          0.01,
+          -0.004,
+          -0.013,
+          -0.017,
+          -0.019,
+          -0.02,
+          -0.035,
+          -0.042,
+          -0.045,
+          -0.047,
+          -0.047,
+          -0.046,
+          -0.045,
+          -0.043,
+          -0.042,
+          -0.041,
+          -0.039,
+          -0.038,
+          -0.038,
+          -0.052,
+          -0.058,
+          -0.068,
+          -0.073,
+          -0.074,
+          -0.083
+        ],
+        "groceries": [
+          0.122,
+          0.125,
+          0.128,
+          0.132,
+          0.135,
+          0.137,
+          0.14,
+          0.145,
+          0.152,
+          0.158,
+          0.16,
+          0.161,
+          0.163,
+          0.167,
+          0.173,
+          0.177,
+          0.178,
+          0.185,
+          0.192,
+          0.195,
+          0.197,
+          0.197,
+          0.197,
+          0.2,
+          0.209,
+          0.216,
+          0.221,
+          0.224,
+          0.226,
+          0.227,
+          0.234,
+          0.237,
+          0.238,
+          0.239,
+          0.24,
+          0.24
+        ],
+        "clothes": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.079,
+          0.081,
+          0.081,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.081,
+          0.081,
+          0.081
+        ],
+        "services": [
+          -0.119,
+          -0.117,
+          -0.118,
+          -0.116,
+          -0.118,
+          -0.123,
+          -0.122,
+          -0.117,
+          -0.113,
+          -0.109,
+          -0.107,
+          -0.107,
+          -0.106,
+          -0.102,
+          -0.097,
+          -0.094,
+          -0.093,
+          -0.087,
+          -0.08,
+          -0.078,
+          -0.077,
+          -0.077,
+          -0.077,
+          -0.075,
+          -0.068,
+          -0.061,
+          -0.058,
+          -0.055,
+          -0.053,
+          -0.053,
+          -0.043,
+          -0.026,
+          -0.013,
+          0.002,
+          0.014,
+          0.015
+        ],
+        "transport": [
+          -0.053,
+          -0.051,
+          -0.046,
+          -0.043,
+          -0.04,
+          -0.037,
+          -0.032,
+          -0.03,
+          -0.023,
+          -0.019,
+          -0.018,
+          -0.017,
+          -0.015,
+          -0.011,
+          -0.008,
+          -0.006,
+          -0.005,
+          0.001,
+          0.005,
+          0.007,
+          0.007,
+          0.008,
+          0.008,
+          0.011,
+          0.017,
+          0.021,
+          0.025,
+          0.028,
+          0.03,
+          0.03,
+          0.034,
+          0.042,
+          0.052,
+          0.061,
+          0.067,
+          0.07
+        ],
+        "electricity": [
+          -0.01,
+          -0.008,
+          -0.005,
+          -0.002,
+          0.001,
+          0.005,
+          0.007,
+          0.009,
+          0.013,
+          0.017,
+          0.019,
+          0.02,
+          0.021,
+          0.03,
+          0.04,
+          0.046,
+          0.048,
+          0.052,
+          0.056,
+          0.058,
+          0.059,
+          0.059,
+          0.059,
+          0.069,
+          0.08,
+          0.088,
+          0.092,
+          0.094,
+          0.096,
+          0.096,
+          0.104,
+          0.128,
+          0.148,
+          0.165,
+          0.177,
+          0.18
+        ],
+        "fabric": [
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          0.027,
+          0.042,
+          0.049,
+          0.053,
+          0.054,
+          0.026,
+          0.012,
+          0.005,
+          0.002,
+          0,
+          0,
+          -0.001,
+          0,
+          0,
+          -0.001,
+          -0.001,
+          -0.001,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002
+        ],
+        "wood": [
+          0.038,
+          0.038,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.025,
+          0.031,
+          0.034,
+          0.035,
+          0,
+          -0.003,
+          -0.006
+        ],
+        "coal": [
+          0.274,
+          0.274,
+          0.274,
+          0.274,
+          0.275,
+          0.275,
+          0.276,
+          0.276,
+          0.278,
+          0.279,
+          0.278,
+          0.278,
+          0.278,
+          0.279,
+          0.28,
+          0.281,
+          0.281,
+          0.283,
+          0.284,
+          0.285,
+          0.284,
+          0.284,
+          0.284,
+          0.285,
+          0.287,
+          0.288,
+          0.289,
+          0.289,
+          0.289,
+          0.289,
+          0.291,
+          0.294,
+          0.273,
+          0.264,
+          0.26,
+          0.258
+        ],
+        "ore": [
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018
+        ],
+        "steel": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "cement": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "tools": [
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302
+        ],
+        "fertilizer": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "oil": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "electronics": [
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364
+        ],
+        "ships": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "arms": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ]
+      },
+      "trade": {
+        "exports": 23.271,
+        "imports": 2.213
+      }
+    },
+    "counters": {
+      "built": 0,
+      "privateBuilt": 19,
+      "resourceBuilt": 0,
+      "lawsEnacted": 0,
+      "lawsFailed": 0,
+      "regions": []
+    },
     "history": [
       {
         "turn": 0,
@@ -92,439 +1491,488 @@
         "liberty": 42,
         "legitimacy": 45,
         "welfare": 35,
-        "environment": 65
+        "environment": 65,
+        "unemployment": 11.94
       },
       {
         "turn": 0,
-        "gdp": 100.22899999999998,
-        "inflation": 8.988,
+        "gdp": 99.99999957916036,
+        "inflation": 8.738349736457685,
         "liberty": 42,
-        "legitimacy": 44.988612,
-        "welfare": 35.024,
-        "environment": 64.993679
+        "legitimacy": 44.98862908382888,
+        "welfare": 35.05816765777141,
+        "environment": 64.96408016810496,
+        "unemployment": 11.941212014134274
       },
       {
         "turn": 1,
-        "gdp": 100.45889492854887,
-        "inflation": 8.976144,
+        "gdp": 99.33455090457173,
+        "inflation": 8.49239848872791,
         "liberty": 42,
-        "legitimacy": 44.977236000000005,
-        "welfare": 35.048,
-        "environment": 64.987337
+        "legitimacy": 44.97728711708881,
+        "welfare": 35.116066519844495,
+        "environment": 64.92893929456523,
+        "unemployment": 11.981780651001754
       },
       {
         "turn": 2,
-        "gdp": 100.68968718853388,
-        "inflation": 8.964430272,
+        "gdp": 99.31243710220892,
+        "inflation": 8.265117514569932,
         "liberty": 42,
-        "legitimacy": 46.965872000000005,
-        "welfare": 35.072,
-        "environment": 64.980974
+        "legitimacy": 46.965973957101674,
+        "welfare": 35.1736800257312,
+        "environment": 64.89378591450989,
+        "unemployment": 12.047882799041357
       },
       {
         "turn": 3,
-        "gdp": 100.92137920520982,
-        "inflation": 8.952857108736,
+        "gdp": 99.32606941030144,
+        "inflation": 8.04978474145146,
         "liberty": 42,
-        "legitimacy": 49.95452,
-        "welfare": 35.096000000000004,
-        "environment": 64.97459
+        "legitimacy": 49.95468955050494,
+        "welfare": 35.23118680653324,
+        "environment": 64.85862009704127,
+        "unemployment": 12.130533411738044
       },
       {
         "turn": 4,
-        "gdp": 101.15397342616805,
-        "inflation": 8.941422823431168,
+        "gdp": 99.33717116795133,
+        "inflation": 7.846563913808093,
         "liberty": 42,
-        "legitimacy": 50.29318000000001,
-        "welfare": 35.120000000000005,
-        "environment": 64.968185
+        "legitimacy": 50.29343380534787,
+        "welfare": 35.288509685852084,
+        "environment": 64.82344191101339,
+        "unemployment": 12.22388140739393
       },
       {
         "turn": 5,
-        "gdp": 101.38747232130709,
-        "inflation": 8.930125749549994,
+        "gdp": 99.34365629555211,
+        "inflation": 7.654979117098335,
         "liberty": 42,
-        "legitimacy": 50.28185200000001,
-        "welfare": 35.144000000000005,
-        "environment": 64.961759
+        "legitimacy": 50.28220661121115,
+        "welfare": 35.34561172657386,
+        "environment": 64.78825142503277,
+        "unemployment": 12.324134394066014
       },
       {
         "turn": 6,
-        "gdp": 101.62187838280475,
-        "inflation": 8.918964240555393,
+        "gdp": 99.3575682167471,
+        "inflation": 7.474375830898203,
         "liberty": 42,
-        "legitimacy": 50.62053600000001,
-        "welfare": 35.168000000000006,
-        "environment": 64.955312
+        "legitimacy": 50.621007847617925,
+        "welfare": 35.40247281354449,
+        "environment": 64.75303869621553,
+        "unemployment": 12.428827294688912
       },
       {
         "turn": 7,
-        "gdp": 101.85719412509178,
-        "inflation": 8.907936669668729,
+        "gdp": 100.03125133389817,
+        "inflation": 7.304067534858081,
         "liberty": 42,
-        "legitimacy": 52.609232000000006,
-        "welfare": 35.19200000000001,
-        "environment": 64.94884400000001
+        "legitimacy": 52.60983764774617,
+        "welfare": 35.459600256486794,
+        "environment": 64.7174092644736,
+        "unemployment": 12.408900291420693
       },
       {
         "turn": 8,
-        "gdp": 102.0934220848271,
-        "inflation": 8.897041429632704,
+        "gdp": 100.80832413228443,
+        "inflation": 7.146827506524995,
         "liberty": 42,
-        "legitimacy": 52.94794000000001,
-        "welfare": 35.21600000000001,
-        "environment": 64.942355
+        "legitimacy": 52.948696107450466,
+        "welfare": 35.51691940858649,
+        "environment": 64.6813450620589,
+        "unemployment": 12.308252971639641
       },
       {
         "turn": 9,
-        "gdp": 102.33056482087443,
-        "inflation": 8.886276932477111,
+        "gdp": 101.9449890457304,
+        "inflation": 7.0035625523790195,
         "liberty": 42,
-        "legitimacy": 52.93666000000001,
-        "welfare": 35.24000000000001,
-        "environment": 64.935845
+        "legitimacy": 52.937583417084326,
+        "welfare": 35.57461926771979,
+        "environment": 64.6446356774635,
+        "unemployment": 12.091845275583635
       },
       {
         "turn": 10,
-        "gdp": 102.5686249142805,
-        "inflation": 8.875641609287387,
+        "gdp": 103.15115758950505,
+        "inflation": 6.877461289668879,
         "liberty": 42,
-        "legitimacy": 53.27539200000001,
-        "welfare": 35.26400000000001,
-        "environment": 64.929314
+        "legitimacy": 53.27649985638825,
+        "welfare": 35.632878607842784,
+        "environment": 64.60649147000642,
+        "unemployment": 11.742041962794062
       },
       {
         "turn": 11,
-        "gdp": 102.8076049682547,
-        "inflation": 8.865133909975938,
+        "gdp": 103.7218277044747,
+        "inflation": 6.776260547983649,
         "liberty": 42,
-        "legitimacy": 53.61413600000001,
-        "welfare": 35.28800000000001,
-        "environment": 64.922762
+        "legitimacy": 53.61544512442278,
+        "welfare": 35.690536069059455,
+        "environment": 64.56752546000745,
+        "unemployment": 11.496324368564817
       },
       {
         "turn": 12,
-        "gdp": 103.04750760815011,
-        "inflation": 8.854752303056227,
+        "gdp": 104.39400746180935,
+        "inflation": 6.688503763289844,
         "liberty": 42,
-        "legitimacy": 53.95289200000001,
-        "welfare": 35.31200000000001,
-        "environment": 64.916189
+        "legitimacy": 53.95441923527695,
+        "welfare": 35.748221708338505,
+        "environment": 64.52814246335628,
+        "unemployment": 11.279401151906823
       },
       {
         "turn": 13,
-        "gdp": 103.28833548144624,
-        "inflation": 8.844495275419552,
+        "gdp": 104.88927004918655,
+        "inflation": 6.6118208388345945,
         "liberty": 42,
-        "legitimacy": 53.94166000000001,
-        "welfare": 35.33600000000001,
-        "environment": 64.909595
+        "legitimacy": 53.94342216579484,
+        "welfare": 35.80586103577605,
+        "environment": 64.48874748476774,
+        "unemployment": 11.110582474703783
       },
       {
         "turn": 14,
-        "gdp": 103.5300912577328,
-        "inflation": 8.834361332114518,
+        "gdp": 105.57095310860261,
+        "inflation": 6.543676240604713,
         "liberty": 42,
-        "legitimacy": 54.28044000000001,
-        "welfare": 35.360000000000014,
-        "environment": 64.90298
+        "legitimacy": 54.2824540531841,
+        "welfare": 35.863774778505075,
+        "environment": 64.44934059404027,
+        "unemployment": 10.895433456838752
       },
       {
         "turn": 15,
-        "gdp": 103.77277762869525,
-        "inflation": 8.824348996129144,
+        "gdp": 106.04912264085971,
+        "inflation": 6.479996977238843,
         "liberty": 42,
-        "legitimacy": 54.26923200000001,
-        "welfare": 35.384000000000015,
-        "environment": 64.896344
+        "legitimacy": 54.27151502688023,
+        "welfare": 35.92194739226483,
+        "environment": 64.40992186071817,
+        "unemployment": 10.707261070394637
       },
       {
         "turn": 16,
-        "gdp": 104.01639730810157,
-        "inflation": 8.814456808175594,
+        "gdp": 106.21234866550715,
+        "inflation": 6.421577068996302,
         "liberty": 47,
-        "legitimacy": 60.18310546000001,
-        "welfare": 35.408000000000015,
-        "environment": 64.889687
+        "legitimacy": 60.185636003037644,
+        "welfare": 35.98010469161372,
+        "environment": 64.3704913540925,
+        "unemployment": 10.5818535914081
       },
       {
         "turn": 17,
-        "gdp": 104.26095303179046,
-        "inflation": 8.804683326477488,
+        "gdp": 106.35312673781495,
+        "inflation": 6.366759033737772,
         "liberty": 47,
-        "legitimacy": 60.0982826381,
-        "welfare": 35.432000000000016,
-        "environment": 64.883009
+        "legitimacy": 60.10107381471177,
+        "welfare": 36.03827760343401,
+        "environment": 64.33101904172462,
+        "unemployment": 10.506016299892622
       },
       {
         "turn": 18,
-        "gdp": 104.50644755766098,
-        "inflation": 8.795027126559757,
+        "gdp": 107.68855672009772,
+        "inflation": 6.314016886354323,
         "liberty": 47,
-        "legitimacy": 60.358646905041375,
-        "welfare": 35.45600000000002,
-        "environment": 64.87631
+        "legitimacy": 60.36168801241656,
+        "welfare": 36.097329677183325,
+        "environment": 64.29070814001534,
+        "unemployment": 10.258984970048134
       },
       {
         "turn": 19,
-        "gdp": 104.75288366566346,
-        "inflation": 8.78548680104104,
+        "gdp": 108.25490752670771,
+        "inflation": 6.27076000211467,
         "liberty": 47,
-        "legitimacy": 60.27121460146576,
-        "welfare": 35.48000000000002,
-        "environment": 64.86959
+        "legitimacy": 60.27454319064121,
+        "welfare": 36.156341951059034,
+        "environment": 64.25013869895606,
+        "unemployment": 10.08947448771605
       },
       {
         "turn": 20,
-        "gdp": 105.00026415779185,
-        "inflation": 8.776060959428548,
+        "gdp": 110.28687923859253,
+        "inflation": 6.237277480592305,
         "liberty": 47,
-        "legitimacy": 60.527518071597385,
-        "welfare": 35.50400000000002,
-        "environment": 64.862849
+        "legitimacy": 60.531118857254505,
+        "welfare": 36.21631187258209,
+        "environment": 64.20851356554994,
+        "unemployment": 9.680741949637877
       },
       {
         "turn": 21,
-        "gdp": 105.24859185807739,
-        "inflation": 8.766748227915405,
+        "gdp": 110.63330378368899,
+        "inflation": 6.221328878220531,
         "liberty": 47,
-        "legitimacy": 60.77777979414385,
-        "welfare": 35.52800000000002,
-        "environment": 64.856087
+        "legitimacy": 60.781663833707185,
+        "welfare": 36.27581718266275,
+        "environment": 64.16687690003157,
+        "unemployment": 9.456240664700365
       },
       {
         "turn": 22,
-        "gdp": 105.49786961258359,
-        "inflation": 8.757547249180421,
+        "gdp": 110.80024703615244,
+        "inflation": 6.2156410141936425,
         "liberty": 47,
-        "legitimacy": 61.022142467630914,
-        "welfare": 35.55200000000002,
-        "environment": 64.849304
+        "legitimacy": 61.02632038770457,
+        "welfare": 36.33497800965839,
+        "environment": 64.12522877189878,
+        "unemployment": 9.351438145451649
       },
       {
         "turn": 23,
-        "gdp": 105.74810028940261,
-        "inflation": 8.748456682190255,
+        "gdp": 110.91128623171863,
+        "inflation": 6.214279723988872,
         "liberty": 47,
-        "legitimacy": 60.92480501061645,
-        "welfare": 35.57600000000002,
-        "environment": 64.8425
+        "legitimacy": 60.929323100275504,
+        "welfare": 36.39394596244202,
+        "environment": 64.08356925039453,
+        "unemployment": 9.324388262110451
       },
       {
         "turn": 24,
-        "gdp": 106.00055575585631,
-        "inflation": 8.739475202003973,
+        "gdp": 111.60597581655765,
+        "inflation": 6.2148690580543455,
         "liberty": 47,
-        "legitimacy": 60.82893943545721,
-        "welfare": 35.60000000000002,
-        "environment": 64.835675
+        "legitimacy": 60.83381000419106,
+        "welfare": 36.45330034454275,
+        "environment": 64.04185800878963,
+        "unemployment": 9.213536056584772
       },
       {
         "turn": 25,
-        "gdp": 106.2539759949229,
-        "inflation": 8.730601499579926,
+        "gdp": 112.687545831783,
+        "inflation": 6.216300646356408,
         "liberty": 47,
-        "legitimacy": 60.734523663925344,
-        "welfare": 35.624000000000024,
-        "environment": 64.828829
+        "legitimacy": 60.73975916083581,
+        "welfare": 36.51331311192426,
+        "environment": 63.99890543445661,
+        "unemployment": 8.991069017997365
       },
       {
         "turn": 26,
-        "gdp": 106.50836397539975,
-        "inflation": 8.721834281584966,
+        "gdp": 113.43279099522346,
+        "inflation": 6.218875737421817,
         "liberty": 47,
-        "legitimacy": 60.97995527313801,
-        "welfare": 35.648000000000025,
-        "environment": 64.821962
+        "legitimacy": 60.98552301632774,
+        "welfare": 36.57368968917739,
+        "environment": 63.95512161466521,
+        "unemployment": 8.782601641201191
       },
       {
         "turn": 27,
-        "gdp": 106.76372268825335,
-        "inflation": 8.713172270205947,
+        "gdp": 113.59599203976288,
+        "inflation": 6.227266404408265,
         "liberty": 47,
-        "legitimacy": 61.21960191453058,
-        "welfare": 35.672000000000025,
-        "environment": 64.815074
+        "legitimacy": 61.225511888041815,
+        "welfare": 36.633895342066495,
+        "environment": 63.911326587462284,
+        "unemployment": 8.688511275903963
       },
       {
         "turn": 28,
-        "gdp": 107.02005514662335,
-        "inflation": 8.704614202963475,
+        "gdp": 113.79350724347051,
+        "inflation": 6.2393328245254525,
         "liberty": 47,
-        "legitimacy": 61.11936166581262,
-        "welfare": 35.696000000000026,
-        "environment": 64.808165
+        "legitimacy": 61.12567448451975,
+        "welfare": 36.6939589818588,
+        "environment": 63.86747035644502,
+        "unemployment": 8.668775702366796
       },
       {
         "turn": 29,
-        "gdp": 107.27736438582802,
-        "inflation": 8.696158832527914,
+        "gdp": 116.32583584584391,
+        "inflation": 6.252858304759351,
         "liberty": 47,
-        "legitimacy": 61.020636840825425,
-        "welfare": 35.72000000000003,
-        "environment": 64.801235
+        "legitimacy": 61.02736505721839,
+        "welfare": 36.755715667883834,
+        "environment": 63.82254682182911,
+        "unemployment": 8.220786164541673
       },
       {
         "turn": 30,
-        "gdp": 107.5356534633708,
-        "inflation": 8.687804926537579,
+        "gdp": 116.61123984722953,
+        "inflation": 6.27446154255726,
         "liberty": 47,
-        "legitimacy": 60.92340470821305,
-        "welfare": 35.74400000000003,
-        "environment": 64.794284
+        "legitimacy": 60.93056061290933,
+        "welfare": 36.81732294257372,
+        "environment": 63.77761224369791,
+        "unemployment": 7.971468014108947
       },
       {
         "turn": 31,
-        "gdp": 107.79492545894823,
-        "inflation": 8.679551267419129,
+        "gdp": 116.77308900318046,
+        "inflation": 6.303164624405087,
         "liberty": 47,
-        "legitimacy": 61.164434283260945,
-        "welfare": 35.76800000000003,
-        "environment": 64.787312
+        "legitimacy": 61.171968207226456,
+        "welfare": 36.878726483816045,
+        "environment": 63.732666691732774,
+        "unemployment": 7.851233161600696
       },
       {
         "turn": 32,
-        "gdp": 108.05518347445896,
-        "inflation": 8.671396652210099,
+        "gdp": 116.88182794193325,
+        "inflation": 6.334203793355879,
         "liberty": 47,
-        "legitimacy": 61.06506882901203,
-        "welfare": 35.79200000000003,
-        "environment": 64.780319
+        "legitimacy": 61.073055158054146,
+        "welfare": 36.94004860119714,
+        "environment": 63.68771023535729,
+        "unemployment": 7.8148493409289905
       },
       {
         "turn": 33,
-        "gdp": 108.3164306340142,
-        "inflation": 8.663339892383577,
+        "gdp": 116.97012526852443,
+        "inflation": 6.365788292544556,
         "liberty": 47,
-        "legitimacy": 60.96720567657685,
-        "welfare": 35.81600000000003,
-        "environment": 64.77330500000001
+        "legitimacy": 60.97565598608407,
+        "welfare": 37.0013307629189,
+        "environment": 63.64274294373807,
+        "unemployment": 7.832915571788931
       },
       {
         "turn": 34,
-        "gdp": 108.57867008394922,
-        "inflation": 8.655379813674974,
+        "gdp": 117.08582253813964,
+        "inflation": 6.3972202091184736,
         "liberty": 47,
-        "legitimacy": 60.870822291428205,
-        "welfare": 35.84000000000003,
-        "environment": 64.76627
+        "legitimacy": 60.87974796979106,
+        "welfare": 37.062585783258825,
+        "environment": 63.597704484837855,
+        "unemployment": 7.886321210216952
       },
       {
         "turn": 35,
-        "gdp": 108.84190499283606,
-        "inflation": 8.647515255910875,
+        "gdp": 118.488478743605,
+        "inflation": 6.428132557642267,
         "liberty": 47,
-        "legitimacy": 61.11314107743254,
-        "welfare": 35.86400000000003,
-        "environment": 64.759214
+        "legitimacy": 61.12247678062626,
+        "welfare": 37.1245851709639,
+        "environment": 63.550935912890985,
+        "unemployment": 7.754744413465088
       },
       {
         "turn": 36,
-        "gdp": 109.10613855149752,
-        "inflation": 8.639745072839945,
+        "gdp": 120.81762150482355,
+        "inflation": 6.4637697652153445,
         "liberty": 47,
-        "legitimacy": 61.014592301271044,
-        "welfare": 35.888000000000034,
-        "environment": 64.752137
+        "legitimacy": 61.02442810695937,
+        "welfare": 37.18777267513853,
+        "environment": 63.50267394221806,
+        "unemployment": 7.352161001527069
       },
       {
         "turn": 37,
-        "gdp": 109.37137397302233,
-        "inflation": 8.632068131965866,
+        "gdp": 121.23763068529735,
+        "inflation": 6.5117438168820865,
         "liberty": 47,
-        "legitimacy": 61.2535390593554,
-        "welfare": 35.912000000000035,
-        "environment": 64.745039
+        "legitimacy": 61.26380184475098,
+        "welfare": 37.250658158087205,
+        "environment": 63.4543608029741,
+        "unemployment": 7.132706299203259
       },
       {
         "turn": 38,
-        "gdp": 109.63761449278137,
-        "inflation": 8.624483314382276,
+        "gdp": 121.91517866437198,
+        "inflation": 6.566841892985756,
         "liberty": 47,
-        "legitimacy": 61.48685401369725,
-        "welfare": 35.936000000000035,
-        "environment": 64.73792
+        "legitimacy": 61.49755289337161,
+        "welfare": 37.313641505267306,
+        "environment": 63.404803968893106,
+        "unemployment": 6.947488608847522
       },
       {
         "turn": 39,
-        "gdp": 109.90486336844526,
-        "inflation": 8.616989514609688,
+        "gdp": 122.40918928049041,
+        "inflation": 6.625532215636166,
         "liberty": 47,
-        "legitimacy": 61.38273500349179,
-        "welfare": 35.960000000000036,
-        "environment": 64.73078
+        "legitimacy": 61.39397113938889,
+        "welfare": 37.37672978243623,
+        "environment": 63.35441455489078,
+        "unemployment": 6.812920604408732
       },
       {
         "turn": 40,
-        "gdp": 110.17312388000305,
-        "inflation": 8.609585640434371,
+        "gdp": 122.57462834397859,
+        "inflation": 6.686284723675832,
         "liberty": 47,
-        "legitimacy": 61.613022151128064,
-        "welfare": 35.98400000000004,
-        "environment": 64.723619
+        "legitimacy": 61.6247098638515,
+        "welfare": 37.43975697675582,
+        "environment": 63.30401461033448,
+        "unemployment": 6.767710890945615
       },
       {
         "turn": 41,
-        "gdp": 110.4423993297819,
-        "inflation": 8.602270612749159,
+        "gdp": 122.69412495909148,
+        "inflation": 6.746994887002201,
         "liberty": 47,
-        "legitimacy": 61.50703425886115,
-        "welfare": 36.00800000000004,
-        "environment": 64.716437
+        "legitimacy": 61.519282831567224,
+        "welfare": 37.50277294110605,
+        "environment": 63.25360420629534,
+        "unemployment": 6.780562545933317
       },
       {
         "turn": 42,
-        "gdp": 110.71269304246822,
-        "inflation": 8.595043365396169,
+        "gdp": 123.76226941514776,
+        "inflation": 6.804741865559581,
         "liberty": 47,
-        "legitimacy": 61.73440925345967,
-        "welfare": 36.03200000000004,
-        "environment": 64.709234
+        "legitimacy": 61.74712423447181,
+        "welfare": 37.56642493942859,
+        "environment": 63.203102760838945,
+        "unemployment": 6.6670835168382245
       },
       {
         "turn": 43,
-        "gdp": 110.98400836512965,
-        "inflation": 8.587902845011415,
+        "gdp": 125.73685145781296,
+        "inflation": 6.868820021099684,
         "liberty": 47,
-        "legitimacy": 61.62662419465777,
-        "welfare": 36.05600000000004,
-        "environment": 64.70201
+        "legitimacy": 61.63992405765443,
+        "welfare": 37.630835938470234,
+        "environment": 63.150493646520005,
+        "unemployment": 6.378329295615143
       },
       {
         "turn": 44,
-        "gdp": 111.25634866723841,
-        "inflation": 8.580848010871279,
+        "gdp": 128.0657459905767,
+        "inflation": 6.947492154996808,
         "liberty": 47,
-        "legitimacy": 61.851198264460194,
-        "welfare": 36.08000000000004,
-        "environment": 64.694765
+        "legitimacy": 61.864979307264065,
+        "welfare": 37.6948344088514,
+        "environment": 63.095829746726345,
+        "unemployment": 6.233227706221135
       },
       {
         "turn": 45,
-        "gdp": 111.52971734069563,
-        "inflation": 8.573877834740824,
+        "gdp": 128.99328244500623,
+        "inflation": 7.032076163718159,
         "liberty": 47,
-        "legitimacy": 64.55992773870629,
-        "welfare": 36.10400000000004,
-        "environment": 64.687499
+        "legitimacy": 64.57329910347273,
+        "welfare": 37.75905003406324,
+        "environment": 63.039418055643154,
+        "unemployment": 6.0694592868381605
       },
       {
         "turn": 46,
-        "gdp": 111.80411779985688,
-        "inflation": 8.566991300723934,
+        "gdp": 129.42956181707513,
+        "inflation": 7.120705830684996,
         "liberty": 47,
-        "legitimacy": 64.40979536262569,
-        "welfare": 36.12800000000004,
-        "environment": 64.680212
+        "legitimacy": 64.4238009825252,
+        "welfare": 37.82307736963569,
+        "environment": 62.98256138066702,
+        "unemployment": 5.977657233240983
       },
       {
         "turn": 47,
-        "gdp": 112.07955348155878,
-        "inflation": 8.560187405115247,
+        "gdp": 129.93900947494419,
+        "inflation": 7.214953867058854,
         "liberty": 49,
-        "legitimacy": 67.76913794896767,
-        "welfare": 36.152000000000044,
-        "environment": 64.672904
+        "legitimacy": 67.78369724247128,
+        "welfare": 37.88724427255761,
+        "environment": 62.92569414843707,
+        "unemployment": 5.862868321985427
       }
     ],
     "log": [
@@ -725,6 +2173,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 5,
+        "date": "1960-06-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 2단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
         "turn": 6,
         "date": "1960-07-01",
         "type": "event",
@@ -789,6 +2245,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 7,
+        "date": "1960-08-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 3단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
         "turn": 8,
         "date": "1960-09-01",
         "type": "event",
@@ -818,6 +2282,14 @@
         "date": "1960-09-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-30",
+        "type": "construction",
+        "text": "충북 · 임업·제재 2단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
       },
       {
         "turn": 9,
@@ -882,6 +2354,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 10,
+        "date": "1960-11-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 2단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
         "turn": 11,
         "date": "1960-12-01",
         "type": "event",
@@ -942,6 +2422,14 @@
         "date": "1961-01-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-31",
+        "type": "construction",
+        "text": "경북 · 어항·수산 3단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
       },
       {
         "turn": 13,
@@ -1071,6 +2559,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 16,
+        "date": "1961-05-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 4단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
         "turn": 17,
         "date": "1961-06-01",
         "type": "event",
@@ -1131,6 +2627,14 @@
         "date": "1961-07-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 5단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
       },
       {
         "turn": 19,
@@ -1257,6 +2761,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 22,
+        "date": "1961-11-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 4단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
         "turn": 23,
         "date": "1961-12-01",
         "type": "event",
@@ -1286,6 +2798,14 @@
         "date": "1961-12-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-31",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 3단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
       },
       {
         "turn": 24,
@@ -1362,7 +2882,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3436
+          "legitimacy": 0.3435
         }
       },
       {
@@ -1413,6 +2933,22 @@
         "date": "1962-04-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 6단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 5단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
       },
       {
         "turn": 28,
@@ -1601,6 +3137,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 33,
+        "date": "1962-10-31",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 4단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
         "turn": 34,
         "date": "1962-11-01",
         "type": "event",
@@ -1630,6 +3174,14 @@
         "date": "1962-11-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 7단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
       },
       {
         "turn": 35,
@@ -1641,7 +3193,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3424
+          "legitimacy": 0.3423
         }
       },
       {
@@ -1694,6 +3246,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 36,
+        "date": "1963-01-31",
+        "type": "construction",
+        "text": "충북 · 임업·제재 3단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
+      },
+      {
         "turn": 37,
         "date": "1963-02-01",
         "type": "event",
@@ -1703,7 +3263,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3411
+          "legitimacy": 0.341
         }
       },
       {
@@ -1734,7 +3294,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.339
+          "legitimacy": 0.3389
         }
       },
       {
@@ -1796,7 +3356,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3379
+          "legitimacy": 0.3378
         }
       },
       {
@@ -1816,6 +3376,14 @@
         "date": "1963-05-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-31",
+        "type": "construction",
+        "text": "경북 · 어항·수산 6단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
       },
       {
         "turn": 41,
@@ -1849,6 +3417,14 @@
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
       },
       {
+        "turn": 41,
+        "date": "1963-06-30",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 5단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
         "turn": 42,
         "date": "1963-07-01",
         "type": "event",
@@ -1858,7 +3434,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3368
+          "legitimacy": 0.3367
         }
       },
       {
@@ -1909,6 +3485,14 @@
         "date": "1963-08-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-31",
+        "type": "construction",
+        "text": "충북 · 임업·제재 4단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
       },
       {
         "turn": 44,
@@ -1920,7 +3504,7 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.3358
+          "legitimacy": 0.3357
         }
       },
       {
@@ -1953,7 +3537,7 @@
           "S04"
         ],
         "changes": {
-          "legitimacy": 2.8612
+          "legitimacy": 2.8601
         }
       },
       {
@@ -1981,6 +3565,14 @@
         "date": "1963-10-01",
         "type": "preparation",
         "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-31",
+        "type": "construction",
+        "text": "전남 · 어항·수산 3단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "jeonnam"
       },
       {
         "turn": 46,
@@ -2012,9 +3604,17 @@
           "S05"
         ],
         "changes": {
-          "legitimacy": 3.559,
+          "legitimacy": 3.5576,
           "liberty": 2
         }
+      },
+      {
+        "turn": 47,
+        "date": "1963-12-31",
+        "type": "construction",
+        "text": "서울·경기 · 상가·시장 5단계 준공 (민간 투자).",
+        "buildingId": "commerce",
+        "regionId": "capital"
       },
       {
         "turn": 48,
@@ -2026,19 +3626,19 @@
         "kind": "fictional_system",
         "sourceIds": [],
         "changes": {
-          "legitimacy": 0.564,
+          "legitimacy": 0.5638,
           "liberty": 0.7
         }
       }
     ],
     "ending": null,
     "lastFinance": {
-      "income": 14.913144122994991,
-      "base": 11.565257649197996,
+      "income": 20.10442589557787,
+      "base": 2.6354364945366013,
       "interest": 0.24,
-      "upkeep": 0,
-      "expense": 11.805257649197996,
-      "balance": 3.107886473796995,
+      "upkeep": 8.160454153969601,
+      "expense": 11.035890648506204,
+      "balance": 9.068535247071667,
       "turn": 47
     },
     "visited": [],
@@ -2046,129 +3646,220 @@
       "turn": 47,
       "date": "1963-12",
       "finance": {
-        "income": 14.913144122994991,
-        "base": 11.565257649197996,
+        "income": 20.10442589557787,
+        "base": 2.6354364945366013,
         "interest": 0.24,
-        "upkeep": 0,
-        "expense": 11.805257649197996,
-        "balance": 3.107886473796995
+        "upkeep": 8.160454153969601,
+        "expense": 11.035890648506204,
+        "balance": 9.068535247071667
       },
       "borrowed": 0,
-      "completed": [],
-      "bills": [],
+      "completed": [
+        {
+          "buildingId": "commerce",
+          "regionId": "capital",
+          "private": true
+        }
+      ],
+      "started": {
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      "laws": [],
       "followups": [],
       "election": null,
       "events": [
         "sys_safety"
       ],
       "ending": null,
+      "market": {
+        "gdp": 129.939,
+        "unemployment": 5.65,
+        "cpi": 1.0126,
+        "exports": 23.271,
+        "imports": 2.213,
+        "points": 18,
+        "used": 17,
+        "pool": 60
+      },
       "changes": {
-        "gdp": 0.275436,
-        "treasury": 3.107886,
-        "inflation": -0.006804,
-        "unemployment": -0.017329,
-        "legitimacy": -0.199678,
-        "welfare": 0.024,
-        "education": 0.024,
-        "infrastructure": 0.024,
-        "industry": 0.06,
-        "agriculture": 0.036,
-        "environment": -0.007308,
-        "stability": 0.139846,
-        "equality": -0.014185
+        "gdp": 0.509448,
+        "treasury": 9.068535,
+        "reserves": 0.67605,
+        "inflation": 0.094248,
+        "unemployment": -0.114789,
+        "legitimacy": -0.197724,
+        "welfare": 0.064167,
+        "education": 0.156268,
+        "infrastructure": 0.105532,
+        "industry": 0.02962,
+        "agriculture": 0.005116,
+        "environment": -0.056867,
+        "stability": 0.141098,
+        "admin": 0.09,
+        "equality": -0.029712,
+        "security": 0.070058
       },
       "support": {
-        "workers": 0.024953,
-        "farmers": -0.083412,
-        "business": -0.07651,
-        "students": 0.082165,
-        "civil": 0.035299,
-        "bureaucracy": 0.071831,
-        "military": 0.091969,
-        "opposition": 0.112932
+        "workers": 0.016993,
+        "farmers": -0.033344,
+        "petite": -0.180839,
+        "business": 0.726554,
+        "landowners": -0.053927,
+        "military": -0.026865
       },
       "relations": {},
       "ledger": {
         "treasury": [
           [
             "월 재정 수지",
-            3.107886
+            9.068535
           ]
         ],
         "gdp": [
           [
-            "생산 추세",
-            0.275436
+            "시장의 생산",
+            0.509448
+          ]
+        ],
+        "unemployment": [
+          [
+            "고용(건물 일자리와 노동 인구)",
+            -0.114789
+          ]
+        ],
+        "inflation": [
+          [
+            "시장 가격·부채 압력",
+            0.094248
+          ]
+        ],
+        "reserves": [
+          [
+            "교역 수지·원조",
+            0.67605
           ]
         ],
         "welfare": [
           [
             "예산 배분",
             0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.03
+          ],
+          [
+            "생활수준",
+            0.010167
           ]
         ],
         "education": [
           [
             "예산 배분",
             0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.21
+          ],
+          [
+            "역량의 감가",
+            -0.077732
           ]
         ],
         "infrastructure": [
           [
             "예산 배분",
             0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.124
+          ],
+          [
+            "역량의 감가",
+            -0.042468
           ]
         ],
         "industry": [
           [
             "예산 배분",
             0.06
+          ],
+          [
+            "역량의 감가",
+            -0.03038
           ]
         ],
         "agriculture": [
           [
             "예산 배분",
             0.036
-          ]
-        ],
-        "inflation": [
+          ],
           [
-            "물가 추세·부채 압력",
-            -0.006804
-          ]
-        ],
-        "unemployment": [
-          [
-            "고용 추세",
-            -0.017329
+            "역량의 감가",
+            -0.030884
           ]
         ],
         "environment": [
           [
-            "산업화의 환경 부담",
-            -0.007308
+            "건물의 환경 부담",
+            -0.062429
+          ],
+          [
+            "정부·기반 건물",
+            0.005562
+          ]
+        ],
+        "admin": [
+          [
+            "정부·기반 건물",
+            0.09
+          ]
+        ],
+        "security": [
+          [
+            "정부·기반 건물",
+            0.105
+          ],
+          [
+            "역량의 감가",
+            -0.074942
+          ],
+          [
+            "이해집단 특성",
+            0.04
+          ]
+        ],
+        "equality": [
+          [
+            "생활수준",
+            -0.017694
+          ],
+          [
+            "사회 추세",
+            -0.012018
           ]
         ],
         "legitimacy": [
           [
             "사회 추세",
-            -0.005224
+            -0.004356
           ],
           [
             "높아진 기대",
-            -0.194454
+            -0.194656
+          ],
+          [
+            "집권 연합의 기반",
+            0.001289
           ]
         ],
         "stability": [
           [
             "사회 추세",
-            0.139846
-          ]
-        ],
-        "equality": [
-          [
-            "사회 추세",
-            -0.014185
+            0.141098
           ]
         ]
       }

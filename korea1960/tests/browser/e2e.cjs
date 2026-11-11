@@ -1,8 +1,8 @@
 /* 실제 브라우저 검수 (Playwright 필요: 게임 실행에는 필요 없음).
  *   node tests/browser/e2e.cjs [KOREA1960.html 경로] [스크린샷 폴더]
  * 데스크톱 1440×900과 모바일 390×844에서 file://로 단일 HTML을 열고, 실제 클릭·파일 입력으로
- * 새 게임→사건→준비→월 종료→결산→버전 1 저장 불러오기→정책·법안·사업·외교·자문·예산·상환→
- * 저장 내보내기·다시 불러오기→손상 저장 거부→8개 화면→엔딩까지 진행한다.
+ * 새 게임→사건→지도→준비→월 종료→결산→시계→이전 형식 저장 거부→검토용 저장 불러오기→시장→이해집단·집권 연합→
+ * 법률 발의→건물 착공·생산방식·보조금·취소→정책·외교·지역 시책·자문·예산→저장 내보내기·다시 불러오기→손상 저장 거부→엔딩까지 진행한다.
  * 화면마다 가로 넘침, 44px 미만 터치 대상, 콘솔·페이지 오류, 실패한 요청을 검사한다. 실패하면 종료 코드 1. */
 const { chromium } = require('playwright');
 const path = require('path');
@@ -11,7 +11,8 @@ const root = path.resolve(__dirname, '../..');
 const html = path.resolve(process.argv[2] || path.join(root, 'KOREA1960.html'));
 const out = path.resolve(process.argv[3] || path.join(root, 'tests/browser/out'));
 fs.mkdirSync(out, { recursive: true });
-const fixture = path.join(root, 'tests/fixtures/v1_1964_governing.json');
+const oldSave = path.join(root, 'tests/fixtures/v4_data130_1966_regional_edicts.json');
+const sample = path.join(root, 'game/saves/1964_start_governing.json');
 const problems = [];
 const check = (ok, msg) => { if (!ok) { problems.push(msg); console.log('  ✗', msg); } else console.log('  ✓', msg); };
 
@@ -58,10 +59,11 @@ async function run(viewport, tag) {
   check(await page.$$eval('.kmap .mregion', els => els.length) === 10 && await page.isVisible('.map-stage'), '지도: 시작 화면 한가운데에 권역 10개');
   await page.screenshot({ path: `${out}/${tag}_02b_map.png` }); await audit(page, '지도');
   await page.click('.mregion[data-id="gyeongbuk"]', { force: true }); await page.waitForSelector('.map-card');
-  check((await page.textContent('.map-card h2')).includes('경북') && (await page.textContent('.map-card')).includes('사업 슬롯'), '지도: 권역을 누르면 권역 정보');
-  const fill0 = await page.getAttribute('.mregion[data-id="capital"]', 'fill');
+  check((await page.textContent('.map-card h2')).includes('경북') && (await page.textContent('.map-card')).includes('시장 접근성') && (await page.textContent('.map-card')).includes('방직 공장'), '지도: 권역을 누르면 권역 정보(건물·접근성)');
+  const fill0 = await page.getAttribute('.mregion[data-id="jeonnam"]', 'fill');
   await page.click('[data-action="mapLayer"][data-id="farm"]');
-  check(await page.getAttribute('.mregion[data-id="capital"]', 'fill') !== fill0 && (await page.getAttribute('.kmap', 'aria-label')).includes('농업'), '지도: 농업 잠재력으로 색 바꾸기');
+  check(await page.getAttribute('.mregion[data-id="jeonnam"]', 'fill') !== fill0 && (await page.getAttribute('.kmap', 'aria-label')).includes('경지'), '지도: 경지 사용으로 색 바꾸기');
+  await page.click('[data-action="mapLayer"][data-id="access"]'); check((await page.getAttribute('.kmap', 'aria-label')).includes('시장 접근성'), '지도: 시장 접근성 색 기준');
   await page.click('[data-action="mapLayer"][data-id="dev"]');
   if (!mobileView) { const vb0 = await page.getAttribute('.kmap', 'viewBox'); await page.click('[data-action="mapZoom"][data-id="in"]'); const vb1 = await page.getAttribute('.kmap', 'viewBox'); await page.click('[data-action="mapZoom"][data-id="reset"]'); check(vb0 !== vb1 && await page.getAttribute('.kmap', 'viewBox') === vb0, '지도: 확대와 전체 보기');
     await page.click('.map-card [data-action="closeRegion"]'); const box = await page.$eval('.kmap', el => { const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
@@ -78,7 +80,8 @@ async function run(viewport, tag) {
   await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.statusbar [data-action="endMonth"]');
   await page.waitForSelector('[role="dialog"]'); await page.waitForTimeout(100);
   await page.screenshot({ path: `${out}/${tag}_03_report.png` }); await audit(page, '월 결산');
-  s = await S(page); check(s.turn === 1 && s.ap === 3 && s.report?.turn === 0, '월 종료: 1960-02, AP 3, 결산 기록');
+  s = await S(page); check(s.turn === 1 && s.ap === 3 && s.report?.turn === 0 && s.report.market.gdp > 0, '월 종료: 1960-02, AP 3, 결산 기록');
+  check((await page.textContent('[role="dialog"]')).includes('물가 지수') && (await page.textContent('[role="dialog"]')).includes('시장의 생산'), '결산 창에 시장 요약과 생산의 원인');
   const focusedInDialog = await page.evaluate(() => !!document.activeElement.closest('[role="dialog"]')); check(focusedInDialog, '결산 창이 키보드 초점을 받음');
   await page.keyboard.press('Escape'); check(!(await page.$('[role="dialog"]')), 'Esc로 결산 창 닫기');
 
@@ -107,100 +110,126 @@ async function run(viewport, tag) {
   await page.click(playSel); check(!(await clockOf()).running, '진행 버튼으로 멈춤');
   await page.screenshot({ path: `${out}/${tag}_03b_clock.png` }); await audit(page, '시계 진행 후');
 
-  // 버전 1 저장 파일 불러오기 (실제 파일 입력)
-  await page.click('[data-action="nav"][data-view="archive"]');
-  await page.setInputFiles('[data-input="import"]', fixture); await page.waitForSelector('[role="dialog"]');
-  check((await page.textContent('[role="dialog"]')).includes('버전 1 → 4로 변환'), '버전 1 저장 → 변환 안내');
-  await page.click('[data-action="acceptImport"]'); await page.waitForTimeout(100);
-  s = await S(page); check(s.version === 4 && s.day === 1 && s.phase === 'governing' && s.turn === 48 && Array.isArray(s.edicts) && !s.edicts.length, `저장 불러오기: ${s.turn} ${s.phase}`);
-  if (s.queue.length) { await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
-  check(s.ap === 0, '검토용 저장은 AP를 모두 쓴 상태(버튼 비활성 사유 확인)');
-  await page.click('[data-action="nav"][data-view="policy"]'); await page.click('[data-action="policyStatus"][data-id="open"]');
-  check((await page.textContent('main')).includes('행동점수가 부족합니다'), 'AP 0일 때 시행 가능 목록이 비어 있는 이유 표시');
-  await page.click('[data-action="policyStatus"][data-id="all"]');
-  check((await page.textContent('main .cards')).includes('사유: 행동점수가 부족합니다'), '정책 카드마다 비활성 사유 표시');
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"]' : '.statusbar [data-action="endMonth"]'); await page.click('[role="dialog"] [data-action="closeModal"]');
-  s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
-  check(s.turn === 49 && s.ap === 3, `1964-02 진행, AP 3`);
+  const endSel = mobileView ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.statusbar [data-action="endMonth"]';
+  const nextMonth = async () => { await page.click(endSel); if (await page.$('[role="dialog"]')) await page.click('[role="dialog"] [data-action="closeModal"]'); let st = await S(page); if (st.queue.length && !st.ending) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); st = await S(page); } return st; };
+  const text = sel => page.textContent(sel);
 
-  // 정책 (확인 창)
+  // 이전 형식 저장은 이유를 알리고 거부한다. 현재 진행은 그대로다.
+  await page.click('[data-action="nav"][data-view="archive"]'); const before0 = JSON.stringify(await S(page));
+  await page.setInputFiles('[data-input="import"]', oldSave); await page.waitForSelector('.toast.bad');
+  check((await text('.toast.bad')).includes('경제 구조') && JSON.stringify(await S(page)) === before0, '이전 형식(4) 저장: 이유를 알리고 거부, 진행 유지');
+  await page.click('.toast [data-action="dismissToast"]');
+  // 검토용 저장(형식 5, 1964년 1월 취임 직후) 불러오기
+  await page.setInputFiles('[data-input="import"]', sample); await page.waitForSelector('[role="dialog"]');
+  check((await text('[role="dialog"]')).includes('버전 5') && (await text('[role="dialog"]')).includes('건물 단계'), '저장 파일 확인 창: 형식 5, 건물 단계');
+  await page.click('[data-action="acceptImport"]'); await page.waitForTimeout(100);
+  s = await S(page); check(s.version === 5 && s.phase === 'governing' && s.turn === 48 && s.ap === 3 && s.buildings.length > 30, `저장 불러오기: ${s.turn} ${s.phase} AP ${s.ap}`);
+  if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); s = await S(page); }
+
+  // 시장: 상품 표, 분류, 상품 상세
+  await page.click('[data-action="nav"][data-view="market"]');
+  check(await page.$$eval('table.goods tbody tr', els => els.length) === 19 && (await text('table.goods thead')).includes('판매 주문') && (await text('table.goods thead')).includes('구매 주문'), '시장: 상품 19종의 판매·구매 주문 표');
+  await page.screenshot({ path: `${out}/${tag}_04_market.png`, fullPage: true }); await audit(page, '시장');
+  await page.click('tr.grow[data-id="steel"]');
+  check((await text('.good-detail h2')).includes('강철') && (await text('.good-detail')).includes('수입') && (await text('.good-detail')).includes('제철소'), '시장: 상품을 누르면 누가 팔고 사는지, 만드는 건물');
+  await page.focus('tr.grow[data-id="clothes"]'); await page.keyboard.press('Enter'); check((await text('.good-detail h2')).includes('의복'), '시장: 키보드로 상품 선택');
+  await page.click('[data-action="goodCat"][data-id="industrial"]'); check(await page.$$eval('table.goods tbody tr', els => els.length) === 9, '시장: 분류로 거르기(산업재 9종)');
+  await page.click('[data-action="goodCat"][data-id="all"]');
+  await page.click('.good-detail [data-action="nav"][data-focus="garment"]'); check((await text('main h1')).includes('수요가 있는 곳') && await page.isVisible('#c-garment'), '시장 → 그 상품을 만드는 건물 카드로 이동');
+
+  // 이해집단: 여섯 집단, 집권 연합에 넣기
+  await page.click('[data-action="nav"][data-view="groups"]');
+  check(await page.$$eval('.card.group', els => els.length) === 6 && (await text('main')).includes('요구하는 건물') && (await text('main')).includes('바라는 법'), '이해집단: 여섯 집단의 지지도·요구·바라는 법');
+  await page.screenshot({ path: `${out}/${tag}_05_groups.png`, fullPage: true }); await audit(page, '이해집단');
+  await page.click('button[data-action="askCoalition"][data-id="petite"]'); await page.waitForSelector('[role="dialog"]');
+  check((await text('[role="dialog"]')).includes('연합의 세력'), '집권 연합 확인 창: 세력과 정당성 변화'); await page.screenshot({ path: `${out}/${tag}_05b_coalition_confirm.png` });
+  await page.click('[data-action="confirm"]'); s = await S(page); check(s.government.includes('petite') && s.ap === 2 && s.government.length === 3, `소시민을 집권 연합에: ${s.government.join(',')}`);
+  check(await page.isDisabled('button[data-action="askCoalition"][data-id="workers"]') && (await text('.card.group >> nth=0')).includes('3개 집단까지'), '연합이 차면 넣기 버튼이 비활성(사유 표시)');
+
+  // 법률: 분류 세 열, 발의, 제정 중 표시
+  await page.click('[data-action="nav"][data-view="laws"]');
+  check(await page.$$eval('.law-row', els => els.length) === 14 && await page.$$eval('.law-col', els => els.length) === 3, '법률: 세 열에 분류 14개');
+  await page.click('.law-row[data-id="speech"]'); check((await text('main .cards')).includes('언론 자유 보장') && (await text('main .cards')).includes('이해집단의 태도'), '법률: 분류를 누르면 선택지와 이해집단의 태도');
+  await page.screenshot({ path: `${out}/${tag}_06_laws.png`, fullPage: true }); await audit(page, '법률');
+  check(await page.isDisabled('button[data-action="askEnact"][data-id="pollution_control"]').catch(() => true), '법률: 아직 열리지 않은 법은 비활성');
+  await page.click('button[data-action="askEnact"][data-id="press_freedom"]'); await page.waitForSelector('[role="dialog"]');
+  check((await text('[role="dialog"]')).includes('제정 절차') && (await text('[role="dialog"]')).includes('통과 확률'), '법률 발의 확인 창: 절차와 확률'); await page.screenshot({ path: `${out}/${tag}_06b_enact_confirm.png` });
+  const t0 = s.stats.treasury; await page.click('[data-action="confirm"]'); s = await S(page);
+  check(s.enactment?.lawId === 'press_freedom' && s.ap === 1 && s.stats.treasury === t0 - 8, '언론 자유 보장 발의: AP·시행비 차감, 제정 중');
+  check(await page.isVisible('.enact') && (await text('.enact')).includes('언론 자유 보장') && (await text('.agenda')).includes('언론 자유 보장'), '제정 중인 법이 법률 화면과 진행 중 목록에 보임');
+  await page.click('.law-row[data-id="labor"]'); check(await page.isDisabled('button[data-action="askEnact"][data-id="labor_inspection"]') && (await text('main .cards')).includes('한 번에 하나'), '한 번에 한 법만: 다른 법은 비활성(사유 표시)');
+
+  // 건물·건설: 권역 선택, 착공, 생산방식, 보조금, 대기열
+  await page.click('[data-action="nav"][data-view="build"]'); await page.click('.region[data-id="jeonnam"]');
+  if (await page.getAttribute('[data-action="buildAll"]', 'aria-pressed') === 'true') await page.click('[data-action="buildAll"]'); // 시장에서 건물 카드로 건너오면 전체 표시가 켜져 있다
+  check((await text('main')).includes('이번 달 건설점') && (await text('main')).includes('전남에 지을 수 있는 건물') && await page.$$eval('.brow', els => els.length) >= 4, '건물·건설: 건설점, 권역의 건물, 지을 수 있는 건물');
+  await page.screenshot({ path: `${out}/${tag}_07_build.png`, fullPage: true }); await audit(page, '건물·건설');
+  check(!(await page.$('#c-coal_mine')), '전남에는 탄광 카드가 없음(석탄이 없는 권역)');
+  const pmBtn = await page.$('#b-farm button[data-action="pm"][data-pm="1"]'); check(pmBtn && await pmBtn.isDisabled() && (await pmBtn.getAttribute('title')).includes('농업'), '생산방식: 조건이 안 되면 비활성(사유는 농업 기술 지수)');
+  await page.click('#b-fishery button[data-action="subsidy"]'); s = await S(page); check(s.buildings.find(b => b.id === 'fishery' && b.regionId === 'jeonnam').subsidy === true && s.ap === 1, '보조금 켜기: 행동점수를 쓰지 않음');
+  await page.click('#b-fishery button[data-action="subsidy"]');
+  await page.click('#c-school button[data-action="askBuild"]'); await page.waitForSelector('[role="dialog"]');
+  check((await text('[role="dialog"]')).includes('건설점') && (await text('[role="dialog"]')).includes('자재값'), '착공 확인 창: 건설점과 자재값'); await page.screenshot({ path: `${out}/${tag}_07b_build_confirm.png` });
+  const t1 = s.stats.treasury; await page.click('[data-action="confirm"]'); s = await S(page);
+  check(s.construction.some(q => q.id === 'school' && q.regionId === 'jeonnam' && !q.private) && s.ap === 0 && s.stats.treasury === t1, '전남 학교 착공: AP 1, 착공비 없음');
+  check(await page.isDisabled('#c-clinic button[data-action="askBuild"]') && (await text('#c-clinic')).includes('행동점수가 부족합니다'), 'AP 0이면 착공 버튼 비활성(사유 표시)');
+  check((await text('.queue')).includes('학교') && (await text('.agenda')).includes('학교'), '대기열과 진행 중 목록에 공사 표시');
+  s = await nextMonth(); const q1 = s.construction.find(q => q.id === 'school' && q.regionId === 'jeonnam');
+  check(s.turn === 49 && s.ap === 3 && q1 && q1.progress > 0 && s.report.finance.upkeep > 0, `한 달 뒤: 공사 진행 ${q1 ? q1.progress : 0}점, AP 3`);
+  // 대기열: 두 번째 공사를 올리고 맨 앞으로, 취소
+  await page.click('[data-action="nav"][data-view="build"]'); await page.click('.region[data-id="busan"]');
+  await page.click('#c-garment button[data-action="askBuild"]'); await page.click('[data-action="confirm"]'); s = await S(page);
+  const gi = s.construction.findIndex(q => q.id === 'garment' && q.regionId === 'busan' && !q.private); check(gi >= 0, '부산 봉제 공장 착공');
+  await page.click(`.queue button[data-action="prioritize"][data-id="${gi}"]`); s = await S(page); check(s.construction.find(q => !q.private).id === 'garment' && s.ap === 2, '맨 앞으로: 정부 대기열의 첫 공사가 됨(AP 없음)');
+  const gi2 = s.construction.findIndex(q => q.id === 'garment' && !q.private); await page.click(`.queue button[data-action="cancelBuild"][data-id="${gi2}"]`); await page.waitForSelector('[role="dialog"]'); await page.click('[data-action="confirm"]');
+  s = await S(page); check(!s.construction.some(q => q.id === 'garment' && q.regionId === 'busan' && !q.private) && s.ap === 2, '공사 취소: 대기열에서 빠짐(AP 없음)');
+
+  // 정책
   await page.click('[data-action="nav"][data-view="policy"]'); await page.click('[data-action="policyStatus"][data-id="open"]');
-  await page.screenshot({ path: `${out}/${tag}_04_policy.png`, fullPage: true }); await audit(page, '정책');
-  const treasury0 = s.stats.treasury, ap0 = s.ap;
-  await page.click('button[data-action="askPolicy"]:not([disabled]) >> nth=0'); await page.waitForSelector('[role="dialog"]');
-  await page.screenshot({ path: `${out}/${tag}_05_confirm.png` });
-  await page.click('[data-action="confirm"]'); s = await S(page);
-  check(s.ap === ap0 - 1 && s.stats.treasury < treasury0 && s.policies.length >= 1, `정책 시행: AP ${ap0}→${s.ap}, 국고 ${treasury0.toFixed(1)}→${s.stats.treasury.toFixed(1)}`);
-  check(await page.$('.toast') !== null, '결정 후 변화 알림 표시');
-  // 의회
-  await page.click('[data-action="nav"][data-view="assembly"]'); await page.screenshot({ path: `${out}/${tag}_06_assembly.png`, fullPage: true }); await audit(page, '의회');
-  const billBtn = await page.$('button[data-action="askPolicy"]:not([disabled])');
-  if (billBtn) { await billBtn.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(s.bills.filter(b => !['passed', 'failed'].includes(b.status)).length >= 2, '법안 발의: 심의 중 2건 이상'); }
-  // 사업
-  await page.click('[data-action="nav"][data-view="build"]'); await page.click('[data-action="region"][data-id="jeju"]');
-  await page.screenshot({ path: `${out}/${tag}_07_build.png`, fullPage: true }); await audit(page, '사업·권역');
-  const projBtn = await page.$('button[data-action="askProject"]:not([disabled])');
-  if (projBtn) { await projBtn.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(s.projects.some(p => p.regionId === 'jeju' && p.status === 'building'), '제주 사업 착수'); }
-  else check(false, '착수 가능한 사업 버튼');
-  s = await S(page); check(s.ap === 0, `AP 소진: ${s.ap}`);
-  check(await page.isDisabled('button[data-action="askProject"] >> nth=0'), 'AP 0이면 착수 버튼 비활성');
-  // 다음 달로
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.statusbar [data-action="endMonth"]');
-  if (await page.$('[role="dialog"]')) await page.click('[role="dialog"] [data-action="closeModal"]');
-  s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); }
+  await page.screenshot({ path: `${out}/${tag}_08_policy.png`, fullPage: true }); await audit(page, '정책');
+  check(!(await text('main')).includes('의회 법안'), '정책 화면에는 행정 정책만(법안은 법률 화면으로)');
+  await page.click('button[data-action="askPolicy"]:not([disabled]) >> nth=0'); await page.waitForSelector('[role="dialog"]'); await page.click('[data-action="confirm"]');
+  s = await S(page); check(s.policies.length === 1 && s.ap === 1, `정책 시행: ${s.policies[0]}`);
   // 외교
   await page.click('[data-action="nav"][data-view="diplomacy"]');
   await page.click('button[data-action="askDiplomacy"][data-id="usa"][data-mode="talk"]'); await page.click('[data-action="confirm"]');
-  s = await S(page); check(s.monthActions.includes('diplomacy:usa'), '미국 정례 대화');
+  s = await S(page); check(s.monthActions.includes('diplomacy:usa') && s.ap === 0, '미국 정례 대화');
   check(await page.isDisabled('button[data-action="askDiplomacy"][data-id="usa"][data-mode="humanitarian"]'), '같은 달 같은 상대 두 번째 외교는 비활성');
-  await page.screenshot({ path: `${out}/${tag}_08_diplomacy.png`, fullPage: true }); await audit(page, '외교');
+  await page.screenshot({ path: `${out}/${tag}_09_diplomacy.png`, fullPage: true }); await audit(page, '외교');
+  s = await nextMonth();
+  // 지역 시책: 지도의 권역 카드에서 시행하고 거두기
+  await page.click('[data-action="nav"][data-view="map"]'); await page.click('[data-action="mapLayer"][data-id="res"]');
+  check(await page.$$eval('.kmap .rb', els => els.length) > 20, '지도: 지형·자원 표식'); await page.screenshot({ path: `${out}/${tag}_10_map_resources.png`, fullPage: mobileView }); await audit(page, '지도(지형·자원)');
+  await page.click('.mregion[data-id="jeonbuk"]', { force: true }); await page.waitForSelector('.map-card');
+  await page.click('.map-card button[data-action="askEdict"][data-id="grain_drive"]'); await page.waitForSelector('[role="dialog"]'); await page.click('[data-action="confirm"]');
+  s = await S(page); check(s.edicts.length === 1 && s.edicts[0].regionId === 'jeonbuk' && s.ap === 2, '전북에 곡창 증산 지도 시행');
+  check(await page.$$eval('.kmap .epill', els => els.length) === 1, "지도에 '시책' 표시");
+  await page.click('.map-card button[data-action="askRevoke"]'); await page.click('[data-action="confirm"]'); s = await S(page); check(s.edicts.length === 0 && s.ap === 2, '시책 거두기(AP 없음)');
+  await page.click('.map-card [data-action="nav"][data-view="build"]'); check((await text('main .panel h2 >> nth=2')).includes('전북') || (await text('main')).includes('전북에 지을 수 있는 건물'), '권역 카드 → 그 권역의 건물·건설 화면');
+  await page.click('[data-action="mapLayer"][data-id="dev"]').catch(() => {});
   // 내각
-  await page.click('[data-action="nav"][data-view="cabinet"]'); await page.screenshot({ path: `${out}/${tag}_09_cabinet.png`, fullPage: true }); await audit(page, '내각');
+  await page.click('[data-action="nav"][data-view="cabinet"]'); await page.screenshot({ path: `${out}/${tag}_11_cabinet.png`, fullPage: true }); await audit(page, '내각');
   const adv = await page.$('button[data-action="askAdviser"]:not([disabled]):not(.danger)');
-  if (adv) { await adv.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(s.advisers.length === 2, `자문 임명: ${s.advisers.join(',')}`); }
-  // 재정: 예산 프리셋 적용, 잘못된 합계 거부, 상환
+  if (adv) { await adv.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(s.advisers.length === 1, `자문 임명: ${s.advisers.join(',')}`); }
+  // 재정: 세입·세출 내역, 예산 프리셋, 잘못된 합계 거부
   await page.click('[data-action="nav"][data-view="budget"]');
+  check((await text('main')).includes('소비세') && (await text('main')).includes('정부·건설 부문 인건비') && (await text('main')).includes('계층의 살림'), '재정: 세입·세출 내역과 계층의 살림');
   await page.fill('#b-industry', '90'); await page.dispatchEvent('#b-industry', 'change');
   check(await page.isDisabled('[data-action="applyBudget"]'), '예산 합계가 100이 아니면 적용 버튼 비활성');
   await page.click('[data-action="preset"][data-id="3"]'); await page.click('[data-action="applyBudget"]');
   s = await S(page); check(s.budget.education === 30 && s.budget.industry === 16, '예산 프리셋(인재 우선) 적용');
-  await page.screenshot({ path: `${out}/${tag}_10_budget.png`, fullPage: true }); await audit(page, '재정');
-  const repay = await page.$('button[data-action="askRepay"][data-id="10"]:not([disabled])');
-  if (repay) { const debt = s.stats.debt; await repay.click(); await page.click('[data-action="confirm"]'); s = await S(page); check(Math.abs(s.stats.debt - (debt - 10)) < 1e-9, '부채 10 상환'); }
-  // 권역(데이터 1.3.0): 지형·자원 지도, 권역 카드에서 지역 시책 시행·거두기, 고유 사업 착수
-  await page.click(viewport.width < 760 ? '.bottombar [data-action="endMonth"], .bottombar [data-action="gotoEvent"]' : '.statusbar [data-action="endMonth"]');
-  if (await page.$('[role="dialog"]')) await page.click('[role="dialog"] [data-action="closeModal"]');
-  s = await S(page); if (s.queue.length) { await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.choice:not([aria-disabled="true"]) >> nth=0'); }
-  await page.click('[data-action="nav"][data-view="map"]'); await page.click('[data-action="mapLayer"][data-id="res"]');
-  check(await page.$$eval('.kmap .rbadges', els => els.length) === 10 && await page.isVisible('.mark-key'), '지도: 지형·자원 표식과 범례');
-  await page.click('.mregion[data-id="gangwon"]', { force: true }); await page.waitForSelector('.map-card .edict-box');
-  check((await page.textContent('.map-card')).includes('석탄') && await page.$('.map-card .unique-list') !== null, '권역 카드: 지형·자원, 지역 시책, 고유 사업');
-  await page.screenshot({ path: `${out}/${tag}_07b_map_resources.png`, fullPage: mobileView }); await audit(page, '지도(지형·자원)');
-  const ap1 = (await S(page)).ap;
-  await page.click('.map-card [data-action="askEdict"][data-id="mine_safety"]'); await page.waitForSelector('[role="dialog"]');
-  check((await page.textContent('[role="dialog"]')).includes('다음 결산부터 매월'), '지역 시책 확인 창');
-  await page.screenshot({ path: `${out}/${tag}_07c_edict_confirm.png` });
-  await page.click('[data-action="confirm"]'); s = await S(page);
-  check(s.edicts.length === 1 && s.edicts[0].regionId === 'gangwon' && s.ap === ap1 - 1, `지역 시책 시행: 강원 ${s.edicts.map(x => x.edictId)} AP ${ap1}→${s.ap}`);
-  check(await page.$('.kmap .epill') !== null && (await page.textContent('.map-card .edict-box')).includes('광산 안전'), '지도와 권역 카드에 시행 중인 시책 표시');
-  await page.click('.map-card [data-action="askProject"][data-id="coal_mechanization"]'); await page.waitForSelector('[role="dialog"]');
-  check((await page.textContent('[role="dialog"]')).includes('고유 사업'), '고유 사업 확인 창');
-  await page.click('[data-action="confirm"]'); s = await S(page);
-  check(s.projects.some(p => p.projectId === 'coal_mechanization' && p.regionId === 'gangwon' && p.status === 'building'), '권역 카드에서 고유 사업 착수: 강원 탄광 기계화');
-  await page.click('.map-card [data-action="askRevoke"]'); await page.waitForSelector('[role="dialog"]'); await page.click('[data-action="confirm"]'); s = await S(page);
-  check(s.edicts.length === 0 && s.ap === ap1 - 2, `시책 거두기는 AP를 쓰지 않음 (AP ${s.ap})`);
-  await page.click('[data-action="mapLayer"][data-id="dev"]');
-  await page.click('[data-action="nav"][data-view="build"]'); await page.click('[data-action="region"][data-id="jeonbuk"]');
-  const buildText = await page.textContent('main');
-  check(buildText.includes('전북의 고유 사업') && buildText.includes('곡창 경지 정리') && buildText.includes('지역 시책'), '사업 화면: 권역 고유 사업과 지역 시책');
-  await page.click('[data-action="projectAll"]');
-  check((await page.textContent('main')).includes('이 권역에는 석탄이 없습니다'), '다른 권역 고유 사업은 사유와 함께 표시');
-  await page.click('[data-action="projectAll"]');
+  await page.screenshot({ path: `${out}/${tag}_12_budget.png`, fullPage: true }); await audit(page, '재정');
+  // 몇 달 진행: 공사 준공과 법률 검사가 일어난다
+  for (let i = 0; i < 9; i++) s = await nextMonth();
+  check(s.counters.built + s.counters.privateBuilt >= 1, `준공: 정부 ${s.counters.built}단계 · 민간 ${s.counters.privateBuilt}단계`);
+  check(s.log.some(l => l.type === 'law' && l.lawId === 'press_freedom' && l.turn > 48), '법률 제정 검사가 연대기에 기록됨');
+  await page.click('[data-action="nav"][data-view="overview"]'); check((await text('main')).includes('시장에서 눈에 띄는 상품') && (await text('main')).includes('이해집단'), '상황판: 시장 요약과 이해집단');
+
   // 기록실: 내보내기 → 다시 불러오기, 손상 파일 거부
   await page.click('[data-action="nav"][data-view="archive"]'); s = await S(page);
   const [download] = await Promise.all([page.waitForEvent('download'), page.click('main [data-action="export"]')]);
   const savePath = path.join(out, `${tag}_export.json`); await download.saveAs(savePath);
-  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 4 && exported.state.turn === s.turn && exported.state.day === s.day && exported.state.edicts.length === s.edicts.length, '저장 파일 내보내기 (버전 4, 날짜·지역 시책 포함)');
+  const exported = JSON.parse(fs.readFileSync(savePath, 'utf8')); check(exported.version === 5 && exported.state.turn === s.turn && exported.state.day === s.day && exported.state.buildings.length === s.buildings.length, '저장 파일 내보내기 (버전 5, 건물·시장 포함)');
   await page.setInputFiles('[data-input="import"]', savePath); await page.click('[data-action="acceptImport"]');
   const s2 = await S(page); check(JSON.stringify(s2) === JSON.stringify(s), '내보낸 파일을 다시 불러오면 상태가 같음');
   await page.click('[data-action="nav"][data-view="archive"]');
@@ -209,20 +238,22 @@ async function run(viewport, tag) {
   const s3 = await S(page); check(JSON.stringify(s3) === JSON.stringify(s), '손상된 저장은 거부하고 현재 상태 유지');
   // 저장 텍스트 복사·붙여넣기 (파일 다운로드가 막힌 화면용)
   await page.click('main [data-action="exportText"]'); await page.waitForSelector('#save-text');
-  const saveText = await page.inputValue('#save-text'); check(JSON.parse(saveText).state.turn === s.turn, '저장 텍스트 보기');
+  const saveText = await page.inputValue('#save-text'); check(JSON.parse(saveText).state.turn === s.turn && !saveText.includes('\n  '), '저장 텍스트 보기(줄바꿈 없는 한 덩어리)');
   await page.keyboard.press('Escape');
   await page.click('main [data-action="pasteImport"]'); await page.fill('#paste-text', '{"format":"KOREA1960_SAVE","version":2,"state":{}}'); await page.click('[data-action="importText"]');
-  check(await page.isVisible('[role="dialog"] [role="alert"]') && JSON.stringify(await S(page)) === JSON.stringify(s), '잘못된 저장 텍스트는 거부하고 상태 유지');
-  await page.fill('#paste-text', saveText); await page.click('[data-action="importText"]'); await page.click('[data-action="acceptImport"]');
+  check(await page.isVisible('[role="dialog"] [role="alert"]') && (await text('[role="dialog"] [role="alert"]')).includes('경제 구조') && JSON.stringify(await S(page)) === JSON.stringify(s), '이전 형식의 저장 텍스트는 이유를 알리고 거부');
+  // 붙여넣기를 흉내 낸다(Playwright의 fill은 한 글자씩 넣는 편집 명령이라 긴 저장 텍스트에서 매우 느리다).
+  await page.$eval('#paste-text', (el, v) => { el.value = v; }, saveText); await page.click('[data-action="importText"]'); await page.click('[data-action="acceptImport"]');
   check(JSON.stringify(await S(page)) === JSON.stringify(s), '저장 텍스트를 붙여 넣으면 상태가 같음');
   await page.click('[data-action="nav"][data-view="archive"]');
-  await page.click('[data-action="logFilter"][data-id="law"]');
-  await page.screenshot({ path: `${out}/${tag}_11_archive.png`, fullPage: true }); await audit(page, '기록실');
-  s = await S(page); check(s.visited.includes('archive'), '기록실 방문 기록');
+  await page.click('[data-action="logFilter"][data-id="construction"]');
+  await page.screenshot({ path: `${out}/${tag}_13_archive.png`, fullPage: true }); await audit(page, '기록실');
+  s = await S(page); check(s.visited.includes('archive') && s.visited.includes('market'), '화면 방문 기록');
   // 지표 설명 창
   await page.click('[data-action="nav"][data-view="overview"]'); await page.click('.kpi[data-id="gdp"]');
-  check((await page.textContent('[role="dialog"]')).includes('성장률'), '지표 설명 창'); await page.keyboard.press('Escape');
-  await page.screenshot({ path: `${out}/${tag}_12_overview_governing.png`, fullPage: true }); await audit(page, '상황판(국정)');
+  check((await text('[role="dialog"]')).includes('부가가치'), '지표 설명 창'); await page.keyboard.press('Escape');
+  if (!mobileView) { await page.click('[data-action="help"]'); check((await text('[role="dialog"]')).includes('판매 주문') && (await text('[role="dialog"]')).includes('집권 연합'), '게임 방법: 시장·법률·이해집단 설명'); await page.keyboard.press('Escape'); }
+  await page.screenshot({ path: `${out}/${tag}_14_overview_governing.png`, fullPage: true }); await audit(page, '상황판(국정)');
 
   // 끝까지 진행 (화면 디버그 훅으로 빠르게, 매달 화면을 다시 그림)
   const result = await page.evaluate(() => {
@@ -235,9 +266,9 @@ async function run(viewport, tag) {
     const end = G.getState(); return { turn: end.turn, ending: end.ending?.id, guard };
   });
   check(!!result.ending, `엔딩 도달: ${result.ending} @${result.turn}`);
-  if (await page.$('[role="dialog"]')) { await page.screenshot({ path: `${out}/${tag}_13a_final_report.png` }); await page.keyboard.press('Escape'); }
+  if (await page.$('[role="dialog"]')) { await page.screenshot({ path: `${out}/${tag}_15a_final_report.png` }); await page.keyboard.press('Escape'); }
   await page.click('[data-action="nav"][data-view="overview"]'); await page.waitForTimeout(100);
-  await page.screenshot({ path: `${out}/${tag}_13_ending.png`, fullPage: true }); await audit(page, '엔딩');
+  await page.screenshot({ path: `${out}/${tag}_15_ending.png`, fullPage: true }); await audit(page, '엔딩');
   check((await page.textContent('main')).includes('엔딩 평가'), '엔딩 평가 화면');
   const before = await S(page); const tried = await page.evaluate(() => window.__GAME_DEBUG__.dispatch({ type: 'endMonth' }).ok);
   check(!tried && JSON.stringify(await S(page)) === JSON.stringify(before), '종료 후 행동은 상태를 바꾸지 않음');

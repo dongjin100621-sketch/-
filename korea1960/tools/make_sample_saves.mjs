@@ -1,6 +1,6 @@
-/* 검토용 저장 파일(저장 형식 4)을 game/saves/에 다시 만든다.
+/* 검토용 저장 파일(저장 형식 5)을 game/saves/에 다시 만든다.
  *   node tools/make_sample_saves.mjs
- * example/saves/의 두 파일은 제작 패키지 v1이 만든 버전 1 저장이며, 변환(migrateSave) 검사용으로 그대로 둔다. */
+ * 이전 형식(1~4)의 저장은 tests/fixtures/에 거부 검사용으로만 남아 있다. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,17 +15,17 @@ function write(name, note) {
   const p = path.join(root, 'game/saves', name); fs.mkdirSync(path.dirname(p), { recursive: true });
   const raw = exportSave(s); importSave(raw, d); fs.writeFileSync(p, raw + '\n'); console.log(name, s.turn, s.phase, `AP ${s.ap}`, note);
 }
+for (const f of fs.readdirSync(path.join(root, 'game/saves'))) if (f.endsWith('.json')) fs.unlinkSync(path.join(root, 'game/saves', f));
 until(48);
 write('1964_start_governing.json', '취임 직후, 행동점수 3 그대로');
-action({ type: 'policy', id: 'press_freedom' }); action({ type: 'project', id: 'rural_clinic', regionId: 'jeonnam' }); action({ type: 'adviser', id: 'min' });
-until(56);
-action({ type: 'policy', id: 'farm_extension' }); action({ type: 'diplomacy', countryId: 'japan', mode: 'talk' });
-write('1964_bills_and_projects.json', '법안 결과·사업 준공 이후, AP 1 남음');
+action({ type: 'coalition', id: 'petite' }); action({ type: 'enact', id: 'press_freedom' }); action({ type: 'build', id: 'school', regionId: 'jeonnam' });
+until(49); action({ type: 'build', id: 'construction', regionId: 'capital' }); action({ type: 'build', id: 'irrigation', regionId: 'jeonbuk' }); action({ type: 'policy', id: 'farm_extension' });
+until(50); action({ type: 'build', id: 'garment', regionId: 'busan' }); action({ type: 'adviser', id: 'min' });
 until(60);
-action({ type: 'edict', id: 'grain_drive', regionId: 'jeonbuk' }); action({ type: 'project', id: 'farmland_consolidation', regionId: 'jeonbuk' }); action({ type: 'edict', id: 'forest_protection', regionId: 'gangwon' });
-until(61);
-action({ type: 'project', id: 'coal_mechanization', regionId: 'gangwon' }); action({ type: 'edict', id: 'export_priority', regionId: 'busan' });
+write('1965_market_and_laws.json', '건설 대기열과 준공, 법률 제정 절차, 소시민이 든 집권 연합');
+action({ type: 'edict', id: 'grain_drive', regionId: 'jeonbuk' }); action({ type: 'build', id: 'coal_mine', regionId: 'gangwon' });
+until(61); action({ type: 'edict', id: 'export_priority', regionId: 'busan' }); action({ type: 'build', id: 'port', regionId: 'busan' });
 until(74);
-write('1966_regional_edicts.json', '지역 시책 3개(전북 곡창·강원 산림·부산 수출 공업)와 고유 사업 2건 준공 이후');
+write('1966_regional_edicts.json', '지역 시책 2개(전북 곡창·부산 수출 공업)와 자원 건물(강원 탄광) 이후');
 until(156);
 write('1973_policy_choices.json', '1973년 1월 중화학공업 사건 직후');

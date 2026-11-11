@@ -7,7 +7,7 @@ python3 tools/build_standalone.py --artifact --output <파일>
     # Claude 아티팩트(웹 링크)용 판: 문서 골격(doctype·html·head·body)을 빼고 <title>·<style>을 맨 앞에 둔다
     # (게시할 때 골격이 씌워진다). 그 보기 화면은 파일 다운로드를 막으므로 내보내기가 '저장 텍스트 복사'로 바뀐다.
 
-엔진 모듈의 export를 지워 네임스페이스 객체 E로 감싸고, 앱의 import 줄을 지운 뒤 인라인 module로 넣는다.
+시장 모형(economy.mjs)과 엔진(engine.mjs)의 export를 지워 네임스페이스 객체 EC·E로 감싸고, 앱의 import 줄을 지운 뒤 인라인 module로 넣는다.
 콘텐츠(game.json)·권역 지도(assets/map/korea_map.json)·삽화 WebP 4장·SVG 아이콘·글꼴은 내장한다. 외부 요청이 없다.
 HTML을 직접 고치면 분리 소스에 반영되지 않는다. game/·data/game.json을 고친 뒤 다시 빌드한다.
 """
@@ -39,14 +39,21 @@ def page(css, script, title='대한민국 1960 · 선택의 연대기', artifact
 
 def build_game(artifact=False):
     d = json.loads((ROOT / 'data/game.json').read_text(encoding='utf-8'))
-    engine = (ROOT / 'game/engine.mjs').read_text(encoding='utf-8')
-    names = re.findall(r'^export\s+(?:const|function|let)\s+(\w+)', engine, flags=re.M)
-    engine = re.sub(r'^export\s+(?=const|function|let|class)', '', engine, flags=re.M)
+    def module(name):
+        src = (ROOT / f'game/{name}').read_text(encoding='utf-8')
+        exported = re.findall(r'^export\s+(?:const|function|let)\s+(\w+)', src, flags=re.M)
+        return re.sub(r'^export\s+(?=const|function|let|class)', '', src, flags=re.M), exported
+    econ, econ_names = module('economy.mjs')
+    engine, names = module('engine.mjs')
+    engine, n = re.subn(r"^import \* as EC from '\./economy\.mjs';\n", '', engine, flags=re.M)
+    if n != 1: raise SystemExit('engine.mjs의 economy import 줄을 찾지 못했습니다.')
+    for name, src in (('economy.mjs', econ), ('engine.mjs', engine)):
+        if re.search(r'^\s*(import|export)\s', src, flags=re.M): raise SystemExit(f'{name}에 처리하지 못한 import/export가 있습니다.')
     app = (ROOT / 'game/app.mjs').read_text(encoding='utf-8')
     app, n = re.subn(r"^import \* as E from '\./engine\.mjs';\n", '', app, flags=re.M)
     if n != 1: raise SystemExit('app.mjs의 엔진 import 줄을 찾지 못했습니다.')
     if re.search(r'^\s*(import|export)\s', app, flags=re.M): raise SystemExit('app.mjs에 처리하지 못한 import/export가 있습니다.')
-    script = common(d) + 'const E=(()=>{\n' + engine + '\nreturn {' + ','.join(names) + '};\n})();\n' + app
+    script = common(d) + 'const EC=(()=>{\n' + econ + '\nreturn {' + ','.join(econ_names) + '};\n})();\nconst E=(()=>{\n' + engine + '\nreturn {' + ','.join(names) + '};\n})();\n' + app
     css = (ROOT / 'game/style.css').read_text(encoding='utf-8')
     for weight in ('Regular', 'Bold'):
         css = css.replace(f'../assets/fonts/ChronicleKR-{weight}.woff2', uri(ROOT / f'assets/fonts/ChronicleKR-{weight}.woff2', 'font/woff2'))

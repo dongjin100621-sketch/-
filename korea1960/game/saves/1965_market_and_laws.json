@@ -1,0 +1,4340 @@
+{
+  "format": "KOREA1960_SAVE",
+  "version": 5,
+  "state": {
+    "version": 5,
+    "gameId": "korea1960",
+    "dataVersion": "2.0.0",
+    "turn": 60,
+    "day": 1,
+    "rng": 2418711626,
+    "phase": "governing",
+    "ap": 3,
+    "influence": 527,
+    "seats": 0.5678008158400338,
+    "stats": {
+      "gdp": 136.09181162605003,
+      "treasury": 541.4983826781676,
+      "debt": 80,
+      "reserves": 80.23161245209096,
+      "inflation": 8.001284165870073,
+      "unemployment": 4.761555384853732,
+      "legitimacy": 68.22129688200026,
+      "liberty": 52.400000000000034,
+      "welfare": 40.09468029656181,
+      "education": 42.05944348281164,
+      "infrastructure": 31.80838535758301,
+      "industry": 20.60258649027379,
+      "agriculture": 42.898306294445874,
+      "environment": 62.23568715075052,
+      "stability": 51.7717185431219,
+      "admin": 57.550000000000246,
+      "equality": 44.56632649801998,
+      "security": 49.86419077490233
+    },
+    "support": {
+      "workers": 45.73691636361479,
+      "farmers": 53.74969025307659,
+      "petite": 52.69502894551099,
+      "business": 84.00316354075757,
+      "landowners": 83.30702584931083,
+      "military": 70.31870456735676
+    },
+    "relations": {
+      "usa": 65,
+      "japan": 25,
+      "north": 15,
+      "europe": 45,
+      "nonaligned": 35,
+      "international": 50
+    },
+    "budget": {
+      "industry": 22,
+      "agriculture": 18,
+      "education": 16,
+      "welfare": 16,
+      "infrastructure": 16,
+      "security": 12
+    },
+    "policies": [
+      "farm_extension"
+    ],
+    "edicts": [],
+    "advisers": [
+      "min"
+    ],
+    "flags": {
+      "route": "constitutional",
+      "won1963": true
+    },
+    "queue": [],
+    "lastEvents": {
+      "opening": 0,
+      "prep_study": 43,
+      "election_1960": 2,
+      "april_1960": 3,
+      "prep_principle": 42,
+      "prep_reading": 41,
+      "prep_public": 44,
+      "republic2": 7,
+      "may_1961": 16,
+      "plan_1962": 24,
+      "election_1963": 45,
+      "inauguration_1963": 47,
+      "sys_safety": 48,
+      "sys_wage": 49,
+      "sys_housing": 50,
+      "sys_culture": 51,
+      "sys_competition": 52,
+      "sys_journal": 53,
+      "sys_medicine": 54,
+      "sys_diplomats": 55,
+      "sys_forest": 56,
+      "sys_coal": 57,
+      "sys_port": 58,
+      "sys_skill": 59,
+      "sys_pension": 60
+    },
+    "delayed": [],
+    "buildings": [
+      {
+        "id": "farm",
+        "regionId": "capital",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "capital",
+        "level": 6,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "garment",
+        "regionId": "capital",
+        "level": 7,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "food_plant",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "capital",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "power_plant",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "construction",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "admin_office",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "capital",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "clinic",
+        "regionId": "capital",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gangwon",
+        "level": 2,
+        "pm": 0,
+        "staff": 0.5,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "coal_mine",
+        "regionId": "gangwon",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "ore_mine",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "forestry",
+        "regionId": "gangwon",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gangwon",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "chungnam",
+        "level": 6,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "chungnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "chungbuk",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "forestry",
+        "regionId": "chungbuk",
+        "level": 4,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "chungbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeonbuk",
+        "level": 7,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "food_plant",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gyeongbuk",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "gyeongbuk",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gyeongbuk",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gyeongbuk",
+        "level": 6,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "gyeongbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "gyeongbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeonnam",
+        "level": 8,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "jeonnam",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeonnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "school",
+        "regionId": "jeonnam",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "railway",
+        "regionId": "jeonnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "gyeongnam",
+        "level": 5,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "gyeongnam",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "textile_mill",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "barracks",
+        "regionId": "gyeongnam",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "port",
+        "regionId": "busan",
+        "level": 2,
+        "pm": 0,
+        "staff": 1,
+        "state": 2,
+        "subsidy": false
+      },
+      {
+        "id": "garment",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "busan",
+        "level": 3,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "power_plant",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "construction",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "admin_office",
+        "regionId": "busan",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 1,
+        "subsidy": false
+      },
+      {
+        "id": "farm",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "fishery",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "commerce",
+        "regionId": "jeju",
+        "level": 1,
+        "pm": 0,
+        "staff": 1,
+        "state": 0,
+        "subsidy": false
+      },
+      {
+        "id": "irrigation",
+        "regionId": "jeonbuk",
+        "level": 1,
+        "pm": 0,
+        "staff": 0,
+        "state": 1,
+        "subsidy": false
+      }
+    ],
+    "construction": [
+      {
+        "id": "garment",
+        "regionId": "capital",
+        "progress": 26.657,
+        "private": true
+      },
+      {
+        "id": "garment",
+        "regionId": "busan",
+        "progress": 22.676,
+        "private": false
+      },
+      {
+        "id": "forestry",
+        "regionId": "chungbuk",
+        "progress": 0,
+        "private": true
+      }
+    ],
+    "laws": {
+      "military_role": "military_autonomy",
+      "local_gov": "central_appointment",
+      "judiciary": "executive_primacy",
+      "civil_service": "patronage",
+      "economic_system": "aid_allocation",
+      "trade": "import_substitution",
+      "taxation": "indirect_tax",
+      "land": "tenancy_tolerated",
+      "labor": "no_labor_rules",
+      "association": "restricted_association",
+      "speech": "press_control",
+      "welfare_system": "no_welfare",
+      "environment_rules": "no_env_rules",
+      "defense": "conscript_army"
+    },
+    "enactment": null,
+    "government": [
+      "landowners",
+      "business",
+      "petite"
+    ],
+    "ig": {
+      "workers": {
+        "mod": 0,
+        "clout": 0.1371,
+        "vote": 0.3377
+      },
+      "farmers": {
+        "mod": 3.1911,
+        "clout": 0.1814,
+        "vote": 0.5107
+      },
+      "petite": {
+        "mod": 2.1981,
+        "clout": 0.1559,
+        "vote": 0.1181
+      },
+      "business": {
+        "mod": 0,
+        "clout": 0.2546,
+        "vote": 0.0091
+      },
+      "landowners": {
+        "mod": 0,
+        "clout": 0.1949,
+        "vote": 0.0128
+      },
+      "military": {
+        "mod": 0,
+        "clout": 0.076,
+        "vote": 0.0115
+      }
+    },
+    "econ": {
+      "prices": {
+        "grain": 18.0404,
+        "fish": 19.8591,
+        "groceries": 44.64,
+        "clothes": 47.5093,
+        "services": 30.3476,
+        "transport": 28.9979,
+        "electricity": 35.1326,
+        "fabric": 23.6305,
+        "wood": 16.3189,
+        "coal": 32.8676,
+        "ore": 34.5983,
+        "steel": 69.44,
+        "cement": 34.72,
+        "tools": 62.496,
+        "fertilizer": 37.2,
+        "oil": 54.56,
+        "electronics": 98.208,
+        "ships": 90,
+        "arms": 74.4
+      },
+      "short": {
+        "grain": 0,
+        "fish": 0,
+        "groceries": 0,
+        "clothes": 0,
+        "services": 0,
+        "transport": 0,
+        "electricity": 0,
+        "fabric": 0,
+        "wood": 0,
+        "coal": 0,
+        "ore": 0,
+        "steel": 0,
+        "cement": 0,
+        "tools": 0,
+        "fertilizer": 0,
+        "oil": 0,
+        "electronics": 0,
+        "ships": 0,
+        "arms": 0
+      },
+      "wage": 39.1338,
+      "workforce": 3059.419,
+      "pool": 60,
+      "dividends": {
+        "workers": 0,
+        "farmers": 1474.1356,
+        "petite": 3001.8756,
+        "business": 13445.368,
+        "landowners": 1945.8589,
+        "military": 0
+      },
+      "sol": {
+        "workers": 8.91,
+        "farmers": 8.411,
+        "petite": 11.463,
+        "business": 30.704,
+        "landowners": 10.058,
+        "military": 9.003
+      },
+      "sol0": {
+        "workers": 7.952,
+        "farmers": 8.401,
+        "petite": 11.136,
+        "business": 25.202,
+        "landowners": 8.41,
+        "military": 9.013
+      },
+      "needBase": {
+        "grain": 2.56436321,
+        "fish": 0.28781213,
+        "groceries": 0.08232957,
+        "clothes": 0.09315865,
+        "services": 0.60375016,
+        "transport": 0.04573865,
+        "electricity": 0.03984224,
+        "fabric": 0.19137086,
+        "wood": 0.23813014,
+        "coal": 0.06142389,
+        "ore": 0,
+        "steel": 0,
+        "cement": 0,
+        "tools": 0.00571503,
+        "fertilizer": 0,
+        "oil": 0.00357235,
+        "electronics": 0.00195337,
+        "ships": 0,
+        "arms": 0
+      },
+      "gdpUnit": 940.7461,
+      "cpi": 1.0186,
+      "hist": {
+        "grain": [
+          -0.06,
+          -0.057,
+          -0.054,
+          -0.053,
+          -0.051,
+          -0.047,
+          -0.044,
+          -0.043,
+          -0.042,
+          -0.041,
+          -0.04,
+          -0.037,
+          -0.033,
+          -0.031,
+          -0.029,
+          -0.027,
+          -0.026,
+          -0.025,
+          -0.022,
+          -0.019,
+          -0.016,
+          -0.013,
+          -0.011,
+          -0.01,
+          -0.008,
+          -0.012,
+          -0.011,
+          -0.011,
+          -0.01,
+          -0.009,
+          -0.007,
+          -0.006,
+          -0.005,
+          -0.002,
+          0.001,
+          0.002
+        ],
+        "fish": [
+          -0.004,
+          -0.013,
+          -0.017,
+          -0.019,
+          -0.02,
+          -0.035,
+          -0.042,
+          -0.045,
+          -0.047,
+          -0.047,
+          -0.046,
+          -0.045,
+          -0.043,
+          -0.042,
+          -0.041,
+          -0.039,
+          -0.038,
+          -0.038,
+          -0.052,
+          -0.058,
+          -0.068,
+          -0.073,
+          -0.074,
+          -0.083,
+          -0.093,
+          -0.101,
+          -0.103,
+          -0.104,
+          -0.104,
+          -0.104,
+          -0.103,
+          -0.102,
+          -0.101,
+          -0.1,
+          -0.098,
+          -0.097
+        ],
+        "groceries": [
+          0.163,
+          0.167,
+          0.173,
+          0.177,
+          0.178,
+          0.185,
+          0.192,
+          0.195,
+          0.197,
+          0.197,
+          0.197,
+          0.2,
+          0.209,
+          0.216,
+          0.221,
+          0.224,
+          0.226,
+          0.227,
+          0.234,
+          0.237,
+          0.238,
+          0.239,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "clothes": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.079,
+          0.081,
+          0.081,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.081,
+          0.08,
+          0.08,
+          0.08,
+          0.08
+        ],
+        "services": [
+          -0.106,
+          -0.102,
+          -0.097,
+          -0.094,
+          -0.093,
+          -0.087,
+          -0.08,
+          -0.078,
+          -0.077,
+          -0.077,
+          -0.077,
+          -0.075,
+          -0.068,
+          -0.061,
+          -0.058,
+          -0.055,
+          -0.053,
+          -0.053,
+          -0.043,
+          -0.026,
+          -0.013,
+          0.002,
+          0.014,
+          0.015,
+          0.017,
+          0.006,
+          0.005,
+          0.004,
+          0.004,
+          0.003,
+          0.003,
+          0.003,
+          0.005,
+          0.007,
+          0.011,
+          0.012
+        ],
+        "transport": [
+          -0.015,
+          -0.011,
+          -0.008,
+          -0.006,
+          -0.005,
+          0.001,
+          0.005,
+          0.007,
+          0.007,
+          0.008,
+          0.008,
+          0.011,
+          0.017,
+          0.021,
+          0.025,
+          0.028,
+          0.03,
+          0.03,
+          0.034,
+          0.042,
+          0.052,
+          0.061,
+          0.067,
+          0.07,
+          0.073,
+          0.089,
+          0.098,
+          0.102,
+          0.105,
+          0.105,
+          0.106,
+          0.106,
+          0.107,
+          0.111,
+          0.114,
+          0.115
+        ],
+        "electricity": [
+          0.021,
+          0.03,
+          0.04,
+          0.046,
+          0.048,
+          0.052,
+          0.056,
+          0.058,
+          0.059,
+          0.059,
+          0.059,
+          0.069,
+          0.08,
+          0.088,
+          0.092,
+          0.094,
+          0.096,
+          0.096,
+          0.104,
+          0.128,
+          0.148,
+          0.165,
+          0.177,
+          0.18,
+          0.182,
+          0.204,
+          0.219,
+          0.226,
+          0.229,
+          0.23,
+          0.23,
+          0.23,
+          0.231,
+          0.244,
+          0.252,
+          0.255
+        ],
+        "fabric": [
+          0.054,
+          0.026,
+          0.012,
+          0.005,
+          0.002,
+          0,
+          0,
+          -0.001,
+          0,
+          0,
+          -0.001,
+          -0.001,
+          -0.001,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.002,
+          -0.01,
+          -0.014,
+          -0.015
+        ],
+        "wood": [
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.037,
+          0.025,
+          0.031,
+          0.034,
+          0.035,
+          0,
+          -0.003,
+          -0.006,
+          -0.012,
+          -0.007,
+          -0.003,
+          0,
+          0.001,
+          0.002,
+          0.003,
+          0.004,
+          0.005,
+          0.013,
+          0.025,
+          0.02
+        ],
+        "coal": [
+          0.278,
+          0.279,
+          0.28,
+          0.281,
+          0.281,
+          0.283,
+          0.284,
+          0.285,
+          0.284,
+          0.284,
+          0.284,
+          0.285,
+          0.287,
+          0.288,
+          0.289,
+          0.289,
+          0.289,
+          0.289,
+          0.291,
+          0.294,
+          0.273,
+          0.264,
+          0.26,
+          0.258,
+          0.257,
+          0.259,
+          0.262,
+          0.263,
+          0.264,
+          0.264,
+          0.265,
+          0.264,
+          0.263,
+          0.264,
+          0.264,
+          0.264
+        ],
+        "ore": [
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018,
+          0.018
+        ],
+        "steel": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "cement": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "tools": [
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302,
+          0.302
+        ],
+        "fertilizer": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "oil": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ],
+        "electronics": [
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364,
+          0.364
+        ],
+        "ships": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "arms": [
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24,
+          0.24
+        ]
+      },
+      "trade": {
+        "exports": 24.193,
+        "imports": 2.454
+      }
+    },
+    "counters": {
+      "built": 3,
+      "privateBuilt": 20,
+      "resourceBuilt": 0,
+      "lawsEnacted": 0,
+      "lawsFailed": 1,
+      "regions": [
+        "jeonnam",
+        "capital",
+        "jeonbuk"
+      ]
+    },
+    "history": [
+      {
+        "turn": 0,
+        "gdp": 100,
+        "inflation": 9,
+        "liberty": 42,
+        "legitimacy": 45,
+        "welfare": 35,
+        "environment": 65,
+        "unemployment": 11.94
+      },
+      {
+        "turn": 0,
+        "gdp": 99.99999957916036,
+        "inflation": 8.738349736457685,
+        "liberty": 42,
+        "legitimacy": 44.98862908382888,
+        "welfare": 35.05816765777141,
+        "environment": 64.96408016810496,
+        "unemployment": 11.941212014134274
+      },
+      {
+        "turn": 1,
+        "gdp": 99.33455090457173,
+        "inflation": 8.49239848872791,
+        "liberty": 42,
+        "legitimacy": 44.97728711708881,
+        "welfare": 35.116066519844495,
+        "environment": 64.92893929456523,
+        "unemployment": 11.981780651001754
+      },
+      {
+        "turn": 2,
+        "gdp": 99.31243710220892,
+        "inflation": 8.265117514569932,
+        "liberty": 42,
+        "legitimacy": 46.965973957101674,
+        "welfare": 35.1736800257312,
+        "environment": 64.89378591450989,
+        "unemployment": 12.047882799041357
+      },
+      {
+        "turn": 3,
+        "gdp": 99.32606941030144,
+        "inflation": 8.04978474145146,
+        "liberty": 42,
+        "legitimacy": 49.95468955050494,
+        "welfare": 35.23118680653324,
+        "environment": 64.85862009704127,
+        "unemployment": 12.130533411738044
+      },
+      {
+        "turn": 4,
+        "gdp": 99.33717116795133,
+        "inflation": 7.846563913808093,
+        "liberty": 42,
+        "legitimacy": 50.29343380534787,
+        "welfare": 35.288509685852084,
+        "environment": 64.82344191101339,
+        "unemployment": 12.22388140739393
+      },
+      {
+        "turn": 5,
+        "gdp": 99.34365629555211,
+        "inflation": 7.654979117098335,
+        "liberty": 42,
+        "legitimacy": 50.28220661121115,
+        "welfare": 35.34561172657386,
+        "environment": 64.78825142503277,
+        "unemployment": 12.324134394066014
+      },
+      {
+        "turn": 6,
+        "gdp": 99.3575682167471,
+        "inflation": 7.474375830898203,
+        "liberty": 42,
+        "legitimacy": 50.621007847617925,
+        "welfare": 35.40247281354449,
+        "environment": 64.75303869621553,
+        "unemployment": 12.428827294688912
+      },
+      {
+        "turn": 7,
+        "gdp": 100.03125133389817,
+        "inflation": 7.304067534858081,
+        "liberty": 42,
+        "legitimacy": 52.60983764774617,
+        "welfare": 35.459600256486794,
+        "environment": 64.7174092644736,
+        "unemployment": 12.408900291420693
+      },
+      {
+        "turn": 8,
+        "gdp": 100.80832413228443,
+        "inflation": 7.146827506524995,
+        "liberty": 42,
+        "legitimacy": 52.948696107450466,
+        "welfare": 35.51691940858649,
+        "environment": 64.6813450620589,
+        "unemployment": 12.308252971639641
+      },
+      {
+        "turn": 9,
+        "gdp": 101.9449890457304,
+        "inflation": 7.0035625523790195,
+        "liberty": 42,
+        "legitimacy": 52.937583417084326,
+        "welfare": 35.57461926771979,
+        "environment": 64.6446356774635,
+        "unemployment": 12.091845275583635
+      },
+      {
+        "turn": 10,
+        "gdp": 103.15115758950505,
+        "inflation": 6.877461289668879,
+        "liberty": 42,
+        "legitimacy": 53.27649985638825,
+        "welfare": 35.632878607842784,
+        "environment": 64.60649147000642,
+        "unemployment": 11.742041962794062
+      },
+      {
+        "turn": 11,
+        "gdp": 103.7218277044747,
+        "inflation": 6.776260547983649,
+        "liberty": 42,
+        "legitimacy": 53.61544512442278,
+        "welfare": 35.690536069059455,
+        "environment": 64.56752546000745,
+        "unemployment": 11.496324368564817
+      },
+      {
+        "turn": 12,
+        "gdp": 104.39400746180935,
+        "inflation": 6.688503763289844,
+        "liberty": 42,
+        "legitimacy": 53.95441923527695,
+        "welfare": 35.748221708338505,
+        "environment": 64.52814246335628,
+        "unemployment": 11.279401151906823
+      },
+      {
+        "turn": 13,
+        "gdp": 104.88927004918655,
+        "inflation": 6.6118208388345945,
+        "liberty": 42,
+        "legitimacy": 53.94342216579484,
+        "welfare": 35.80586103577605,
+        "environment": 64.48874748476774,
+        "unemployment": 11.110582474703783
+      },
+      {
+        "turn": 14,
+        "gdp": 105.57095310860261,
+        "inflation": 6.543676240604713,
+        "liberty": 42,
+        "legitimacy": 54.2824540531841,
+        "welfare": 35.863774778505075,
+        "environment": 64.44934059404027,
+        "unemployment": 10.895433456838752
+      },
+      {
+        "turn": 15,
+        "gdp": 106.04912264085971,
+        "inflation": 6.479996977238843,
+        "liberty": 42,
+        "legitimacy": 54.27151502688023,
+        "welfare": 35.92194739226483,
+        "environment": 64.40992186071817,
+        "unemployment": 10.707261070394637
+      },
+      {
+        "turn": 16,
+        "gdp": 106.21234866550715,
+        "inflation": 6.421577068996302,
+        "liberty": 47,
+        "legitimacy": 60.185636003037644,
+        "welfare": 35.98010469161372,
+        "environment": 64.3704913540925,
+        "unemployment": 10.5818535914081
+      },
+      {
+        "turn": 17,
+        "gdp": 106.35312673781495,
+        "inflation": 6.366759033737772,
+        "liberty": 47,
+        "legitimacy": 60.10107381471177,
+        "welfare": 36.03827760343401,
+        "environment": 64.33101904172462,
+        "unemployment": 10.506016299892622
+      },
+      {
+        "turn": 18,
+        "gdp": 107.68855672009772,
+        "inflation": 6.314016886354323,
+        "liberty": 47,
+        "legitimacy": 60.36168801241656,
+        "welfare": 36.097329677183325,
+        "environment": 64.29070814001534,
+        "unemployment": 10.258984970048134
+      },
+      {
+        "turn": 19,
+        "gdp": 108.25490752670771,
+        "inflation": 6.27076000211467,
+        "liberty": 47,
+        "legitimacy": 60.27454319064121,
+        "welfare": 36.156341951059034,
+        "environment": 64.25013869895606,
+        "unemployment": 10.08947448771605
+      },
+      {
+        "turn": 20,
+        "gdp": 110.28687923859253,
+        "inflation": 6.237277480592305,
+        "liberty": 47,
+        "legitimacy": 60.531118857254505,
+        "welfare": 36.21631187258209,
+        "environment": 64.20851356554994,
+        "unemployment": 9.680741949637877
+      },
+      {
+        "turn": 21,
+        "gdp": 110.63330378368899,
+        "inflation": 6.221328878220531,
+        "liberty": 47,
+        "legitimacy": 60.781663833707185,
+        "welfare": 36.27581718266275,
+        "environment": 64.16687690003157,
+        "unemployment": 9.456240664700365
+      },
+      {
+        "turn": 22,
+        "gdp": 110.80024703615244,
+        "inflation": 6.2156410141936425,
+        "liberty": 47,
+        "legitimacy": 61.02632038770457,
+        "welfare": 36.33497800965839,
+        "environment": 64.12522877189878,
+        "unemployment": 9.351438145451649
+      },
+      {
+        "turn": 23,
+        "gdp": 110.91128623171863,
+        "inflation": 6.214279723988872,
+        "liberty": 47,
+        "legitimacy": 60.929323100275504,
+        "welfare": 36.39394596244202,
+        "environment": 64.08356925039453,
+        "unemployment": 9.324388262110451
+      },
+      {
+        "turn": 24,
+        "gdp": 111.60597581655765,
+        "inflation": 6.2148690580543455,
+        "liberty": 47,
+        "legitimacy": 60.83381000419106,
+        "welfare": 36.45330034454275,
+        "environment": 64.04185800878963,
+        "unemployment": 9.213536056584772
+      },
+      {
+        "turn": 25,
+        "gdp": 112.687545831783,
+        "inflation": 6.216300646356408,
+        "liberty": 47,
+        "legitimacy": 60.73975916083581,
+        "welfare": 36.51331311192426,
+        "environment": 63.99890543445661,
+        "unemployment": 8.991069017997365
+      },
+      {
+        "turn": 26,
+        "gdp": 113.43279099522346,
+        "inflation": 6.218875737421817,
+        "liberty": 47,
+        "legitimacy": 60.98552301632774,
+        "welfare": 36.57368968917739,
+        "environment": 63.95512161466521,
+        "unemployment": 8.782601641201191
+      },
+      {
+        "turn": 27,
+        "gdp": 113.59599203976288,
+        "inflation": 6.227266404408265,
+        "liberty": 47,
+        "legitimacy": 61.225511888041815,
+        "welfare": 36.633895342066495,
+        "environment": 63.911326587462284,
+        "unemployment": 8.688511275903963
+      },
+      {
+        "turn": 28,
+        "gdp": 113.79350724347051,
+        "inflation": 6.2393328245254525,
+        "liberty": 47,
+        "legitimacy": 61.12567448451975,
+        "welfare": 36.6939589818588,
+        "environment": 63.86747035644502,
+        "unemployment": 8.668775702366796
+      },
+      {
+        "turn": 29,
+        "gdp": 116.32583584584391,
+        "inflation": 6.252858304759351,
+        "liberty": 47,
+        "legitimacy": 61.02736505721839,
+        "welfare": 36.755715667883834,
+        "environment": 63.82254682182911,
+        "unemployment": 8.220786164541673
+      },
+      {
+        "turn": 30,
+        "gdp": 116.61123984722953,
+        "inflation": 6.27446154255726,
+        "liberty": 47,
+        "legitimacy": 60.93056061290933,
+        "welfare": 36.81732294257372,
+        "environment": 63.77761224369791,
+        "unemployment": 7.971468014108947
+      },
+      {
+        "turn": 31,
+        "gdp": 116.77308900318046,
+        "inflation": 6.303164624405087,
+        "liberty": 47,
+        "legitimacy": 61.171968207226456,
+        "welfare": 36.878726483816045,
+        "environment": 63.732666691732774,
+        "unemployment": 7.851233161600696
+      },
+      {
+        "turn": 32,
+        "gdp": 116.88182794193325,
+        "inflation": 6.334203793355879,
+        "liberty": 47,
+        "legitimacy": 61.073055158054146,
+        "welfare": 36.94004860119714,
+        "environment": 63.68771023535729,
+        "unemployment": 7.8148493409289905
+      },
+      {
+        "turn": 33,
+        "gdp": 116.97012526852443,
+        "inflation": 6.365788292544556,
+        "liberty": 47,
+        "legitimacy": 60.97565598608407,
+        "welfare": 37.0013307629189,
+        "environment": 63.64274294373807,
+        "unemployment": 7.832915571788931
+      },
+      {
+        "turn": 34,
+        "gdp": 117.08582253813964,
+        "inflation": 6.3972202091184736,
+        "liberty": 47,
+        "legitimacy": 60.87974796979106,
+        "welfare": 37.062585783258825,
+        "environment": 63.597704484837855,
+        "unemployment": 7.886321210216952
+      },
+      {
+        "turn": 35,
+        "gdp": 118.488478743605,
+        "inflation": 6.428132557642267,
+        "liberty": 47,
+        "legitimacy": 61.12247678062626,
+        "welfare": 37.1245851709639,
+        "environment": 63.550935912890985,
+        "unemployment": 7.754744413465088
+      },
+      {
+        "turn": 36,
+        "gdp": 120.81762150482355,
+        "inflation": 6.4637697652153445,
+        "liberty": 47,
+        "legitimacy": 61.02442810695937,
+        "welfare": 37.18777267513853,
+        "environment": 63.50267394221806,
+        "unemployment": 7.352161001527069
+      },
+      {
+        "turn": 37,
+        "gdp": 121.23763068529735,
+        "inflation": 6.5117438168820865,
+        "liberty": 47,
+        "legitimacy": 61.26380184475098,
+        "welfare": 37.250658158087205,
+        "environment": 63.4543608029741,
+        "unemployment": 7.132706299203259
+      },
+      {
+        "turn": 38,
+        "gdp": 121.91517866437198,
+        "inflation": 6.566841892985756,
+        "liberty": 47,
+        "legitimacy": 61.49755289337161,
+        "welfare": 37.313641505267306,
+        "environment": 63.404803968893106,
+        "unemployment": 6.947488608847522
+      },
+      {
+        "turn": 39,
+        "gdp": 122.40918928049041,
+        "inflation": 6.625532215636166,
+        "liberty": 47,
+        "legitimacy": 61.39397113938889,
+        "welfare": 37.37672978243623,
+        "environment": 63.35441455489078,
+        "unemployment": 6.812920604408732
+      },
+      {
+        "turn": 40,
+        "gdp": 122.57462834397859,
+        "inflation": 6.686284723675832,
+        "liberty": 47,
+        "legitimacy": 61.6247098638515,
+        "welfare": 37.43975697675582,
+        "environment": 63.30401461033448,
+        "unemployment": 6.767710890945615
+      },
+      {
+        "turn": 41,
+        "gdp": 122.69412495909148,
+        "inflation": 6.746994887002201,
+        "liberty": 47,
+        "legitimacy": 61.519282831567224,
+        "welfare": 37.50277294110605,
+        "environment": 63.25360420629534,
+        "unemployment": 6.780562545933317
+      },
+      {
+        "turn": 42,
+        "gdp": 123.76226941514776,
+        "inflation": 6.804741865559581,
+        "liberty": 47,
+        "legitimacy": 61.74712423447181,
+        "welfare": 37.56642493942859,
+        "environment": 63.203102760838945,
+        "unemployment": 6.6670835168382245
+      },
+      {
+        "turn": 43,
+        "gdp": 125.73685145781296,
+        "inflation": 6.868820021099684,
+        "liberty": 47,
+        "legitimacy": 61.63992405765443,
+        "welfare": 37.630835938470234,
+        "environment": 63.150493646520005,
+        "unemployment": 6.378329295615143
+      },
+      {
+        "turn": 44,
+        "gdp": 128.0657459905767,
+        "inflation": 6.947492154996808,
+        "liberty": 47,
+        "legitimacy": 61.864979307264065,
+        "welfare": 37.6948344088514,
+        "environment": 63.095829746726345,
+        "unemployment": 6.233227706221135
+      },
+      {
+        "turn": 45,
+        "gdp": 128.99328244500623,
+        "inflation": 7.032076163718159,
+        "liberty": 47,
+        "legitimacy": 64.57329910347273,
+        "welfare": 37.75905003406324,
+        "environment": 63.039418055643154,
+        "unemployment": 6.0694592868381605
+      },
+      {
+        "turn": 46,
+        "gdp": 129.42956181707513,
+        "inflation": 7.120705830684996,
+        "liberty": 47,
+        "legitimacy": 64.4238009825252,
+        "welfare": 37.82307736963569,
+        "environment": 62.98256138066702,
+        "unemployment": 5.977657233240983
+      },
+      {
+        "turn": 47,
+        "gdp": 129.93900947494419,
+        "inflation": 7.214953867058854,
+        "liberty": 49,
+        "legitimacy": 67.78369724247128,
+        "welfare": 37.88724427255761,
+        "environment": 62.92569414843707,
+        "unemployment": 5.862868321985427
+      },
+      {
+        "turn": 48,
+        "gdp": 130.30646149388141,
+        "inflation": 7.30521547544378,
+        "liberty": 49.7,
+        "legitimacy": 68.20381113673743,
+        "welfare": 37.95177052054626,
+        "environment": 62.868816434050025,
+        "unemployment": 5.765888167573377
+      },
+      {
+        "turn": 49,
+        "gdp": 132.47526133134366,
+        "inflation": 7.391441796767902,
+        "liberty": 50.400000000000006,
+        "legitimacy": 68.06319728404372,
+        "welfare": 38.36731820422626,
+        "environment": 62.811928312319935,
+        "unemployment": 5.3881414121054085
+      },
+      {
+        "turn": 50,
+        "gdp": 132.49720319284745,
+        "inflation": 7.4588083852335965,
+        "liberty": 50.46000000000001,
+        "legitimacy": 68.4993649462713,
+        "welfare": 38.43387343385986,
+        "environment": 62.75502985777902,
+        "unemployment": 5.183765174775765
+      },
+      {
+        "turn": 51,
+        "gdp": 132.59258894516827,
+        "inflation": 7.523891662997257,
+        "liberty": 51.22000000000001,
+        "legitimacy": 68.65012404211774,
+        "welfare": 38.50060564860074,
+        "environment": 62.698121144678716,
+        "unemployment": 5.0920345119782855
+      },
+      {
+        "turn": 52,
+        "gdp": 132.69779315193801,
+        "inflation": 7.586388971853196,
+        "liberty": 51.280000000000015,
+        "legitimacy": 68.5274162724644,
+        "welfare": 38.56752970487791,
+        "environment": 62.64120224699054,
+        "unemployment": 5.073478163417305
+      },
+      {
+        "turn": 53,
+        "gdp": 132.81077277054564,
+        "inflation": 7.646550136497642,
+        "liberty": 52.04000000000002,
+        "legitimacy": 68.94840676715882,
+        "welfare": 38.63463895869014,
+        "environment": 62.58427323840708,
+        "unemployment": 5.102439763698655
+      },
+      {
+        "turn": 54,
+        "gdp": 133.0604116983392,
+        "inflation": 7.704628812816741,
+        "liberty": 52.10000000000002,
+        "legitimacy": 68.82087749139752,
+        "welfare": 38.70200554189324,
+        "environment": 62.52733419234291,
+        "unemployment": 5.134571583261458
+      },
+      {
+        "turn": 55,
+        "gdp": 133.4040799696826,
+        "inflation": 7.761697239471413,
+        "liberty": 52.160000000000025,
+        "legitimacy": 68.69583260559247,
+        "welfare": 38.76960019213544,
+        "environment": 62.470255164849526,
+        "unemployment": 5.168790444483957
+      },
+      {
+        "turn": 56,
+        "gdp": 133.41873258864186,
+        "inflation": 7.81813478070074,
+        "liberty": 52.22000000000003,
+        "legitimacy": 68.57315093102174,
+        "welfare": 38.83737274646394,
+        "environment": 62.413320924519674,
+        "unemployment": 5.218242317984502
+      },
+      {
+        "turn": 57,
+        "gdp": 135.24781846216976,
+        "inflation": 7.875229544217601,
+        "liberty": 52.28000000000003,
+        "legitimacy": 68.4535960399501,
+        "welfare": 39.256269977684646,
+        "environment": 62.354169547783414,
+        "unemployment": 4.992673572950804
+      },
+      {
+        "turn": 58,
+        "gdp": 135.72790227380432,
+        "inflation": 7.936214437487565,
+        "liberty": 52.34000000000003,
+        "legitimacy": 68.33639111013333,
+        "welfare": 39.32540362073932,
+        "environment": 62.295003046162236,
+        "unemployment": 4.841458251616103
+      },
+      {
+        "turn": 59,
+        "gdp": 136.09181162605003,
+        "inflation": 8.001284165870073,
+        "liberty": 52.400000000000034,
+        "legitimacy": 68.22129688200026,
+        "welfare": 39.39468029656181,
+        "environment": 62.23568715075052,
+        "unemployment": 4.761555384853732
+      }
+    ],
+    "log": [
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "start",
+        "text": "1960년 1월. 국정 지표를 관찰하며 공적 역할의 원칙을 준비한다."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "event",
+        "text": "겨울의 업무일지 — 경제·사회 자료부터 검토한다",
+        "eventId": "opening",
+        "choiceId": "opening_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 0,
+        "date": "1960-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 1,
+        "date": "1960-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "event",
+        "text": "3·15 선거와 정국의 균열 — 정치적 중립과 적법 절차를 강조한다",
+        "eventId": "election_1960",
+        "choiceId": "election_1960_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 2
+        }
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 2,
+        "date": "1960-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "event",
+        "text": "4월의 시민들 — 시민 보호와 정치적 중립을 지지한다",
+        "eventId": "april_1960",
+        "choiceId": "april_1960_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 3
+        }
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 3,
+        "date": "1960-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 4,
+        "date": "1960-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 5,
+        "date": "1960-06-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 2단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 6,
+        "date": "1960-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "event",
+        "text": "제2공화국의 출범 — 정치에 개입하지 않는 원칙을 세운다",
+        "eventId": "republic2",
+        "choiceId": "republic2_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 2
+        }
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 7,
+        "date": "1960-08-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 3단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 8,
+        "date": "1960-09-30",
+        "type": "construction",
+        "text": "충북 · 임업·제재 2단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 9,
+        "date": "1960-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 10,
+        "date": "1960-11-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 2단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 11,
+        "date": "1960-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 12,
+        "date": "1961-01-31",
+        "type": "construction",
+        "text": "경북 · 어항·수산 3단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 13,
+        "date": "1961-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.35
+        }
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 14,
+        "date": "1961-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 15,
+        "date": "1961-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "event",
+        "text": "1961년 5월: 권력과 절차 — 헌정 질서 존중과 민간 정치 경로를 선택한다",
+        "eventId": "may_1961",
+        "choiceId": "may_1961_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S02"
+        ],
+        "changes": {
+          "legitimacy": 6,
+          "liberty": 5
+        }
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 16,
+        "date": "1961-05-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 4단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 17,
+        "date": "1961-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3491
+        }
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 18,
+        "date": "1961-07-31",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 5단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 19,
+        "date": "1961-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3476
+        }
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 20,
+        "date": "1961-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3454
+        }
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 21,
+        "date": "1961-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3432
+        }
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 22,
+        "date": "1961-11-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 4단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 23,
+        "date": "1961-12-31",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 3단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "event",
+        "text": "개발 계획의 출발 — 산업·사회 기반을 함께 검토한다",
+        "eventId": "plan_1962",
+        "choiceId": "plan_1962_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S03"
+        ],
+        "changes": {
+          "education": 1,
+          "admin": 2
+        }
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 24,
+        "date": "1962-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 25,
+        "date": "1962-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3435
+        }
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 26,
+        "date": "1962-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3414
+        }
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 6단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 27,
+        "date": "1962-04-30",
+        "type": "construction",
+        "text": "경북 · 어항·수산 5단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 28,
+        "date": "1962-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 29,
+        "date": "1962-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 30,
+        "date": "1962-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3419
+        }
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 31,
+        "date": "1962-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 32,
+        "date": "1962-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 33,
+        "date": "1962-10-31",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 4단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 34,
+        "date": "1962-11-30",
+        "type": "construction",
+        "text": "서울·경기 · 봉제 공장 7단계 준공 (민간 투자).",
+        "buildingId": "garment",
+        "regionId": "capital"
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3423
+        }
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 35,
+        "date": "1962-12-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 36,
+        "date": "1963-01-31",
+        "type": "construction",
+        "text": "충북 · 임업·제재 3단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.341
+        }
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 37,
+        "date": "1963-02-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3389
+        }
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 38,
+        "date": "1963-03-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 39,
+        "date": "1963-04-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3378
+        }
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 40,
+        "date": "1963-05-31",
+        "type": "construction",
+        "text": "경북 · 어항·수산 6단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "gyeongbuk"
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "event",
+        "text": "전후 경제 자료 — 통계의 출처와 한계를 함께 정리한다",
+        "eventId": "prep_reading",
+        "choiceId": "prep_reading_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 41,
+        "date": "1963-06-30",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 5단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "event",
+        "text": "공적 역할의 경계 — 공직과 군 조직의 경계를 문서로 밝힌다",
+        "eventId": "prep_principle",
+        "choiceId": "prep_principle_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3367
+        }
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 42,
+        "date": "1963-07-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "event",
+        "text": "정책 준비 노트 — 재정·산업 자료와 출처를 정리한다",
+        "eventId": "prep_study",
+        "choiceId": "prep_study_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 43,
+        "date": "1963-08-31",
+        "type": "construction",
+        "text": "충북 · 임업·제재 4단계 준공 (민간 투자).",
+        "buildingId": "forestry",
+        "regionId": "chungbuk"
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "event",
+        "text": "민간의 의견 — 간담회 기록을 공개하고 반론을 듣는다",
+        "eventId": "prep_public",
+        "choiceId": "prep_public_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.3357
+        }
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 44,
+        "date": "1963-09-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "event",
+        "text": "선거를 통한 권한의 확인 — 공개 토론과 절차를 존중하는 선거에 참여한다",
+        "eventId": "election_1963",
+        "choiceId": "election_1963_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S04"
+        ],
+        "changes": {
+          "legitimacy": 2.8601
+        }
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "election",
+        "text": "1963년 가상 선거: 당선 확률 90.0%, 당선.",
+        "probability": 90,
+        "roll": 89.85086239408702
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 45,
+        "date": "1963-10-31",
+        "type": "construction",
+        "text": "전남 · 어항·수산 3단계 준공 (민간 투자).",
+        "buildingId": "fishery",
+        "regionId": "jeonnam"
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 46,
+        "date": "1963-11-01",
+        "type": "preparation",
+        "text": "공개 자료를 검토하고 정책·연합 준비를 진전시켰다. 영향력 +3."
+      },
+      {
+        "turn": 47,
+        "date": "1963-12-01",
+        "type": "event",
+        "text": "새로운 정부의 책임 — 경제 발전과 권리 보장을 함께 약속한다",
+        "eventId": "inauguration_1963",
+        "choiceId": "inauguration_1963_1",
+        "kind": "historical_anchor",
+        "sourceIds": [
+          "S05"
+        ],
+        "changes": {
+          "legitimacy": 3.5576,
+          "liberty": 2
+        }
+      },
+      {
+        "turn": 47,
+        "date": "1963-12-31",
+        "type": "construction",
+        "text": "서울·경기 · 상가·시장 5단계 준공 (민간 투자).",
+        "buildingId": "commerce",
+        "regionId": "capital"
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "event",
+        "text": "공장 안전 보고서 — 노동자 참여 점검을 보장한다",
+        "eventId": "sys_safety",
+        "choiceId": "sys_safety_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.5638,
+          "liberty": 0.7
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "government",
+        "text": "소시민을(를) 집권 연합에 넣었다.",
+        "igId": "petite"
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "law",
+        "text": "언론 자유 보장 발의 (표현의 자유). 2개월마다 검사하며 세 번 통과해야 제정된다. 시행비 8 재정점은 돌려받지 않는다.",
+        "lawId": "press_freedom",
+        "changes": {
+          "treasury": -8
+        }
+      },
+      {
+        "turn": 48,
+        "date": "1964-01-01",
+        "type": "construction",
+        "text": "전남 · 학교 2단계 착공 (건설점 45). 자재값은 공사가 진행되는 달마다 나간다.",
+        "buildingId": "school",
+        "regionId": "jeonnam"
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-01",
+        "type": "event",
+        "text": "임금 협상의 계절 — 노사 대표의 자율 협상을 보장한다",
+        "eventId": "sys_wage",
+        "choiceId": "sys_wage_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "liberty": 0.7,
+          "welfare": 0.35
+        }
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-01",
+        "type": "construction",
+        "text": "서울·경기 · 건설 부문 2단계 착공 (건설점 40). 자재값은 공사가 진행되는 달마다 나간다.",
+        "buildingId": "construction",
+        "regionId": "capital"
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-01",
+        "type": "construction",
+        "text": "전북 · 관개·농업 기반 1단계 착공 (건설점 45). 자재값은 공사가 진행되는 달마다 나간다.",
+        "buildingId": "irrigation",
+        "regionId": "jeonbuk"
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-01",
+        "type": "policy",
+        "text": "농업 기술 보급 시행. 10 재정점 지출, 매월 유지비 0.28.",
+        "policyId": "farm_extension",
+        "changes": {
+          "treasury": -10,
+          "agriculture": 4
+        }
+      },
+      {
+        "turn": 49,
+        "date": "1964-02-29",
+        "type": "law",
+        "text": "언론 자유 보장: 지체 1회 (세 번이면 폐기).",
+        "lawId": "press_freedom"
+      },
+      {
+        "turn": 50,
+        "date": "1964-03-01",
+        "type": "event",
+        "text": "불어난 도시의 방 한 칸 — 세입자와 임대인의 공개 협의를 연다",
+        "eventId": "sys_housing",
+        "choiceId": "sys_housing_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.5589,
+          "stability": 0.35
+        }
+      },
+      {
+        "turn": 50,
+        "date": "1964-03-01",
+        "type": "construction",
+        "text": "부산 · 봉제 공장 2단계 착공 (건설점 50). 자재값은 공사가 진행되는 달마다 나간다.",
+        "buildingId": "garment",
+        "regionId": "busan"
+      },
+      {
+        "turn": 50,
+        "date": "1964-03-01",
+        "type": "cabinet",
+        "text": "민하경 자문위원 임명 (가상 인물, 임명비 12).",
+        "changes": {
+          "treasury": -12
+        }
+      },
+      {
+        "turn": 51,
+        "date": "1964-04-01",
+        "type": "event",
+        "text": "지역 도서관의 요청 — 지역의 자율 운영을 보장한다",
+        "eventId": "sys_culture",
+        "choiceId": "sys_culture_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.2756,
+          "liberty": 0.7
+        }
+      },
+      {
+        "turn": 51,
+        "date": "1964-04-30",
+        "type": "law",
+        "text": "언론 자유 보장: 1단계 통과 (성공 확률 36%).",
+        "lawId": "press_freedom"
+      },
+      {
+        "turn": 52,
+        "date": "1964-05-01",
+        "type": "event",
+        "text": "대기업과 작은 납품업체 — 계약 분쟁 조정 절차를 만든다",
+        "eventId": "sys_competition",
+        "choiceId": "sys_competition_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.7,
+          "equality": 0.7
+        }
+      },
+      {
+        "turn": 52,
+        "date": "1964-05-31",
+        "type": "construction",
+        "text": "전남 · 학교 2단계 준공.",
+        "buildingId": "school",
+        "regionId": "jeonnam"
+      },
+      {
+        "turn": 53,
+        "date": "1964-06-01",
+        "type": "event",
+        "text": "날카로운 신문 사설 — 공개 질의에 자료로 답한다",
+        "eventId": "sys_journal",
+        "choiceId": "sys_journal_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "legitimacy": 0.5508,
+          "liberty": 0.7
+        }
+      },
+      {
+        "turn": 53,
+        "date": "1964-06-30",
+        "type": "law",
+        "text": "언론 자유 보장: 지체 2회 (세 번이면 폐기).",
+        "lawId": "press_freedom"
+      },
+      {
+        "turn": 54,
+        "date": "1964-07-01",
+        "type": "event",
+        "text": "보건소의 대기줄 — 수요 자료와 대기 시간을 공개한다",
+        "eventId": "sys_medicine",
+        "choiceId": "sys_medicine_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.7
+        }
+      },
+      {
+        "turn": 55,
+        "date": "1964-08-01",
+        "type": "event",
+        "text": "새로운 교역 상대 — 소규모 시범 교역을 추진한다",
+        "eventId": "sys_diplomats",
+        "choiceId": "sys_diplomats_1",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "reserves": 0.4013,
+          "industry": 0.35
+        }
+      },
+      {
+        "turn": 55,
+        "date": "1964-08-31",
+        "type": "construction",
+        "text": "서울·경기 · 방직 공장 6단계 준공 (민간 투자).",
+        "buildingId": "textile_mill",
+        "regionId": "capital"
+      },
+      {
+        "turn": 55,
+        "date": "1964-08-31",
+        "type": "construction",
+        "text": "서울·경기 · 건설 부문 2단계 준공.",
+        "buildingId": "construction",
+        "regionId": "capital"
+      },
+      {
+        "turn": 55,
+        "date": "1964-08-31",
+        "type": "law",
+        "text": "언론 자유 보장: 논쟁으로 제자리. 양보를 얻어 다음 검사 확률 +5%p.",
+        "lawId": "press_freedom"
+      },
+      {
+        "turn": 56,
+        "date": "1964-09-01",
+        "type": "event",
+        "text": "산비탈의 토사 — 지역 단위 예방 점검을 시행한다",
+        "eventId": "sys_forest",
+        "choiceId": "sys_forest_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "admin": 0.7,
+          "security": 0.35
+        }
+      },
+      {
+        "turn": 57,
+        "date": "1964-10-01",
+        "type": "event",
+        "text": "겨울 연료의 부담 — 지역 공동 구매를 지원한다",
+        "eventId": "sys_coal",
+        "choiceId": "sys_coal_3",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "welfare": 0.35,
+          "admin": 0.35
+        }
+      },
+      {
+        "turn": 57,
+        "date": "1964-10-31",
+        "type": "law",
+        "text": "언론 자유 보장: 세 번째 지체로 폐기. 시행비는 돌려받지 않는다.",
+        "lawId": "press_freedom"
+      },
+      {
+        "turn": 58,
+        "date": "1964-11-01",
+        "type": "event",
+        "text": "부두 앞에서 멈춘 수출품 — 수출 일정과 통관 절차를 조정한다",
+        "eventId": "sys_port",
+        "choiceId": "sys_port_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "reserves": 0.1833,
+          "admin": 0.7
+        }
+      },
+      {
+        "turn": 59,
+        "date": "1964-12-01",
+        "type": "event",
+        "text": "기계는 도착했지만 — 학교·기업 공동 실습을 점검한다",
+        "eventId": "sys_skill",
+        "choiceId": "sys_skill_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "education": 0.7,
+          "industry": 0.35
+        }
+      },
+      {
+        "turn": 59,
+        "date": "1964-12-31",
+        "type": "construction",
+        "text": "전북 · 관개·농업 기반 1단계 준공.",
+        "buildingId": "irrigation",
+        "regionId": "jeonbuk"
+      },
+      {
+        "turn": 60,
+        "date": "1965-01-01",
+        "type": "event",
+        "text": "노후의 생활비 — 지역 돌봄 서비스를 연결한다",
+        "eventId": "sys_pension",
+        "choiceId": "sys_pension_2",
+        "kind": "fictional_system",
+        "sourceIds": [],
+        "changes": {
+          "welfare": 0.7,
+          "equality": 0.35
+        }
+      }
+    ],
+    "ending": null,
+    "lastFinance": {
+      "income": 20.440483708335382,
+      "base": 2.6858232181904347,
+      "interest": 0.24,
+      "upkeep": 9.633705124914645,
+      "expense": 12.559528343105079,
+      "balance": 7.880955365230303,
+      "turn": 59
+    },
+    "visited": [],
+    "report": {
+      "turn": 59,
+      "date": "1964-12",
+      "finance": {
+        "income": 20.440483708335382,
+        "base": 2.6858232181904347,
+        "interest": 0.24,
+        "upkeep": 9.633705124914645,
+        "expense": 12.559528343105079,
+        "balance": 7.880955365230303
+      },
+      "borrowed": 0,
+      "completed": [
+        {
+          "buildingId": "irrigation",
+          "regionId": "jeonbuk",
+          "private": false
+        }
+      ],
+      "started": null,
+      "laws": [],
+      "followups": [],
+      "election": null,
+      "events": [
+        "sys_pension"
+      ],
+      "ending": null,
+      "market": {
+        "gdp": 136.092,
+        "unemployment": 4.61,
+        "cpi": 1.0186,
+        "exports": 24.193,
+        "imports": 2.454,
+        "points": 23.89,
+        "used": 18.97,
+        "pool": 60
+      },
+      "changes": {
+        "gdp": 0.363909,
+        "treasury": 7.880955,
+        "reserves": 0.49658,
+        "inflation": 0.06507,
+        "unemployment": -0.079903,
+        "legitimacy": -0.115094,
+        "liberty": 0.06,
+        "welfare": 0.069277,
+        "education": 0.180408,
+        "infrastructure": 0.100577,
+        "industry": 0.025451,
+        "agriculture": 0.056366,
+        "environment": -0.059316,
+        "stability": 0.129066,
+        "admin": 0.09,
+        "equality": -0.024994,
+        "security": 0.065385
+      },
+      "support": {
+        "workers": 0.026043,
+        "farmers": -0.129618,
+        "petite": 0.048793,
+        "business": 0.014196,
+        "landowners": -0.100501,
+        "military": -0.000763
+      },
+      "relations": {},
+      "ledger": {
+        "treasury": [
+          [
+            "월 재정 수지",
+            7.880955
+          ]
+        ],
+        "gdp": [
+          [
+            "시장의 생산",
+            0.363909
+          ]
+        ],
+        "unemployment": [
+          [
+            "고용(건물 일자리와 노동 인구)",
+            -0.079903
+          ]
+        ],
+        "inflation": [
+          [
+            "시장 가격·부채 압력",
+            0.06507
+          ]
+        ],
+        "reserves": [
+          [
+            "교역 수지·원조",
+            0.49658
+          ]
+        ],
+        "welfare": [
+          [
+            "예산 배분",
+            0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.03
+          ],
+          [
+            "생활수준",
+            0.015277
+          ]
+        ],
+        "education": [
+          [
+            "예산 배분",
+            0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.245
+          ],
+          [
+            "역량의 감가",
+            -0.088592
+          ]
+        ],
+        "infrastructure": [
+          [
+            "예산 배분",
+            0.024
+          ],
+          [
+            "정부·기반 건물",
+            0.124
+          ],
+          [
+            "역량의 감가",
+            -0.047423
+          ]
+        ],
+        "industry": [
+          [
+            "예산 배분",
+            0.06
+          ],
+          [
+            "역량의 감가",
+            -0.034549
+          ]
+        ],
+        "agriculture": [
+          [
+            "예산 배분",
+            0.036
+          ],
+          [
+            "역량의 감가",
+            -0.044634
+          ],
+          [
+            "정책 지속 효과",
+            0.065
+          ]
+        ],
+        "environment": [
+          [
+            "건물의 환경 부담",
+            -0.064981
+          ],
+          [
+            "정부·기반 건물",
+            0.005665
+          ]
+        ],
+        "admin": [
+          [
+            "정부·기반 건물",
+            0.09
+          ]
+        ],
+        "security": [
+          [
+            "정부·기반 건물",
+            0.105
+          ],
+          [
+            "역량의 감가",
+            -0.079615
+          ],
+          [
+            "이해집단 특성",
+            0.04
+          ]
+        ],
+        "equality": [
+          [
+            "생활수준",
+            -0.015331
+          ],
+          [
+            "사회 추세",
+            -0.009663
+          ]
+        ],
+        "legitimacy": [
+          [
+            "사회 추세",
+            -0.000931
+          ],
+          [
+            "높아진 기대",
+            -0.200032
+          ],
+          [
+            "집권 연합의 기반",
+            0.062016
+          ],
+          [
+            "자문 지속 효과",
+            0.023852
+          ]
+        ],
+        "stability": [
+          [
+            "사회 추세",
+            0.129066
+          ]
+        ],
+        "liberty": [
+          [
+            "자문 지속 효과",
+            0.06
+          ]
+        ]
+      }
+    },
+    "monthActions": []
+  }
+}

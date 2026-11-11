@@ -959,7 +959,7 @@ function helpContent() {
 }
 function exportTextContent(m) {
   return { title: '저장 텍스트', body: `<p>아래 텍스트가 지금 진행(${esc(ym(state.turn))})의 저장 내용입니다. 복사해 메모나 .json 파일로 보관했다가 기록실의 ‘저장 텍스트 붙여넣기’나 ‘저장 파일 불러오기’로 이어 할 수 있습니다.</p>
-  <label for="save-text" class="sr-only">저장 텍스트</label><textarea id="save-text" class="save-text" readonly spellcheck="false">${esc(E.exportSave(state))}</textarea>
+  <label for="save-text" class="sr-only">저장 텍스트</label><textarea id="save-text" class="save-text" readonly spellcheck="false">${esc(JSON.stringify(JSON.parse(E.exportSave(state))))}</textarea>
   ${m.copied === true ? '<p class="note-ok" role="status">복사했습니다.</p>' : m.copied === false ? '<p class="reason" role="status">자동 복사가 막혀 텍스트 전체를 선택했습니다. Ctrl+C(⌘C)로 복사하세요.</p>' : ''}`,
     actions: closeBtn() + `<button type="button" class="btn primary" data-action="copySave" data-autofocus>복사</button>` };
 }
