@@ -14,7 +14,8 @@
 export const STRATA = ['workers', 'farmers', 'petite', 'business', 'landowners', 'military'];
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const finite = v => typeof v === 'number' && Number.isFinite(v);
-export const round = (v, n = 4) => Math.round(v * 10 ** n) / 10 ** n;
+/** 반올림. -0은 0으로 바꾼다(JSON 저장이 -0을 0으로 바꾸므로 저장 왕복이 같아야 한다). */
+export const round = (v, n = 4) => Math.round(v * 10 ** n) / 10 ** n + 0;
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 const INDEX = new WeakMap();
 /** 데이터의 ID 색인(데이터 객체마다 한 번 만든다). */

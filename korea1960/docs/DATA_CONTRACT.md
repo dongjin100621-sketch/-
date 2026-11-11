@@ -1,6 +1,8 @@
 # 데이터 계약과 저장 구조
 
-`data/game.json`이 정본이다. 분리 JSON 12개(목록 11개와 `balance.json`)는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
+> **데이터 2.0.0 · 저장 형식 5부터** `factions`·`projects`와 정책의 `requiresBill`이 없어지고 상품·건물·법률·이해집단·시장 상수가 들어왔다. 맨 아래 "데이터 2.0.0" 절이 이 문서의 이전 절(사회 집단·사업·법안·저장 형식 1~4·고유 사업)보다 우선한다. 이전 형식의 저장은 변환하지 않고 거부한다.
+
+`data/game.json`이 정본이다. 분리 JSON 18개(목록 16개와 `balance.json`·`economy.json`)는 같은 레코드를 읽기 편하게 제공하는 사본이며 엔진이 따로 병합하지 않는다. 변경 후 `python3 tools/validate_content.py --sync`로 사본을 갱신하고 검증한다. 선택지·정책·사업·국가·권역·출처 ID는 저장 호환성을 위해 임의로 바꾸지 않는다.
 
 ## 콘텐츠 레코드
 
@@ -81,3 +83,34 @@ TypeScript 참고 타입은 data/types.d.ts에 있다. 스키마의 기본 형�
 * `achievements[].condition`에 `uniqueProjects`(고유 사업 준공 수), `edicts`(동시에 시행 중인 시책 수)를 쓸 수 있다.
 * 엔진 인터페이스: 행동 `{type:'edict', id, regionId}`(AP 1), `{type:'revokeEdict', regionId}`(AP 없음). 읽기 함수 `regionTags`, `regionHas`, `edictCap`, `regionEdict`, `buildDiscount`, `projectCost`, `edictReason`, `revokeEdictReason`. `financeDetail().edictUpkeep`.
 * 검증: `tools/validate_content.py`(참조·범위), `data/game.schema.json`(형태), `data/types.d.ts`(`TraitDef`, `RegionDef`, `EdictDef`, `ActiveEdict`, `SaveStateV4Extra`).
+
+## 데이터 2.0.0: 상품·건물·법률·이해집단 (저장 형식 5)
+
+| 종류 | 주요 필드 | 규칙 |
+| --- | --- | --- |
+| goods (19) | id,name,category(staple/industrial/luxury/military),price,need{q0,e},world{price,export,import,noTariff?,schedule?}\|null,mark,description | 기준가격 > 0. world가 null이면 교역하지 않는다(전력·운송·서비스). 나라 안에서 만들 수도, 수입할 수도 없는 상품은 없어야 한다 |
+| buildings (30) | id,name,category,cost(건설점),infraUse,infraSupply?,trade?,owner(business/land/petite/state),tech?,skill?,development?,requires?,maxPerRegion?,cap?('arable'),unlockYear,pollution?,private?,gov?,construction?,monthlyEffects?,description,pm[] | 첫 생산방식은 조건 없이 열린다. state 소유와 gov 건물은 private:false. gov 건물은 시장 산출이 없다. 건설 부문(id `construction`)은 정확히 하나이고 생산방식마다 points·materials가 있다 |
+| pm(생산방식) | id,name,jobs{계층:수},in{상품:양},out{상품:양},unlock{year?,metric{지표:값}}?,points?,materials?,pollution? | 수량은 한 단계·한 달 기준 |
+| lawGroups (14) | id,name,column(power/economy/rights),interval(개월),description | 분류마다 initial 법이 정확히 하나, 법이 둘 이상 |
+| laws (38) | id,group,name,unlockYear,initial?,cost,monthlyCost,effects,monthlyEffects,modifiers,stances{계층:−2~2},description | modifiers 키는 `game/economy.mjs`의 `MODIFIER_KEYS`. 조세 법은 tax{consumption,wage,profit,land}, 토지 법은 farmShare(합 1), 경제 체제는 privateShare, 무역은 tariff를 반드시 정한다 |
+| interestGroups (6) | id,name,mark,cloutWeight,wage,invest,description,demands[{id,text,buildings,base,perYear,from,weight}],traits{unhappy,happy,loyal:{name,modifiers?,monthly?}} | ID와 순서는 workers,farmers,petite,business,landowners,military. 적어도 한 건물은 두 집단 이상의 요구에 함께 들어간다 |
+| economy | 시장 상수 블록 | `docs/SIMULATION_RULES.md` "시장 경제" |
+| regions | …, arable(농장 단계 한도), start{건물:단계} | 1960년 건물은 지형·자원·경지·권역 한도·연도 조건을 지킨다. `slots`는 없어졌다 |
+| edicts | …, constructionBonus? (0~0.5) | `buildDiscount` 대신 그 권역의 공사 진행을 빠르게 한다 |
+| 사건·정책·시책의 factionEffects | {이해집단 ID: 수} | 2.0.0 변환: students·civil·bureaucracy·opposition → petite(합산 후 ±8로 제한), 나머지는 같은 ID |
+| achievements.condition | policies·lawsEnacted·built·regionsBuilt·resourceBuilt·edicts·tradeSurplus·happyGroups·noShortage·turn·ending·view·지표 | |
+
+### 엔진 인터페이스(3.0.0에서 추가된 것)
+* 행동: `build{id,regionId}`, `cancelBuild{index}`, `prioritize{index}`, `pm{id,regionId,pm}`, `subsidy{id,regionId}`, `privatize{id,regionId}`, `downsize{id,regionId}`, `enact{id}`, `cancelEnact`, `coalition{id}`. `policy`는 행정 정책만 다룬다. `project`는 없어졌다.
+* 사유 함수: `buildReason`, `cancelBuildReason`, `prioritizeReason`, `pmReason`, `subsidyReason`, `privatizeReason`, `downsizeReason`, `enactReason`, `cancelEnactReason`, `coalitionReason`. 화면은 이 함수의 문장을 그대로 보여 준다.
+* 미리보기·계산: `econ.compute(state,data)`(읽기 전용), `econ.prospect`, `econ.demandStatus`, `econ.approvalParts`, `econ.activeTraits`, `econ.modifiers`, `lawChance`/`lawChanceParts`, `lawPreference`, `governmentClout`, `coalitionLegitimacy`, `privatizePrice`, `edictCap(state,data)`. `finance(state,data)`는 `compute(...).finance`.
+
+### 저장 상태(형식 5)
+**format=KOREA1960_SAVE, version=5, dataVersion=2.0.0.** 형식 4에서 `projects`·`bills`가 빠지고 다음이 들어왔다.
+* `buildings[]`: `{id,regionId,level,pm,staff,state,subsidy}` — 정확히 이 7개 키. 권역·건물 쌍이 유일, 0≤state≤level≤60, 0≤staff≤1, 지형·자원 조건, private:false 건물은 state=level.
+* `construction[]`: `{id,regionId,progress,private}` — 정부 8건·민간 2건까지, 0≤progress<cost.
+* `laws{분류: 법}`(분류마다 그 분류의 법), `enactment` null 또는 `{lawId,stage,wait,setbacks,bonus,startedTurn}`, `government[]`(1~3, 유일), `ig{계층:{mod,clout,vote}}`, `support{계층: 0~100}`.
+* `econ{prices,short,wage,workforce,pool,dividends,sol,sol0,needBase,gdpUnit,cpi,hist,trade}`: 가격은 기준가격의 −60%~+90%, 부족 배율 0~0.5, 투자기금 0~60 등 범위를 검사한다.
+* `counters{built,privateBuilt,resourceBuilt,lawsEnacted,lawsFailed,regions}`.
+* `report`에는 `completed[{buildingId,regionId,private}]`, `started`, `laws[{lawId,result,chance}]`, `market{gdp,unemployment,cpi,exports,imports,points,used,pool}`가 들어간다. 연대기 항목은 `buildingId`·`lawId`·`igId`를 가질 수 있고 모두 등록된 ID여야 한다.
+* 파일은 3MB 이하. 형식 1~4는 `migrateSave`가 "경제 구조가 달라 이어 할 수 없다"는 오류로 거부한다(변환하지 않는다).

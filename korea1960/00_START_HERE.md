@@ -1,6 +1,6 @@
 # 클로드 제작 패키지 · 시작 안내
 
-> **v2 개발 진행 중 (2026-11-09).** 지금 플레이할 파일은 `KOREA1960.html`, 현재 소스는 `game/`, 작업 상태는 `CHECKPOINT.md`, 실행·데이터·저장 안내는 `README.md`를 본다. 아래는 제작 패키지 v1의 원래 안내이며 `example/`·`PLAYABLE_SAMPLE.html`은 비교 기준으로 남겨 두었다.
+> **현재 게임 3.0.0 (2026-11-11).** 지금 플레이할 파일은 `KOREA1960.html`, 현재 소스는 `game/`(시장 모형은 `game/economy.mjs`), 작업 상태는 `CHECKPOINT.md`, 실행·데이터·저장 안내는 `README.md`를 본다. 아래는 제작 패키지 v1의 원래 안내이며 `example/`·`PLAYABLE_SAMPLE.html`은 비교 기준으로 남겨 두었다.
 
 게임명(독자 제작용): **대한민국 1960: 선택의 연대기**
 

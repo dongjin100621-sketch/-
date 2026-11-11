@@ -158,14 +158,14 @@
       "id": "font_korean_regular_woff2",
       "path": "assets/fonts/ChronicleKR-Regular.woff2",
       "kind": "open_license_font_subset",
-      "use": "한국어 UI 표시 (v2 게임, 보통)",
+      "use": "한국어 UI 표시 (현재 게임, 보통)",
       "historicalEvidence": false
     },
     {
       "id": "font_korean_bold_woff2",
       "path": "assets/fonts/ChronicleKR-Bold.woff2",
       "kind": "open_license_font_subset",
-      "use": "한국어 UI 표시 (v2 게임, 굵게)",
+      "use": "한국어 UI 표시 (현재 게임, 굵게)",
       "historicalEvidence": false
     },
     {
