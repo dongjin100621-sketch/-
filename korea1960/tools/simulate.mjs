@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { playCampaign, checkInvariants, STRATEGIES } from '../tests/helpers/campaign.mjs';
+import { playCampaign, checkInvariants, checkMarket, STRATEGIES } from '../tests/helpers/campaign.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const d = JSON.parse(fs.readFileSync(path.join(root, 'data/game.json'), 'utf8'));
 const seeds = Number(process.argv[2] || 40);
@@ -17,12 +17,14 @@ for (const strategy of Object.keys(STRATEGIES).filter(x => !only || x === only))
   const endings = {}, sums = {}, started = Date.now();
   for (let seed = 1; seed <= seeds; seed++) {
     let result;
-    try { result = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: s => checkInvariants(s, d) }); }
+    try { result = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: s => checkInvariants(s, d), onMonth: s => checkMarket(s, d) }); }
     catch (e) { violations++; console.error(`[${strategy} seed ${seed}] ${e.message}`); continue; }
     const s = result.state;
     for (const id of result.seen.events) seenEvents.add(id);
     seenEndings.add(s.ending.id); endings[s.ending.id] = (endings[s.ending.id] || 0) + 1;
-    for (const k of ['gdp', 'liberty', 'legitimacy', 'welfare', 'equality', 'environment', 'industry', 'debt']) sums[k] = (sums[k] || 0) + s.stats[k];
+    for (const k of ['gdp', 'liberty', 'legitimacy', 'welfare', 'equality', 'environment', 'industry', 'debt', 'unemployment']) sums[k] = (sums[k] || 0) + s.stats[k];
+    sums.levels = (sums.levels || 0) + s.buildings.reduce((a, b) => a + b.level, 0); sums.built = (sums.built || 0) + s.counters.built; sums.private = (sums.private || 0) + s.counters.privateBuilt; sums.laws = (sums.laws || 0) + s.counters.lawsEnacted;
+    for (const g of d.interestGroups) sums['지지:' + g.name] = (sums['지지:' + g.name] || 0) + s.support[g.id];
     sums.turn = (sums.turn || 0) + s.turn;
   }
   const avg = Object.fromEntries(Object.entries(sums).map(([k, v]) => [k, +(v / seeds).toFixed(1)]));

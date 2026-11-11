@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createState,dispatch,exportSave,importSave,evaluateEnding,finance,policyReason,projectReason,random,calendar,dateLabel} from '../example/engine.mjs';
-const d=JSON.parse(fs.readFileSync(new URL('../data/game.json',import.meta.url),'utf8'));
+const d=JSON.parse(fs.readFileSync(new URL('../example/game.json',import.meta.url),'utf8'));
 function exec(s,a){const r=dispatch(s,d,a);assert.equal(r.ok,true,r.error);return r.state;}
 function free(s){while(s.queue.length&&!s.ending){const e=d.events.find(x=>x.id===s.queue[0]);s=exec(s,{type:'choose',choiceId:e.choices.find(c=>(c.effects.treasury||0)>=0&&!c.ending)?.id||e.choices[0].id});}return s;}
 function governing(){let s=createState(d);s.queue=[];s.turn=60;s.phase='governing';s.stats.treasury=500;s.flags.won1963=true;return s;}

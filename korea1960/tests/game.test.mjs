@@ -1,440 +1,475 @@
-/* game/engine.mjs(v2) 검증. 원본 tests/engine.test.mjs의 28개 항목을 같은 내용으로 옮기고,
- * v2에서 추가·변경한 규칙, 버전 1 저장 변환, v1 참조 엔진과의 회귀 비교, 자동 캠페인 불변식을 더했다.
- * 실행: node --test tests/          (CAMPAIGN_SEEDS=100 처럼 환경 변수로 자동 캠페인 수를 늘릴 수 있다)
+/* game/engine.mjs·game/economy.mjs(v3, 데이터 2.0.0, 저장 형식 5) 검증.
+ * 사건·권한·시계·저장 규칙(v2에서 이어진 것)과 시장·건설·법률·이해집단(v3에서 새로 든 것), 자동 캠페인 불변식.
+ * 실행: node --test tests/          (CAMPAIGN_SEEDS=40 처럼 환경 변수로 자동 캠페인 수를 늘릴 수 있다)
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as E from '../game/engine.mjs';
-import * as V1 from '../example/engine.mjs';
-import { playCampaign, checkInvariants, STRATEGIES } from './helpers/campaign.mjs';
-const { createState, dispatch, exportSave, importSave, evaluateEnding, finance, policyReason, projectReason, random, calendar, dateLabel } = E;
+import { playCampaign, checkInvariants, checkMarket, STRATEGIES } from './helpers/campaign.mjs';
+const { createState, dispatch, exportSave, importSave, evaluateEnding, finance, policyReason, random, calendar, dateLabel } = E;
+const EC = E.econ;
 const d = JSON.parse(fs.readFileSync(new URL('../data/game.json', import.meta.url), 'utf8'));
-/** balance 블록을 뺀 같은 데이터. 엔진 v2가 이것으로 1.1.0(v1)과 같은 계산을 하는지 회귀 비교에 쓴다. */
-const noBalance = (() => { const x = JSON.parse(JSON.stringify(d)); delete x.balance; return x; })();
+const X = d.economy;
+const clone = x => JSON.parse(JSON.stringify(x));
 function exec(s, a) { const r = dispatch(s, d, a); assert.equal(r.ok, true, r.error); return r.state; }
+const refuse = (s, a, pattern) => { const r = dispatch(s, d, a); assert.equal(r.ok, false, `${a.type}이 받아들여짐`); if (pattern) assert.match(r.error, pattern); assert.equal(r.state, s); };
 function free(s) { while (s.queue.length && !s.ending) { const e = d.events.find(x => x.id === s.queue[0]); s = exec(s, { type: 'choose', choiceId: e.choices.find(c => (c.effects.treasury || 0) >= 0 && !c.ending)?.id || e.choices[0].id }); } return s; }
-function governing() { let s = createState(d); s.queue = []; s.turn = 60; s.phase = 'governing'; s.stats.treasury = 500; s.flags.won1963 = true; return s; }
+/** 국정 운영 단계의 시험용 상태(1965년 1월, 국고 500). 경제 상태는 새 게임의 것 그대로다. */
+function governing(seed) { const s = createState(d, seed); s.queue = []; s.turn = 60; s.phase = 'governing'; s.stats.treasury = 500; s.flags.won1963 = true; return s; }
 function advance(s, n) { for (let i = 0; i < n && !s.ending; i++) { s = free(s); if (s.ending) break; s = exec(s, { type: 'endMonth' }); } return s; }
-const SEEDS = Number(process.env.CAMPAIGN_SEEDS || 12);
+/** 사건을 받지 않고 달만 넘긴다(시험용: 사건 큐를 비우며 진행). */
+function months(s, n) { for (let i = 0; i < n && !s.ending; i++) { s = clone(s); s.queue = []; s = exec(s, { type: 'endMonth' }); } s = clone(s); s.queue = []; return s; }
+const bld = (s, id, regionId) => s.buildings.find(b => b.id === id && b.regionId === regionId);
+const SEEDS = Number(process.env.CAMPAIGN_SEEDS || 6);
+const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps, `${a} ≠ ${b}`);
+/** 연대기에서 법률이 제정된 기록(발의·통과 기록과 구분). */
+const enacted = s => s.log.find(l => l.type === 'law' && / 제정 \(/.test(l.text));
 
-/* ===== 원본 28개 항목 (v2 엔진 대상) ===== */
-test('content has unique IDs and all 189 choices', () => { assert.equal(d.events.length, 63); assert.equal(d.events.flatMap(e => e.choices).length, 189); for (const k of ['events', 'policies', 'projects', 'endings']) assert.equal(new Set(d[k].map(x => x.id)).size, d[k].length); });
-test('initial date, power restriction, queue and 3 AP', () => { const s = createState(d); assert.equal(dateLabel(s.turn), '1960-01'); assert.equal(s.phase, 'prelude'); assert.equal(s.ap, 3); assert.deepEqual(s.queue, ['opening']); assert.match(policyReason(s, d, 'farm_extension'), /사건/); });
-test('pending event blocks end turn and ordinary actions', () => { const s = createState(d); for (const a of [{ type: 'endMonth' }, { type: 'prepare' }, { type: 'adviser', id: 'han' }]) assert.equal(dispatch(s, d, a).ok, false); });
+/* ===== 콘텐츠와 시작 상태 ===== */
+test('content: unique IDs, 189 choices, and every cross-reference resolves', () => {
+  assert.equal(d.events.length, 63); assert.equal(d.events.flatMap(e => e.choices).length, 189);
+  for (const k of ['events', 'policies', 'buildings', 'goods', 'laws', 'lawGroups', 'interestGroups', 'endings', 'edicts', 'regions']) assert.equal(new Set(d[k].map(x => x.id)).size, d[k].length, k);
+  const goods = new Set(d.goods.map(g => g.id)), igs = new Set(d.interestGroups.map(g => g.id)), metrics = new Set(d.metrics.map(m => m.id)), buildings = new Set(d.buildings.map(b => b.id));
+  for (const b of d.buildings) for (const pm of b.pm) {
+    for (const g of [...Object.keys(pm.in), ...Object.keys(pm.out), ...Object.keys(pm.materials || {})]) assert.ok(goods.has(g), `${b.id} ${g}`);
+    for (const i of Object.keys(pm.jobs)) assert.ok(igs.has(i), `${b.id} ${i}`);
+    for (const m of Object.keys(pm.unlock?.metric || {})) assert.ok(metrics.has(m));
+  }
+  for (const g of d.lawGroups) assert.equal(d.laws.filter(l => l.group === g.id && l.initial).length, 1, g.id);
+  for (const l of d.laws) { assert.ok(d.lawGroups.some(g => g.id === l.group)); for (const i of Object.keys(l.stances)) assert.ok(igs.has(i)); for (const key of Object.keys(l.modifiers)) assert.ok(EC.MODIFIER_KEYS.includes(key), `${l.id} ${key}`); }
+  for (const g of d.interestGroups) for (const x of g.demands) for (const id of x.buildings) assert.ok(buildings.has(id), `${g.id} ${id}`);
+  for (const e of d.events) for (const c of e.choices) for (const id of Object.keys(c.factionEffects || {})) assert.ok(igs.has(id), `${e.id} ${id}`);
+  for (const r of d.regions) for (const id of Object.keys(r.start)) assert.ok(buildings.has(id) && !EC.siteReason({ buildings: [], construction: [] }, d, id, r.id), `${r.id} ${id}`);
+});
+test('initial state: date, authority, market in balance, starting laws and coalition', () => {
+  const s = createState(d);
+  assert.equal(dateLabel(s.turn), '1960-01'); assert.equal(s.phase, 'prelude'); assert.equal(s.ap, 3); assert.deepEqual(s.queue, ['opening']); assert.match(policyReason(s, d, 'farm_extension'), /사건/);
+  assert.equal(s.stats.gdp, 100); assert.ok(s.stats.unemployment > 8 && s.stats.unemployment < 16);
+  for (const g of d.lawGroups) assert.equal(d.laws.find(l => l.id === s.laws[g.id]).initial, true);
+  assert.deepEqual(s.government, X.government.start);
+  assert.equal(EC.levelsOf(s, ['farm']), 40);
+  for (const g of d.goods) assert.ok(Math.abs(s.econ.prices[g.id] / g.price - 1) <= X.price.ceiling + 1e-9, g.id);
+  const R = EC.compute(s, d); near(R.gdp, 100, .01); assert.ok(R.finance.balance > 0 && R.finance.balance < 8, `시작 월 수지 ${R.finance.balance}`);
+  for (const g of d.interestGroups) assert.ok(s.support[g.id] > 20 && s.support[g.id] < 95);
+});
+test('pending event blocks end turn and ordinary actions', () => { const s = createState(d); for (const a of [{ type: 'endMonth' }, { type: 'tick' }, { type: 'prepare' }, { type: 'adviser', id: 'han' }, { type: 'build', id: 'school', regionId: 'capital' }]) refuse(s, a); });
 test('choice invalid ID leaves original state untouched', () => { const s = createState(d), before = exportSave(s); assert.equal(dispatch(s, d, { type: 'choose', choiceId: 'not_registered' }).ok, false); assert.equal(exportSave(s), before); });
-test('preparation consumes AP and changes no national metric', () => { let s = free(createState(d)); const stats = { ...s.stats }; for (let i = 0; i < 3; i++) s = exec(s, { type: 'prepare' }); assert.deepEqual(s.stats, stats); assert.equal(s.ap, 0); assert.equal(dispatch(s, d, { type: 'prepare' }).ok, false); assert.equal(dispatch(s, d, { type: 'policy', id: 'farm_extension' }).ok, false); });
+test('preparation consumes AP and changes no national metric', () => { let s = free(createState(d)); const stats = { ...s.stats }; for (let i = 0; i < 3; i++) s = exec(s, { type: 'prepare' }); assert.deepEqual(s.stats, stats); assert.equal(s.ap, 0); refuse(s, { type: 'prepare' }); refuse(s, { type: 'policy', id: 'farm_extension' }); });
 test('monthly transition replenishes AP and changes date', () => { let s = free(createState(d)); s = exec(s, { type: 'prepare' }); s = exec(s, { type: 'endMonth' }); assert.equal(s.turn, 1); assert.equal(s.ap, 3); assert.equal(calendar(s.turn).month, 2); assert.equal(s.queue.length, 1); });
-test('both 1961 branches set different rights and authority', () => { let a = createState(d); a.turn = 16; a.queue = ['may_1961']; const b = exec(a, { type: 'choose', choiceId: 'may_1961_2' }); a = exec(a, { type: 'choose', choiceId: 'may_1961_1' }); assert.equal(a.phase, 'civilian'); assert.equal(b.phase, 'transition'); assert.ok(a.stats.liberty > b.stats.liberty); assert.equal(a.flags.route, 'constitutional'); });
-test('1963 election failure transfers power and blocks later actions', () => { const s = createState(d); s.turn = 45; s.queue = ['election_1963']; s.influence = 0; s.stats.legitimacy = 20; let failed; for (let seed = 1; seed < 100; seed++) { s.rng = seed * 100003; const r = exec(s, { type: 'choose', choiceId: 'election_1963_1' }); if (r.ending) { failed = r; break; } } assert.equal(failed?.ending.id, 'peaceful_transfer'); assert.equal(dispatch(failed, d, { type: 'endMonth' }).ok, false); });
-test('policy spends resources once and cannot be duplicated', () => { let s = governing(); const p = d.policies.find(x => x.id === 'farm_extension'); s = exec(s, { type: 'policy', id: p.id }); assert.equal(s.stats.treasury, 500 - p.cost); assert.equal(s.ap, 2); assert.ok(s.policies.includes(p.id)); assert.equal(dispatch(s, d, { type: 'policy', id: p.id }).ok, false); });
-test('locked year and insufficient treasury reject actions', () => { const s = governing(); s.turn = 36; s.stats.treasury = 0; assert.equal(dispatch(s, d, { type: 'policy', id: 'farm_extension' }).ok, false); assert.equal(dispatch(s, d, { type: 'project', id: 'steel_complex', regionId: 'capital' }).ok, false); });
-test('legislation takes 5-7 months and activates at most once', () => { let s = governing(); s.seats = .95; s.stats.legitimacy = 95; s = exec(s, { type: 'policy', id: 'press_freedom' }); assert.ok(s.bills[0].total >= 5 && s.bills[0].total <= 7); assert.ok(!s.policies.includes('press_freedom')); assert.equal(dispatch(s, d, { type: 'policy', id: 'press_freedom' }).ok, false); s = advance(s, 8); assert.ok(['passed', 'failed'].includes(s.bills[0].status)); assert.ok(s.policies.filter(x => x === 'press_freedom').length <= 1); });
-test('transition government cannot introduce regular parliamentary bill', () => { const s = governing(); s.phase = 'transition'; assert.equal(dispatch(s, d, { type: 'policy', id: 'press_freedom' }).ok, false); });
-test('project completes only after its duration and remains unique', () => { let s = governing(); s = exec(s, { type: 'project', id: 'rural_clinic', regionId: 'capital' }); s = advance(s, 4); assert.equal(s.projects[0].status, 'building'); s = advance(s, 1); assert.equal(s.projects[0].status, 'complete'); assert.equal(s.projects[0].remaining, 0); s = free(s); assert.equal(dispatch(s, d, { type: 'project', id: 'rural_clinic', regionId: 'capital' }).ok, false); assert.equal(s.log.filter(x => x.type === 'construction' && x.text.includes('준공.')).length, 1); });
-test('region has four slots including unfinished projects', () => { let s = governing(); for (const id of ['rural_clinic', 'primary_campus', 'local_road']) s = exec(s, { type: 'project', id, regionId: 'capital' }); s = advance(s, 1); s = free(s); s = exec(s, { type: 'project', id: 'irrigation', regionId: 'capital' }); assert.match(projectReason(s, d, 'technical_campus', 'capital'), /슬롯/); });
-test('budget must be numeric, nonnegative and total exactly 100', () => { const s = governing(); for (const budget of [{ industry: 100 }, { industry: 22, agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 11 }, { industry: -2, agriculture: 42, education: 16, welfare: 16, infrastructure: 16, security: 12 }, { industry: '22', agriculture: 18, education: 16, welfare: 16, infrastructure: 16, security: 12 }]) assert.equal(dispatch(s, d, { type: 'budget', budget }).ok, false); const r = dispatch(s, d, { type: 'budget', budget: { industry: 20, agriculture: 20, education: 20, welfare: 20, infrastructure: 10, security: 10 } }); assert.equal(r.ok, true); assert.equal(r.state.ap, 3); });
-test('foreign action affects relationship, budget and AP', () => { let s = governing(); const rel = s.relations.japan; s = exec(s, { type: 'diplomacy', countryId: 'japan', mode: 'talk' }); assert.equal(s.stats.treasury, 496); assert.equal(s.relations.japan, rel + 4); assert.equal(s.ap, 2); });
-test('two advisers maximum; dismissal consumes one AP', () => { let s = governing(); s = exec(s, { type: 'adviser', id: 'han' }); s = exec(s, { type: 'adviser', id: 'yun' }); assert.equal(dispatch(s, d, { type: 'adviser', id: 'min' }).ok, false); s = exec(s, { type: 'adviser', id: 'han' }); assert.deepEqual(s.advisers, ['yun']); assert.equal(s.ap, 0); });
-test('debt repayment is finite, funded and limited to outstanding debt', () => { let s = governing(); for (const amount of [-1, NaN, Infinity, 1000, '10']) assert.equal(dispatch(s, d, { type: 'repay', amount }).ok, false); s = exec(s, { type: 'repay', amount: 10 }); assert.equal(s.stats.debt, 70); assert.equal(s.stats.treasury, 490); });
-test('finance balances and negative cash borrows exactly the shortfall', () => { let s = governing(); s.stats.treasury = 0; s.stats.debt = 600; for (const p of d.policies) s.policies.push(p.id); const f = finance(s, d), oldDebt = s.stats.debt; assert.ok(f.balance < 0); s = exec(s, { type: 'endMonth' }); assert.ok(Math.abs(s.stats.debt - (oldDebt - f.balance)) < 1e-9); assert.equal(s.stats.treasury, 0); });
+test('both 1961 branches set different rights and authority; the transition brings the military into the coalition', () => {
+  let a = createState(d); a.turn = 16; a.queue = ['may_1961'];
+  const b = exec(a, { type: 'choose', choiceId: 'may_1961_2' }); a = exec(a, { type: 'choose', choiceId: 'may_1961_1' });
+  assert.equal(a.phase, 'civilian'); assert.equal(b.phase, 'transition'); assert.ok(a.stats.liberty > b.stats.liberty); assert.equal(a.flags.route, 'constitutional');
+  assert.ok(b.government.includes('military') && !a.government.includes('military')); assert.ok(b.government.length <= X.government.max);
+  refuse(b, { type: 'coalition', id: 'military' }, /과도 통치/);
+});
+test('1963 election failure transfers power and blocks later actions', () => { const s = createState(d); s.turn = 45; s.queue = ['election_1963']; s.influence = 0; s.stats.legitimacy = 20; let failed; for (let seed = 1; seed < 100; seed++) { s.rng = seed * 100003; const r = exec(s, { type: 'choose', choiceId: 'election_1963_1' }); if (r.ending) { failed = r; break; } } assert.equal(failed?.ending.id, 'peaceful_transfer'); refuse(failed, { type: 'endMonth' }); });
+test('policy spends resources once and cannot be duplicated; locked year and empty treasury refuse', () => {
+  let s = governing(); const p = d.policies.find(x => x.id === 'farm_extension'), before = s.stats.agriculture;
+  s = exec(s, { type: 'policy', id: p.id }); assert.equal(s.stats.treasury, 500 - p.cost); assert.equal(s.ap, 2); near(s.stats.agriculture, before + p.effects.agriculture); refuse(s, { type: 'policy', id: p.id }, /이미/);
+  const t = governing(); t.turn = 36; t.stats.treasury = 0; refuse(t, { type: 'policy', id: 'research_fund' }, /1966/); refuse(t, { type: 'policy', id: 'farm_extension' }, /국고/);
+  assert.ok(d.policies.every(x => !('requiresBill' in x)));
+});
+test('budget must be numeric, nonnegative and total exactly 100', () => { const s = governing(); for (const budget of [{ industry: 100 }, { industry: 20, agriculture: 20, education: 20, welfare: 20, infrastructure: 20, security: 20 }, { industry: -1, agriculture: 21, education: 20, welfare: 20, infrastructure: 20, security: 20 }, null]) refuse(s, { type: 'budget', budget }); const ok = exec(s, { type: 'budget', budget: { industry: 30, agriculture: 10, education: 20, welfare: 20, infrastructure: 10, security: 10 } }); assert.equal(ok.ap, 3); assert.equal(ok.budget.industry, 30); });
+test('foreign action affects relationship, treasury and AP, once per country per month', () => { let s = governing(); const rel = s.relations.japan; s = exec(s, { type: 'diplomacy', countryId: 'japan', mode: 'talk' }); assert.equal(s.stats.treasury, 496); assert.equal(s.relations.japan, rel + 4); assert.equal(s.ap, 2); refuse(s, { type: 'diplomacy', countryId: 'japan', mode: 'humanitarian' }, /이번 달/); s = months(s, 1); assert.equal(dispatch(s, d, { type: 'diplomacy', countryId: 'japan', mode: 'talk' }).ok, true); });
+test('two advisers maximum; dismissal consumes one AP', () => { let s = governing(); s = exec(s, { type: 'adviser', id: 'han' }); s = exec(s, { type: 'adviser', id: 'yun' }); refuse(s, { type: 'adviser', id: 'min' }); s = exec(s, { type: 'adviser', id: 'han' }); assert.deepEqual(s.advisers, ['yun']); assert.equal(s.ap, 0); });
+test('debt repayment is finite, funded and limited to outstanding debt', () => { let s = governing(); for (const amount of [-1, NaN, Infinity, 1000, '10']) refuse(s, { type: 'repay', amount }); s = exec(s, { type: 'repay', amount: 10 }); assert.equal(s.stats.debt, 70); assert.equal(s.stats.treasury, 490); });
+test('finance: income minus expense is the balance, and negative cash borrows exactly the shortfall', () => {
+  let s = governing(); s.stats.treasury = 0; s.stats.debt = 600; for (const p of d.policies) s.policies.push(p.id);
+  const f = finance(s, d), oldDebt = s.stats.debt; near(f.income - f.expense, f.balance); near(f.base + f.interest + f.upkeep, f.expense); assert.ok(f.balance < 0);
+  s = exec(s, { type: 'endMonth' }); near(s.stats.debt, oldDebt - f.balance, 1e-9); assert.equal(s.stats.treasury, 0); near(s.report.borrowed, -f.balance, 1e-9);
+});
 test('delayed effects apply once at the specified month boundary', () => { let s = governing(); s.queue = ['japan_1965']; s.turn = 65; s = exec(s, { type: 'choose', choiceId: 'japan_1965_1' }); assert.equal(s.delayed.length, 1); s = advance(s, 3); assert.equal(s.delayed.length, 1); s = advance(s, 1); assert.equal(s.delayed.length, 0); assert.equal(s.log.filter(l => l.type === 'followup').length, 1); s = advance(s, 2); assert.equal(s.log.filter(l => l.type === 'followup').length, 1); });
-test('export/import keeps RNG, pending queue, projects and legislation', () => { let s = governing(); s = exec(s, { type: 'policy', id: 'press_freedom' }); s = exec(s, { type: 'project', id: 'rural_clinic', regionId: 'capital' }); s = advance(s, 2); const restored = importSave(exportSave(s), d); assert.deepEqual(restored, s); assert.deepEqual(advance(restored, 2), advance(s, 2)); });
-test('malformed, huge, old-version and unknown IDs are rejected', () => { const s = createState(d); assert.throws(() => importSave('{', d)); assert.throws(() => importSave('x'.repeat(2000001), d)); for (const mutate of [p => p.version = 99, p => p.state.stats.gdp = 'oops', p => p.state.policies = ['missing'], p => p.state.projects = [{ projectId: 'no' }], p => p.state.queue = ['unknown'], p => p.state.turn = 241, p => p.state.advisers = ['han', 'han'], p => p.state.flags.badFlag = true, p => p.state.budget.industry = 99]) { const p = JSON.parse(exportSave(s)); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d)); } });
-test('identical seed and actions produce identical campaign state', () => { assert.deepEqual(advance(createState(d, 777), 30), advance(createState(d, 777), 30)); });
+test('identical seed and actions produce identical campaign state', () => { assert.deepEqual(advance(createState(d, 777), 30), advance(createState(d, 777), 30)); assert.notDeepEqual(advance(createState(d, 777), 30).log, advance(createState(d, 778), 30).log); });
 test('RNG produces finite range and calendar handles endpoints', () => { const s = createState(d); for (let i = 0; i < 500; i++) { const n = random(s); assert.ok(n >= 0 && n < 1); } assert.equal(dateLabel(239), '1979-12'); });
 test('ending precedence keeps fiscal failure above other failures', () => { const s = governing(); s.stats.debt = 700; s.stats.liberty = 0; s.stats.legitimacy = 0; evaluateEnding(s, d); assert.equal(s.ending.id, 'fiscal_crisis'); });
-test('all 12 ending selectors are reachable by explicit or metric fixture', () => { for (const e of d.endings) { let s = governing(); if (e.conditions.explicit) { const event = e.id === 'retired' ? 'election_1963' : 'buma_1979', c = e.id === 'retired' ? 'election_1963_3' : 'buma_1979_3'; s.queue = [event]; s = exec(s, { type: 'choose', choiceId: c }); } else { for (const m of d.metrics) s.stats[m.id] = m.initial; if (!E.CRISIS_ENDINGS.includes(e.id)) { s.stats.legitimacy = 50; s.stats.liberty = 50; } for (const [key, rule] of Object.entries(e.conditions)) { for (const [op, value] of Object.entries(rule)) s.stats[key] = op === 'lt' ? value - 1 : value; } evaluateEnding(s, d, true); } assert.equal(s.ending?.id, e.id, e.id); } });
-test('full 240-month constitutional campaign completes with no NaN and replayable save', () => { let s = createState(d, 20261110); let guard = 0; while (!s.ending && guard++ < 1500) { if (s.queue.length) { const e = d.events.find(x => x.id === s.queue[0]); const c = e.choices.find(c => !c.ending && (c.effects.treasury || 0) >= 0 && !c.setFlags?.authoritarian && c.phase !== 'transition') || e.choices[0]; s = exec(s, { type: 'choose', choiceId: c.id }); } else { while (E.PREPARE_PHASES.includes(s.phase) && s.ap > 0) s = exec(s, { type: 'prepare' }); s = exec(s, { type: 'endMonth' }); } for (const v of Object.values(s.stats)) assert.ok(Number.isFinite(v)); } assert.equal(s.turn, 240); assert.ok(s.ending); assert.deepEqual(importSave(exportSave(s), d), s); });
-test('seeded campaigns terminate safely in the turn limit', () => { const report = {}; for (let seed = 1; seed <= Math.max(SEEDS, 20); seed++) { let s = createState(d, seed * 1009); let guard = 0; while (!s.ending && guard++ < 1200) { if (s.queue.length) { const e = d.events.find(e => e.id === s.queue[0]); const options = e.choices.filter(c => !c.ending && (c.effects.treasury || 0) >= 0); const c = options[Math.floor(random(s) * options.length)] || e.choices[0]; s = exec(s, { type: 'choose', choiceId: c.id }); } else { if (E.PREPARE_PHASES.includes(s.phase)) while (s.ap > 0) s = exec(s, { type: 'prepare' }); s = exec(s, { type: 'endMonth' }); } for (const m of d.metrics) { assert.ok(Number.isFinite(s.stats[m.id])); assert.ok(s.stats[m.id] >= m.min && s.stats[m.id] <= m.max); } } assert.ok(s.ending); assert.ok(s.turn <= 240); report[s.ending.id] = (report[s.ending.id] || 0) + 1; } console.log('Seeded outcomes', JSON.stringify(report)); });
-
-/* ===== v2 추가 규칙 ===== */
-test('v2: bill pass probability includes overall support', () => {
-  const s = governing(); s.seats = .5;
-  for (const f of d.factions) s.support[f.id] = 30; const low = E.billChance(s, d);
-  for (const f of d.factions) s.support[f.id] = 70; const high = E.billChance(s, d);
-  assert.ok(Math.abs(high - low - .08) < 1e-9, `${high} - ${low}`);
-  assert.ok(Math.abs(E.billChanceParts(s, d).reduce((a, x) => a + x[1], 0) - high) < 1e-9);
-  for (const f of d.factions) s.support[f.id] = 100; s.seats = .95; s.stats.legitimacy = 100; s.stats.stability = 100; assert.equal(E.billChance(s, d), .95);
+test('all 12 ending selectors are reachable by explicit or metric fixture', () => {
+  for (const e of d.endings) {
+    let s = governing();
+    if (e.conditions.explicit) { const event = e.id === 'retired' ? 'election_1963' : 'buma_1979', c = e.id === 'retired' ? 'election_1963_3' : 'buma_1979_3'; s.queue = [event]; s = exec(s, { type: 'choose', choiceId: c }); }
+    else { for (const m of d.metrics) s.stats[m.id] = m.initial; if (!E.CRISIS_ENDINGS.includes(e.id)) { s.stats.legitimacy = 50; s.stats.liberty = 50; } for (const [key, rule] of Object.entries(e.conditions)) for (const [op, value] of Object.entries(rule)) s.stats[key] = op === 'lt' ? value - 1 : value; evaluateEnding(s, d, true); }
+    assert.equal(s.ending.id, e.id);
+  }
 });
-test('v2: bill vote records the probability used and activates the policy once', () => {
-  let s = governing(); s.seats = .95; s.stats.legitimacy = 100; for (const f of d.factions) s.support[f.id] = 100;
-  s = exec(s, { type: 'policy', id: 'association' }); s = advance(s, 7);
-  const b = s.bills[0]; assert.ok(['passed', 'failed'].includes(b.status)); assert.ok(b.probability > .9); assert.equal(b.resolvedTurn, b.startedTurn + b.total - 1);
-  assert.equal(s.policies.filter(x => x === 'association').length, b.status === 'passed' ? 1 : 0);
-});
-test('v2: diplomacy is limited to one action per country per month and resets next month', () => {
-  let s = governing();
-  s = exec(s, { type: 'diplomacy', countryId: 'usa', mode: 'talk' });
-  const r = dispatch(s, d, { type: 'diplomacy', countryId: 'usa', mode: 'humanitarian' }); assert.equal(r.ok, false); assert.match(r.error, /이번 달/); assert.equal(r.state, s);
-  s = exec(s, { type: 'diplomacy', countryId: 'japan', mode: 'talk' }); assert.deepEqual(s.monthActions, ['diplomacy:usa', 'diplomacy:japan']);
-  s = advance(s, 1); s = free(s); assert.deepEqual(s.monthActions, []);
-  s = exec(s, { type: 'diplomacy', countryId: 'usa', mode: 'talk' });
-});
-test('v2: prototype keys and missing payloads are rejected without corrupting state', () => {
+test('after an ending no action changes state', () => { const s = governing(); s.stats.debt = 700; const t = exec(s, { type: 'prepare' }.type === 'x' ? {} : { type: 'budget', budget: s.budget }); assert.equal(t.ending.id, 'fiscal_crisis'); for (const a of [{ type: 'endMonth' }, { type: 'tick' }, { type: 'build', id: 'school', regionId: 'capital' }, { type: 'enact', id: 'press_freedom' }, { type: 'coalition', id: 'workers' }, { type: 'policy', id: 'farm_extension' }]) refuse(t, a, /종료/); });
+test('prototype keys and missing payloads are rejected without corrupting state', () => {
   const s = governing(), before = exportSave(s);
-  for (const a of [{ type: 'diplomacy', countryId: 'usa', mode: 'constructor' }, { type: 'diplomacy', countryId: 'usa', mode: 'toString' }, { type: 'budget' }, { type: 'policy', id: '__proto__' }, { type: 'project', id: 'constructor', regionId: 'capital' }, { type: 'adviser', id: 'toString' }, { type: 'repay' }, null, 'endMonth']) {
-    const r = dispatch(s, d, a); assert.equal(r.ok, false, JSON.stringify(a)); assert.equal(r.state, s);
-  }
+  for (const a of [null, 5, {}, { type: 'toString' }, { type: 'build', id: '__proto__', regionId: 'capital' }, { type: 'build', id: 'school', regionId: 'constructor' }, { type: 'enact', id: 'hasOwnProperty' }, { type: 'coalition', id: '__proto__' }, { type: 'pm', id: 'farm', regionId: 'capital', pm: 'constructor' }, { type: 'diplomacy', countryId: 'usa', mode: 'toString' }, { type: 'cancelBuild', index: 'length' }, { type: 'edict', id: 'grain_drive' }]) assert.equal(dispatch(s, d, a).ok, false, JSON.stringify(a));
   assert.equal(exportSave(s), before);
-});
-test('v2: projects and bills that cannot finish by 1979-12 are refused', () => {
-  const s = governing(); s.turn = 235;
-  assert.equal(projectReason(s, d, 'rural_clinic', 'capital'), '');
-  assert.equal(policyReason(s, d, 'press_freedom'), '');
-  s.turn = 236;
-  assert.match(projectReason(s, d, 'rural_clinic', 'capital'), /1979년 12월/);
-  assert.match(policyReason(s, d, 'press_freedom'), /1979년 12월/);
-  assert.equal(policyReason(s, d, 'farm_extension'), '');
-  s.turn = 225; assert.match(projectReason(s, d, 'steel_complex', 'capital'), /1979년 12월/); s.turn = 224; assert.equal(projectReason(s, d, 'steel_complex', 'capital'), '');
-});
-test('v2: a project started in the last allowed month is completed before the campaign ends', () => {
-  let s = governing(); s.turn = 235; s.stats.debt = 0; s.stats.legitimacy = 90; for (const f of d.factions) s.support[f.id] = 90; // 1979-11 가상 선거에서 이양되지 않게
-  s = exec(s, { type: 'project', id: 'rural_clinic', regionId: 'jeju' });
-  s = advance(s, 10); assert.equal(s.turn, 240); assert.ok(s.ending); assert.equal(s.projects[0].status, 'complete'); assert.equal(s.projects[0].completedTurn, 239);
-});
-test('v2: monthly report explains finance and every metric change', () => {
-  let s = governing(); s = exec(s, { type: 'policy', id: 'export_credit' }); s = exec(s, { type: 'adviser', id: 'han' });
-  const f = finance(s, d), before = { ...s.stats };
-  s = exec(s, { type: 'endMonth' });
-  const r = s.report; assert.equal(r.turn, 60); assert.equal(r.date, '1965-01');
-  for (const k of ['income', 'base', 'interest', 'upkeep', 'balance']) assert.ok(Math.abs(r.finance[k] - f[k]) < 1e-12);
-  for (const m of d.metrics) { const change = s.stats[m.id] - before[m.id]; assert.ok(Math.abs((r.changes[m.id] || 0) - change) < 1e-5, m.id); const sum = (r.ledger[m.id] || []).reduce((a, x) => a + x[1], 0); assert.ok(Math.abs(sum - change) < 1e-5, `ledger ${m.id}`); }
-  assert.ok(r.ledger.industry.some(x => x[0] === '정책 지속 효과'));
-  assert.ok(r.ledger.admin.some(x => x[0] === '자문 지속 효과'));
-  assert.deepEqual(r.events, s.queue);
-  assert.deepEqual(importSave(exportSave(s), d), s);
-});
-test('v2: report records borrowing, completions, bill votes, follow-ups and periodic election', () => {
-  let s = governing(); s.stats.treasury = 0; s.stats.debt = 300; for (const p of d.policies.filter(p => !p.requiresBill)) s.policies.push(p.id);
-  s = exec(s, { type: 'endMonth' }); assert.ok(s.report.borrowed > 0); assert.ok(s.report.ledger.debt.some(x => x[0] === '부족분 차입'));
-  let t = governing(); t = exec(t, { type: 'project', id: 'rural_clinic', regionId: 'busan' }); t = exec(t, { type: 'policy', id: 'association' });
-  const months = t.bills[0].total; t = advance(t, Math.max(5, months));
-  const reports = []; let u = governing(); u = exec(u, { type: 'project', id: 'rural_clinic', regionId: 'busan' }); u = exec(u, { type: 'policy', id: 'association' });
-  for (let i = 0; i < 8; i++) { u = free(u); u = exec(u, { type: 'endMonth' }); reports.push(u.report); }
-  assert.equal(reports.filter(r => r.completed.length).length, 1);
-  assert.equal(reports.filter(r => r.bills.length).length, 1);
-  let v = governing(); v.turn = 93; v = exec(v, { type: 'endMonth' }); assert.ok(v.report.election); assert.equal(v.report.election.transfer, v.ending?.id === 'peaceful_transfer');
-  let w = governing(); w.queue = ['labor_1970']; w.turn = 130; w = exec(w, { type: 'choose', choiceId: 'labor_1970_3' }); w = advance(w, 3); assert.ok(w.log.some(l => l.type === 'followup' && l.changes?.welfare === 3));
-});
-test('v2: actions record what changed in the chronicle', () => {
-  let s = governing(); const p = d.policies.find(x => x.id === 'export_credit');
-  s = exec(s, { type: 'policy', id: p.id });
-  const entry = s.log.at(-1); assert.equal(entry.type, 'policy'); assert.equal(entry.changes.treasury, -p.cost); assert.equal(entry.changes.industry, p.effects.industry);
-  s = exec(s, { type: 'diplomacy', countryId: 'europe', mode: 'technology' }); assert.deepEqual(s.log.at(-1).changes, { treasury: -7, reserves: -1, education: 2 });
-  s = exec(s, { type: 'budget', budget: { industry: 20, agriculture: 20, education: 20, welfare: 20, infrastructure: 10, security: 10 } }); assert.equal(s.log.at(-1).changes, undefined);
-});
-test('v2: choice preview matches dispatch and does not consume RNG', () => {
-  let s = createState(d); s.turn = 45; s.queue = ['election_1963']; s.phase = 'civilian';
-  const before = exportSave(s), p = E.choicePreview(s, d, 'election_1963_2');
-  assert.equal(exportSave(s), before);
-  assert.equal(p.influence, 3); assert.ok(p.electionChance >= 25 && p.electionChance <= 90);
-  const after = exec(s, { type: 'choose', choiceId: 'election_1963_2' });
-  const logged = after.log.find(l => l.type === 'election'); assert.ok(Math.abs(logged.probability - p.electionChance) < 1e-9);
-  let t = governing(); t.queue = ['japan_1965']; t.turn = 65; const q = E.choicePreview(t, d, 'japan_1965_1');
-  assert.equal(q.delay.arrival, 69); assert.deepEqual(q.relations, [{ id: 'japan', delta: 4, before: 25, after: 29 }]);
-  t = exec(t, { type: 'choose', choiceId: 'japan_1965_1' }); for (const x of q.stats) assert.equal(t.stats[x.id], x.after);
-  assert.equal(E.choicePreview(t, d, 'japan_1965_1'), null);
-});
-test('v2: projectEffects clamps to metric ranges', () => {
-  const s = governing(); s.stats.liberty = 98; s.stats.debt = 99990;
-  assert.deepEqual(E.projectEffects(s, noBalance, { liberty: 7 }), [{ id: 'liberty', delta: 7, before: 98, after: 100 }]);
-  assert.deepEqual(E.projectEffects(s, d, { debt: 50 }), [{ id: 'debt', delta: 50, before: 99990, after: 99999 }]);
-});
-test('v2: event context follows the campaign path, not the real timeline', () => {
-  const buma = d.events.find(e => e.id === 'buma_1979'), yushin = d.events.find(e => e.id === 'yushin_1972');
-  const s = governing(); s.flags.authoritarian = true; assert.match(E.eventContext(s, buma), /권력 집중/);
-  delete s.flags.authoritarian; s.stats.liberty = 70; assert.match(E.eventContext(s, buma), /언론과 결사/);
-  s.stats.liberty = 40; assert.match(E.eventContext(s, buma), /충분히 회복되지/);
-  s.flags.route = 'military'; assert.match(E.eventContext(s, yushin), /군정/); s.flags.route = 'constitutional'; assert.match(E.eventContext(s, yushin), /헌정 경로/);
-  for (const e of d.events.filter(e => e.kind === 'historical_anchor')) assert.ok(e.context?.length, e.id);
-  assert.equal(E.eventContext(s, d.events.find(e => e.id === 'sys_grain')), '');
-});
-test('v2: inauguration only appears after winning the 1963 election', () => {
-  let s = createState(d); s.turn = 46; s.phase = 'elected'; s.queue = []; s.flags.won1963 = true; s = exec(s, { type: 'endMonth' }); assert.deepEqual(s.queue, ['inauguration_1963']);
-  let t = createState(d); t.turn = 46; t.phase = 'civilian'; t.queue = []; t = exec(t, { type: 'endMonth' }); assert.ok(!t.queue.includes('inauguration_1963'));
-});
-test('v2: election timing helpers', () => {
-  const s = governing(); s.turn = 60; assert.equal(E.nextElectionTurn(s), 94); s.turn = 94; assert.equal(E.nextElectionTurn(s), 142); s.turn = 230; assert.equal(E.nextElectionTurn(s), 238); s.turn = 238; assert.equal(E.nextElectionTurn(s), null);
-  s.turn = 60; s.flags.authoritarian = true; assert.equal(E.nextElectionTurn(s), null);
-  const t = createState(d); assert.equal(E.nextElectionTurn(t), null);
-  assert.ok(Math.abs(E.electionExpectation(s, d) - (E.supportAverage(s, d) * .65 + s.stats.legitimacy * .35)) < 1e-12);
-});
-test('v2: after an ending no action changes state', () => {
-  let s = governing(); s.queue = ['buma_1979']; s = exec(s, { type: 'choose', choiceId: 'buma_1979_3' }); assert.equal(s.ending.id, 'peaceful_transfer');
-  const raw = exportSave(s);
-  for (const a of [{ type: 'endMonth' }, { type: 'prepare' }, { type: 'policy', id: 'farm_extension' }, { type: 'project', id: 'rural_clinic', regionId: 'capital' }, { type: 'budget', budget: s.budget }, { type: 'diplomacy', countryId: 'usa', mode: 'talk' }, { type: 'adviser', id: 'han' }, { type: 'repay', amount: 10 }, { type: 'choose', choiceId: 'buma_1979_1' }]) assert.equal(dispatch(s, d, a).ok, false);
-  assert.equal(exportSave(s), raw);
 });
 
-/* ===== 저장 호환 ===== */
-test('save v1 files from the original kit migrate and keep playing', () => {
-  for (const name of ['1964_governing.json', '1973_policy_choices.json']) {
-    const raw = fs.readFileSync(new URL(`fixtures/v1_${name}`, import.meta.url), 'utf8');
-    assert.equal(JSON.parse(raw).version, 1);
-    const s = importSave(raw, d);
-    assert.equal(s.version, E.SAVE_VERSION); assert.equal(s.day, 1); assert.equal(s.dataVersion, d.meta.version); assert.equal(s.report, null); assert.deepEqual(s.monthActions, []);
-    const old = JSON.parse(raw).state; for (const k of ['turn', 'rng', 'stats', 'support', 'policies', 'bills', 'projects', 'queue', 'delayed', 'flags']) assert.deepEqual(s[k], old[k], k);
-    const next = advance(s, 3); checkInvariants(next, d); assert.ok(next.report);
-    assert.deepEqual(importSave(exportSave(next), d), next);
+/* ===== 시계 ===== */
+test('clock: real month lengths and day labels', () => { assert.equal(E.daysInMonth(0), 31); assert.equal(E.daysInMonth(1), 29); assert.equal(E.daysInMonth(13), 28); assert.equal(E.daysInMonth(3), 30); assert.equal(E.dayLabel(16, 16), '1961-05-16'); });
+test('clock: a day tick only moves the date, never mutates the input and is blocked by a pending event', () => { const s = createState(d); refuse(s, { type: 'tick' }); const f = free(s), t = exec(f, { type: 'tick' }); assert.equal(f.day, 1); assert.equal(t.day, 2); assert.equal(t.turn, 0); assert.equal(t.stats, f.stats); });
+test('clock: ticking through a month gives exactly the same state as the month-end action', () => { const s = free(createState(d, 42)); let t = s; for (let i = 0; i < 31; i++) t = exec(t, { type: 'tick' }); assert.deepEqual(t, exec(s, { type: 'endMonth' })); assert.equal(t.turn, 1); assert.equal(t.day, 1); });
+test('clock: month-end settlement is dated the last day; actions are dated the day they happen', () => { let s = governing(); for (let i = 0; i < 9; i++) s = exec(s, { type: 'tick' }); s = exec(s, { type: 'policy', id: 'farm_extension' }); assert.equal(s.log.at(-1).date, '1965-01-10'); s.stats.treasury = 0; for (const p of d.policies) if (!s.policies.includes(p.id)) s.policies.push(p.id); s.stats.debt = 0; s = exec(s, { type: 'endMonth' }); assert.equal(s.log.find(l => l.type === 'finance').date, '1965-01-31'); });
+
+/* ===== 시장: 주문과 가격 ===== */
+test('market: the price follows buy and sell orders inside its band', () => {
+  const r = (S, B) => EC.priceRatio(S, B, X);
+  assert.equal(r(100, 100), 0); near(r(100, 120), X.price.swing * .2); near(r(120, 100), -X.price.swing * .2); assert.equal(r(100, 1000), X.price.ceiling); assert.equal(r(1000, 100), X.price.floor); assert.equal(r(0, 10), X.price.ceiling); assert.equal(r(10, 0), X.price.floor); assert.equal(r(0, 0), 0);
+});
+test('market: every good lists where its supply comes from and where its demand goes', () => {
+  const s = createState(d), R = checkMarket(s, d);
+  for (const g of d.goods) { const x = R.goods[g.id]; near(Object.values(x.sup).reduce((a, b) => a + b, 0), x.supply, 1e-6); near(Object.values(x.dem).reduce((a, b) => a + b, 0), x.demand, 1e-6); near(x.next, x.price + (x.target - x.price) * X.price.speed, 1e-3); }
+  assert.ok(R.goods.grain.dem.pops > 2000 && R.goods.grain.sup.subsistence > 500); assert.equal(R.goods.services.sup.imports, 0); assert.equal(R.goods.electricity.dem.exports, 0);
+  assert.ok(R.goods.steel.sup.imports > 0 && R.goods.steel.sup.buildings === 0, '강철은 처음에 전부 수입');
+});
+test('market: more supply lowers the price, more demand raises it', () => {
+  const s = createState(d), R = EC.compute(s, d);
+  const t = clone(s); bld(t, 'commerce', 'capital').level += 12; const R2 = EC.compute(t, d);
+  assert.ok(R2.goods.services.supply > R.goods.services.supply * 1.2 && R2.goods.services.ratio < R.goods.services.ratio - .05);
+  const u = clone(s); bld(u, 'barracks', 'capital').level += 10; const R3 = EC.compute(u, d);
+  assert.ok(R3.goods.arms.dem.government > R.goods.arms.dem.government * 2);
+  assert.ok(R2.goods.transport.dem.industry > R.goods.transport.dem.industry, '상가가 늘면 운송 수요도 는다');
+});
+test('market: an input shortage cuts the output of the buildings that use it', () => {
+  const s = createState(d), R = EC.compute(s, d), t = clone(s); t.econ.short.fabric = .4;
+  const a = R.buildings.find(x => x.def.id === 'garment'), b = EC.compute(t, d).buildings.find(x => x.def.id === 'garment' && x.b.regionId === a.b.regionId);
+  near(b.out.clothes, a.out.clothes * .6, 1e-6);
+  const dry = clone(s); for (const x of dry.buildings) if (x.id === 'coal_mine') x.level = 0; const R2 = EC.compute(dry, d);
+  assert.ok(R2.goods.coal.ratio > R.goods.coal.ratio, '탄광이 없으면 석탄이 오른다'); assert.ok(R2.goods.coal.sup.imports > R.goods.coal.sup.imports);
+});
+test('trade: imports arrive above the import price, exports leave below the export price, inside the trade capacity', () => {
+  const s = createState(d), R = EC.compute(s, d);
+  assert.ok(R.trade.used <= R.trade.capacity + 1e-9 && R.trade.imports > 0 && R.trade.exports > 0);
+  const open = clone(s); open.laws.trade = 'open_trade'; const R2 = EC.compute(open, d);
+  assert.ok(R2.goods.steel.target < R.goods.steel.target, '관세가 낮으면 수입품 가격이 낮다'); assert.ok(R2.detail.tariffs < R.detail.tariffs && R2.trade.capacity > R.trade.capacity);
+  const noPort = clone(s); noPort.buildings = noPort.buildings.filter(b => b.id !== 'port'); assert.ok(EC.compute(noPort, d).trade.capacity < R.trade.capacity);
+  const poor = clone(s); poor.stats.reserves = X.forexFloor / 4; assert.ok(EC.compute(poor, d).goods.steel.sup.imports < R.goods.steel.sup.imports, '외환이 모자라면 수입이 준다');
+  const glut = clone(s); bld(glut, 'garment', 'capital').level += 6; const R3 = EC.compute(glut, d); assert.ok(R3.goods.clothes.dem.exports > R.goods.clothes.dem.exports, '남는 의복은 수출된다');
+  const drive = clone(s); drive.laws.trade = 'export_drive'; assert.ok(EC.compute(drive, d).detail.exportSubsidy > 0);
+});
+test('trade: the world oil price steps up at the two shocks', () => { const oil = d.goods.find(g => g.id === 'oil'); assert.equal(EC.worldPrice(oil, 164), oil.price); near(EC.worldPrice(oil, 165), oil.price * 2.2); near(EC.worldPrice(oil, 228), oil.price * 3.1); assert.equal(EC.worldPrice(d.goods.find(g => g.id === 'services'), 0), null); });
+test('labor: everyone is employed, on a subsistence farm or unemployed; the metric follows the market', () => {
+  let s = governing(); const R = EC.compute(s, d);
+  near(R.labor.employed + R.labor.subsistence + R.labor.unemployed, R.labor.workforce, 1e-6);
+  const t = clone(s); for (const b of t.buildings) if (b.id === 'farm') b.level = 1; const R2 = EC.compute(t, d); assert.ok(R2.labor.unemployed > R.labor.unemployed + 300);
+  t.stats.unemployment = 10; const next = months(t, 1); assert.ok(next.stats.unemployment > 10); assert.ok(next.report.ledger.unemployment.some(r => r[0].startsWith('고용')));
+});
+test('wages and taxes follow the laws in force', () => {
+  const s = governing(), R = EC.compute(s, d);
+  const lab = clone(s); lab.laws.labor = 'worker_protection'; near(EC.compute(lab, d).pops.workers.wage, R.pops.workers.wage * 1.14, 1e-6);
+  assert.equal(R.detail.taxes.wage, 0); const tax = clone(s); tax.laws.taxation = 'income_tax'; const R2 = EC.compute(tax, d); assert.ok(R2.detail.taxes.wage > 0 && R2.detail.taxes.consumption < R.detail.taxes.consumption);
+  const admin = clone(s); admin.stats.admin = 80; assert.ok(EC.compute(admin, d).detail.collect > R.detail.collect, '행정 역량이 높으면 세금이 덜 샌다');
+  const relief = clone(s); relief.laws.welfare_system = 'public_relief'; assert.ok(EC.compute(relief, d).detail.relief > 0);
+  const land = clone(s); land.laws.land = 'owner_farmer'; const R3 = EC.compute(land, d); assert.ok(R3.next.dividends.farmers > R.next.dividends.farmers && R3.next.dividends.landowners < R.next.dividends.landowners, '농장 이익이 농민에게 간다');
+});
+test('production: capability indexes, education and regional infrastructure change throughput', () => {
+  const s = governing(), R = EC.compute(s, d), mill = r => r.buildings.find(x => x.def.id === 'textile_mill' && x.b.regionId === 'capital');
+  const ind = clone(s); ind.stats.industry += 20; near(mill(EC.compute(ind, d)).thr / mill(R).thr, (1 + (ind.stats.industry - X.techBase.industry) * X.techPerPoint) / (1 + (s.stats.industry - X.techBase.industry) * X.techPerPoint), 1e-6);
+  const crowded = clone(s); bld(crowded, 'textile_mill', 'capital').level += 30; const R2 = EC.compute(crowded, d); assert.ok(R2.infra.capital.access < 1 && R2.infra.capital.access >= X.accessFloor && R2.infra.busan.access === 1);
+  const rail = clone(crowded); bld(rail, 'railway', 'capital').level += 4; assert.ok(EC.compute(rail, d).infra.capital.access > R2.infra.capital.access);
+  const def = d.buildings.find(b => b.id === 'electronics'); const low = clone(s); low.stats.education = 20; const high = clone(s); high.stats.education = 60;
+  assert.ok(EC.prospect(high, d, EC.compute(high, d), def, 'capital').revenue > EC.prospect(low, d, EC.compute(low, d), def, 'capital').revenue, '교육이 낮으면 전자 공장의 효율이 떨어진다');
+});
+
+/* ===== 건설과 건물 운영 ===== */
+test('build: queues one level for AP only, pays materials month by month and completes when the points are in', () => {
+  let s = governing(); const before = bld(s, 'school', 'jeju')?.level || 0, def = d.buildings.find(b => b.id === 'school');
+  const idle = EC.compute(s, d); assert.equal(idle.detail.construction, 0); assert.equal(idle.goods.wood.dem.construction, 0);
+  s = exec(s, { type: 'build', id: 'school', regionId: 'jeju' });
+  assert.equal(s.ap, 2); assert.equal(s.stats.treasury, 500); assert.deepEqual(s.construction.at(-1), { id: 'school', regionId: 'jeju', progress: 0, private: false });
+  const R = EC.compute(s, d); assert.ok(R.detail.construction > 0 && R.goods.wood.dem.construction > 0 && R.finance.balance < idle.finance.balance);
+  const i = s.construction.findIndex(q => !q.private); assert.ok(R.construction.gains[i] > 0 && R.construction.gains[i] <= X.maxPerProject + 1e-9);
+  let n = 0; while (s.construction.some(q => q.id === 'school' && q.regionId === 'jeju') && n++ < 40) s = months(s, 1);
+  assert.ok(n >= Math.ceil(def.cost / X.maxPerProject) && n < 40, `공기 ${n}개월`);
+  const b = bld(s, 'school', 'jeju'); assert.equal(b.level, before + 1); assert.equal(b.state, b.level); assert.equal(s.counters.built, 1); assert.deepEqual(s.counters.regions, ['jeju']);
+  assert.ok(s.report.completed.some(c => c.buildingId === 'school' && c.regionId === 'jeju' && !c.private)); assert.ok(s.log.some(l => l.type === 'construction' && l.text.includes('준공') && l.buildingId === 'school'));
+  assert.ok(E.regionDevelopment(s, d, 'jeju') > E.regionDevelopment(governing(), d, 'jeju'));
+});
+test('build: needs the region terrain or resource, room, the unlock year, and executive authority', () => {
+  const s = governing();
+  refuse(s, { type: 'build', id: 'coal_mine', regionId: 'jeju' }, /석탄/); refuse(s, { type: 'build', id: 'shipyard', regionId: 'capital' }, /1968/); refuse(s, { type: 'build', id: 'nope', regionId: 'capital' }, /알 수 없는/);
+  const full = clone(s); bld(full, 'farm', 'jeonnam').level = d.regions.find(r => r.id === 'jeonnam').arable; refuse(full, { type: 'build', id: 'farm', regionId: 'jeonnam' }, /경지/);
+  const dam = clone(s); dam.buildings.push({ id: 'hydro_dam', regionId: 'gangwon', level: 2, pm: 0, staff: 1, state: 2, subsidy: false }); refuse(dam, { type: 'build', id: 'hydro_dam', regionId: 'gangwon' }, /2단계/);
+  let q = clone(s); q.ap = 99; for (let i = 0; i < X.queueMax; i++) { q.ap = 3; q = exec(q, { type: 'build', id: 'school', regionId: 'capital' }); } q.ap = 3; refuse(q, { type: 'build', id: 'school', regionId: 'capital' }, /대기열/);
+  const early = createState(d); early.queue = []; refuse(early, { type: 'build', id: 'school', regionId: 'capital' }, /권한/);
+  const noAp = clone(s); noAp.ap = 0; refuse(noAp, { type: 'build', id: 'school', regionId: 'capital' }, /행동점수/);
+});
+test('queue: cancel drops a government project, prioritise moves it first, private projects are untouchable', () => {
+  let s = governing(); s.construction = [{ id: 'garment', regionId: 'busan', progress: 5, private: true }];
+  s = exec(s, { type: 'build', id: 'school', regionId: 'capital' }); s = exec(s, { type: 'build', id: 'clinic', regionId: 'jeju' });
+  refuse(s, { type: 'cancelBuild', index: 0 }, /민간/); refuse(s, { type: 'prioritize', index: 0 }, /민간/); refuse(s, { type: 'prioritize', index: 1 }, /맨 앞/); refuse(s, { type: 'cancelBuild', index: 9 }, /대기열/);
+  const p = exec(s, { type: 'prioritize', index: 2 }); assert.deepEqual(p.construction.map(q => q.id), ['garment', 'clinic', 'school']); assert.equal(p.ap, s.ap);
+  const c = exec(s, { type: 'cancelBuild', index: 1 }); assert.deepEqual(c.construction.map(q => q.id), ['garment', 'clinic']); assert.equal(c.ap, s.ap);
+});
+test('construction points come from the construction sector and are shared with private projects by the economic law', () => {
+  const s = governing(), R = EC.compute(s, d), sector = EC.levelsOf(s, ['construction']);
+  near(R.construction.rawPoints, X.constructionBase + sector * d.buildings.find(b => b.id === 'construction').pm[0].points, 1e-6);
+  const more = clone(s); bld(more, 'construction', 'capital').level += 2; assert.ok(EC.compute(more, d).construction.points > R.construction.points && EC.compute(more, d).detail.govWages > R.detail.govWages);
+  const both = clone(s); both.econ.pool = 40; both.construction = [{ id: 'garment', regionId: 'busan', progress: 0, private: true }, { id: 'steel_mill', regionId: 'busan', progress: 0, private: false }, { id: 'steel_mill', regionId: 'capital', progress: 0, private: false }];
+  const R2 = EC.compute(both, d); assert.ok(R2.construction.usedPriv > 0 && R2.construction.usedPriv <= R2.construction.points * R2.mods.privateShare + 1e-6 && R2.construction.usedGov > 0); near(R2.detail.poolTransfer, R2.pool.out, 1e-9);
+  const market = clone(both); market.laws.economic_system = 'market_led'; assert.equal(EC.compute(market, d).mods.privateShare, .7);
+  const planned = clone(s); planned.laws.economic_system = 'planned_development'; near(EC.compute(planned, d).construction.points, R.construction.points * 1.1, 1e-6);
+});
+test('edict: a construction bonus speeds projects in that region only', () => {
+  const s = governing(); s.construction = [{ id: 'school', regionId: 'busan', progress: 0, private: false }, { id: 'school', regionId: 'jeju', progress: 0, private: false }];
+  const base = EC.compute(s, d).construction.gains; assert.ok(base[0] > 0 && base[1] > 0);
+  const t = clone(s); t.edicts = [{ edictId: 'export_priority', regionId: 'busan', startedTurn: 50 }]; const g = EC.compute(t, d).construction.gains;
+  near(g[0], base[0] * 1.15, 1e-6); near(g[1], base[1], 1e-6);
+});
+test('private investment: the investment pool starts profitable buildings by itself and they stay private', () => {
+  let s = createState(d, 9); s.queue = []; const before = s.buildings.reduce((a, b) => a + b.level, 0);
+  let started = null; for (let i = 0; i < 12 && !started; i++) { s = months(s, 1); started = s.report.started; }
+  assert.ok(started, '첫 해 안에 민간 착공'); const def = d.buildings.find(b => b.id === started.buildingId); assert.ok(def.private !== false && !def.gov);
+  for (let i = 0; i < 30 && !s.counters.privateBuilt; i++) s = months(s, 1);
+  assert.ok(s.counters.privateBuilt >= 1 && s.counters.built === 0); assert.ok(s.buildings.reduce((a, b) => a + b.level, 0) > before);
+  const done = s.log.find(l => l.type === 'construction' && l.text.includes('민간 투자')); const b = bld(s, done.buildingId, done.regionId); assert.ok(b.state < b.level);
+  assert.ok(s.econ.pool >= 0 && s.econ.pool <= X.poolCap);
+});
+test('production method: unlocked by index or year, free of AP, retools the building and changes inputs and outputs', () => {
+  let s = governing(); const def = d.buildings.find(b => b.id === 'farm');
+  refuse(s, { type: 'pm', id: 'farm', regionId: 'jeonnam', pm: 1 }, /농업/); refuse(s, { type: 'pm', id: 'farm', regionId: 'jeonnam', pm: 0 }, /이미/); refuse(s, { type: 'pm', id: 'farm', regionId: 'jeonnam', pm: 7 }, /알 수 없는/); refuse(s, { type: 'pm', id: 'farm', regionId: 'busan', pm: 1 }, /없습니다/);
+  s.stats.agriculture = 45; refuse(s, { type: 'pm', id: 'farm', regionId: 'jeonnam', pm: 2 }, /1968/);
+  const R = EC.compute(s, d), t = exec(s, { type: 'pm', id: 'farm', regionId: 'jeonnam', pm: 1 });
+  assert.equal(t.ap, s.ap); assert.equal(bld(t, 'farm', 'jeonnam').pm, 1); near(bld(t, 'farm', 'jeonnam').staff, bld(s, 'farm', 'jeonnam').staff * X.retool, 1e-4);
+  const u = clone(t); bld(u, 'farm', 'jeonnam').staff = bld(s, 'farm', 'jeonnam').staff; const R2 = EC.compute(u, d), rec = r => r.buildings.find(x => x.def.id === 'farm' && x.b.regionId === 'jeonnam');
+  near(rec(R2).out.grain / rec(R).out.grain, def.pm[1].out.grain / def.pm[0].out.grain, 1e-6); assert.ok(R2.goods.fertilizer.dem.industry > R.goods.fertilizer.dem.industry);
+  assert.equal(EC.pmUnlocked(s, d.buildings.find(b => b.id === 'railway'), 1), false); const later = clone(s); later.turn = 90; assert.equal(EC.pmUnlocked(later, d.buildings.find(b => b.id === 'railway'), 1), true);
+});
+test('subsidy: keeps a losing private building staffed at the treasury cost, where the economic law allows', () => {
+  let s = governing(); bld(s, 'garment', 'capital').level = 30; // 봉제 공장을 크게 늘려 손실을 만든다
+  s = months(s, 2); const R = EC.compute(s, d), rec = R.buildings.find(x => x.def.id === 'garment' && x.b.regionId === 'capital');
+  assert.ok(rec.profit < 0 && !rec.ok && R.detail.subsidies === 0);
+  refuse(s, { type: 'subsidy', id: 'school', regionId: 'capital' }, /국고가 이미/); refuse(s, { type: 'subsidy', id: 'garment', regionId: 'jeju' }, /없습니다/);
+  const on = exec(s, { type: 'subsidy', id: 'garment', regionId: 'capital' }); assert.equal(on.ap, s.ap); const R2 = EC.compute(on, d);
+  assert.ok(R2.detail.subsidies > 0 && R2.buildings.find(x => x.def.id === 'garment' && x.b.regionId === 'capital').ok); assert.ok(months(on, 1).buildings.find(b => b.id === 'garment' && b.regionId === 'capital').staff >= bld(months(s, 1), 'garment', 'capital').staff);
+  const market = clone(s); market.laws.economic_system = 'market_led'; refuse(market, { type: 'subsidy', id: 'garment', regionId: 'capital' }, /경제 체제/);
+  const off = clone(on); off.laws.economic_system = 'market_led'; assert.equal(EC.compute(off, d).detail.subsidies, 0); assert.equal(exec(off, { type: 'subsidy', id: 'garment', regionId: 'capital' }).buildings.find(b => b.id === 'garment' && b.regionId === 'capital').subsidy, false);
+});
+test('ownership: state levels pay a dividend, can be sold to the investment pool or downsized', () => {
+  let s = governing(); const b = bld(s, 'textile_mill', 'capital'); b.state = b.level; s.econ.pool = 50;
+  const R = EC.compute(s, d), priv = clone(s); bld(priv, 'textile_mill', 'capital').state = 0; assert.ok(R.detail.stateDividend > EC.compute(priv, d).detail.stateDividend);
+  const price = E.privatizePrice(s, d, 'textile_mill', 'capital'); assert.ok(price > 0);
+  const sold = exec(s, { type: 'privatize', id: 'textile_mill', regionId: 'capital' }); near(sold.stats.treasury, 500 + price); near(sold.econ.pool, 50 - price, 1e-3); assert.equal(bld(sold, 'textile_mill', 'capital').state, 0); assert.equal(sold.ap, 2);
+  refuse(sold, { type: 'privatize', id: 'textile_mill', regionId: 'capital' }, /국영 단계/); refuse(s, { type: 'privatize', id: 'school', regionId: 'capital' }, /넘길 수 없는/);
+  const poor = clone(s); poor.econ.pool = 0; refuse(poor, { type: 'privatize', id: 'textile_mill', regionId: 'capital' }, /투자기금/);
+  const less = exec(s, { type: 'downsize', id: 'school', regionId: 'capital' }); assert.equal(bld(less, 'school', 'capital').level, bld(s, 'school', 'capital').level - 1); assert.equal(less.ap, s.ap); assert.ok(EC.compute(less, d).detail.govWages < R.detail.govWages);
+  refuse(sold, { type: 'downsize', id: 'textile_mill', regionId: 'capital' }, /민간 소유/);
+  let gone = clone(s); bld(gone, 'clinic', 'capital').level = 1; bld(gone, 'clinic', 'capital').state = 1; gone = exec(gone, { type: 'downsize', id: 'clinic', regionId: 'capital' }); assert.equal(bld(gone, 'clinic', 'capital'), undefined);
+});
+test('government buildings raise their index every month and cost wages and goods', () => {
+  let s = governing(); const R = EC.compute(s, d); assert.ok(R.detail.govWages > 0 && R.detail.govGoods > 0);
+  const t = clone(s); bld(t, 'school', 'capital').level += 8; const a = months(s, 1), b = months(t, 1);
+  assert.ok(b.stats.education > a.stats.education + .2); assert.ok(b.report.ledger.education.some(r => r[0] === '정부·기반 건물'));
+  assert.ok(EC.compute(t, d).detail.govWages > R.detail.govWages && EC.compute(t, d).goods.services.dem.government > R.goods.services.dem.government);
+});
+
+/* ===== 법률 ===== */
+test('law: a bill needs support inside the coalition, its unlock year, funds and a free slot', () => {
+  const s = governing();
+  refuse(s, { type: 'enact', id: 'nope' }, /알 수 없는/); refuse(s, { type: 'enact', id: 'press_control' }, /이미 시행/); refuse(s, { type: 'enact', id: 'pollution_control' }, /1971/);
+  const parts = E.lawChanceParts(s, d, 'association'); assert.equal(parts.support, 0); assert.ok(parts.outSupport > 0 && parts.outSupport < X.enactment.massDemand); refuse(s, { type: 'enact', id: 'association' }, /집권 연합/);
+  const friendly = clone(s); friendly.government = ['workers', 'petite']; const p2 = E.lawChanceParts(friendly, d, 'association'); assert.ok(p2.support > 0 && p2.chance > parts.chance);
+  near(p2.chance, Math.max(X.enactment.min, Math.min(X.enactment.max, p2.parts.reduce((a, x) => a + x[1], 0))), 1e-9);
+  const broke = clone(friendly); broke.stats.treasury = 0; refuse(broke, { type: 'enact', id: 'association' }, /국고/);
+  const t = exec(friendly, { type: 'enact', id: 'association' }); assert.equal(t.ap, 2); assert.equal(t.stats.treasury, 500 - d.laws.find(l => l.id === 'association').cost);
+  assert.deepEqual(t.enactment, { lawId: 'association', stage: 0, wait: 2, setbacks: 0, bonus: 0, startedTurn: 60 }); refuse(t, { type: 'enact', id: 'press_freedom' }, /한 번에 하나/);
+  const late = clone(friendly); late.turn = 236; refuse(late, { type: 'enact', id: 'association' }, /1979/);
+  const mass = clone(s); mass.government = ['military']; for (const g of d.interestGroups) mass.ig[g.id].clout = g.id === 'workers' ? .5 : .1; assert.equal(E.enactReason(mass, d, 'association'), '', '연합 밖 여론이 세력의 40%를 넘으면 발의할 수 있다');
+});
+test('law: three checks, one every interval, then the new law replaces the old one in its group', () => {
+  let s = governing(3); s.government = ['workers', 'petite', 'farmers']; s.seats = .95; s.stats.legitimacy = 95; for (const g of d.interestGroups) s.ig[g.id].clout = ['workers', 'petite', 'farmers'].includes(g.id) ? .3 : .03;
+  assert.ok(E.lawChance(s, d, 'association') >= X.enactment.max - 1e-9);
+  const law = d.laws.find(l => l.id === 'association'), liberty = s.stats.liberty, workers = s.support.workers;
+  s = exec(s, { type: 'enact', id: 'association' }); let n = 0, results = [];
+  while (s.enactment && n++ < 40) { s.seats = .95; s.stats.legitimacy = 95; s = months(s, 1); results.push(...s.report.laws.map(x => x.result)); }
+  assert.equal(s.laws.association, 'association'); assert.equal(s.counters.lawsEnacted, 1); assert.equal(results.at(-1), 'enacted'); assert.equal(results.filter(r => r === 'advance').length, 2);
+  assert.ok(n >= 6 && n % 2 === 0, `제정까지 ${n}개월`);
+  assert.ok(enacted(s).lawId === 'association' && enacted(s).changes.liberty > 0);
+  assert.ok(s.ig.workers.mod > 0 && s.ig.business.mod < 0, '찬성 집단은 오르고 반대 집단은 내린다');
+  const R = EC.compute(s, d); assert.ok(R.detail.upkeep.laws >= law.monthlyCost - 1e-9); near(R.mods.cloutMult.workers, 1.25, 1e-9);
+  assert.ok(s.stats.liberty > liberty && s.support.workers > workers);
+});
+test('law: replacing a law takes back the one-time effect of the law it replaces', () => {
+  const run = id => { let s = governing(5); s.government = ['workers', 'petite', 'farmers']; for (const g of d.interestGroups) s.ig[g.id].clout = ['workers', 'petite', 'farmers'].includes(g.id) ? .3 : .03; s.turn = 110; s.laws.labor = 'labor_inspection'; s.stats.welfare = 40; s.stats.equality = 40; s.stats.liberty = 40; s = exec(s, { type: 'enact', id }); let n = 0; while (s.enactment && n++ < 60) { s.seats = .95; s.stats.legitimacy = 95; s = months(s, 1); } return s; };
+  const s = run('worker_protection'); assert.equal(s.laws.labor, 'worker_protection');
+  const entry = enacted(s), a = d.laws.find(l => l.id === 'labor_inspection'), b = d.laws.find(l => l.id === 'worker_protection');
+  near(entry.changes.welfare, b.effects.welfare - a.effects.welfare, 1e-3); near(entry.changes.liberty, (b.effects.liberty || 0) - a.effects.liberty, 1e-3);
+});
+test('law: failed checks either win a concession or stall, and the third stall kills the bill', () => {
+  const seen = new Set(); let failed = null, bonus = 0;
+  for (let seed = 1; seed <= 40 && !(failed && bonus); seed++) {
+    let s = governing(seed * 31); s.government = ['petite', 'business', 'landowners']; s.seats = .2; s.stats.legitimacy = 20;
+    assert.ok(E.lawChance(s, d, 'merit_service') < .45);
+    s = exec(s, { type: 'enact', id: 'merit_service' }); let n = 0;
+    while (s.enactment && n++ < 80) { s.seats = .2; s.stats.legitimacy = 20; const prev = s.enactment; s = months(s, 1); for (const x of s.report.laws) { seen.add(x.result); if (x.result === 'debate') { bonus = s.enactment.bonus; near(bonus, prev.bonus + X.enactment.debate, 1e-9); } if (x.result === 'stall') assert.equal(s.enactment.setbacks, prev.setbacks + 1); } }
+    if (s.counters.lawsFailed) { failed = s; assert.equal(s.laws.civil_service, 'patronage'); assert.equal(s.enactment, null); }
+  }
+  assert.ok(failed && bonus > 0); for (const r of ['debate', 'stall', 'failed']) assert.ok(seen.has(r), r);
+  assert.equal(E.enactReason(failed, d, 'merit_service'), '', '폐기된 법은 다시 발의할 수 있다');
+});
+test('law: withdrawing costs no AP and returns nothing; a decree during the transition costs rights and trust', () => {
+  let s = governing(); s.government = ['workers', 'petite']; s = exec(s, { type: 'enact', id: 'association' }); const t = exec(s, { type: 'cancelEnact' });
+  assert.equal(t.enactment, null); assert.equal(t.ap, s.ap); assert.equal(t.stats.treasury, s.stats.treasury); refuse(t, { type: 'cancelEnact' }, /없습니다/);
+  const run = phase => { let x = governing(11); x.phase = phase; x.turn = 24; x.government = ['military', 'business']; for (const g of d.interestGroups) x.ig[g.id].clout = ['military', 'business'].includes(g.id) ? .45 : .025; x.stats.legitimacy = 95; x.seats = .95; x.stats.liberty = 50; x = exec(x, { type: 'enact', id: 'planned_development' }); let n = 0; while (x.enactment && n++ < 60) { x.stats.legitimacy = 95; x.stats.liberty = 50; x = months(x, 1); } return enacted(x); };
+  const decree = run('transition'), normal = run('governing'); assert.ok(decree && normal);
+  near((decree.changes.liberty || 0) - (normal.changes.liberty || 0), X.enactment.decreeCost.liberty, 1e-3);
+  assert.equal(E.lawChanceParts(Object.assign(governing(), { phase: 'transition' }), d, 'planned_development').parts.at(-1)[0], '과도 통치의 의결');
+});
+
+/* ===== 이해집단 ===== */
+test('interest groups: clout and vote shares add up, and overall support is the vote-weighted approval', () => {
+  let s = months(governing(), 1); const sum = key => d.interestGroups.reduce((a, g) => a + s.ig[g.id][key], 0);
+  near(sum('clout'), 1, .001); near(sum('vote'), 1, .001); near(E.supportAverage(s, d), d.interestGroups.reduce((a, g) => a + s.support[g.id] * s.ig[g.id].vote, 0), 1e-9);
+  assert.ok(s.ig.farmers.vote > s.ig.business.vote * 10 && s.ig.business.clout > s.ig.business.vote * 5, '기업가는 수는 적어도 세력이 크다');
+  const R = EC.compute(s, d), base = EC.cloutOf(d, R), t = clone(s); t.laws.association = 'association'; assert.ok(EC.cloutOf(d, EC.compute(t, d)).workers > base.workers);
+  const more = clone(s); bld(more, 'garment', 'capital').level += 10; assert.ok(EC.cloutOf(d, EC.compute(more, d)).business > base.business, '공장이 늘면 기업가의 세력이 커진다');
+});
+test('interest groups: approval is built from laws, demands, living standards and a seat in the coalition', () => {
+  const s = governing(), R = EC.compute(s, d), A = X.approval, ig = id => d.interestGroups.find(g => g.id === id);
+  const p = EC.approvalParts(s, d, R, ig('workers')); near(p.target, Math.max(0, Math.min(100, 50 + p.law + p.demands + p.living + p.gov + p.mod)), 1e-9); assert.equal(p.gov, A.outGov); assert.ok(p.law < 0);
+  const law = clone(s); law.laws.labor = 'worker_protection'; near(EC.approvalParts(law, d, EC.compute(law, d), ig('workers')).law - p.law, 4 * A.lawWeight, 1e-9);
+  const gov = clone(s); gov.government = ['workers']; assert.equal(EC.approvalParts(gov, d, R, ig('workers')).gov, A.inGov);
+  const rich = clone(s); rich.econ.wage *= 1.5; assert.ok(EC.approvalParts(rich, d, EC.compute(rich, d), ig('workers')).living > p.living);
+  const mod = clone(s); mod.ig.workers.mod = 7; near(EC.approvalParts(mod, d, R, ig('workers')).mod, 7);
+  const m = clone(s); m.laws.labor = 'worker_protection'; const plain = months(s, 1).support.workers, moved = months(m, 1).support.workers; assert.ok(moved > plain && moved < plain + 4 * A.lawWeight, '지지도는 목표를 향해 조금씩 움직인다');
+});
+test('interest groups: demands for buildings rise from 1964 and flip approval when met', () => {
+  const s = governing(), farmers = d.interestGroups.find(g => g.id === 'farmers'), water = () => EC.demandStatus(s, d, farmers).find(x => x.id === 'water');
+  s.turn = 108; const need = water().need; assert.ok(need >= 1 && !water().met); const early = clone(s); early.turn = 40; assert.equal(EC.demandStatus(early, d, farmers).find(x => x.id === 'water').need, 0);
+  const R = EC.compute(s, d), before = EC.approvalParts(s, d, R, farmers).demands;
+  s.buildings.push({ id: 'irrigation', regionId: 'jeonbuk', level: need, pm: 0, staff: 1, state: need, subsidy: false });
+  assert.ok(water().met); near(EC.approvalParts(s, d, R, farmers).demands - before, 2 * water().weight);
+  const shared = d.interestGroups.filter(g => g.demands.some(x => x.buildings.includes('steel_mill'))).map(g => g.id); assert.deepEqual(shared.sort(), ['business', 'military', 'workers'], '제철소는 여러 집단의 요구에 걸쳐 있다');
+});
+test('interest groups: unhappy and happy groups switch on traits that change the economy, scaled by clout', () => {
+  const s = governing(); for (const g of d.interestGroups) { s.support[g.id] = 50; s.ig[g.id].clout = .15; }
+  assert.deepEqual(EC.activeTraits(s, d), []); const base = EC.modifiers(s, d);
+  const sad = clone(s); sad.support.farmers = 30; const t = EC.activeTraits(sad, d); assert.equal(t.length, 1); assert.equal(t[0].key, 'unhappy'); near(EC.modifiers(sad, d).farmThroughput, base.farmThroughput - .08);
+  assert.ok(EC.compute(sad, d).goods.grain.sup.buildings < EC.compute(s, d).goods.grain.sup.buildings);
+  const angry = clone(sad); angry.support.farmers = 10; near(EC.modifiers(angry, d).farmThroughput, base.farmThroughput - .12);
+  const strong = clone(sad); strong.ig.farmers.clout = .3; near(EC.modifiers(strong, d).farmThroughput, base.farmThroughput - .12); const weak = clone(sad); weak.ig.farmers.clout = .03; assert.equal(EC.modifiers(weak, d).farmThroughput, base.farmThroughput);
+  const loyal = clone(s); loyal.support.farmers = 80; assert.deepEqual(EC.activeTraits(loyal, d).map(x => x.key), ['happy', 'loyal']); near(EC.modifiers(loyal, d).monthly.stability, .03);
+  const army = clone(s); army.support.military = 30; const a = months(s, 1), b = months(army, 1); assert.ok(b.stats.stability < a.stats.stability); assert.ok(b.report.ledger.stability.some(r => r[0] === '이해집단 특성'));
+  assert.equal(EC.approvalState(24.9, d), 'angry'); assert.equal(EC.approvalState(40, d), 'neutral'); assert.equal(EC.approvalState(75, d), 'loyal');
+});
+test('coalition: one to three groups, a change costs AP, dismissal angers the group, and its clout moves legitimacy', () => {
+  let s = governing(); assert.deepEqual(s.government, ['landowners', 'business']);
+  s = exec(s, { type: 'coalition', id: 'petite' }); assert.equal(s.ap, 2); assert.deepEqual(s.government, ['landowners', 'business', 'petite']); refuse(s, { type: 'coalition', id: 'workers' }, /3개 집단/);
+  const before = s.support.landowners; s = exec(s, { type: 'coalition', id: 'landowners' }); near(s.support.landowners, before - X.approval.dismissed); near(s.ig.landowners.mod, -X.approval.dismissed); assert.ok(s.log.at(-1).type === 'government' && s.log.at(-1).igId === 'landowners');
+  let one = clone(s); one.government = ['petite']; refuse(one, { type: 'coalition', id: 'petite' }, /적어도 한 집단/); refuse(one, { type: 'coalition', id: 'nobody' }, /알 수 없는/);
+  const big = clone(s); big.government = ['business', 'landowners', 'farmers']; const small = clone(s); small.government = ['military'];
+  assert.ok(E.coalitionLegitimacy(big, d) > 0 && E.coalitionLegitimacy(small, d) < 0); assert.ok(Math.abs(E.coalitionLegitimacy(small, d)) <= X.government.legitimacyCap + 1e-9);
+  assert.ok(months(big, 1).report.ledger.legitimacy.some(r => r[0] === '집권 연합의 기반'));
+});
+test('events and policies move group approval; the leftover fades month by month', () => {
+  const e = d.events.find(x => x.choices.some(c => Object.keys(c.factionEffects || {}).length)), c = e.choices.find(x => Object.keys(x.factionEffects || {}).length);
+  let s = governing(); s.queue = [e.id]; const [id, v] = Object.entries(c.factionEffects)[0], before = s.support[id];
+  if (!E.choiceReason(s, d, c.id)) { const p = E.choicePreview(s, d, c.id), t = exec(s, { type: 'choose', choiceId: c.id }); near(t.support[id], Math.max(0, Math.min(100, before + v))); near(t.ig[id].mod, v); near(p.support.find(x => x.id === id).after, t.support[id]); const m = months(t, 1); near(m.ig[id].mod, v * (1 - X.approval.modDecay), 1e-3); }
+  const pol = d.policies.find(p => Object.keys(p.factionEffects).length), [pid, pv] = Object.entries(pol.factionEffects)[0]; s = governing(); s.turn = 100; const t = exec(s, { type: 'policy', id: pol.id }); near(t.ig[pid].mod, pv);
+});
+
+/* ===== 월 결산 보고 ===== */
+test('monthly report explains finance, the market and every metric change', () => {
+  let s = governing(); s = exec(s, { type: 'policy', id: 'farm_extension' }); s = exec(s, { type: 'build', id: 'school', regionId: 'capital' }); const f = finance(s, d), before = { ...s.stats };
+  s = months(s, 1); const r = s.report;
+  assert.equal(r.turn, 60); assert.equal(r.date, '1965-01'); near(r.finance.balance, f.balance, 1e-9); assert.deepEqual(Object.keys(r.market).sort(), ['cpi', 'exports', 'gdp', 'imports', 'points', 'pool', 'unemployment', 'used']);
+  for (const [m, v] of Object.entries(r.changes)) { near(s.stats[m] - before[m], v, 1e-5); near(r.ledger[m].reduce((a, row) => a + row[1], 0), v, 1e-4); }
+  for (const src of ['월 재정 수지', '시장의 생산', '예산 배분', '정책 지속 효과']) assert.ok(Object.values(r.ledger).some(rows => rows.some(x => x[0] === src)), src);
+  assert.ok(r.ledger.gdp.some(x => x[0] === '시장의 생산')); assert.ok(r.ledger.environment.some(x => x[0] === '건물의 환경 부담')); near(s.stats.gdp, r.market.gdp, 1e-3);
+});
+test('choice preview matches dispatch and does not consume RNG', () => {
+  for (const e of d.events) {
+    const s = governing(); s.queue = [e.id]; s.turn = e.date ? (Number(e.date.slice(0, 4)) - 1960) * 12 + Number(e.date.slice(5)) - 1 : 100;
+    for (const c of e.choices) { if (E.choiceReason(s, d, c.id) || c.special || c.ending) continue; const rng = s.rng, p = E.choicePreview(s, d, c.id); assert.equal(s.rng, rng); const t = exec(s, { type: 'choose', choiceId: c.id }); for (const x of p.stats) near(t.stats[x.id], x.after, 1e-9); for (const x of p.support) near(t.support[x.id], x.after, 1e-9); for (const x of p.relations) near(t.relations[x.id], x.after, 1e-9); }
   }
 });
-test('format 2 saves from data 1.1.0 continue under the 1.2.0 rules', () => {
-  const raw = fs.readFileSync(new URL('fixtures/v2_data110_1964_bills_and_projects.json', import.meta.url), 'utf8'), old = JSON.parse(raw).state;
-  assert.equal(old.dataVersion, '1.1.0');
-  const s = importSave(raw, d); assert.equal(s.dataVersion, d.meta.version); assert.equal(s.version, E.SAVE_VERSION); assert.equal(s.day, 1);
-  for (const k of ['turn', 'rng', 'ap', 'stats', 'support', 'relations', 'policies', 'bills', 'projects', 'queue', 'delayed', 'flags', 'report', 'monthActions', 'log']) assert.deepEqual(s[k], old[k], k);
-  const next = advance(s, 3); checkInvariants(next, d); assert.deepEqual(importSave(exportSave(next), d), next);
-  for (const v of ['1.0.0', '1.1.1', '9.9.9', 1.1]) { const p = JSON.parse(raw); p.state.dataVersion = v; assert.throws(() => importSave(JSON.stringify(p), d), String(v)); }
+test('event context follows the campaign path; inauguration only after winning in 1963', () => {
+  const e = d.events.find(x => (x.context || []).length >= 2), a = governing(); a.flags.route = 'constitutional'; const b = governing(); b.flags.route = 'military'; b.flags.authoritarian = true;
+  assert.equal(typeof E.eventContext(a, e), 'string');
+  const lost = createState(d); lost.turn = 47; lost.phase = 'civilian'; assert.equal(E.matches(lost, d.events.find(x => x.id === 'inauguration_1963').conditions), false);
 });
-test('migrateSave rejects mismatched legacy data and unknown versions', () => {
-  const raw = fs.readFileSync(new URL('fixtures/v1_1964_governing.json', import.meta.url), 'utf8');
-  for (const mutate of [p => p.state.dataVersion = '0.9.0', p => p.state.version = 2, p => p.state.gameId = 'other', p => p.version = 3, p => p.format = 'OTHER', p => p.state.stats.gdp = NaN]) { const p = JSON.parse(raw); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d)); }
-  assert.throws(() => E.migrateSave({ format: 'KOREA1960_SAVE', version: 0, state: {} }, d));
+test('periodic election uses the vote-weighted support; below 45 hands power over', () => {
+  const run = v => { let s = governing(8); s.turn = E.FIRST_PERIODIC_ELECTION - 1; s.stats.legitimacy = v; for (const g of d.interestGroups) { s.support[g.id] = v; s.ig[g.id].mod = v - 50; } return months(s, 1); };
+  const lost = run(15); assert.equal(lost.ending.id, 'peaceful_transfer'); assert.equal(lost.report.election.transfer, true);
+  const won = run(90); assert.equal(won.ending, null); assert.ok(won.report.election.share > 60 && won.seats > .6);
+  const s = governing(); assert.equal(E.nextElectionTurn(s), 94); s.flags.authoritarian = true; assert.equal(E.nextElectionTurn(s), null); near(E.electionExpectation(governing(), d), E.supportAverage(governing(), d) * .65 + governing().stats.legitimacy * .35);
 });
-test('v2 save rejects tampered report, monthActions and log metadata', () => {
-  let s = governing(); s = exec(s, { type: 'policy', id: 'export_credit' }); s = exec(s, { type: 'diplomacy', countryId: 'usa', mode: 'talk' });
-  const base = JSON.parse(exportSave(s)); let t = exec(s, { type: 'endMonth' }); const withReport = JSON.parse(exportSave(t));
-  const cases = [
-    [base, p => p.state.monthActions = ['diplomacy:mars']], [base, p => p.state.monthActions = ['spend:usa']], [base, p => p.state.monthActions = ['diplomacy:usa', 'diplomacy:usa']],
-    [base, p => p.state.log.at(-2).changes = { treasury: 'x' }], [base, p => p.state.log.at(-2).changes = { cheat: 5 }], [base, p => p.state.log[0].eventId = 'nope'], [base, p => p.state.log.at(-1).countryId = 'mars'],
-    [base, p => delete p.state.report], [base, p => delete p.state.monthActions],
-    [withReport, p => p.state.report.turn = 999], [withReport, p => p.state.report.finance.balance = 'lots'], [withReport, p => p.state.report.completed = [{ projectId: 'x', regionId: 'capital' }]],
-    [withReport, p => p.state.report.ledger.gdp = [['source', 'NaN']]], [withReport, p => p.state.report.extra = '<script>'], [withReport, p => p.state.report.events = ['ghost']], [withReport, p => p.state.report.election = { share: 500, transfer: false, seats: .5 }],
-    [withReport, p => p.state.bills = [{ policyId: 'association', total: 6, remaining: 0, status: 'passed', startedTurn: 0, probability: 7, roll: .2 }]]
+
+/* ===== 밸런스 규칙(1.2.0에서 이어짐)과 새 감가 ===== */
+test('balance: gains shrink above 60, never reach 100, and losses are never reduced', () => { const s = governing(); s.stats.welfare = 80; near(E.gainScale(s, d, 'welfare'), .5); s.stats.welfare = 100; assert.equal(E.gainScale(s, d, 'welfare'), 0); const [x] = E.projectEffects(s, d, { liberty: -5 }); assert.equal(x.delta, -5); assert.equal(E.gainScale(s, d, 'gdp'), 1); });
+test('balance: the monthly report names rising expectations, capability decay and the costs of military rule and concentrated power', () => {
+  let s = governing(); s.stats.legitimacy = 80; s.stats.education = 70; s = months(s, 1); assert.ok(s.report.ledger.legitimacy.some(r => r[0] === '높아진 기대' && r[1] < 0)); const dep = s.report.ledger.education.find(r => r[0] === '역량의 감가'); near(dep[1], -(70 - X.depreciation.education.floor) * X.depreciation.education.rate, 1e-3);
+  let m = governing(); m.phase = 'transition'; m.government = ['military']; m = months(m, 1); assert.ok(m.report.ledger.legitimacy.some(r => r[0] === '군정의 비용'));
+  let a = governing(); a.flags.authoritarian = true; const sup = a.support.petite; a = months(a, 1); assert.ok(a.report.ledger.liberty.some(r => r[0] === '권력 집중의 비용')); assert.ok(a.ig.petite.mod < 0 && sup > 0);
+});
+test('living standards feed welfare and equality; pollution from buildings lowers the environment', () => {
+  const s = governing(), a = months(s, 1); assert.ok(a.report.ledger.environment.some(r => r[0] === '건물의 환경 부담' && r[1] < 0));
+  const rich = clone(s); rich.econ.wage *= 1.6; const b = months(rich, 1); assert.ok(b.stats.welfare > a.stats.welfare); assert.ok(b.report.ledger.welfare.some(r => r[0] === '생활수준' && r[1] > 0));
+  const clean = clone(s); clean.laws.environment_rules = 'pollution_control'; near(EC.compute(clean, d).pollution, EC.compute(s, d).pollution * .6, 1e-3);
+});
+
+/* ===== 저장 ===== */
+test('export/import keeps the RNG, queue, market, buildings, construction, law in progress and coalition', () => {
+  let s = governing(21); s.government = ['workers', 'petite']; s = exec(s, { type: 'enact', id: 'press_freedom' }); s = exec(s, { type: 'build', id: 'school', regionId: 'jeju' }); s = months(s, 3); s = exec(s, { type: 'coalition', id: 'farmers' }); s.queue = ['sys_coal'];
+  s.history = Array.from({ length: s.turn + 1 }, (_, i) => ({ ...s.history[0], turn: i }));
+  const loaded = importSave(exportSave(s), d); assert.deepEqual(loaded, s); assert.deepEqual(exec(loaded, { type: 'choose', choiceId: 'sys_coal_1' }), exec(s, { type: 'choose', choiceId: 'sys_coal_1' }));
+  assert.equal(JSON.parse(exportSave(s)).version, 5);
+});
+test('malformed, huge and unknown saves are rejected; saves from earlier formats get a clear reason', () => {
+  const s = createState(d);
+  assert.throws(() => importSave('{', d), /JSON/); assert.throws(() => importSave('x'.repeat(3000001), d)); assert.throws(() => importSave(JSON.stringify({ format: 'OTHER', version: 5, state: s }), d), /지원하지 않는/); assert.throws(() => importSave(JSON.stringify({ format: E.SAVE_FORMAT, version: 99, state: s }), d), /지원하지 않는/);
+  for (const name of ['v1_1964_governing.json', 'v2_data110_1964_bills_and_projects.json', 'v3_data120_1964_bills_and_projects.json', 'v4_data130_1966_regional_edicts.json']) assert.throws(() => importSave(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf8'), d), { message: E.OLD_SAVE_MESSAGE }, name);
+  assert.throws(() => E.migrateSave({ format: E.SAVE_FORMAT, version: 4, state: {} }), /경제 구조/); assert.equal(E.migrateSave({ format: E.SAVE_FORMAT, version: 5, state: s }).state, s);
+});
+test('tampered saves are rejected as a whole', () => {
+  let base = governing(4); base.government = ['workers', 'petite']; base = exec(base, { type: 'enact', id: 'press_freedom' }); base = exec(base, { type: 'build', id: 'school', regionId: 'jeju' }); base = months(base, 2);
+  base.history = Array.from({ length: base.turn + 1 }, (_, i) => ({ ...base.history[0], turn: i }));
+  assert.doesNotThrow(() => importSave(exportSave(base), d));
+  const bad = [
+    s => { s.buildings[0].level = 999; }, s => { s.buildings[0].pm = 9; }, s => { s.buildings[0].state = s.buildings[0].level + 1; }, s => { s.buildings[0].staff = 1.5; }, s => { s.buildings[0].extra = 1; },
+    s => { s.buildings.push({ ...s.buildings[0] }); }, s => { s.buildings.push({ id: 'coal_mine', regionId: 'jeju', level: 1, pm: 0, staff: 1, state: 0, subsidy: false }); }, s => { s.buildings.find(b => b.id === 'school').state = 0; },
+    s => { s.construction[0].progress = 1e9; }, s => { s.construction.push({ id: 'port', regionId: 'chungbuk', progress: 0, private: false }); }, s => { s.construction.push({ id: 'school', regionId: 'capital', progress: 0, private: true }); },
+    s => { s.laws.labor = 'press_freedom'; }, s => { delete s.laws.trade; }, s => { s.laws.extra = 'x'; }, s => { s.enactment.lawId = s.laws.speech; }, s => { s.enactment.stage = 3; }, s => { s.enactment.wait = 0; }, s => { s.enactment.bonus = -1; },
+    s => { s.government = []; }, s => { s.government = ['workers', 'workers']; }, s => { s.government = ['nobody']; }, s => { s.ig.workers.clout = 2; }, s => { delete s.ig.workers.vote; }, s => { s.ig.stranger = { mod: 0, clout: 0, vote: 0 }; }, s => { s.support.workers = 101; },
+    s => { s.econ.prices.grain = 999; }, s => { s.econ.prices.grain = 0; }, s => { delete s.econ.prices.oil; }, s => { s.econ.wage = -1; }, s => { s.econ.pool = 1e9; }, s => { s.econ.short.grain = 5; }, s => { s.econ.needBase.grain = -1; }, s => { s.econ.gdpUnit = 0; }, s => { s.econ.hist.grain = new Array(99).fill(0); }, s => { s.econ.extra = 1; },
+    s => { s.counters.built = -1; }, s => { s.counters.regions = ['nowhere']; }, s => { s.report.completed = [{ buildingId: 'x', regionId: 'capital', private: false }]; }, s => { s.report.laws = [{ lawId: 'press_freedom', result: 'maybe', chance: .5 }]; }, s => { s.report.market.gdp = 'NaN'; }, s => { s.report.turn = s.turn; },
+    s => { s.log.push({ turn: 1, date: '1960-02-01', type: 'law', text: 'x', lawId: 'ghost' }); }, s => { s.log.push({ turn: 1, date: '1960-02-01', type: 'construction', text: 'x', buildingId: 'ghost' }); }, s => { s.visited = ['assembly']; }, s => { s.stats.gdp = NaN; }, s => { s.dataVersion = '1.3.0'; }, s => { s.version = 4; }, s => { s.turn = 240; }, s => { s.day = 40; }, s => { s.monthActions = ['diplomacy:mars']; }
   ];
-  for (const [src, mutate] of cases) { const p = JSON.parse(JSON.stringify(src)); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d), String(mutate)); }
-  assert.deepEqual(importSave(JSON.stringify(withReport), d), t);
+  bad.forEach((mutate, i) => { const s = clone(base); mutate(s); assert.throws(() => importSave(JSON.stringify({ format: E.SAVE_FORMAT, version: 5, state: s }), d), /올바르지 않습니다|지원하지 않는/, `변조 ${i}: ${mutate}`); });
+});
+test('all views are valid visited screens in saves', () => { const s = governing(); s.visited = [...E.VIEWS]; s.history = Array.from({ length: s.turn + 1 }, (_, i) => ({ ...s.history[0], turn: i })); assert.deepEqual(importSave(exportSave(s), d).visited, E.VIEWS); assert.ok(['market', 'laws', 'groups'].every(v => E.VIEWS.includes(v))); });
+
+/* ===== 기록 표식 ===== */
+test('achievements read the counters, the market and the groups', () => {
+  const s = governing(), has = (x, id) => E.achievements(x, d).some(a => a.id === id);
+  assert.ok(!has(s, 'first_project') && !has(s, 'first_bill') && !has(s, 'local_strength'));
+  s.counters.built = 1; s.counters.lawsEnacted = 1; s.counters.resourceBuilt = 3; s.counters.regions = ['capital', 'busan', 'jeju', 'gangwon', 'jeonnam']; assert.ok(has(s, 'first_project') && has(s, 'first_bill') && has(s, 'local_strength') && has(s, 'balanced_region'));
+  s.econ.trade = { exports: 5, imports: 4 }; assert.ok(has(s, 'export_day')); s.econ.trade = { exports: 3, imports: 4 }; assert.ok(!has(s, 'export_day'));
+  for (const g of d.interestGroups.slice(0, 4)) s.support[g.id] = 61; assert.ok(has(s, 'six_groups'));
+  for (const g of d.goods) s.econ.prices[g.id] = g.price; assert.ok(has(s, 'full_market')); s.econ.prices.steel = d.goods.find(g => g.id === 'steel').price * 1.4; assert.ok(!has(s, 'full_market'));
+  assert.equal(E.edictCap(s, d), 2 + Math.floor(s.stats.admin / 30)); const auto = clone(s); auto.laws.local_gov = 'local_autonomy'; assert.equal(E.edictCap(auto, d), E.edictCap(s, d) + 1);
 });
 
-/* ===== 하루 단위 시계 (저장 형식 3) ===== */
-test('clock: real month lengths and day labels', () => {
-  assert.deepEqual([0, 1, 3, 13, 49, 145, 239].map(E.daysInMonth), [31, 29, 30, 28, 29, 29, 31]);
-  assert.equal(E.dayLabel(16, 16), '1961-05-16'); assert.equal(E.dayLabel(240, 1), '1979-12-01');
+/* ===== 지역 시책(1.3.0에서 이어짐) ===== */
+test('edict: one per region, needs its terrain or resource, costs AP and treasury, and stops when revoked', () => {
+  let s = governing(); refuse(s, { type: 'edict', id: 'mine_safety', regionId: 'jeju' }, /없습니다/);
+  s = exec(s, { type: 'edict', id: 'grain_drive', regionId: 'jeonnam' }); const e = d.edicts.find(x => x.id === 'grain_drive'); assert.equal(s.ap, 2); assert.equal(s.stats.treasury, 500 - e.cost); refuse(s, { type: 'edict', id: 'local_admin', regionId: 'jeonnam' }, /다른 시책/);
+  near(EC.compute(s, d).detail.upkeep.edicts, e.monthlyCost); const m = months(s, 1); assert.ok(m.report.ledger.agriculture.some(r => r[0] === '지역 시책'));
+  const r = exec(s, { type: 'revokeEdict', regionId: 'jeonnam' }); assert.equal(r.ap, s.ap); assert.equal(r.edicts.length, 0); refuse(r, { type: 'revokeEdict', regionId: 'jeonnam' }, /없습니다/);
+  let cap = governing(); cap.stats.admin = 10; cap = exec(cap, { type: 'edict', id: 'local_admin', regionId: 'capital' }); cap = exec(cap, { type: 'edict', id: 'local_admin', regionId: 'busan' }); refuse(cap, { type: 'edict', id: 'local_admin', regionId: 'jeju' }, /2개까지/);
 });
-test('clock: a day tick only moves the date, never mutates the input and is blocked by a pending event', () => {
-  let s = free(createState(d)); const before = exportSave(s);
-  const r = dispatch(s, d, { type: 'tick' }); assert.equal(r.ok, true); assert.equal(exportSave(s), before);
-  assert.equal(r.state.day, 2); assert.equal(r.state.turn, 0); assert.deepEqual({ ...r.state, day: 1 }, s);
-  const pending = createState(d); assert.match(dispatch(pending, d, { type: 'tick' }).error, /사건/);
-});
-test('clock: ticking through a month gives exactly the same state as the month-end action', () => {
-  for (const seed of [3, 777]) {
-    let a = free(createState(d, seed)), b = a, ticks = 0;
-    for (let m = 0; m < 30; m++) {
-      a = exec(a, { type: 'endMonth' }); a = free(a);
-      const turn = b.turn; while (b.turn === turn) { b = exec(b, { type: 'tick' }); ticks++; } b = free(b);
-      const strip = x => ({ ...x, log: x.log.map(({ date, ...l }) => l) });
-      assert.deepEqual(strip(b), strip(a), `seed ${seed} month ${m}`);
-    }
-    assert.equal(ticks, Array.from({ length: 30 }, (_, t) => E.daysInMonth(t)).reduce((x, y) => x + y, 0));
+
+/* ===== 긴 진행과 자동 캠페인 ===== */
+test('full 240-month constitutional campaign completes with no NaN and a replayable save', () => {
+  let s = createState(d, 20261110), guard = 0, mid = null;
+  while (!s.ending && guard++ < 1500) {
+    if (s.queue.length) { const e = d.events.find(x => x.id === s.queue[0]); const c = e.choices.find(c => !c.ending && (c.effects.treasury || 0) >= 0 && !c.setFlags?.authoritarian && c.phase !== 'transition' && !E.choiceReason(s, d, c.id)) || e.choices.find(c => !E.choiceReason(s, d, c.id)); s = exec(s, { type: 'choose', choiceId: c.id }); }
+    else { while (E.PREPARE_PHASES.includes(s.phase) && s.ap > 0) s = exec(s, { type: 'prepare' }); if (s.turn === 120) mid = exportSave(s); s = exec(s, { type: 'endMonth' }); }
+    for (const v of Object.values(s.stats)) assert.ok(Number.isFinite(v));
   }
-});
-test('clock: month-end settlement is dated the last day; actions are dated the day they happen', () => {
-  let s = governing(); s.day = 10; s = exec(s, { type: 'policy', id: 'farm_extension' });
-  assert.equal(s.log.at(-1).date, '1965-01-10');
-  s = exec(s, { type: 'endMonth' }); assert.equal(s.day, 1); assert.equal(s.turn, 61);
-  assert.ok(s.log.filter(l => l.turn === 60 && l.type !== 'policy').every(l => l.date === '1965-01-31'));
-});
-test('clock: format 3 keeps the day; bad days and format 2 files with a day are rejected', () => {
-  let s = free(createState(d)); for (let i = 0; i < 20; i++) s = exec(s, { type: 'tick' });
-  assert.equal(s.day, 21); assert.deepEqual(importSave(exportSave(s), d), s);
-  for (const day of [0, 32, '5', 1.5, null]) { const p = JSON.parse(exportSave(s)); p.state.day = day; assert.throws(() => importSave(JSON.stringify(p), d), String(day)); }
-  const feb = JSON.parse(exportSave(s)); feb.state.turn = 13; feb.state.day = 29; assert.throws(() => importSave(JSON.stringify(feb), d)); // 1961년 2월은 28일
-  const v2 = JSON.parse(exportSave(s)); v2.version = 2; v2.state.version = 2; assert.throws(() => importSave(JSON.stringify(v2), d)); // 형식 2에는 day가 없어야 한다
-  delete v2.state.day; delete v2.state.edicts; const back = importSave(JSON.stringify(v2), d); assert.equal(back.day, 1); assert.equal(back.version, E.SAVE_VERSION); assert.deepEqual(back.edicts, []);
-});
-
-test('map view is a valid visited screen in saves', () => {
-  const s = free(createState(d)); s.visited = ['map', 'overview']; assert.deepEqual(importSave(exportSave(s), d).visited, ['map', 'overview']);
-  const p = JSON.parse(exportSave(s)); p.state.visited = ['atlas']; assert.throws(() => importSave(JSON.stringify(p), d));
-});
-
-/* ===== 데이터 1.2.0 밸런스 규칙 ===== */
-test('balance: gains shrink above 60, never reach 100, and losses are never reduced', () => {
-  const s = governing();
-  for (const [v, f] of [[30, 1], [60, 1], [70, .75], [80, .5], [90, .25], [99, .025]]) { s.stats.liberty = v; assert.ok(Math.abs(E.gainScale(s, d, 'liberty') - f) < 1e-12, `liberty ${v}`); }
-  s.stats.liberty = 50; assert.ok(Math.abs(E.gainScale(s, d, 'liberty', 'fictional_system') - .35) < 1e-12); assert.equal(E.gainScale(s, d, 'liberty', 'historical_anchor'), 1);
-  for (const id of ['gdp', 'treasury', 'debt', 'inflation', 'unemployment']) assert.equal(E.gainScale(s, d, id, 'fictional_system'), 1, id);
-  assert.equal(E.gainScale(s, noBalance, 'liberty', 'fictional_system'), 1);
-  s.stats.liberty = 99.9; const [x] = E.projectEffects(s, d, { liberty: 9 }); assert.ok(x.after < 100 && x.base === 9);
-  const [y] = E.projectEffects(s, d, { liberty: -9 }); assert.equal(y.delta, -9); assert.equal(y.base, undefined);
-});
-test('balance: fictional event bonuses are reduced, historical anchors and costs are not, and the preview matches', () => {
-  let s = governing(); s.queue = ['sys_journal']; s.stats.liberty = 42; s.stats.legitimacy = 45;
-  const p = E.choicePreview(s, d, 'sys_journal_1');
-  assert.deepEqual(p.stats.map(x => [x.id, +x.delta.toFixed(6), x.base]), [['liberty', .7, 2], ['legitimacy', .7, 2]]);
-  const t = exec(s, { type: 'choose', choiceId: 'sys_journal_1' }); for (const x of p.stats) assert.equal(t.stats[x.id], x.after);
-  s = governing(); s.queue = ['sys_grain']; const q = E.choicePreview(s, d, 'sys_grain_1'); assert.equal(q.cost, 5);
-  assert.equal(q.stats.find(x => x.id === 'treasury').delta, -5); assert.ok(Math.abs(q.stats.find(x => x.id === 'welfare').delta - 1.05) < 1e-12);
-  let a = createState(d); a.turn = 16; a.queue = ['may_1961'];
-  const civ = E.choicePreview(a, d, 'may_1961_1'), mil = E.choicePreview(a, d, 'may_1961_2');
-  assert.equal(civ.stats.find(x => x.id === 'liberty').delta, 5); assert.equal(mil.stats.find(x => x.id === 'liberty').delta, -12);
-});
-test('balance: the monthly report names rising expectations, military-rule and authoritarian costs', () => {
-  let s = governing(); s.stats.legitimacy = 80; s.stats.admin = 50;
-  let r = exec(s, { type: 'endMonth' }).report;
-  const exp = r.ledger.legitimacy.find(x => x[0] === '높아진 기대'); assert.ok(exp && Math.abs(exp[1] + (80 - 55) * .015) < .002, String(exp)); // 사회 추세가 먼저 조금 움직인 값 기준
-  assert.ok(!r.ledger.admin?.some(x => x[0] === '높아진 기대'));
-  s = governing(); s.phase = 'transition'; s.flags.route = 'military';
-  r = exec(s, { type: 'endMonth' }).report; assert.deepEqual(r.ledger.legitimacy.find(x => x[0] === '군정의 비용'), ['군정의 비용', -.08]);
-  const plain = governing(), auth = governing(); auth.flags.authoritarian = true;
-  const p1 = exec(plain, { type: 'endMonth' }), p2 = exec(auth, { type: 'endMonth' });
-  const cost = Object.fromEntries(p2.report.ledger.liberty.concat(p2.report.ledger.legitimacy).filter(x => x[0] === '권력 집중의 비용').map((x, i) => [i ? 'legitimacy' : 'liberty', x[1]]));
-  assert.deepEqual(cost, { liberty: -.22, legitimacy: -.3 });
-  assert.ok(p2.support.students < p1.support.students && p2.support.opposition < p1.support.opposition && p2.relations.international < p1.relations.international);
-  s = governing(); s.flags.authoritarian = true; s.stats.liberty = 30; assert.equal(E.gainScale(s, d, 'liberty'), .7); assert.equal(E.gainScale(s, d, 'legitimacy'), .5);
-});
-test('balance: an authoritarian legacy outranks industrial success when liberty stays below 40', () => {
-  const s = governing(); for (const m of d.metrics) s.stats[m.id] = m.initial;
-  Object.assign(s.stats, { industry: 85, gdp: 300, liberty: 30, legitimacy: 50 }); evaluateEnding(s, d, true); assert.equal(s.ending.id, 'authoritarian');
-  const t = governing(); for (const m of d.metrics) t.stats[m.id] = m.initial;
-  Object.assign(t.stats, { industry: 85, gdp: 300, liberty: 45, legitimacy: 50 }); evaluateEnding(t, d, true); assert.equal(t.ending.id, 'industrial');
-});
-test('balance: production growth leans more on investment than in 1.1.0', () => {
-  const s = governing();
-  const trend = data => dispatch(s, data, { type: 'endMonth' }).state.report.ledger.gdp.find(x => x[0] === '생산 추세')[1];
-  assert.ok(Math.abs(trend(noBalance) - trend(d) - s.stats.gdp * (.0025 - d.balance.growthBase)) < 1e-9);
-});
-
-/* ===== v1 참조 엔진과의 회귀 비교 =====
- * v2는 v1의 수식을 그대로 쓰고 법안 확률·외교 횟수·종료 직전 착수 제한만 바꿨다. 데이터 1.2.0의 밸런스 규칙은
- * balance 블록에만 있으므로, 블록을 뺀 같은 데이터(noBalance)로 돌리면 두 엔진의 상태가 매달 같아야 한다. */
-test('regression: v2 without the balance block reproduces the v1 reference engine where rules are unchanged', () => {
-  // v1이 모르는 1.3.0 고유 사업(requires)은 뺀다. 지역 시책은 이 비교에서 쓰지 않는다.
-  const d = { ...noBalance, projects: noBalance.projects.filter(p => !p.requires) };
-  const shared = ['turn', 'rng', 'phase', 'ap', 'influence', 'seats', 'stats', 'support', 'relations', 'budget', 'policies', 'projects', 'advisers', 'flags', 'queue', 'lastEvents', 'delayed', 'history', 'ending', 'lastFinance'];
-  const pick = s => Object.fromEntries(shared.map(k => [k, s[k]]));
-  for (const [seed, route] of [[11, 'may_1961_1'], [2024, 'may_1961_2'], [777, 'may_1961_3']]) {
-    let a = V1.createState(d, seed), b = E.createState(d, seed), months = 0;
-    const both = action => { const ra = V1.dispatch(a, d, action), rb = E.dispatch(b, d, action); assert.equal(ra.ok, rb.ok, `${JSON.stringify(action)} ${ra.error} / ${rb.error}`); a = ra.state; b = rb.state; return ra.ok; };
-    while (!a.ending) {
-      if (a.queue.length) {
-        const e = d.events.find(x => x.id === a.queue[0]);
-        const c = e.id === 'may_1961' ? route : e.id === 'yushin_1972' ? 'yushin_1972_2' : (e.choices.find(c => !c.ending && (c.effects.treasury || 0) >= 0) || e.choices[0]).id;
-        both({ type: 'choose', choiceId: c }); continue;
-      }
-      if (E.PREPARE_PHASES.includes(a.phase)) while (a.ap > 0) both({ type: 'prepare' });
-      else if (E.isExecutive(a)) {
-        const free = d.policies.filter(p => !p.requiresBill && !a.policies.includes(p.id));
-        if (free.length && a.stats.treasury > 30) both({ type: 'policy', id: free[months % free.length].id });
-        const proj = d.projects[months % d.projects.length], reg = d.regions[months % d.regions.length];
-        if (a.ap > 0 && a.turn + proj.months <= 240) both({ type: 'project', id: proj.id, regionId: reg.id });
-        if (a.ap > 0 && months % 3 === 0) both({ type: 'diplomacy', countryId: d.countries[months % 6].id, mode: ['talk', 'technology', 'humanitarian'][months % 3] });
-        if (a.ap > 0 && a.advisers.length < 2) both({ type: 'adviser', id: d.advisers[months % 6].id });
-        if (months % 24 === 5) both({ type: 'budget', budget: { industry: 30, agriculture: 10, education: 20, welfare: 15, infrastructure: 15, security: 10 } });
-      }
-      both({ type: 'endMonth' }); months++;
-      assert.deepEqual(pick(b), pick(a), `seed ${seed} month ${months}`);
-    }
-    assert.equal(b.ending.id, a.ending.id);
-  }
-});
-
-/* ===== 자동 캠페인: 교착·NaN·무한 반복·빈 사건·미완공 사업·깨진 엔딩 검사 ===== */
-test(`campaign sweep: ${SEEDS} seeds x ${Object.keys(STRATEGIES).length} strategies keep every invariant`, () => {
-  const events = new Set(), endings = {}, finals = {}, index = d.balance.diminishing.metrics;
-  const noCeiling = x => { for (const id of index) if (x.stats[id] >= 100) throw new Error(`${id}가 100에 도달 (t${x.turn})`); };
-  for (const strategy of Object.keys(STRATEGIES)) {
-    for (let seed = 1; seed <= SEEDS; seed++) {
-      const { state: s, seen } = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: x => { checkInvariants(x, d); noCeiling(x); } });
-      for (const id of seen.events) events.add(id);
-      endings[s.ending.id] = (endings[s.ending.id] || 0) + 1; (finals[strategy] ||= {})[s.ending.id] = (finals[strategy][s.ending.id] || 0) + 1;
-      assert.ok(d.endings.some(e => e.id === s.ending.id)); assert.ok(s.turn <= 240);
-      for (const p of s.projects) if (p.startedTurn + d.projects.find(x => x.id === p.projectId).months <= s.turn) assert.equal(p.status, 'complete', `${p.projectId} 미완공`);
-      if (s.turn === 240) assert.equal(s.projects.filter(p => p.status === 'building').length, 0, '종료 시 미완공 사업');
-      assert.deepEqual(importSave(exportSave(s), d), s);
-      const after = dispatch(s, d, { type: 'endMonth' }); assert.equal(after.ok, false); assert.equal(after.state, s);
-    }
-  }
-  console.log('Sweep endings by strategy', JSON.stringify(finals));
-  // 밸런스 1.2.0: 플레이 방식마다 의도한 엔딩이 실제로 나온다(한 엔딩이 모든 방식을 덮지 않는다).
-  const intended = { constitutional: ['balanced', 'constitutional'], military: ['authoritarian'], welfare: ['welfare'], green: ['green'], hardline: ['rights_crisis'], growth: ['industrial'], passive: ['unfinished'] };
-  for (const [strategy, ids] of Object.entries(intended)) assert.ok(ids.some(id => finals[strategy][id]), `${strategy}: ${JSON.stringify(finals[strategy])}`);
-  assert.ok(!finals.passive.balanced || finals.passive.balanced * 4 <= SEEDS, `소극 플레이가 균형 엔딩을 자주 받음 ${JSON.stringify(finals.passive)}`);
-  console.log(`Events seen ${events.size}/${d.events.length}`, d.events.filter(e => !events.has(e.id)).map(e => e.id).join(','));
-  assert.ok(events.size >= d.events.length - 2, `사건 도달 ${events.size}`);
-});
-
-/* ===== 데이터 1.3.0: 권역 지형·자원, 고유 사업, 지역 시책 (저장 형식 4) ===== */
-const unique = d.projects.filter(p => p.requires);
-test('regions: every region has terrain and resources; each unique project fits some regions but not all', () => {
-  for (const r of d.regions) { assert.ok(r.terrain.length && r.resources.length, r.id); for (const t of [...r.terrain, ...r.resources]) assert.ok(d.traits.some(x => x.id === t), t); }
-  assert.ok(unique.length >= 10);
-  for (const p of unique) { const fit = d.regions.filter(r => E.regionHas(d, r.id, p.requires)).length; assert.ok(fit >= 1 && fit < d.regions.length, `${p.id} ${fit}`); }
-  assert.deepEqual(E.regionTags(d, 'jeju'), ['island', 'mountain', 'scenery', 'fishery']);
-});
-test('unique project: needs the region resource, names it in the reason, and adds its own development', () => {
-  let s = governing(); s.turn = 72;
-  assert.equal(projectReason(s, d, 'coal_mechanization', 'gangwon'), '');
-  assert.equal(projectReason(s, d, 'coal_mechanization', 'jeonbuk'), '이 권역에는 석탄이 없습니다.');
-  assert.equal(projectReason(s, d, 'tourism_complex', 'capital'), '이 권역에는 경관이 없습니다.');
-  assert.equal(projectReason(s, d, 'island_link', 'busan'), '이 권역에는 섬이 없습니다.');
-  assert.equal(dispatch(s, d, { type: 'project', id: 'coal_mechanization', regionId: 'jeonbuk' }).ok, false);
-  const dev0 = E.regionDevelopment(s, d, 'gangwon');
-  s = exec(s, { type: 'project', id: 'coal_mechanization', regionId: 'gangwon' }); s = exec(s, { type: 'project', id: 'local_road', regionId: 'gangwon' });
-  s = advance(s, 8);
-  assert.ok(s.projects.every(p => p.status === 'complete'));
-  assert.equal(E.regionDevelopment(s, d, 'gangwon'), dev0 + 12 + 9);
-});
-test('edict: one per region, needs its terrain or resource, costs AP and treasury, shows upkeep and monthly effects', () => {
-  let s = governing(); const t0 = s.stats.treasury, f0 = E.finance(s, d);
-  assert.match(E.edictReason(s, d, 'grain_drive', 'gangwon'), /곡창이 없습니다/);
-  assert.match(E.edictReason(s, d, 'fishery_management', 'chungbuk'), /어장이 없습니다/);
-  s = exec(s, { type: 'edict', id: 'grain_drive', regionId: 'jeonbuk' });
-  assert.equal(s.ap, 2); assert.equal(s.stats.treasury, t0 - 6); assert.deepEqual(s.edicts, [{ edictId: 'grain_drive', regionId: 'jeonbuk', startedTurn: 60 }]);
-  assert.equal(s.log.at(-1).type, 'edict'); assert.equal(s.log.at(-1).edictId, 'grain_drive');
-  assert.match(E.edictReason(s, d, 'local_admin', 'jeonbuk'), /다른 시책/); assert.match(E.edictReason(s, d, 'grain_drive', 'jeonbuk'), /이미 시행/);
-  assert.ok(Math.abs(E.finance(s, d).upkeep - f0.upkeep - .2) < 1e-9);
-  assert.deepEqual(E.financeDetail(s, d).edictUpkeep, [{ edictId: 'grain_drive', regionId: 'jeonbuk', cost: .2 }]);
-  s = exec(s, { type: 'endMonth' });
-  const row = s.report.ledger.agriculture.find(x => x[0] === '지역 시책'); assert.ok(row && row[1] > 0);
-  // 같은 시책을 다른 권역에 또 걸 수 있다
-  s = free(s); s = exec(s, { type: 'edict', id: 'grain_drive', regionId: 'chungnam' }); assert.equal(s.edicts.length, 2);
-});
-test('edict: the number at once follows administrative capacity', () => {
-  let s = governing(); s.stats.admin = 40; assert.equal(E.edictCap(s), 3); s.stats.admin = 59.9; assert.equal(E.edictCap(s), 3); s.stats.admin = 60; assert.equal(E.edictCap(s), 4); s.stats.admin = 100; assert.equal(E.edictCap(s), 5);
-  s.stats.admin = 40; s.ap = 3;
-  for (const regionId of ['capital', 'gangwon', 'chungnam']) { s = exec(s, { type: 'edict', id: 'local_admin', regionId }); s.ap = 3; }
-  assert.match(E.edictReason(s, d, 'local_admin', 'busan'), /동시에 3개까지/);
-  s.stats.admin = 61; assert.equal(E.edictReason(s, d, 'local_admin', 'busan'), '');
-});
-test('edict: build discount lowers the project cost only in that region; lagging-region edict needs low development', () => {
-  let s = governing(); s.turn = 100;
-  const steel = d.projects.find(p => p.id === 'coastal_industrial');
-  s = exec(s, { type: 'edict', id: 'export_priority', regionId: 'busan' });
-  assert.equal(E.projectCost(s, d, steel.id, 'busan'), steel.cost * .85); assert.equal(E.projectCost(s, d, steel.id, 'gyeongnam'), steel.cost);
-  const before = s.stats.treasury; s = exec(s, { type: 'project', id: steel.id, regionId: 'busan' });
-  assert.ok(Math.abs(before - s.stats.treasury - steel.cost * .85) < 1e-9); assert.match(s.log.at(-1).text, /시책 감면/);
-  assert.match(E.edictReason(s, d, 'lagging_region', 'capital'), /개발도 45 이하/);
-  assert.equal(E.edictReason(s, d, 'lagging_region', 'jeju'), '');
-});
-test('edict: revoking costs no AP, stops upkeep and later effects, and needs an active edict', () => {
-  let s = governing(); s = exec(s, { type: 'edict', id: 'forest_protection', regionId: 'gangwon' });
-  assert.match(E.revokeEdictReason(s, d, 'busan'), /시행 중인 시책이 없습니다/);
-  const ap = s.ap, up = E.finance(s, d).upkeep; s = exec(s, { type: 'revokeEdict', regionId: 'gangwon' });
-  assert.equal(s.ap, ap); assert.deepEqual(s.edicts, []); assert.ok(Math.abs(up - E.finance(s, d).upkeep - .12) < 1e-9); assert.match(s.log.at(-1).text, /거두었다/);
-  s = exec(s, { type: 'endMonth' }); assert.ok(!Object.values(s.report.ledger).flat().some(x => x[0] === '지역 시책'));
-  s = free(s); s.phase = 'elected'; assert.match(E.edictReason(s, d, 'local_admin', 'jeju'), /권한/);
-});
-test('save format 4 keeps edicts; tampered edicts are rejected; format 3 files migrate with no edicts', () => {
-  let s = governing(); s = exec(s, { type: 'edict', id: 'tourism_opening', regionId: 'jeju' }); s = exec(s, { type: 'endMonth' }); s = free(s);
+  assert.ok(s.ending); if (mid) { const a = importSave(mid, d); assert.equal(a.turn, 120); assert.deepEqual(exec(a, { type: 'endMonth' }), exec(importSave(mid, d), { type: 'endMonth' })); }
   assert.deepEqual(importSave(exportSave(s), d), s);
-  for (const mutate of [p => p.state.edicts[0].edictId = 'nope', p => p.state.edicts[0].regionId = 'capital', p => p.state.edicts.push({ ...p.state.edicts[0] }), p => p.state.edicts[0].startedTurn = 999, p => p.state.edicts[0].extra = 1, p => p.state.edicts = {}, p => delete p.state.edicts, p => p.state.log.at(-1).edictId = 'ghost']) {
-    const p = JSON.parse(exportSave(s)); mutate(p); assert.throws(() => importSave(JSON.stringify(p), d), String(mutate));
-  }
-  const raw = fs.readFileSync(new URL('fixtures/v3_data120_1964_bills_and_projects.json', import.meta.url), 'utf8'), old = JSON.parse(raw);
-  assert.equal(old.version, 3); assert.equal(old.state.dataVersion, '1.2.0');
-  const m = E.migrateSave(old, d); assert.equal(m.migratedFrom, 3); assert.equal(m.migratedFromData, '1.2.0');
-  const t = importSave(raw, d); assert.equal(t.version, 4); assert.deepEqual(t.edicts, []); assert.equal(t.dataVersion, d.meta.version);
-  for (const k of ['turn', 'day', 'rng', 'ap', 'stats', 'support', 'relations', 'policies', 'bills', 'projects', 'queue', 'log']) assert.deepEqual(t[k], old.state[k], k);
-  const next = advance(t, 3); checkInvariants(next, d); assert.deepEqual(importSave(exportSave(next), d), next);
-  const bad = JSON.parse(raw); bad.state.edicts = []; assert.throws(() => importSave(JSON.stringify(bad), d)); // 형식 3에는 edicts가 없어야 한다
 });
-test('achievements count unique projects and edicts at once', () => {
-  let s = governing(); s.turn = 100; s.stats.admin = 70;
-  for (const [id, regionId] of [['farmland_consolidation', 'jeonbuk'], ['fishing_port', 'busan'], ['reforestation', 'jeju']]) { s = exec(s, { type: 'project', id, regionId }); s.ap = 3; }
-  for (const regionId of ['capital', 'busan', 'jeonbuk']) { s = exec(s, { type: 'edict', id: 'local_admin', regionId }); s.ap = 3; }
-  s = advance(s, 8); const ids = E.achievements(s, d).map(a => a.id);
-  assert.ok(ids.includes('local_strength')); assert.ok(ids.includes('local_rule'));
+test(`campaign sweep: ${SEEDS} seeds x ${Object.keys(STRATEGIES).length} strategies keep every invariant`, () => {
+  const endings = new Set(), events = new Set(); let builds = 0, laws = 0, privates = 0;
+  for (const strategy of Object.keys(STRATEGIES)) for (let seed = 1; seed <= SEEDS; seed++) {
+    const { state, seen } = playCampaign(d, { seed: seed * 104729 + strategy.length, strategy, onStep: s => checkInvariants(s, d), onMonth: s => { if (s.turn % 6 === 0) checkMarket(s, d); } });
+    endings.add(state.ending.id); for (const id of seen.events) events.add(id); builds += state.counters.built; laws += state.counters.lawsEnacted; privates += state.counters.privateBuilt;
+    assert.deepEqual(importSave(exportSave(state), d), state, `${strategy} ${seed} 저장 왕복`);
+  }
+  assert.ok(endings.size >= 6, `엔딩 ${[...endings]}`); assert.ok(events.size >= 60, `사건 ${events.size}`); assert.ok(builds > 0 && laws > 0 && privates > 0);
 });

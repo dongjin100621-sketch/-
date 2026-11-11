@@ -1,0 +1,1382 @@
+[
+  {
+    "id": "farm",
+    "name": "논·밭 농장",
+    "category": "agri",
+    "cost": 30,
+    "infraUse": 0.5,
+    "owner": "land",
+    "tech": "agriculture",
+    "development": 1,
+    "cap": "arable",
+    "unlockYear": 1960,
+    "description": "곡물을 시장에 내는 상업 농장. 권역의 경지 한도까지 지을 수 있다. 이익은 토지 제도에 따라 지주와 농민이 나눈다.",
+    "pm": [
+      {
+        "id": "traditional",
+        "name": "재래 영농",
+        "jobs": {
+          "farmers": 20
+        },
+        "in": {
+          "transport": 1
+        },
+        "out": {
+          "grain": 44
+        }
+      },
+      {
+        "id": "fertilized",
+        "name": "비료·개량 종자",
+        "jobs": {
+          "farmers": 20
+        },
+        "in": {
+          "fertilizer": 8,
+          "transport": 2
+        },
+        "out": {
+          "grain": 64
+        },
+        "unlock": {
+          "metric": {
+            "agriculture": 42
+          }
+        }
+      },
+      {
+        "id": "mechanized",
+        "name": "기계 영농",
+        "jobs": {
+          "farmers": 14
+        },
+        "in": {
+          "fertilizer": 12,
+          "tools": 3,
+          "oil": 2,
+          "transport": 2
+        },
+        "out": {
+          "grain": 84
+        },
+        "unlock": {
+          "year": 1968,
+          "metric": {
+            "agriculture": 58
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fishery",
+    "name": "어항·수산",
+    "category": "resource",
+    "cost": 30,
+    "infraUse": 1,
+    "owner": "business",
+    "tech": "agriculture",
+    "development": 2,
+    "requires": [
+      "fishery"
+    ],
+    "maxPerRegion": 6,
+    "unlockYear": 1960,
+    "description": "어장이 있는 권역의 어항. 수산물은 식품 공장의 원료이자 수출품이다.",
+    "pm": [
+      {
+        "id": "coastal",
+        "name": "연안 소형선",
+        "jobs": {
+          "workers": 14
+        },
+        "in": {
+          "wood": 2,
+          "transport": 1
+        },
+        "out": {
+          "fish": 36
+        }
+      },
+      {
+        "id": "powered",
+        "name": "동력선·냉동",
+        "jobs": {
+          "workers": 14
+        },
+        "in": {
+          "oil": 3,
+          "tools": 1,
+          "transport": 2
+        },
+        "out": {
+          "fish": 58
+        },
+        "unlock": {
+          "metric": {
+            "industry": 28
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "forestry",
+    "name": "임업·제재",
+    "category": "resource",
+    "cost": 25,
+    "infraUse": 1,
+    "owner": "business",
+    "tech": "industry",
+    "development": 2,
+    "requires": [
+      "timber"
+    ],
+    "maxPerRegion": 5,
+    "unlockYear": 1960,
+    "pollution": 0.002,
+    "description": "산림 자원이 있는 권역의 벌채와 제재. 목재는 초기 건설의 주 자재다.",
+    "pm": [
+      {
+        "id": "logging",
+        "name": "벌채",
+        "jobs": {
+          "workers": 12
+        },
+        "in": {
+          "transport": 2
+        },
+        "out": {
+          "wood": 40
+        }
+      },
+      {
+        "id": "managed",
+        "name": "조림 병행",
+        "jobs": {
+          "workers": 12
+        },
+        "in": {
+          "transport": 3
+        },
+        "out": {
+          "wood": 36
+        },
+        "unlock": {
+          "year": 1965
+        },
+        "pollution": -0.001
+      }
+    ]
+  },
+  {
+    "id": "coal_mine",
+    "name": "탄광",
+    "category": "resource",
+    "cost": 45,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "development": 2,
+    "requires": [
+      "coal"
+    ],
+    "maxPerRegion": 9,
+    "unlockYear": 1960,
+    "pollution": 0.002,
+    "description": "석탄이 묻힌 권역의 탄광. 발전·철도·시멘트·제철이 석탄을 쓴다.",
+    "pm": [
+      {
+        "id": "manual",
+        "name": "인력 채탄",
+        "jobs": {
+          "workers": 18
+        },
+        "in": {
+          "wood": 4,
+          "transport": 3
+        },
+        "out": {
+          "coal": 40
+        }
+      },
+      {
+        "id": "mechanized",
+        "name": "기계 채탄",
+        "jobs": {
+          "workers": 16
+        },
+        "in": {
+          "wood": 4,
+          "tools": 3,
+          "electricity": 4,
+          "transport": 5
+        },
+        "out": {
+          "coal": 64
+        },
+        "unlock": {
+          "metric": {
+            "industry": 30
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ore_mine",
+    "name": "금속 광산",
+    "category": "resource",
+    "cost": 45,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "development": 2,
+    "requires": [
+      "ore"
+    ],
+    "maxPerRegion": 6,
+    "unlockYear": 1960,
+    "pollution": 0.002,
+    "description": "금속 광물이 있는 권역의 광산. 제철소가 없으면 광석은 대부분 수출된다.",
+    "pm": [
+      {
+        "id": "manual",
+        "name": "인력 채광",
+        "jobs": {
+          "workers": 16
+        },
+        "in": {
+          "wood": 3,
+          "transport": 3
+        },
+        "out": {
+          "ore": 26
+        }
+      },
+      {
+        "id": "mechanized",
+        "name": "기계 채광",
+        "jobs": {
+          "workers": 14
+        },
+        "in": {
+          "tools": 3,
+          "electricity": 4,
+          "transport": 5
+        },
+        "out": {
+          "ore": 44
+        },
+        "unlock": {
+          "metric": {
+            "industry": 30
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "cement_plant",
+    "name": "시멘트 공장",
+    "category": "manufacturing",
+    "cost": 70,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 35,
+    "development": 2,
+    "requires": [
+      "limestone"
+    ],
+    "maxPerRegion": 6,
+    "unlockYear": 1960,
+    "pollution": 0.005,
+    "description": "석회석 권역의 시멘트 공장. 철근 콘크리트 건설에 시멘트가 든다.",
+    "pm": [
+      {
+        "id": "kiln",
+        "name": "소성로",
+        "jobs": {
+          "workers": 12,
+          "petite": 2
+        },
+        "in": {
+          "coal": 14,
+          "electricity": 4,
+          "transport": 4
+        },
+        "out": {
+          "cement": 50
+        }
+      },
+      {
+        "id": "rotary",
+        "name": "대형 회전로",
+        "jobs": {
+          "workers": 12,
+          "petite": 2
+        },
+        "in": {
+          "coal": 20,
+          "electricity": 8,
+          "transport": 6
+        },
+        "out": {
+          "cement": 84
+        },
+        "unlock": {
+          "year": 1968,
+          "metric": {
+            "industry": 45
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "textile_mill",
+    "name": "방직 공장",
+    "category": "manufacturing",
+    "cost": 60,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "development": 1.5,
+    "unlockYear": 1960,
+    "pollution": 0.002,
+    "description": "직물을 짠다. 직물은 봉제 공장의 투입재다.",
+    "pm": [
+      {
+        "id": "cotton",
+        "name": "면방직",
+        "jobs": {
+          "workers": 20,
+          "petite": 2
+        },
+        "in": {
+          "electricity": 3,
+          "transport": 2
+        },
+        "out": {
+          "fabric": 58
+        }
+      },
+      {
+        "id": "synthetic",
+        "name": "화학 섬유",
+        "jobs": {
+          "workers": 20,
+          "petite": 2
+        },
+        "in": {
+          "electricity": 6,
+          "oil": 6,
+          "transport": 3
+        },
+        "out": {
+          "fabric": 94
+        },
+        "unlock": {
+          "year": 1968,
+          "metric": {
+            "industry": 45
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "garment",
+    "name": "봉제 공장",
+    "category": "manufacturing",
+    "cost": 50,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "development": 1.5,
+    "unlockYear": 1960,
+    "pollution": 0.001,
+    "description": "직물로 의복을 만든다. 일자리가 많고 수출 한도가 크다.",
+    "pm": [
+      {
+        "id": "sewing",
+        "name": "재봉",
+        "jobs": {
+          "workers": 24,
+          "petite": 2
+        },
+        "in": {
+          "fabric": 28,
+          "transport": 2
+        },
+        "out": {
+          "clothes": 44
+        }
+      },
+      {
+        "id": "line",
+        "name": "대량 봉제 라인",
+        "jobs": {
+          "workers": 24,
+          "petite": 2
+        },
+        "in": {
+          "fabric": 42,
+          "electricity": 4,
+          "transport": 3
+        },
+        "out": {
+          "clothes": 68
+        },
+        "unlock": {
+          "metric": {
+            "industry": 35
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "food_plant",
+    "name": "식품 가공 공장",
+    "category": "manufacturing",
+    "cost": 50,
+    "infraUse": 2,
+    "owner": "business",
+    "tech": "industry",
+    "development": 1.5,
+    "unlockYear": 1960,
+    "pollution": 0.001,
+    "description": "곡물과 수산물로 가공식품을 만든다.",
+    "pm": [
+      {
+        "id": "milling",
+        "name": "제분·통조림",
+        "jobs": {
+          "workers": 14,
+          "petite": 2
+        },
+        "in": {
+          "grain": 22,
+          "fish": 5,
+          "transport": 2
+        },
+        "out": {
+          "groceries": 38
+        }
+      },
+      {
+        "id": "processing",
+        "name": "가공 식품 라인",
+        "jobs": {
+          "workers": 14,
+          "petite": 2
+        },
+        "in": {
+          "grain": 30,
+          "fish": 8,
+          "electricity": 4,
+          "transport": 3
+        },
+        "out": {
+          "groceries": 62
+        },
+        "unlock": {
+          "metric": {
+            "industry": 35
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fertilizer_plant",
+    "name": "비료 공장",
+    "category": "manufacturing",
+    "cost": 90,
+    "infraUse": 3,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 40,
+    "development": 2,
+    "unlockYear": 1961,
+    "pollution": 0.005,
+    "description": "농장의 생산방식을 올리는 비료를 만든다. 농민과 기업가가 함께 바라는 건물.",
+    "pm": [
+      {
+        "id": "coal_chem",
+        "name": "석탄 화학",
+        "jobs": {
+          "workers": 12,
+          "petite": 3
+        },
+        "in": {
+          "coal": 16,
+          "electricity": 8,
+          "transport": 3
+        },
+        "out": {
+          "fertilizer": 52
+        }
+      },
+      {
+        "id": "petro_chem",
+        "name": "석유 화학",
+        "jobs": {
+          "workers": 12,
+          "petite": 3
+        },
+        "in": {
+          "oil": 14,
+          "electricity": 10,
+          "transport": 5
+        },
+        "out": {
+          "fertilizer": 80
+        },
+        "unlock": {
+          "year": 1967,
+          "metric": {
+            "industry": 45
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "steel_mill",
+    "name": "제철소",
+    "category": "manufacturing",
+    "cost": 160,
+    "infraUse": 4,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 45,
+    "development": 2.5,
+    "unlockYear": 1965,
+    "pollution": 0.01,
+    "description": "광석과 석탄으로 강철을 만든다. 기업가와 군대가 함께 바라는 건물이고, 환경 부담이 크다.",
+    "pm": [
+      {
+        "id": "small",
+        "name": "전기로·소형 고로",
+        "jobs": {
+          "workers": 20,
+          "petite": 3
+        },
+        "in": {
+          "ore": 18,
+          "coal": 14,
+          "electricity": 6,
+          "transport": 5
+        },
+        "out": {
+          "steel": 44
+        }
+      },
+      {
+        "id": "integrated",
+        "name": "일관 제철",
+        "jobs": {
+          "workers": 22,
+          "petite": 4
+        },
+        "in": {
+          "ore": 30,
+          "coal": 22,
+          "electricity": 10,
+          "transport": 8
+        },
+        "out": {
+          "steel": 80
+        },
+        "unlock": {
+          "year": 1970,
+          "metric": {
+            "industry": 50
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "machinery",
+    "name": "기계 공장",
+    "category": "manufacturing",
+    "cost": 100,
+    "infraUse": 3,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 45,
+    "development": 2,
+    "unlockYear": 1963,
+    "pollution": 0.002,
+    "description": "강철로 기계·공구를 만든다. 광산·농장·건설의 기계화에 쓰인다.",
+    "pm": [
+      {
+        "id": "general",
+        "name": "범용 기계",
+        "jobs": {
+          "workers": 16,
+          "petite": 3
+        },
+        "in": {
+          "steel": 8,
+          "electricity": 4,
+          "transport": 3
+        },
+        "out": {
+          "tools": 34
+        }
+      },
+      {
+        "id": "precision",
+        "name": "정밀 기계",
+        "jobs": {
+          "workers": 16,
+          "petite": 4
+        },
+        "in": {
+          "steel": 12,
+          "electricity": 7,
+          "transport": 5
+        },
+        "out": {
+          "tools": 58
+        },
+        "unlock": {
+          "year": 1971,
+          "metric": {
+            "industry": 55
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "shipyard",
+    "name": "조선소",
+    "category": "manufacturing",
+    "cost": 150,
+    "infraUse": 4,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 50,
+    "development": 2.5,
+    "requires": [
+      "harbor"
+    ],
+    "maxPerRegion": 6,
+    "unlockYear": 1968,
+    "pollution": 0.006,
+    "description": "깊은 항만이 있는 권역의 조선소. 선박은 거의 전부 수출한다.",
+    "pm": [
+      {
+        "id": "medium",
+        "name": "중형 선박",
+        "jobs": {
+          "workers": 22,
+          "petite": 3
+        },
+        "in": {
+          "steel": 12,
+          "tools": 4,
+          "electricity": 5,
+          "transport": 3
+        },
+        "out": {
+          "ships": 26
+        }
+      },
+      {
+        "id": "dock",
+        "name": "대형 도크",
+        "jobs": {
+          "workers": 24,
+          "petite": 4
+        },
+        "in": {
+          "steel": 20,
+          "tools": 7,
+          "electricity": 8,
+          "transport": 5
+        },
+        "out": {
+          "ships": 46
+        },
+        "unlock": {
+          "year": 1973,
+          "metric": {
+            "industry": 60
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "electronics",
+    "name": "전자 공장",
+    "category": "manufacturing",
+    "cost": 110,
+    "infraUse": 3,
+    "owner": "business",
+    "tech": "industry",
+    "skill": 55,
+    "development": 2,
+    "unlockYear": 1966,
+    "pollution": 0.002,
+    "description": "기계 부품과 전력으로 전자제품을 조립한다. 교육 수준이 낮으면 효율이 떨어진다.",
+    "pm": [
+      {
+        "id": "assembly",
+        "name": "조립",
+        "jobs": {
+          "workers": 20,
+          "petite": 3
+        },
+        "in": {
+          "tools": 4,
+          "electricity": 6,
+          "transport": 2
+        },
+        "out": {
+          "electronics": 22
+        }
+      },
+      {
+        "id": "components",
+        "name": "부품 국산화",
+        "jobs": {
+          "workers": 20,
+          "petite": 4
+        },
+        "in": {
+          "tools": 6,
+          "electricity": 9,
+          "transport": 3
+        },
+        "out": {
+          "electronics": 38
+        },
+        "unlock": {
+          "year": 1973,
+          "metric": {
+            "industry": 60
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "arms_plant",
+    "name": "군수 공장",
+    "category": "manufacturing",
+    "cost": 120,
+    "infraUse": 3,
+    "owner": "state",
+    "tech": "industry",
+    "skill": 50,
+    "development": 1.5,
+    "unlockYear": 1970,
+    "pollution": 0.004,
+    "private": false,
+    "description": "군 기지가 쓰는 보급품을 만드는 국영 공장. 제도적 수요만 다루며 무기 체계는 다루지 않는다.",
+    "pm": [
+      {
+        "id": "standard",
+        "name": "보급품 생산",
+        "jobs": {
+          "workers": 16,
+          "petite": 3
+        },
+        "in": {
+          "steel": 6,
+          "tools": 3,
+          "electricity": 4,
+          "transport": 2
+        },
+        "out": {
+          "arms": 26
+        }
+      }
+    ]
+  },
+  {
+    "id": "power_plant",
+    "name": "화력 발전소",
+    "category": "infrastructure",
+    "cost": 90,
+    "infraUse": 1,
+    "owner": "business",
+    "tech": "industry",
+    "development": 2,
+    "unlockYear": 1960,
+    "pollution": 0.007,
+    "description": "전력은 교역할 수 없어 나라 안에서 만들어야 한다.",
+    "pm": [
+      {
+        "id": "coal_fired",
+        "name": "석탄 화력",
+        "jobs": {
+          "workers": 8,
+          "petite": 2
+        },
+        "in": {
+          "coal": 24
+        },
+        "out": {
+          "electricity": 52
+        }
+      },
+      {
+        "id": "oil_fired",
+        "name": "중유 화력",
+        "jobs": {
+          "workers": 8,
+          "petite": 2
+        },
+        "in": {
+          "oil": 18
+        },
+        "out": {
+          "electricity": 76
+        },
+        "unlock": {
+          "year": 1966,
+          "metric": {
+            "industry": 35
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "hydro_dam",
+    "name": "다목적 댐",
+    "category": "infrastructure",
+    "cost": 180,
+    "infraUse": 0,
+    "owner": "state",
+    "development": 3,
+    "requires": [
+      "hydro"
+    ],
+    "maxPerRegion": 2,
+    "unlockYear": 1964,
+    "private": false,
+    "monthlyEffects": {
+      "agriculture": 0.012
+    },
+    "pollution": 0.001,
+    "description": "수력이 있는 권역의 댐. 연료 없이 전력을 내고 농업용수를 댄다.",
+    "pm": [
+      {
+        "id": "hydro",
+        "name": "수력 발전",
+        "jobs": {
+          "workers": 5,
+          "petite": 2
+        },
+        "in": {},
+        "out": {
+          "electricity": 70
+        }
+      }
+    ]
+  },
+  {
+    "id": "railway",
+    "name": "철도·운수",
+    "category": "infrastructure",
+    "cost": 100,
+    "infraUse": 0,
+    "infraSupply": 12,
+    "owner": "state",
+    "tech": "infrastructure",
+    "development": 2,
+    "unlockYear": 1960,
+    "private": false,
+    "monthlyEffects": {
+      "infrastructure": 0.02
+    },
+    "description": "운송을 내고 권역의 기반 시설 용량을 늘린다. 용량이 모자라면 그 권역 건물의 시장 접근성이 떨어진다.",
+    "pm": [
+      {
+        "id": "steam",
+        "name": "증기 기관차",
+        "jobs": {
+          "workers": 10,
+          "petite": 3
+        },
+        "in": {
+          "coal": 8,
+          "steel": 2
+        },
+        "out": {
+          "transport": 48
+        }
+      },
+      {
+        "id": "diesel",
+        "name": "디젤화",
+        "jobs": {
+          "workers": 10,
+          "petite": 3
+        },
+        "in": {
+          "oil": 8,
+          "steel": 2
+        },
+        "out": {
+          "transport": 72
+        },
+        "unlock": {
+          "year": 1967
+        }
+      }
+    ]
+  },
+  {
+    "id": "port",
+    "name": "항만",
+    "category": "infrastructure",
+    "cost": 120,
+    "infraUse": 0,
+    "infraSupply": 6,
+    "trade": 20000,
+    "owner": "state",
+    "tech": "infrastructure",
+    "development": 2.5,
+    "requires": [
+      "harbor"
+    ],
+    "maxPerRegion": 6,
+    "unlockYear": 1960,
+    "private": false,
+    "monthlyEffects": {
+      "infrastructure": 0.012
+    },
+    "description": "깊은 항만이 있는 권역의 부두. 무역 역량과 권역 기반 시설 용량을 늘린다. 수출입이 무역 역량에 닿으면 더 지어야 한다.",
+    "pm": [
+      {
+        "id": "pier",
+        "name": "일반 부두",
+        "jobs": {
+          "workers": 8,
+          "petite": 2
+        },
+        "in": {
+          "steel": 1
+        },
+        "out": {}
+      }
+    ],
+    "gov": true
+  },
+  {
+    "id": "commerce",
+    "name": "상가·시장",
+    "category": "service",
+    "cost": 35,
+    "infraUse": 1,
+    "owner": "petite",
+    "tech": "infrastructure",
+    "development": 1,
+    "unlockYear": 1960,
+    "description": "서비스를 내는 도시 상업 지구. 소시민의 일터이고, 지주(도시 부동산)도 바란다.",
+    "pm": [
+      {
+        "id": "market",
+        "name": "재래 시장",
+        "jobs": {
+          "petite": 14,
+          "workers": 4
+        },
+        "in": {
+          "transport": 6,
+          "electricity": 3
+        },
+        "out": {
+          "services": 44
+        }
+      },
+      {
+        "id": "arcade",
+        "name": "상가·백화점",
+        "jobs": {
+          "petite": 16,
+          "workers": 4
+        },
+        "in": {
+          "transport": 9,
+          "electricity": 6
+        },
+        "out": {
+          "services": 68
+        },
+        "unlock": {
+          "year": 1966,
+          "metric": {
+            "infrastructure": 40
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "tourism",
+    "name": "관광 단지",
+    "category": "service",
+    "cost": 70,
+    "infraUse": 1,
+    "owner": "business",
+    "tech": "infrastructure",
+    "development": 2,
+    "requires": [
+      "scenery"
+    ],
+    "maxPerRegion": 5,
+    "unlockYear": 1966,
+    "monthlyEffects": {
+      "reserves": 0.03
+    },
+    "pollution": 0.002,
+    "description": "경관이 있는 권역의 관광 시설. 서비스와 외화를 번다.",
+    "pm": [
+      {
+        "id": "resort",
+        "name": "관광 숙박",
+        "jobs": {
+          "petite": 10,
+          "workers": 8
+        },
+        "in": {
+          "transport": 6,
+          "electricity": 4,
+          "groceries": 4
+        },
+        "out": {
+          "services": 52
+        }
+      }
+    ]
+  },
+  {
+    "id": "construction",
+    "name": "건설 부문",
+    "category": "infrastructure",
+    "cost": 40,
+    "infraUse": 1,
+    "owner": "state",
+    "development": 1,
+    "unlockYear": 1960,
+    "private": false,
+    "construction": true,
+    "description": "건설점을 만드는 부문. 단계를 올리면 한 달에 진행할 수 있는 공사가 늘지만 자재와 임금이 더 든다. 대기열이 비면 자재를 쓰지 않는다.",
+    "pm": [
+      {
+        "id": "masonry",
+        "name": "목조·조적",
+        "jobs": {
+          "workers": 8,
+          "petite": 2
+        },
+        "in": {},
+        "out": {},
+        "points": 6,
+        "materials": {
+          "wood": 5,
+          "cement": 1
+        }
+      },
+      {
+        "id": "concrete",
+        "name": "철근 콘크리트",
+        "jobs": {
+          "workers": 8,
+          "petite": 2
+        },
+        "in": {},
+        "out": {},
+        "points": 10,
+        "materials": {
+          "wood": 2,
+          "cement": 5,
+          "steel": 1.2
+        },
+        "unlock": {
+          "year": 1963,
+          "metric": {
+            "industry": 26
+          }
+        }
+      },
+      {
+        "id": "heavy",
+        "name": "철골·중장비",
+        "jobs": {
+          "workers": 8,
+          "petite": 3
+        },
+        "in": {},
+        "out": {},
+        "points": 16,
+        "materials": {
+          "cement": 5,
+          "steel": 2.4,
+          "tools": 0.8
+        },
+        "unlock": {
+          "year": 1970,
+          "metric": {
+            "industry": 48
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "admin_office",
+    "name": "행정청",
+    "category": "government",
+    "cost": 50,
+    "infraUse": 0.5,
+    "owner": "state",
+    "development": 1,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "admin": 0.03
+    },
+    "description": "행정 역량을 올린다. 행정 역량이 높을수록 세금이 덜 새고 지역 시책을 더 걸 수 있다.",
+    "pm": [
+      {
+        "id": "office",
+        "name": "일반 행정",
+        "jobs": {
+          "petite": 6
+        },
+        "in": {
+          "services": 4
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "school",
+    "name": "학교",
+    "category": "government",
+    "cost": 45,
+    "infraUse": 0.5,
+    "owner": "state",
+    "development": 1.5,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "education": 0.035
+    },
+    "description": "교육 지수를 올린다. 교육이 낮으면 제철·기계·전자 공장의 효율이 떨어진다. 소시민과 노동자가 함께 바란다.",
+    "pm": [
+      {
+        "id": "public",
+        "name": "공립 학교",
+        "jobs": {
+          "petite": 6
+        },
+        "in": {
+          "services": 2
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "clinic",
+    "name": "보건소·상하수도",
+    "category": "government",
+    "cost": 50,
+    "infraUse": 0.5,
+    "owner": "state",
+    "development": 1.5,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "welfare": 0.03,
+      "environment": 0.006
+    },
+    "description": "보건과 위생. 생활 지수를 올린다. 노동자와 농민이 함께 바란다.",
+    "pm": [
+      {
+        "id": "clinic",
+        "name": "보건 거점",
+        "jobs": {
+          "petite": 4,
+          "workers": 2
+        },
+        "in": {
+          "services": 2,
+          "electricity": 1
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "housing",
+    "name": "공공 주택 지구",
+    "category": "government",
+    "cost": 80,
+    "infraUse": 0.5,
+    "owner": "state",
+    "development": 1.5,
+    "unlockYear": 1962,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "welfare": 0.022,
+      "equality": 0.016
+    },
+    "description": "도시 주거. 생활과 분배 지수를 올린다.",
+    "pm": [
+      {
+        "id": "rental",
+        "name": "공공 임대",
+        "jobs": {
+          "petite": 1,
+          "workers": 1
+        },
+        "in": {
+          "electricity": 2
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "barracks",
+    "name": "군 기지",
+    "category": "military",
+    "cost": 60,
+    "infraUse": 0.5,
+    "owner": "state",
+    "development": 0.5,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "security": 0.035
+    },
+    "description": "안보 지수를 올리고 군수품·가공식품·의복을 쓴다. 병력과 작전은 다루지 않는다.",
+    "pm": [
+      {
+        "id": "garrison",
+        "name": "주둔",
+        "jobs": {
+          "military": 12
+        },
+        "in": {
+          "arms": 3,
+          "groceries": 3,
+          "clothes": 1
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "research",
+    "name": "공공 연구소",
+    "category": "government",
+    "cost": 110,
+    "infraUse": 0.5,
+    "owner": "state",
+    "skill": 55,
+    "development": 2,
+    "unlockYear": 1966,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "education": 0.02,
+      "industry": 0.03
+    },
+    "description": "산업 기술과 교육 지수를 올린다. 산업 기술이 올라야 새 생산방식이 열린다.",
+    "pm": [
+      {
+        "id": "institute",
+        "name": "연구 기관",
+        "jobs": {
+          "petite": 6
+        },
+        "in": {
+          "services": 3,
+          "electricity": 2,
+          "tools": 1
+        },
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "greenworks",
+    "name": "산림 녹화·하천 정비",
+    "category": "government",
+    "cost": 40,
+    "infraUse": 0,
+    "owner": "state",
+    "development": 1,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "environment": 0.04,
+      "agriculture": 0.004
+    },
+    "description": "사방·조림·하천 정비. 환경 지수를 올린다.",
+    "pm": [
+      {
+        "id": "works",
+        "name": "녹화 사업",
+        "jobs": {
+          "workers": 5
+        },
+        "in": {},
+        "out": {}
+      }
+    ]
+  },
+  {
+    "id": "irrigation",
+    "name": "관개·농업 기반",
+    "category": "government",
+    "cost": 45,
+    "infraUse": 0,
+    "owner": "state",
+    "development": 1,
+    "unlockYear": 1960,
+    "private": false,
+    "gov": true,
+    "monthlyEffects": {
+      "agriculture": 0.035
+    },
+    "description": "농업 기술 지수를 올린다. 지수가 올라야 농장의 새 생산방식이 열리고 처리율이 오른다. 농민이 바란다.",
+    "pm": [
+      {
+        "id": "canal",
+        "name": "수리 시설",
+        "jobs": {
+          "workers": 2,
+          "petite": 1
+        },
+        "in": {
+          "cement": 1
+        },
+        "out": {}
+      }
+    ]
+  }
+]

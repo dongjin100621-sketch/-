@@ -2,15 +2,15 @@
   "meta": {
     "id": "korea1960",
     "title": "대한민국 1960: 선택의 연대기",
-    "version": "1.3.0",
+    "version": "2.0.0",
     "schemaVersion": 1,
     "language": "ko",
     "start": "1960-01",
     "end": "1979-12",
     "turns": 240,
     "sourceChecked": "2026-11-10",
-    "disclaimer": "참조 게임에서 착안한 독자 제작용 자료. 원작의 코드·화면·대사·수치·이미지를 복제하지 않는다. 모든 수치·선택 효과·가상 인물·가상 선거 결과는 게임 설계 값이다.",
-    "changes": "1.3.0: 권역 지형·자원(traits), 자원·지형을 쓰는 고유 사업 13개(requires, development), 지역 시책 10개(edicts), 기록 표식 2개를 추가했다. 기존 사건·정책·사업의 ID와 수치는 1.2.0과 같다. 1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
+    "disclaimer": "참조 게임들에서 착안한 독자 제작용 자료. 시장·건설·법률·이해집단의 구조는 잘 알려진 전략 게임의 규칙 틀을 따르되, 코드·화면·문구·수치·이미지를 복제하지 않았다. 모든 수치·선택 효과·가상 인물·가상 선거 결과는 게임 설계 값이다.",
+    "changes": "2.0.0: 경제를 시장 모형으로 바꿨다. 상품 19종(goods)의 판매·구매 주문과 가격, 단계와 생산방식이 있는 건물 30종(buildings), 건설점과 건설 대기열, 분류마다 하나만 유효한 법률 38개(lawGroups·laws)와 3단계 제정, 요구와 특성이 있는 이해집단 6개(interestGroups)를 넣었다. 사업(projects)·의회 법안 정책 7개·사회 집단(factions)은 이 구조로 옮겼다. 사건 63건의 ID·선택지·지표 효과는 1.3.0과 같고, 집단 지지 효과만 새 이해집단 ID로 옮겼다. 저장 형식 5(이전 형식은 불러올 수 없다). 1.3.0: 권역 지형·자원(traits), 자원·지형을 쓰는 고유 사업 13개(requires, development), 지역 시책 10개(edicts), 기록 표식 2개를 추가했다. 기존 사건·정책·사업의 ID와 수치는 1.2.0과 같다. 1.2.0: 밸런스 규칙(balance)을 추가했다. 높은 지표의 체감, 높아진 기대, 가상 사건 보너스 축소, 투자에 더 기대는 생산 추세, 군정과 권력 집중의 비용 강화. 권력 집중 엔딩의 우선순위를 산업 기반 엔딩보다 앞에 두었다(성장 성과가 권리 비용을 가리지 않도록). 사건·정책·사업의 ID와 적힌 기본 수치는 1.1.0과 같다. 1.1.0: 역사 앵커에 경로별 \"이 캠페인에서는\" 설명(context)을 추가하고 사전 준비 사건의 선택지 문구를 사건마다 구분했다."
   },
   "metrics": [
     {
@@ -194,104 +194,3304 @@
       "description": "전쟁이나 병력 운용 대신 외교·대비 능력만 추상화."
     }
   ],
-  "factions": [
+  "goods": [
+    {
+      "id": "grain",
+      "name": "곡물",
+      "category": "staple",
+      "price": 18,
+      "need": {
+        "q0": 2700,
+        "e": 0.25
+      },
+      "world": {
+        "price": 1,
+        "export": 0,
+        "import": true,
+        "noTariff": true
+      },
+      "mark": "곡",
+      "description": "쌀·보리·밀. 가계 지출의 가장 큰 몫. 부족분은 관세 없이 들여온다(원조·도입 양곡의 단순화)."
+    },
+    {
+      "id": "fish",
+      "name": "수산물",
+      "category": "staple",
+      "price": 22,
+      "need": {
+        "q0": 300,
+        "e": 0.5
+      },
+      "world": {
+        "price": 1.1,
+        "export": 110,
+        "import": true
+      },
+      "mark": "어",
+      "description": "연근해 어획과 가공 원료. 수출 품목이기도 하다."
+    },
+    {
+      "id": "groceries",
+      "name": "가공식품",
+      "category": "staple",
+      "price": 36,
+      "need": {
+        "q0": 90,
+        "e": 1.1
+      },
+      "world": {
+        "price": 1,
+        "export": 40,
+        "import": true
+      },
+      "mark": "식",
+      "description": "제분·제당·통조림. 소득이 오르면 곡물보다 빨리 늘어난다."
+    },
+    {
+      "id": "clothes",
+      "name": "의복",
+      "category": "staple",
+      "price": 44,
+      "need": {
+        "q0": 100,
+        "e": 1
+      },
+      "world": {
+        "price": 1.12,
+        "export": 240,
+        "import": true
+      },
+      "mark": "옷",
+      "description": "봉제 공장의 산출. 1960~70년대의 대표 수출품."
+    },
+    {
+      "id": "services",
+      "name": "서비스",
+      "category": "staple",
+      "price": 30,
+      "need": {
+        "q0": 660,
+        "e": 1.1
+      },
+      "world": null,
+      "mark": "서",
+      "description": "상가·시장·관광의 산출. 교역하지 않는다."
+    },
+    {
+      "id": "transport",
+      "name": "운송",
+      "category": "staple",
+      "price": 26,
+      "need": {
+        "q0": 50,
+        "e": 1.1
+      },
+      "world": null,
+      "mark": "운",
+      "description": "철도·항만의 산출. 상가와 가계가 쓴다. 교역하지 않는다."
+    },
+    {
+      "id": "electricity",
+      "name": "전력",
+      "category": "staple",
+      "price": 28,
+      "need": {
+        "q0": 46,
+        "e": 1.3
+      },
+      "world": null,
+      "mark": "전",
+      "description": "발전소·댐의 산출. 공장의 기계화에 필요하다. 교역하지 않는다."
+    },
+    {
+      "id": "fabric",
+      "name": "직물",
+      "category": "industrial",
+      "price": 24,
+      "need": {
+        "q0": 200,
+        "e": 0.4
+      },
+      "world": {
+        "price": 1.04,
+        "export": 110,
+        "import": true
+      },
+      "mark": "직",
+      "description": "방직 공장의 산출이자 봉제 공장의 투입재."
+    },
+    {
+      "id": "wood",
+      "name": "목재",
+      "category": "industrial",
+      "price": 16,
+      "need": {
+        "q0": 250,
+        "e": 0.3
+      },
+      "world": {
+        "price": 1.08,
+        "export": 60,
+        "import": true
+      },
+      "mark": "목",
+      "description": "땔감·건축·갱목. 초기 건설의 주 자재."
+    },
+    {
+      "id": "coal",
+      "name": "석탄",
+      "category": "industrial",
+      "price": 26,
+      "need": {
+        "q0": 64,
+        "e": 0.6
+      },
+      "world": {
+        "price": 1.05,
+        "export": 20,
+        "import": true
+      },
+      "mark": "탄",
+      "description": "발전·철도·시멘트·제철의 연료이자 가정 연료."
+    },
+    {
+      "id": "ore",
+      "name": "광석",
+      "category": "industrial",
+      "price": 34,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1.06,
+        "export": 90,
+        "import": true
+      },
+      "mark": "광",
+      "description": "금속 광석. 제철소가 생기기 전에는 대부분 수출한다."
+    },
+    {
+      "id": "steel",
+      "name": "강철",
+      "category": "industrial",
+      "price": 56,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1,
+        "export": 150,
+        "import": true
+      },
+      "mark": "철",
+      "description": "기계·조선·철근 콘크리트 건설·군수의 투입재."
+    },
+    {
+      "id": "cement",
+      "name": "시멘트",
+      "category": "industrial",
+      "price": 28,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1,
+        "export": 80,
+        "import": true
+      },
+      "mark": "멘",
+      "description": "건설 자재. 석회석 권역에서 만든다."
+    },
+    {
+      "id": "tools",
+      "name": "기계·공구",
+      "category": "industrial",
+      "price": 48,
+      "need": {
+        "q0": 6,
+        "e": 0.8
+      },
+      "world": {
+        "price": 1.05,
+        "export": 110,
+        "import": true
+      },
+      "mark": "기",
+      "description": "광산·농장·공장의 기계화에 쓰는 중간재."
+    },
+    {
+      "id": "fertilizer",
+      "name": "비료",
+      "category": "industrial",
+      "price": 30,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1,
+        "export": 60,
+        "import": true
+      },
+      "mark": "비",
+      "description": "농장의 생산방식을 올리는 투입재."
+    },
+    {
+      "id": "oil",
+      "name": "석유",
+      "category": "industrial",
+      "price": 44,
+      "need": {
+        "q0": 4,
+        "e": 1.2
+      },
+      "world": {
+        "price": 1,
+        "export": 0,
+        "import": true,
+        "schedule": [
+          [
+            165,
+            2.2
+          ],
+          [
+            228,
+            3.1
+          ]
+        ]
+      },
+      "mark": "유",
+      "description": "전량 수입. 1973년 10월과 1979년 1월에 세계 가격이 오른다."
+    },
+    {
+      "id": "electronics",
+      "name": "전자제품",
+      "category": "luxury",
+      "price": 72,
+      "need": {
+        "q0": 3,
+        "e": 1.8
+      },
+      "world": {
+        "price": 1.1,
+        "export": 200,
+        "import": true
+      },
+      "mark": "자",
+      "description": "라디오·텔레비전·부품. 소득이 오를수록 빠르게 늘어나는 수요."
+    },
+    {
+      "id": "ships",
+      "name": "선박",
+      "category": "luxury",
+      "price": 90,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1.1,
+        "export": 150,
+        "import": true
+      },
+      "mark": "선",
+      "description": "조선소의 산출. 거의 전부 수출한다."
+    },
+    {
+      "id": "arms",
+      "name": "군수품",
+      "category": "military",
+      "price": 60,
+      "need": {
+        "q0": 0,
+        "e": 0
+      },
+      "world": {
+        "price": 1,
+        "export": 0,
+        "import": true
+      },
+      "mark": "군",
+      "description": "군 기지가 쓰는 보급품. 군수 공장이 없으면 수입한다."
+    }
+  ],
+  "buildings": [
+    {
+      "id": "farm",
+      "name": "논·밭 농장",
+      "category": "agri",
+      "cost": 30,
+      "infraUse": 0.5,
+      "owner": "land",
+      "tech": "agriculture",
+      "development": 1,
+      "cap": "arable",
+      "unlockYear": 1960,
+      "description": "곡물을 시장에 내는 상업 농장. 권역의 경지 한도까지 지을 수 있다. 이익은 토지 제도에 따라 지주와 농민이 나눈다.",
+      "pm": [
+        {
+          "id": "traditional",
+          "name": "재래 영농",
+          "jobs": {
+            "farmers": 20
+          },
+          "in": {
+            "transport": 1
+          },
+          "out": {
+            "grain": 44
+          }
+        },
+        {
+          "id": "fertilized",
+          "name": "비료·개량 종자",
+          "jobs": {
+            "farmers": 20
+          },
+          "in": {
+            "fertilizer": 8,
+            "transport": 2
+          },
+          "out": {
+            "grain": 64
+          },
+          "unlock": {
+            "metric": {
+              "agriculture": 42
+            }
+          }
+        },
+        {
+          "id": "mechanized",
+          "name": "기계 영농",
+          "jobs": {
+            "farmers": 14
+          },
+          "in": {
+            "fertilizer": 12,
+            "tools": 3,
+            "oil": 2,
+            "transport": 2
+          },
+          "out": {
+            "grain": 84
+          },
+          "unlock": {
+            "year": 1968,
+            "metric": {
+              "agriculture": 58
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "fishery",
+      "name": "어항·수산",
+      "category": "resource",
+      "cost": 30,
+      "infraUse": 1,
+      "owner": "business",
+      "tech": "agriculture",
+      "development": 2,
+      "requires": [
+        "fishery"
+      ],
+      "maxPerRegion": 6,
+      "unlockYear": 1960,
+      "description": "어장이 있는 권역의 어항. 수산물은 식품 공장의 원료이자 수출품이다.",
+      "pm": [
+        {
+          "id": "coastal",
+          "name": "연안 소형선",
+          "jobs": {
+            "workers": 14
+          },
+          "in": {
+            "wood": 2,
+            "transport": 1
+          },
+          "out": {
+            "fish": 36
+          }
+        },
+        {
+          "id": "powered",
+          "name": "동력선·냉동",
+          "jobs": {
+            "workers": 14
+          },
+          "in": {
+            "oil": 3,
+            "tools": 1,
+            "transport": 2
+          },
+          "out": {
+            "fish": 58
+          },
+          "unlock": {
+            "metric": {
+              "industry": 28
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "forestry",
+      "name": "임업·제재",
+      "category": "resource",
+      "cost": 25,
+      "infraUse": 1,
+      "owner": "business",
+      "tech": "industry",
+      "development": 2,
+      "requires": [
+        "timber"
+      ],
+      "maxPerRegion": 5,
+      "unlockYear": 1960,
+      "pollution": 0.002,
+      "description": "산림 자원이 있는 권역의 벌채와 제재. 목재는 초기 건설의 주 자재다.",
+      "pm": [
+        {
+          "id": "logging",
+          "name": "벌채",
+          "jobs": {
+            "workers": 12
+          },
+          "in": {
+            "transport": 2
+          },
+          "out": {
+            "wood": 40
+          }
+        },
+        {
+          "id": "managed",
+          "name": "조림 병행",
+          "jobs": {
+            "workers": 12
+          },
+          "in": {
+            "transport": 3
+          },
+          "out": {
+            "wood": 36
+          },
+          "unlock": {
+            "year": 1965
+          },
+          "pollution": -0.001
+        }
+      ]
+    },
+    {
+      "id": "coal_mine",
+      "name": "탄광",
+      "category": "resource",
+      "cost": 45,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "development": 2,
+      "requires": [
+        "coal"
+      ],
+      "maxPerRegion": 9,
+      "unlockYear": 1960,
+      "pollution": 0.002,
+      "description": "석탄이 묻힌 권역의 탄광. 발전·철도·시멘트·제철이 석탄을 쓴다.",
+      "pm": [
+        {
+          "id": "manual",
+          "name": "인력 채탄",
+          "jobs": {
+            "workers": 18
+          },
+          "in": {
+            "wood": 4,
+            "transport": 3
+          },
+          "out": {
+            "coal": 40
+          }
+        },
+        {
+          "id": "mechanized",
+          "name": "기계 채탄",
+          "jobs": {
+            "workers": 16
+          },
+          "in": {
+            "wood": 4,
+            "tools": 3,
+            "electricity": 4,
+            "transport": 5
+          },
+          "out": {
+            "coal": 64
+          },
+          "unlock": {
+            "metric": {
+              "industry": 30
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ore_mine",
+      "name": "금속 광산",
+      "category": "resource",
+      "cost": 45,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "development": 2,
+      "requires": [
+        "ore"
+      ],
+      "maxPerRegion": 6,
+      "unlockYear": 1960,
+      "pollution": 0.002,
+      "description": "금속 광물이 있는 권역의 광산. 제철소가 없으면 광석은 대부분 수출된다.",
+      "pm": [
+        {
+          "id": "manual",
+          "name": "인력 채광",
+          "jobs": {
+            "workers": 16
+          },
+          "in": {
+            "wood": 3,
+            "transport": 3
+          },
+          "out": {
+            "ore": 26
+          }
+        },
+        {
+          "id": "mechanized",
+          "name": "기계 채광",
+          "jobs": {
+            "workers": 14
+          },
+          "in": {
+            "tools": 3,
+            "electricity": 4,
+            "transport": 5
+          },
+          "out": {
+            "ore": 44
+          },
+          "unlock": {
+            "metric": {
+              "industry": 30
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "cement_plant",
+      "name": "시멘트 공장",
+      "category": "manufacturing",
+      "cost": 70,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 35,
+      "development": 2,
+      "requires": [
+        "limestone"
+      ],
+      "maxPerRegion": 6,
+      "unlockYear": 1960,
+      "pollution": 0.005,
+      "description": "석회석 권역의 시멘트 공장. 철근 콘크리트 건설에 시멘트가 든다.",
+      "pm": [
+        {
+          "id": "kiln",
+          "name": "소성로",
+          "jobs": {
+            "workers": 12,
+            "petite": 2
+          },
+          "in": {
+            "coal": 14,
+            "electricity": 4,
+            "transport": 4
+          },
+          "out": {
+            "cement": 50
+          }
+        },
+        {
+          "id": "rotary",
+          "name": "대형 회전로",
+          "jobs": {
+            "workers": 12,
+            "petite": 2
+          },
+          "in": {
+            "coal": 20,
+            "electricity": 8,
+            "transport": 6
+          },
+          "out": {
+            "cement": 84
+          },
+          "unlock": {
+            "year": 1968,
+            "metric": {
+              "industry": 45
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "textile_mill",
+      "name": "방직 공장",
+      "category": "manufacturing",
+      "cost": 60,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "development": 1.5,
+      "unlockYear": 1960,
+      "pollution": 0.002,
+      "description": "직물을 짠다. 직물은 봉제 공장의 투입재다.",
+      "pm": [
+        {
+          "id": "cotton",
+          "name": "면방직",
+          "jobs": {
+            "workers": 20,
+            "petite": 2
+          },
+          "in": {
+            "electricity": 3,
+            "transport": 2
+          },
+          "out": {
+            "fabric": 58
+          }
+        },
+        {
+          "id": "synthetic",
+          "name": "화학 섬유",
+          "jobs": {
+            "workers": 20,
+            "petite": 2
+          },
+          "in": {
+            "electricity": 6,
+            "oil": 6,
+            "transport": 3
+          },
+          "out": {
+            "fabric": 94
+          },
+          "unlock": {
+            "year": 1968,
+            "metric": {
+              "industry": 45
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "garment",
+      "name": "봉제 공장",
+      "category": "manufacturing",
+      "cost": 50,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "development": 1.5,
+      "unlockYear": 1960,
+      "pollution": 0.001,
+      "description": "직물로 의복을 만든다. 일자리가 많고 수출 한도가 크다.",
+      "pm": [
+        {
+          "id": "sewing",
+          "name": "재봉",
+          "jobs": {
+            "workers": 24,
+            "petite": 2
+          },
+          "in": {
+            "fabric": 28,
+            "transport": 2
+          },
+          "out": {
+            "clothes": 44
+          }
+        },
+        {
+          "id": "line",
+          "name": "대량 봉제 라인",
+          "jobs": {
+            "workers": 24,
+            "petite": 2
+          },
+          "in": {
+            "fabric": 42,
+            "electricity": 4,
+            "transport": 3
+          },
+          "out": {
+            "clothes": 68
+          },
+          "unlock": {
+            "metric": {
+              "industry": 35
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "food_plant",
+      "name": "식품 가공 공장",
+      "category": "manufacturing",
+      "cost": 50,
+      "infraUse": 2,
+      "owner": "business",
+      "tech": "industry",
+      "development": 1.5,
+      "unlockYear": 1960,
+      "pollution": 0.001,
+      "description": "곡물과 수산물로 가공식품을 만든다.",
+      "pm": [
+        {
+          "id": "milling",
+          "name": "제분·통조림",
+          "jobs": {
+            "workers": 14,
+            "petite": 2
+          },
+          "in": {
+            "grain": 22,
+            "fish": 5,
+            "transport": 2
+          },
+          "out": {
+            "groceries": 38
+          }
+        },
+        {
+          "id": "processing",
+          "name": "가공 식품 라인",
+          "jobs": {
+            "workers": 14,
+            "petite": 2
+          },
+          "in": {
+            "grain": 30,
+            "fish": 8,
+            "electricity": 4,
+            "transport": 3
+          },
+          "out": {
+            "groceries": 62
+          },
+          "unlock": {
+            "metric": {
+              "industry": 35
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "fertilizer_plant",
+      "name": "비료 공장",
+      "category": "manufacturing",
+      "cost": 90,
+      "infraUse": 3,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 40,
+      "development": 2,
+      "unlockYear": 1961,
+      "pollution": 0.005,
+      "description": "농장의 생산방식을 올리는 비료를 만든다. 농민과 기업가가 함께 바라는 건물.",
+      "pm": [
+        {
+          "id": "coal_chem",
+          "name": "석탄 화학",
+          "jobs": {
+            "workers": 12,
+            "petite": 3
+          },
+          "in": {
+            "coal": 16,
+            "electricity": 8,
+            "transport": 3
+          },
+          "out": {
+            "fertilizer": 52
+          }
+        },
+        {
+          "id": "petro_chem",
+          "name": "석유 화학",
+          "jobs": {
+            "workers": 12,
+            "petite": 3
+          },
+          "in": {
+            "oil": 14,
+            "electricity": 10,
+            "transport": 5
+          },
+          "out": {
+            "fertilizer": 80
+          },
+          "unlock": {
+            "year": 1967,
+            "metric": {
+              "industry": 45
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "steel_mill",
+      "name": "제철소",
+      "category": "manufacturing",
+      "cost": 160,
+      "infraUse": 4,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 45,
+      "development": 2.5,
+      "unlockYear": 1965,
+      "pollution": 0.01,
+      "description": "광석과 석탄으로 강철을 만든다. 기업가와 군대가 함께 바라는 건물이고, 환경 부담이 크다.",
+      "pm": [
+        {
+          "id": "small",
+          "name": "전기로·소형 고로",
+          "jobs": {
+            "workers": 20,
+            "petite": 3
+          },
+          "in": {
+            "ore": 18,
+            "coal": 14,
+            "electricity": 6,
+            "transport": 5
+          },
+          "out": {
+            "steel": 44
+          }
+        },
+        {
+          "id": "integrated",
+          "name": "일관 제철",
+          "jobs": {
+            "workers": 22,
+            "petite": 4
+          },
+          "in": {
+            "ore": 30,
+            "coal": 22,
+            "electricity": 10,
+            "transport": 8
+          },
+          "out": {
+            "steel": 80
+          },
+          "unlock": {
+            "year": 1970,
+            "metric": {
+              "industry": 50
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "machinery",
+      "name": "기계 공장",
+      "category": "manufacturing",
+      "cost": 100,
+      "infraUse": 3,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 45,
+      "development": 2,
+      "unlockYear": 1963,
+      "pollution": 0.002,
+      "description": "강철로 기계·공구를 만든다. 광산·농장·건설의 기계화에 쓰인다.",
+      "pm": [
+        {
+          "id": "general",
+          "name": "범용 기계",
+          "jobs": {
+            "workers": 16,
+            "petite": 3
+          },
+          "in": {
+            "steel": 8,
+            "electricity": 4,
+            "transport": 3
+          },
+          "out": {
+            "tools": 34
+          }
+        },
+        {
+          "id": "precision",
+          "name": "정밀 기계",
+          "jobs": {
+            "workers": 16,
+            "petite": 4
+          },
+          "in": {
+            "steel": 12,
+            "electricity": 7,
+            "transport": 5
+          },
+          "out": {
+            "tools": 58
+          },
+          "unlock": {
+            "year": 1971,
+            "metric": {
+              "industry": 55
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shipyard",
+      "name": "조선소",
+      "category": "manufacturing",
+      "cost": 150,
+      "infraUse": 4,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 50,
+      "development": 2.5,
+      "requires": [
+        "harbor"
+      ],
+      "maxPerRegion": 6,
+      "unlockYear": 1968,
+      "pollution": 0.006,
+      "description": "깊은 항만이 있는 권역의 조선소. 선박은 거의 전부 수출한다.",
+      "pm": [
+        {
+          "id": "medium",
+          "name": "중형 선박",
+          "jobs": {
+            "workers": 22,
+            "petite": 3
+          },
+          "in": {
+            "steel": 12,
+            "tools": 4,
+            "electricity": 5,
+            "transport": 3
+          },
+          "out": {
+            "ships": 26
+          }
+        },
+        {
+          "id": "dock",
+          "name": "대형 도크",
+          "jobs": {
+            "workers": 24,
+            "petite": 4
+          },
+          "in": {
+            "steel": 20,
+            "tools": 7,
+            "electricity": 8,
+            "transport": 5
+          },
+          "out": {
+            "ships": 46
+          },
+          "unlock": {
+            "year": 1973,
+            "metric": {
+              "industry": 60
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "electronics",
+      "name": "전자 공장",
+      "category": "manufacturing",
+      "cost": 110,
+      "infraUse": 3,
+      "owner": "business",
+      "tech": "industry",
+      "skill": 55,
+      "development": 2,
+      "unlockYear": 1966,
+      "pollution": 0.002,
+      "description": "기계 부품과 전력으로 전자제품을 조립한다. 교육 수준이 낮으면 효율이 떨어진다.",
+      "pm": [
+        {
+          "id": "assembly",
+          "name": "조립",
+          "jobs": {
+            "workers": 20,
+            "petite": 3
+          },
+          "in": {
+            "tools": 4,
+            "electricity": 6,
+            "transport": 2
+          },
+          "out": {
+            "electronics": 22
+          }
+        },
+        {
+          "id": "components",
+          "name": "부품 국산화",
+          "jobs": {
+            "workers": 20,
+            "petite": 4
+          },
+          "in": {
+            "tools": 6,
+            "electricity": 9,
+            "transport": 3
+          },
+          "out": {
+            "electronics": 38
+          },
+          "unlock": {
+            "year": 1973,
+            "metric": {
+              "industry": 60
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "arms_plant",
+      "name": "군수 공장",
+      "category": "manufacturing",
+      "cost": 120,
+      "infraUse": 3,
+      "owner": "state",
+      "tech": "industry",
+      "skill": 50,
+      "development": 1.5,
+      "unlockYear": 1970,
+      "pollution": 0.004,
+      "private": false,
+      "description": "군 기지가 쓰는 보급품을 만드는 국영 공장. 제도적 수요만 다루며 무기 체계는 다루지 않는다.",
+      "pm": [
+        {
+          "id": "standard",
+          "name": "보급품 생산",
+          "jobs": {
+            "workers": 16,
+            "petite": 3
+          },
+          "in": {
+            "steel": 6,
+            "tools": 3,
+            "electricity": 4,
+            "transport": 2
+          },
+          "out": {
+            "arms": 26
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_plant",
+      "name": "화력 발전소",
+      "category": "infrastructure",
+      "cost": 90,
+      "infraUse": 1,
+      "owner": "business",
+      "tech": "industry",
+      "development": 2,
+      "unlockYear": 1960,
+      "pollution": 0.007,
+      "description": "전력은 교역할 수 없어 나라 안에서 만들어야 한다.",
+      "pm": [
+        {
+          "id": "coal_fired",
+          "name": "석탄 화력",
+          "jobs": {
+            "workers": 8,
+            "petite": 2
+          },
+          "in": {
+            "coal": 24
+          },
+          "out": {
+            "electricity": 52
+          }
+        },
+        {
+          "id": "oil_fired",
+          "name": "중유 화력",
+          "jobs": {
+            "workers": 8,
+            "petite": 2
+          },
+          "in": {
+            "oil": 18
+          },
+          "out": {
+            "electricity": 76
+          },
+          "unlock": {
+            "year": 1966,
+            "metric": {
+              "industry": 35
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "hydro_dam",
+      "name": "다목적 댐",
+      "category": "infrastructure",
+      "cost": 180,
+      "infraUse": 0,
+      "owner": "state",
+      "development": 3,
+      "requires": [
+        "hydro"
+      ],
+      "maxPerRegion": 2,
+      "unlockYear": 1964,
+      "private": false,
+      "monthlyEffects": {
+        "agriculture": 0.012
+      },
+      "pollution": 0.001,
+      "description": "수력이 있는 권역의 댐. 연료 없이 전력을 내고 농업용수를 댄다.",
+      "pm": [
+        {
+          "id": "hydro",
+          "name": "수력 발전",
+          "jobs": {
+            "workers": 5,
+            "petite": 2
+          },
+          "in": {},
+          "out": {
+            "electricity": 70
+          }
+        }
+      ]
+    },
+    {
+      "id": "railway",
+      "name": "철도·운수",
+      "category": "infrastructure",
+      "cost": 100,
+      "infraUse": 0,
+      "infraSupply": 12,
+      "owner": "state",
+      "tech": "infrastructure",
+      "development": 2,
+      "unlockYear": 1960,
+      "private": false,
+      "monthlyEffects": {
+        "infrastructure": 0.02
+      },
+      "description": "운송을 내고 권역의 기반 시설 용량을 늘린다. 용량이 모자라면 그 권역 건물의 시장 접근성이 떨어진다.",
+      "pm": [
+        {
+          "id": "steam",
+          "name": "증기 기관차",
+          "jobs": {
+            "workers": 10,
+            "petite": 3
+          },
+          "in": {
+            "coal": 8,
+            "steel": 2
+          },
+          "out": {
+            "transport": 48
+          }
+        },
+        {
+          "id": "diesel",
+          "name": "디젤화",
+          "jobs": {
+            "workers": 10,
+            "petite": 3
+          },
+          "in": {
+            "oil": 8,
+            "steel": 2
+          },
+          "out": {
+            "transport": 72
+          },
+          "unlock": {
+            "year": 1967
+          }
+        }
+      ]
+    },
+    {
+      "id": "port",
+      "name": "항만",
+      "category": "infrastructure",
+      "cost": 120,
+      "infraUse": 0,
+      "infraSupply": 6,
+      "trade": 20000,
+      "owner": "state",
+      "tech": "infrastructure",
+      "development": 2.5,
+      "requires": [
+        "harbor"
+      ],
+      "maxPerRegion": 6,
+      "unlockYear": 1960,
+      "private": false,
+      "monthlyEffects": {
+        "infrastructure": 0.012
+      },
+      "description": "깊은 항만이 있는 권역의 부두. 무역 역량과 권역 기반 시설 용량을 늘린다. 수출입이 무역 역량에 닿으면 더 지어야 한다.",
+      "pm": [
+        {
+          "id": "pier",
+          "name": "일반 부두",
+          "jobs": {
+            "workers": 8,
+            "petite": 2
+          },
+          "in": {
+            "steel": 1
+          },
+          "out": {}
+        }
+      ],
+      "gov": true
+    },
+    {
+      "id": "commerce",
+      "name": "상가·시장",
+      "category": "service",
+      "cost": 35,
+      "infraUse": 1,
+      "owner": "petite",
+      "tech": "infrastructure",
+      "development": 1,
+      "unlockYear": 1960,
+      "description": "서비스를 내는 도시 상업 지구. 소시민의 일터이고, 지주(도시 부동산)도 바란다.",
+      "pm": [
+        {
+          "id": "market",
+          "name": "재래 시장",
+          "jobs": {
+            "petite": 14,
+            "workers": 4
+          },
+          "in": {
+            "transport": 6,
+            "electricity": 3
+          },
+          "out": {
+            "services": 44
+          }
+        },
+        {
+          "id": "arcade",
+          "name": "상가·백화점",
+          "jobs": {
+            "petite": 16,
+            "workers": 4
+          },
+          "in": {
+            "transport": 9,
+            "electricity": 6
+          },
+          "out": {
+            "services": 68
+          },
+          "unlock": {
+            "year": 1966,
+            "metric": {
+              "infrastructure": 40
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tourism",
+      "name": "관광 단지",
+      "category": "service",
+      "cost": 70,
+      "infraUse": 1,
+      "owner": "business",
+      "tech": "infrastructure",
+      "development": 2,
+      "requires": [
+        "scenery"
+      ],
+      "maxPerRegion": 5,
+      "unlockYear": 1966,
+      "monthlyEffects": {
+        "reserves": 0.03
+      },
+      "pollution": 0.002,
+      "description": "경관이 있는 권역의 관광 시설. 서비스와 외화를 번다.",
+      "pm": [
+        {
+          "id": "resort",
+          "name": "관광 숙박",
+          "jobs": {
+            "petite": 10,
+            "workers": 8
+          },
+          "in": {
+            "transport": 6,
+            "electricity": 4,
+            "groceries": 4
+          },
+          "out": {
+            "services": 52
+          }
+        }
+      ]
+    },
+    {
+      "id": "construction",
+      "name": "건설 부문",
+      "category": "infrastructure",
+      "cost": 40,
+      "infraUse": 1,
+      "owner": "state",
+      "development": 1,
+      "unlockYear": 1960,
+      "private": false,
+      "construction": true,
+      "description": "건설점을 만드는 부문. 단계를 올리면 한 달에 진행할 수 있는 공사가 늘지만 자재와 임금이 더 든다. 대기열이 비면 자재를 쓰지 않는다.",
+      "pm": [
+        {
+          "id": "masonry",
+          "name": "목조·조적",
+          "jobs": {
+            "workers": 8,
+            "petite": 2
+          },
+          "in": {},
+          "out": {},
+          "points": 6,
+          "materials": {
+            "wood": 5,
+            "cement": 1
+          }
+        },
+        {
+          "id": "concrete",
+          "name": "철근 콘크리트",
+          "jobs": {
+            "workers": 8,
+            "petite": 2
+          },
+          "in": {},
+          "out": {},
+          "points": 10,
+          "materials": {
+            "wood": 2,
+            "cement": 5,
+            "steel": 1.2
+          },
+          "unlock": {
+            "year": 1963,
+            "metric": {
+              "industry": 26
+            }
+          }
+        },
+        {
+          "id": "heavy",
+          "name": "철골·중장비",
+          "jobs": {
+            "workers": 8,
+            "petite": 3
+          },
+          "in": {},
+          "out": {},
+          "points": 16,
+          "materials": {
+            "cement": 5,
+            "steel": 2.4,
+            "tools": 0.8
+          },
+          "unlock": {
+            "year": 1970,
+            "metric": {
+              "industry": 48
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "admin_office",
+      "name": "행정청",
+      "category": "government",
+      "cost": 50,
+      "infraUse": 0.5,
+      "owner": "state",
+      "development": 1,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "admin": 0.03
+      },
+      "description": "행정 역량을 올린다. 행정 역량이 높을수록 세금이 덜 새고 지역 시책을 더 걸 수 있다.",
+      "pm": [
+        {
+          "id": "office",
+          "name": "일반 행정",
+          "jobs": {
+            "petite": 6
+          },
+          "in": {
+            "services": 4
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "school",
+      "name": "학교",
+      "category": "government",
+      "cost": 45,
+      "infraUse": 0.5,
+      "owner": "state",
+      "development": 1.5,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "education": 0.035
+      },
+      "description": "교육 지수를 올린다. 교육이 낮으면 제철·기계·전자 공장의 효율이 떨어진다. 소시민과 노동자가 함께 바란다.",
+      "pm": [
+        {
+          "id": "public",
+          "name": "공립 학교",
+          "jobs": {
+            "petite": 6
+          },
+          "in": {
+            "services": 2
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "clinic",
+      "name": "보건소·상하수도",
+      "category": "government",
+      "cost": 50,
+      "infraUse": 0.5,
+      "owner": "state",
+      "development": 1.5,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "welfare": 0.03,
+        "environment": 0.006
+      },
+      "description": "보건과 위생. 생활 지수를 올린다. 노동자와 농민이 함께 바란다.",
+      "pm": [
+        {
+          "id": "clinic",
+          "name": "보건 거점",
+          "jobs": {
+            "petite": 4,
+            "workers": 2
+          },
+          "in": {
+            "services": 2,
+            "electricity": 1
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "housing",
+      "name": "공공 주택 지구",
+      "category": "government",
+      "cost": 80,
+      "infraUse": 0.5,
+      "owner": "state",
+      "development": 1.5,
+      "unlockYear": 1962,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "welfare": 0.022,
+        "equality": 0.016
+      },
+      "description": "도시 주거. 생활과 분배 지수를 올린다.",
+      "pm": [
+        {
+          "id": "rental",
+          "name": "공공 임대",
+          "jobs": {
+            "petite": 1,
+            "workers": 1
+          },
+          "in": {
+            "electricity": 2
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "barracks",
+      "name": "군 기지",
+      "category": "military",
+      "cost": 60,
+      "infraUse": 0.5,
+      "owner": "state",
+      "development": 0.5,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "security": 0.035
+      },
+      "description": "안보 지수를 올리고 군수품·가공식품·의복을 쓴다. 병력과 작전은 다루지 않는다.",
+      "pm": [
+        {
+          "id": "garrison",
+          "name": "주둔",
+          "jobs": {
+            "military": 12
+          },
+          "in": {
+            "arms": 3,
+            "groceries": 3,
+            "clothes": 1
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "name": "공공 연구소",
+      "category": "government",
+      "cost": 110,
+      "infraUse": 0.5,
+      "owner": "state",
+      "skill": 55,
+      "development": 2,
+      "unlockYear": 1966,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "education": 0.02,
+        "industry": 0.03
+      },
+      "description": "산업 기술과 교육 지수를 올린다. 산업 기술이 올라야 새 생산방식이 열린다.",
+      "pm": [
+        {
+          "id": "institute",
+          "name": "연구 기관",
+          "jobs": {
+            "petite": 6
+          },
+          "in": {
+            "services": 3,
+            "electricity": 2,
+            "tools": 1
+          },
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "greenworks",
+      "name": "산림 녹화·하천 정비",
+      "category": "government",
+      "cost": 40,
+      "infraUse": 0,
+      "owner": "state",
+      "development": 1,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "environment": 0.04,
+        "agriculture": 0.004
+      },
+      "description": "사방·조림·하천 정비. 환경 지수를 올린다.",
+      "pm": [
+        {
+          "id": "works",
+          "name": "녹화 사업",
+          "jobs": {
+            "workers": 5
+          },
+          "in": {},
+          "out": {}
+        }
+      ]
+    },
+    {
+      "id": "irrigation",
+      "name": "관개·농업 기반",
+      "category": "government",
+      "cost": 45,
+      "infraUse": 0,
+      "owner": "state",
+      "development": 1,
+      "unlockYear": 1960,
+      "private": false,
+      "gov": true,
+      "monthlyEffects": {
+        "agriculture": 0.035
+      },
+      "description": "농업 기술 지수를 올린다. 지수가 올라야 농장의 새 생산방식이 열리고 처리율이 오른다. 농민이 바란다.",
+      "pm": [
+        {
+          "id": "canal",
+          "name": "수리 시설",
+          "jobs": {
+            "workers": 2,
+            "petite": 1
+          },
+          "in": {
+            "cement": 1
+          },
+          "out": {}
+        }
+      ]
+    }
+  ],
+  "lawGroups": [
+    {
+      "id": "military_role",
+      "name": "군의 위상",
+      "column": "power",
+      "interval": 2,
+      "description": "군과 문민 정부의 관계를 정한다."
+    },
+    {
+      "id": "local_gov",
+      "name": "지방 행정",
+      "column": "power",
+      "interval": 2,
+      "description": "지방을 누가 운영하는지 정한다."
+    },
+    {
+      "id": "judiciary",
+      "name": "사법",
+      "column": "power",
+      "interval": 2,
+      "description": "법원의 독립 정도를 정한다."
+    },
+    {
+      "id": "civil_service",
+      "name": "관료제",
+      "column": "power",
+      "interval": 2,
+      "description": "공무원을 어떻게 뽑는지 정한다."
+    },
+    {
+      "id": "economic_system",
+      "name": "경제 체제",
+      "column": "economy",
+      "interval": 3,
+      "description": "정부와 민간이 건설과 투자를 어떻게 나누는지 정한다."
+    },
+    {
+      "id": "trade",
+      "name": "무역 정책",
+      "column": "economy",
+      "interval": 2,
+      "description": "관세와 수출 지원, 무역 역량을 정한다."
+    },
+    {
+      "id": "taxation",
+      "name": "조세",
+      "column": "economy",
+      "interval": 2,
+      "description": "어떤 소득과 소비에 세금을 매기는지 정한다."
+    },
+    {
+      "id": "land",
+      "name": "토지 제도",
+      "column": "economy",
+      "interval": 3,
+      "description": "농장의 이익을 지주와 농민이 어떻게 나누는지 정한다."
+    },
+    {
+      "id": "labor",
+      "name": "노동권",
+      "column": "rights",
+      "interval": 2,
+      "description": "임금과 작업장 감독을 정한다."
+    },
+    {
+      "id": "association",
+      "name": "결사",
+      "column": "rights",
+      "interval": 2,
+      "description": "노동자와 시민이 단체를 만들 권리를 정한다."
+    },
+    {
+      "id": "speech",
+      "name": "표현의 자유",
+      "column": "rights",
+      "interval": 2,
+      "description": "언론과 출판의 자유를 정한다."
+    },
+    {
+      "id": "welfare_system",
+      "name": "복지",
+      "column": "rights",
+      "interval": 2,
+      "description": "실업자와 가난한 가구를 어떻게 돕는지 정한다."
+    },
+    {
+      "id": "environment_rules",
+      "name": "환경 규제",
+      "column": "rights",
+      "interval": 2,
+      "description": "공장의 오염을 얼마나 규제하는지 정한다."
+    },
+    {
+      "id": "defense",
+      "name": "국방",
+      "column": "rights",
+      "interval": 2,
+      "description": "군의 규모와 보급 방식을 정한다."
+    }
+  ],
+  "laws": [
+    {
+      "id": "military_autonomy",
+      "group": "military_role",
+      "name": "군 자율 관행",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "cloutMult": {
+          "military": 1.3
+        }
+      },
+      "stances": {
+        "military": 2,
+        "landowners": 1,
+        "petite": -1
+      },
+      "initial": true,
+      "description": "군이 인사와 예산을 스스로 정하는 관행. 군대의 세력이 커진다."
+    },
+    {
+      "id": "civilian_oversight",
+      "group": "military_role",
+      "name": "민간 통제의 제도화",
+      "unlockYear": 1963,
+      "cost": 10,
+      "monthlyCost": 0.2,
+      "effects": {
+        "liberty": 4,
+        "legitimacy": 4,
+        "security": 1
+      },
+      "monthlyEffects": {
+        "legitimacy": 0.02
+      },
+      "modifiers": {
+        "cloutMult": {
+          "military": 0.8
+        }
+      },
+      "stances": {
+        "military": -2,
+        "petite": 2,
+        "workers": 1
+      },
+      "description": "군의 인사·예산을 문민 정부와 의회가 통제한다."
+    },
+    {
+      "id": "central_appointment",
+      "group": "local_gov",
+      "name": "중앙 임명제",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "landowners": 1,
+        "military": 1,
+        "farmers": -1
+      },
+      "initial": true,
+      "description": "도지사와 시장·군수를 중앙이 임명한다."
+    },
+    {
+      "id": "local_council",
+      "group": "local_gov",
+      "name": "지역 참여 예산",
+      "unlockYear": 1963,
+      "cost": 12,
+      "monthlyCost": 0.28,
+      "effects": {
+        "equality": 4,
+        "legitimacy": 3
+      },
+      "monthlyEffects": {
+        "equality": 0.04
+      },
+      "modifiers": {},
+      "stances": {
+        "farmers": 2,
+        "petite": 1,
+        "landowners": -1
+      },
+      "description": "지역 주민이 예산의 일부를 정한다."
+    },
+    {
+      "id": "local_autonomy",
+      "group": "local_gov",
+      "name": "지방 자치제",
+      "unlockYear": 1968,
+      "cost": 16,
+      "monthlyCost": 0.4,
+      "effects": {
+        "equality": 3,
+        "legitimacy": 4,
+        "liberty": 2
+      },
+      "monthlyEffects": {
+        "equality": 0.03,
+        "admin": 0.02
+      },
+      "modifiers": {
+        "edictCap": 1
+      },
+      "stances": {
+        "farmers": 2,
+        "petite": 2,
+        "landowners": -1,
+        "military": -1
+      },
+      "description": "지방 의회와 단체장을 주민이 뽑는다. 지역 시책을 하나 더 걸 수 있다."
+    },
+    {
+      "id": "executive_primacy",
+      "group": "judiciary",
+      "name": "행정 우위 관행",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "military": 1,
+        "petite": -1
+      },
+      "initial": true,
+      "description": "법원 인사와 예산이 행정부에 기대는 관행."
+    },
+    {
+      "id": "judicial_review",
+      "group": "judiciary",
+      "name": "사법 독립 보강",
+      "unlockYear": 1963,
+      "cost": 14,
+      "monthlyCost": 0.3,
+      "effects": {
+        "liberty": 5,
+        "legitimacy": 4
+      },
+      "monthlyEffects": {
+        "admin": 0.03
+      },
+      "modifiers": {},
+      "stances": {
+        "petite": 2,
+        "workers": 1,
+        "business": 1,
+        "military": -1
+      },
+      "description": "법관 인사와 위헌 심사의 독립을 보강한다."
+    },
+    {
+      "id": "patronage",
+      "group": "civil_service",
+      "name": "연고 임용",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "taxEff": -0.04
+      },
+      "stances": {
+        "landowners": 1,
+        "petite": -1
+      },
+      "initial": true,
+      "description": "연줄과 추천으로 공무원을 뽑는 관행. 세금이 더 샌다."
+    },
+    {
+      "id": "merit_service",
+      "group": "civil_service",
+      "name": "공개 채용·직업 공무원제",
+      "unlockYear": 1962,
+      "cost": 12,
+      "monthlyCost": 0.25,
+      "effects": {
+        "admin": 4
+      },
+      "monthlyEffects": {
+        "admin": 0.03
+      },
+      "modifiers": {
+        "taxEff": 0.04
+      },
+      "stances": {
+        "petite": 2,
+        "business": 1,
+        "landowners": -1
+      },
+      "description": "시험으로 뽑고 신분을 보장한다. 세금이 덜 샌다."
+    },
+    {
+      "id": "aid_allocation",
+      "group": "economic_system",
+      "name": "원조·배분 경제",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "privateShare": 0.3,
+        "investEff": 0.8,
+        "stateDividend": 0.5,
+        "subsidy": true
+      },
+      "stances": {
+        "landowners": 1,
+        "business": -1
+      },
+      "initial": true,
+      "description": "원조 물자와 외화를 정부가 배분한다. 건설점의 30%가 민간 몫."
+    },
+    {
+      "id": "planned_development",
+      "group": "economic_system",
+      "name": "계획 주도 개발",
+      "unlockYear": 1961,
+      "cost": 10,
+      "monthlyCost": 0,
+      "effects": {
+        "admin": 1
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "privateShare": 0.4,
+        "investEff": 1,
+        "stateDividend": 0.75,
+        "subsidy": true,
+        "constructionEff": 0.1
+      },
+      "stances": {
+        "military": 2,
+        "business": 1,
+        "petite": 1,
+        "landowners": -1
+      },
+      "description": "정부가 개발 계획을 세우고 국영 건물의 이익을 더 거둔다. 건설 효율 +10%, 민간 몫 40%."
+    },
+    {
+      "id": "market_led",
+      "group": "economic_system",
+      "name": "민간 주도 시장",
+      "unlockYear": 1964,
+      "cost": 10,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "privateShare": 0.7,
+        "investEff": 1.3,
+        "stateDividend": 0.4,
+        "subsidy": false
+      },
+      "stances": {
+        "business": 2,
+        "petite": 1,
+        "workers": -1,
+        "farmers": -1,
+        "military": -1
+      },
+      "description": "건설점의 70%를 민간 투자에 맡긴다. 투자기금이 빨리 쌓이지만 보조금을 줄 수 없다."
+    },
+    {
+      "id": "social_market",
+      "group": "economic_system",
+      "name": "사회적 시장 경제",
+      "unlockYear": 1968,
+      "cost": 12,
+      "monthlyCost": 0,
+      "effects": {
+        "equality": 2
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "privateShare": 0.45,
+        "investEff": 1,
+        "stateDividend": 0.65,
+        "subsidy": true,
+        "workerDividend": 0.15
+      },
+      "stances": {
+        "workers": 2,
+        "farmers": 1,
+        "petite": 1,
+        "business": -2,
+        "landowners": -1
+      },
+      "description": "민간 공장 이익의 15%를 노동자에게 나눈다. 민간 몫 45%."
+    },
+    {
+      "id": "import_substitution",
+      "group": "trade",
+      "name": "수입 대체 보호",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "tariff": 0.2,
+        "exportSubsidy": 0,
+        "tradeCap": 0.85
+      },
+      "stances": {
+        "business": 1,
+        "farmers": 1,
+        "petite": -1
+      },
+      "initial": true,
+      "description": "관세 20%. 수입품이 비싸 국내 생산자가 보호받지만 소비자 가격이 높다."
+    },
+    {
+      "id": "export_drive",
+      "group": "trade",
+      "name": "수출 주도",
+      "unlockYear": 1962,
+      "cost": 10,
+      "monthlyCost": 0.3,
+      "effects": {
+        "reserves": 2
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "tariff": 0.12,
+        "exportSubsidy": 0.05,
+        "tradeCap": 1.15
+      },
+      "stances": {
+        "business": 2,
+        "workers": 1,
+        "military": 1,
+        "farmers": -1
+      },
+      "description": "관세 12%, 수출 지원 5%. 국내 가격이 세계 가격보다 조금 높아도 수출이 나간다(지원금은 국고 부담)."
+    },
+    {
+      "id": "open_trade",
+      "group": "trade",
+      "name": "개방 무역",
+      "unlockYear": 1967,
+      "cost": 10,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "tariff": 0.04,
+        "exportSubsidy": 0,
+        "tradeCap": 1.35
+      },
+      "stances": {
+        "petite": 2,
+        "farmers": -2,
+        "workers": -1,
+        "landowners": -1
+      },
+      "description": "관세 4%, 무역 역량 +35%. 소비자 가격이 내려가지만 국내 생산자가 세계 가격과 바로 맞선다."
+    },
+    {
+      "id": "indirect_tax",
+      "group": "taxation",
+      "name": "간접세 중심",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "tax": {
+          "consumption": 0.17,
+          "wage": 0,
+          "profit": 0.12,
+          "land": 0.06
+        }
+      },
+      "stances": {
+        "business": 1,
+        "landowners": 1,
+        "workers": -1,
+        "farmers": -1
+      },
+      "initial": true,
+      "description": "소비세 17%, 이익세 12%, 토지세 6%. 걷기 쉽지만 가난한 가구의 부담이 크다."
+    },
+    {
+      "id": "income_tax",
+      "group": "taxation",
+      "name": "소득 비례세",
+      "unlockYear": 1963,
+      "cost": 10,
+      "monthlyCost": 0,
+      "effects": {
+        "equality": 1
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "tax": {
+          "consumption": 0.12,
+          "wage": 0.08,
+          "profit": 0.18,
+          "land": 0.05
+        }
+      },
+      "stances": {
+        "farmers": 1,
+        "business": -1,
+        "landowners": -1
+      },
+      "description": "소비세 12%, 임금세 8%, 이익세 18%, 토지세 5%. 임금과 이익이 커질수록 세입이 는다."
+    },
+    {
+      "id": "progressive_tax",
+      "group": "taxation",
+      "name": "누진 과세",
+      "unlockYear": 1967,
+      "cost": 12,
+      "monthlyCost": 0,
+      "effects": {
+        "equality": 3
+      },
+      "monthlyEffects": {
+        "equality": 0.02
+      },
+      "modifiers": {
+        "tax": {
+          "consumption": 0.1,
+          "wage": 0.07,
+          "profit": 0.28,
+          "land": 0.07
+        }
+      },
+      "stances": {
+        "workers": 2,
+        "farmers": 1,
+        "petite": 1,
+        "business": -2,
+        "landowners": -2
+      },
+      "description": "소비세 10%, 임금세 7%, 이익세 28%, 토지세 7%. 이익에 무겁게 매긴다."
+    },
+    {
+      "id": "tenancy_tolerated",
+      "group": "land",
+      "name": "소작 묵인",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "farmShare": {
+          "landowners": 0.6,
+          "farmers": 0.4
+        }
+      },
+      "stances": {
+        "landowners": 2,
+        "farmers": -2
+      },
+      "initial": true,
+      "description": "농지개혁 뒤에도 남은 소작을 눈감는다. 농장 이익의 60%가 지주 몫."
+    },
+    {
+      "id": "owner_farmer",
+      "group": "land",
+      "name": "경자유전 강화",
+      "unlockYear": 1961,
+      "cost": 12,
+      "monthlyCost": 0,
+      "effects": {
+        "equality": 4
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "farmShare": {
+          "landowners": 0.2,
+          "farmers": 0.8
+        },
+        "farmThroughput": 0.04
+      },
+      "stances": {
+        "farmers": 2,
+        "workers": 1,
+        "landowners": -2
+      },
+      "description": "농사짓는 사람이 농지를 갖게 한다. 농장 이익의 80%가 농민 몫, 농장 처리율 +4%."
+    },
+    {
+      "id": "corporate_farming",
+      "group": "land",
+      "name": "기업농·농지 규모화",
+      "unlockYear": 1969,
+      "cost": 12,
+      "monthlyCost": 0,
+      "effects": {
+        "equality": -2
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "farmShare": {
+          "landowners": 0.45,
+          "business": 0.25,
+          "farmers": 0.3
+        },
+        "farmThroughput": 0.1,
+        "subsistenceCap": -0.1
+      },
+      "stances": {
+        "business": 1,
+        "landowners": 1,
+        "farmers": -2
+      },
+      "description": "농지 상한을 풀어 큰 농장을 허용한다. 농장 처리율 +10%, 자급 농업이 받아 주는 인구 −10%."
+    },
+    {
+      "id": "no_labor_rules",
+      "group": "labor",
+      "name": "노동 규제 미비",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "business": 1,
+        "workers": -2
+      },
+      "initial": true,
+      "description": "근로 기준이 있어도 감독이 없다."
+    },
+    {
+      "id": "labor_inspection",
+      "group": "labor",
+      "name": "노동 감독 독립성",
+      "unlockYear": 1963,
+      "cost": 12,
+      "monthlyCost": 0.35,
+      "effects": {
+        "welfare": 2,
+        "liberty": 3
+      },
+      "monthlyEffects": {
+        "welfare": 0.035,
+        "liberty": 0.025
+      },
+      "modifiers": {
+        "wageMult": {
+          "workers": 1.05
+        }
+      },
+      "stances": {
+        "workers": 1,
+        "petite": 1,
+        "business": -1
+      },
+      "description": "감독 기구를 독립시킨다. 노동자 임금 +5%."
+    },
+    {
+      "id": "worker_protection",
+      "group": "labor",
+      "name": "근로 기준·최저 임금",
+      "unlockYear": 1968,
+      "cost": 16,
+      "monthlyCost": 0.45,
+      "effects": {
+        "welfare": 4,
+        "equality": 3,
+        "liberty": 2
+      },
+      "monthlyEffects": {
+        "welfare": 0.04,
+        "equality": 0.03
+      },
+      "modifiers": {
+        "wageMult": {
+          "workers": 1.14
+        },
+        "mfgThroughput": -0.02
+      },
+      "stances": {
+        "workers": 2,
+        "petite": 1,
+        "business": -2
+      },
+      "description": "최저 임금과 근로 시간을 지키게 한다. 노동자 임금 +14%, 제조업 처리율 −2%."
+    },
+    {
+      "id": "restricted_association",
+      "group": "association",
+      "name": "단체 행동 제한",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {
+        "cloutMult": {
+          "workers": 0.8
+        }
+      },
+      "stances": {
+        "business": 1,
+        "military": 1,
+        "workers": -2,
+        "petite": -1
+      },
+      "initial": true,
+      "description": "노동조합과 단체의 활동을 제한한다. 노동자의 세력이 줄어든다."
+    },
+    {
+      "id": "association",
+      "group": "association",
+      "name": "결사권 보장",
+      "unlockYear": 1963,
+      "cost": 8,
+      "monthlyCost": 0.15,
+      "effects": {
+        "liberty": 6
+      },
+      "monthlyEffects": {
+        "liberty": 0.03
+      },
+      "modifiers": {
+        "cloutMult": {
+          "workers": 1.25
+        }
+      },
+      "stances": {
+        "workers": 2,
+        "petite": 1,
+        "farmers": 1,
+        "business": -1,
+        "military": -1
+      },
+      "description": "단체를 만들고 교섭할 권리를 보장한다. 노동자의 세력이 커진다."
+    },
+    {
+      "id": "press_control",
+      "group": "speech",
+      "name": "언론 통제",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "military": 1,
+        "landowners": 1,
+        "petite": -2,
+        "workers": -1
+      },
+      "initial": true,
+      "description": "신문과 방송을 허가와 검열로 통제한다."
+    },
+    {
+      "id": "press_freedom",
+      "group": "speech",
+      "name": "언론 자유 보장",
+      "unlockYear": 1963,
+      "cost": 8,
+      "monthlyCost": 0.15,
+      "effects": {
+        "liberty": 7,
+        "legitimacy": 2
+      },
+      "monthlyEffects": {
+        "liberty": 0.03
+      },
+      "modifiers": {},
+      "stances": {
+        "petite": 2,
+        "workers": 1,
+        "military": -1,
+        "landowners": -1
+      },
+      "description": "사전 검열을 없애고 발행의 자유를 보장한다."
+    },
+    {
+      "id": "no_welfare",
+      "group": "welfare_system",
+      "name": "사회보장 없음",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "business": 1,
+        "landowners": 1,
+        "workers": -1,
+        "farmers": -1
+      },
+      "initial": true,
+      "description": "실업과 질병을 가족이 감당한다."
+    },
+    {
+      "id": "public_relief",
+      "group": "welfare_system",
+      "name": "공적 부조",
+      "unlockYear": 1962,
+      "cost": 10,
+      "monthlyCost": 0.2,
+      "effects": {
+        "welfare": 2
+      },
+      "monthlyEffects": {
+        "welfare": 0.03
+      },
+      "modifiers": {
+        "relief": 0.25
+      },
+      "stances": {
+        "workers": 1,
+        "farmers": 1,
+        "business": -1
+      },
+      "description": "실업자에게 평균 임금의 25%를 지급한다(국고 부담)."
+    },
+    {
+      "id": "social_insurance",
+      "group": "welfare_system",
+      "name": "사회 보험",
+      "unlockYear": 1968,
+      "cost": 18,
+      "monthlyCost": 0.5,
+      "effects": {
+        "welfare": 4,
+        "equality": 2
+      },
+      "monthlyEffects": {
+        "welfare": 0.05,
+        "equality": 0.02
+      },
+      "modifiers": {
+        "relief": 0.4
+      },
+      "stances": {
+        "workers": 2,
+        "petite": 2,
+        "farmers": 1,
+        "business": -1,
+        "landowners": -1
+      },
+      "description": "의료·산재 보험. 실업자에게 평균 임금의 40%를 지급한다."
+    },
+    {
+      "id": "no_env_rules",
+      "group": "environment_rules",
+      "name": "규제 없음",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "business": 1
+      },
+      "initial": true,
+      "description": "배출 기준이 없다."
+    },
+    {
+      "id": "clean_water",
+      "group": "environment_rules",
+      "name": "수질·상하수도 기준",
+      "unlockYear": 1963,
+      "cost": 16,
+      "monthlyCost": 0.35,
+      "effects": {
+        "environment": 5,
+        "welfare": 1
+      },
+      "monthlyEffects": {
+        "environment": 0.055
+      },
+      "modifiers": {
+        "pollution": 0.85
+      },
+      "stances": {
+        "petite": 2,
+        "farmers": 1,
+        "business": -1
+      },
+      "description": "수질 기준을 세운다. 건물의 환경 부담 −15%."
+    },
+    {
+      "id": "pollution_control",
+      "group": "environment_rules",
+      "name": "공해 방지법",
+      "unlockYear": 1971,
+      "cost": 18,
+      "monthlyCost": 0.45,
+      "effects": {
+        "environment": 6,
+        "welfare": 1
+      },
+      "monthlyEffects": {
+        "environment": 0.06
+      },
+      "modifiers": {
+        "pollution": 0.6,
+        "mfgThroughput": -0.03
+      },
+      "stances": {
+        "petite": 2,
+        "farmers": 2,
+        "workers": 1,
+        "business": -2
+      },
+      "description": "배출 시설을 허가제로 한다. 환경 부담 −40%, 제조업 처리율 −3%."
+    },
+    {
+      "id": "conscript_army",
+      "group": "defense",
+      "name": "징병 중심",
+      "unlockYear": 1960,
+      "cost": 0,
+      "monthlyCost": 0,
+      "effects": {},
+      "monthlyEffects": {},
+      "modifiers": {},
+      "stances": {
+        "military": 1
+      },
+      "initial": true,
+      "description": "징병으로 큰 병력을 유지한다."
+    },
+    {
+      "id": "force_reduction",
+      "group": "defense",
+      "name": "감군·전문화",
+      "unlockYear": 1965,
+      "cost": 10,
+      "monthlyCost": 0,
+      "effects": {
+        "security": -2
+      },
+      "monthlyEffects": {},
+      "modifiers": {
+        "armsDemand": 0.8,
+        "militaryWage": 0.9,
+        "cloutMult": {
+          "military": 0.85
+        }
+      },
+      "stances": {
+        "military": -2,
+        "petite": 1,
+        "business": 1,
+        "farmers": 1
+      },
+      "description": "병력을 줄이고 전문화한다. 군수품 수요 −20%, 군 인건비 −10%, 군대의 세력이 줄어든다."
+    },
+    {
+      "id": "defense_industry",
+      "group": "defense",
+      "name": "방위 산업 육성",
+      "unlockYear": 1970,
+      "cost": 16,
+      "monthlyCost": 0.5,
+      "effects": {
+        "security": 3
+      },
+      "monthlyEffects": {
+        "security": 0.03
+      },
+      "modifiers": {
+        "armsDemand": 1.3,
+        "cloutMult": {
+          "military": 1.15
+        }
+      },
+      "stances": {
+        "military": 2,
+        "business": 1,
+        "petite": -1
+      },
+      "description": "보급품을 나라 안에서 만든다. 군수품 수요 +30%, 군대의 세력이 커진다."
+    }
+  ],
+  "interestGroups": [
     {
       "id": "workers",
       "name": "노동자",
-      "initialSupport": 42,
-      "weight": 0.2,
-      "priorities": [
-        "welfare",
-        "liberty",
-        "equality"
+      "mark": "노",
+      "cloutWeight": 1,
+      "wage": 1,
+      "invest": 0,
+      "description": "공장·광산·건설 현장에서 임금을 받는 사람들과 일자리를 찾는 사람들. 임금과 일자리, 단결할 권리, 보건과 주거를 바란다.",
+      "demands": [
+        {
+          "id": "jobs",
+          "text": "제조업 일자리",
+          "buildings": [
+            "textile_mill",
+            "garment",
+            "food_plant",
+            "machinery",
+            "electronics",
+            "shipyard",
+            "steel_mill"
+          ],
+          "base": 9,
+          "perYear": 1.04,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "care",
+          "text": "보건소·공공 주택",
+          "buildings": [
+            "clinic",
+            "housing"
+          ],
+          "base": 1,
+          "perYear": 0.36,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "schools",
+          "text": "학교",
+          "buildings": [
+            "school"
+          ],
+          "base": 6,
+          "perYear": 0.36,
+          "from": 4,
+          "weight": 3
+        }
       ],
-      "description": "임금과 안전, 결사의 자유를 중시한다."
+      "traits": {
+        "unhappy": {
+          "name": "태업과 이직",
+          "modifiers": {
+            "constructionEff": -0.1,
+            "mfgThroughput": -0.05
+          }
+        },
+        "happy": {
+          "name": "숙련의 축적",
+          "modifiers": {
+            "mfgThroughput": 0.05
+          }
+        },
+        "loyal": {
+          "name": "산업 평화",
+          "modifiers": {
+            "mfgThroughput": 0.03
+          },
+          "monthly": {
+            "stability": 0.03
+          }
+        }
+      }
     },
     {
       "id": "farmers",
       "name": "농민",
-      "initialSupport": 48,
-      "weight": 0.2,
-      "priorities": [
-        "agriculture",
-        "equality",
-        "infrastructure"
+      "mark": "농",
+      "cloutWeight": 0.7,
+      "wage": 0.95,
+      "invest": 0,
+      "description": "자기 땅이나 남의 땅을 부치는 사람들과 자급 농가. 농지와 곡가, 비료와 물, 농촌의 보건을 바란다.",
+      "demands": [
+        {
+          "id": "water",
+          "text": "관개·농업 기반",
+          "buildings": [
+            "irrigation"
+          ],
+          "base": 0,
+          "perYear": 0.32,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "fertilizer",
+          "text": "비료 공장",
+          "buildings": [
+            "fertilizer_plant"
+          ],
+          "base": 0,
+          "perYear": 0.2,
+          "from": 5,
+          "weight": 4
+        },
+        {
+          "id": "care",
+          "text": "보건소·공공 주택",
+          "buildings": [
+            "clinic",
+            "housing"
+          ],
+          "base": 1,
+          "perYear": 0.36,
+          "from": 4,
+          "weight": 3
+        }
       ],
-      "description": "가격 안정과 농촌 생활 기반을 중시한다."
+      "traits": {
+        "unhappy": {
+          "name": "출하 기피",
+          "modifiers": {
+            "farmThroughput": -0.08
+          }
+        },
+        "happy": {
+          "name": "증산 의욕",
+          "modifiers": {
+            "farmThroughput": 0.06
+          }
+        },
+        "loyal": {
+          "name": "농촌의 지지",
+          "modifiers": {},
+          "monthly": {
+            "stability": 0.03,
+            "legitimacy": 0.02
+          }
+        }
+      }
+    },
+    {
+      "id": "petite",
+      "name": "소시민",
+      "mark": "소",
+      "cloutWeight": 2.6,
+      "wage": 1.35,
+      "invest": 0.08,
+      "description": "상인·사무원·교사·공무원 같은 도시 중간층. 언론과 법의 보호, 공정한 채용, 학교와 상가를 바란다.",
+      "demands": [
+        {
+          "id": "schools",
+          "text": "학교",
+          "buildings": [
+            "school"
+          ],
+          "base": 6,
+          "perYear": 0.4,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "shops",
+          "text": "상가·시장",
+          "buildings": [
+            "commerce"
+          ],
+          "base": 16,
+          "perYear": 0.56,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "offices",
+          "text": "행정청·연구소",
+          "buildings": [
+            "admin_office",
+            "research"
+          ],
+          "base": 3,
+          "perYear": 0.16,
+          "from": 4,
+          "weight": 3
+        }
+      ],
+      "traits": {
+        "unhappy": {
+          "name": "냉소와 탈루",
+          "modifiers": {
+            "taxEff": -0.06
+          },
+          "monthly": {
+            "legitimacy": -0.03
+          }
+        },
+        "happy": {
+          "name": "성실 납세",
+          "modifiers": {
+            "taxEff": 0.05
+          }
+        },
+        "loyal": {
+          "name": "행정 협조",
+          "modifiers": {},
+          "monthly": {
+            "admin": 0.04
+          }
+        }
+      }
     },
     {
       "id": "business",
-      "name": "기업·상공인",
-      "initialSupport": 46,
-      "weight": 0.15,
-      "priorities": [
-        "industry",
-        "infrastructure",
-        "admin"
+      "name": "기업가",
+      "mark": "기",
+      "cloutWeight": 55,
+      "wage": 0,
+      "invest": 0.28,
+      "description": "공장·광산·상사를 가진 사람들. 수출 지원과 낮은 이익세, 항만·전력·철도, 중화학 공장을 바란다.",
+      "demands": [
+        {
+          "id": "infra",
+          "text": "항만·철도·발전소",
+          "buildings": [
+            "port",
+            "railway",
+            "power_plant",
+            "hydro_dam"
+          ],
+          "base": 6,
+          "perYear": 0.44,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "heavy",
+          "text": "제철·기계·조선·전자",
+          "buildings": [
+            "steel_mill",
+            "machinery",
+            "shipyard",
+            "electronics"
+          ],
+          "base": 0,
+          "perYear": 0.48,
+          "from": 8,
+          "weight": 4
+        },
+        {
+          "id": "fertilizer",
+          "text": "비료 공장",
+          "buildings": [
+            "fertilizer_plant"
+          ],
+          "base": 0,
+          "perYear": 0.2,
+          "from": 5,
+          "weight": 2
+        }
       ],
-      "description": "투자 환경과 예측 가능한 규칙을 중시한다."
+      "traits": {
+        "unhappy": {
+          "name": "투자 보류",
+          "modifiers": {
+            "investBonus": -0.4
+          },
+          "monthly": {
+            "reserves": -0.02
+          }
+        },
+        "happy": {
+          "name": "설비 투자",
+          "modifiers": {
+            "investBonus": 0.2
+          }
+        },
+        "loyal": {
+          "name": "수출 총력",
+          "modifiers": {
+            "tradeCapBonus": 0.1,
+            "mfgThroughput": 0.03
+          }
+        }
+      }
     },
     {
-      "id": "students",
-      "name": "학생·지식인",
-      "initialSupport": 38,
-      "weight": 0.12,
-      "priorities": [
-        "liberty",
-        "education",
-        "legitimacy"
+      "id": "landowners",
+      "name": "지주",
+      "mark": "지",
+      "cloutWeight": 30,
+      "wage": 0,
+      "invest": 0.12,
+      "description": "농지개혁 뒤에도 남은 큰 농지와 임야, 도시의 땅을 가진 사람들. 소작과 낮은 토지세, 농장 확장과 도시 상가를 바란다.",
+      "demands": [
+        {
+          "id": "farms",
+          "text": "논·밭 농장",
+          "buildings": [
+            "farm"
+          ],
+          "base": 40,
+          "perYear": 0.4,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "shops",
+          "text": "상가·시장",
+          "buildings": [
+            "commerce"
+          ],
+          "base": 16,
+          "perYear": 0.56,
+          "from": 4,
+          "weight": 3
+        }
       ],
-      "description": "권리 보장과 교육, 공적 책임을 중시한다."
-    },
-    {
-      "id": "civil",
-      "name": "도시 시민",
-      "initialSupport": 44,
-      "weight": 0.16,
-      "priorities": [
-        "welfare",
-        "environment",
-        "stability"
-      ],
-      "description": "생활비와 주거·교통, 행정 서비스를 중시한다."
-    },
-    {
-      "id": "bureaucracy",
-      "name": "행정 조직",
-      "initialSupport": 50,
-      "weight": 0.07,
-      "priorities": [
-        "admin",
-        "legitimacy",
-        "education"
-      ],
-      "description": "규칙과 전문성, 지속 가능한 집행을 중시한다."
+      "traits": {
+        "unhappy": {
+          "name": "자금 은닉",
+          "modifiers": {
+            "investBonus": -0.15,
+            "taxEff": -0.04
+          }
+        },
+        "happy": {
+          "name": "지역 유지의 협조",
+          "modifiers": {
+            "farmThroughput": 0.03
+          }
+        },
+        "loyal": {
+          "name": "농지 투자",
+          "modifiers": {
+            "investBonus": 0.1
+          }
+        }
+      }
     },
     {
       "id": "military",
-      "name": "군 조직",
-      "initialSupport": 50,
-      "weight": 0.06,
-      "priorities": [
-        "security",
-        "stability",
-        "legitimacy"
+      "name": "군대",
+      "mark": "군",
+      "cloutWeight": 10,
+      "wage": 1.15,
+      "invest": 0,
+      "description": "장교와 병사, 군 조직. 군의 자율과 예산, 군 기지와 보급, 군수의 바탕이 되는 제철을 바란다. 제도적 요구와 그 비용만 다룬다.",
+      "demands": [
+        {
+          "id": "bases",
+          "text": "군 기지",
+          "buildings": [
+            "barracks"
+          ],
+          "base": 3,
+          "perYear": 0.12,
+          "from": 4,
+          "weight": 4
+        },
+        {
+          "id": "supply",
+          "text": "군수 공장·제철소",
+          "buildings": [
+            "arms_plant",
+            "steel_mill"
+          ],
+          "base": 0,
+          "perYear": 0.32,
+          "from": 12,
+          "weight": 4
+        },
+        {
+          "id": "rail",
+          "text": "철도·운수",
+          "buildings": [
+            "railway"
+          ],
+          "base": 2,
+          "perYear": 0.16,
+          "from": 4,
+          "weight": 2
+        }
       ],
-      "description": "제도적 임무와 대외 안보를 중시한다."
-    },
-    {
-      "id": "opposition",
-      "name": "야당·시민단체",
-      "initialSupport": 36,
-      "weight": 0.04,
-      "priorities": [
-        "liberty",
-        "equality",
-        "legitimacy"
-      ],
-      "description": "정책 감시와 권력 교체 가능성을 중시한다."
+      "traits": {
+        "unhappy": {
+          "name": "제도적 긴장",
+          "modifiers": {},
+          "monthly": {
+            "stability": -0.06,
+            "legitimacy": -0.03
+          }
+        },
+        "happy": {
+          "name": "기강 확립",
+          "modifiers": {},
+          "monthly": {
+            "security": 0.04
+          }
+        },
+        "loyal": {
+          "name": "안정된 지휘",
+          "modifiers": {},
+          "monthly": {
+            "stability": 0.03,
+            "security": 0.02
+          }
+        }
+      }
     }
   ],
+  "economy": {
+    "note": "시장 경제 모형의 상수. 모든 값은 게임 설계 값이다. 설명: docs/SIMULATION_RULES.md \"시장 경제(데이터 2.0.0)\".",
+    "unit": 0.0009090909090909091,
+    "workforce": 2830,
+    "workforceGrowth": 0.0013,
+    "subsistenceCap": 800,
+    "subsistenceMobility": 0.06,
+    "subsistence": {
+      "grain": 0.95,
+      "fish": 0.06,
+      "wood": 0.25,
+      "fabric": 0.04
+    },
+    "wage": 36,
+    "wageUp": 0.005,
+    "wageDown": 0.003,
+    "wageFlex": 0.08,
+    "fullEmployment": 0.1,
+    "dependentShare": 0.25,
+    "basePop": {
+      "business": 6,
+      "landowners": 20
+    },
+    "ownersPerLevel": 0.5,
+    "saving": {
+      "workers": 0.02,
+      "farmers": 0.02,
+      "petite": 0.04,
+      "business": 0.15,
+      "landowners": 0.12,
+      "military": 0.03
+    },
+    "price": {
+      "swing": 0.75,
+      "floor": -0.6,
+      "ceiling": 0.9,
+      "speed": 0.5
+    },
+    "shortageAt": 1.6,
+    "shortageMax": 0.5,
+    "scalePerLevel": 0.01,
+    "scaleCap": 20,
+    "techPerPoint": 0.006,
+    "techBase": {
+      "industry": 18,
+      "agriculture": 38,
+      "infrastructure": 25
+    },
+    "minStaff": 0.5,
+    "hireRate": 0.2,
+    "fireRate": 0.06,
+    "infraBase": 4,
+    "infraPerDev": 0.16,
+    "infraPerIndex": 0.08,
+    "accessFloor": 0.5,
+    "constructionBase": 6,
+    "maxPerProject": 10,
+    "queueMax": 8,
+    "privateQueueMax": 2,
+    "investThreshold": 0.0015,
+    "poolCap": 60,
+    "poolStart": 4,
+    "tradeBase": 40000,
+    "tradeCost": 0.04,
+    "forexFloor": 12,
+    "forexScale": 0.04,
+    "aid": {
+      "start": 0.2,
+      "endTurn": 132
+    },
+    "exportGrowth": 0.05,
+    "collectBase": 0.55,
+    "collectPerAdmin": 0.006,
+    "baseExpense": 1.6,
+    "baseExpenseGdp": 0.008,
+    "interest": 0.003,
+    "inflation": {
+      "base": 8,
+      "perCpi": 55,
+      "speed": 0.06,
+      "debtFrom": 220,
+      "debtRate": 0.01
+    },
+    "unemploymentSpeed": 0.35,
+    "budgetDemand": {
+      "industry": {
+        "tools": 0.25
+      },
+      "agriculture": {
+        "fertilizer": 0.3
+      },
+      "education": {
+        "services": 0.5
+      },
+      "welfare": {
+        "groceries": 0.25,
+        "clothes": 0.2
+      },
+      "infrastructure": {
+        "cement": 0.4
+      },
+      "security": {
+        "arms": 0.25
+      }
+    },
+    "depreciation": {
+      "education": {
+        "floor": 20,
+        "rate": 0.004
+      },
+      "infrastructure": {
+        "floor": 20,
+        "rate": 0.004
+      },
+      "industry": {
+        "floor": 12,
+        "rate": 0.004
+      },
+      "agriculture": {
+        "floor": 28,
+        "rate": 0.003
+      },
+      "security": {
+        "floor": 30,
+        "rate": 0.004
+      }
+    },
+    "approval": {
+      "lawWeight": 2,
+      "living": 2.5,
+      "livingCap": 12,
+      "expectGrowth": 0.015,
+      "inGov": 5,
+      "outGov": -2,
+      "speed": 0.12,
+      "modDecay": 0.04,
+      "reform": 6,
+      "dismissed": 8,
+      "thresholds": {
+        "angry": 25,
+        "unhappy": 40,
+        "happy": 60,
+        "loyal": 75
+      },
+      "powerful": 0.22,
+      "marginal": 0.06
+    },
+    "government": {
+      "start": [
+        "landowners",
+        "business"
+      ],
+      "max": 3,
+      "legitimacy": 0.5,
+      "legitimacyCap": 0.15,
+      "center": 0.45
+    },
+    "enactment": {
+      "base": 0.3,
+      "support": 0.9,
+      "outside": 0.25,
+      "legitimacy": 0.003,
+      "seats": 0.4,
+      "decree": 0.08,
+      "min": 0.05,
+      "max": 0.92,
+      "stages": 3,
+      "setbacks": 3,
+      "debate": 0.05,
+      "massDemand": 0.4,
+      "decreeCost": {
+        "liberty": -1,
+        "legitimacy": -1
+      }
+    },
+    "living": {
+      "massBase": 8.1,
+      "welfare": 0.03,
+      "gapBase": 0.5,
+      "equality": 0.4
+    },
+    "privatizePrice": 0.07,
+    "maxLevel": 60,
+    "publicPay": 0.8,
+    "retool": 0.6,
+    "tradePerInfra": 0.01,
+    "subsistencePerAgri": 0.004,
+    "wageMargin": 0.06,
+    "exportSlope": 0.5
+  },
   "traits": [
     {
       "id": "plain",
@@ -425,7 +3625,6 @@
         "services",
         "education"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "plain",
@@ -436,7 +3635,22 @@
       "resources": [
         "harbor",
         "market"
-      ]
+      ],
+      "arable": 5,
+      "start": {
+        "farm": 3,
+        "textile_mill": 2,
+        "garment": 1,
+        "food_plant": 1,
+        "commerce": 4,
+        "power_plant": 1,
+        "railway": 2,
+        "construction": 1,
+        "admin_office": 2,
+        "school": 2,
+        "barracks": 1,
+        "clinic": 1
+      }
     },
     {
       "id": "gangwon",
@@ -449,7 +3663,6 @@
         "mining",
         "forestry"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "mountain",
@@ -462,7 +3675,17 @@
         "timber",
         "hydro",
         "fishery"
-      ]
+      ],
+      "arable": 9,
+      "start": {
+        "farm": 2,
+        "coal_mine": 3,
+        "ore_mine": 1,
+        "forestry": 2,
+        "fishery": 1,
+        "barracks": 1,
+        "commerce": 1
+      }
     },
     {
       "id": "chungnam",
@@ -475,7 +3698,6 @@
         "agriculture",
         "logistics"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "plain",
@@ -485,7 +3707,14 @@
       "resources": [
         "rice",
         "tidal"
-      ]
+      ],
+      "arable": 9,
+      "start": {
+        "farm": 6,
+        "commerce": 1,
+        "school": 1,
+        "railway": 1
+      }
     },
     {
       "id": "chungbuk",
@@ -498,7 +3727,6 @@
         "agriculture",
         "materials"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "mountain",
@@ -508,7 +3736,13 @@
         "limestone",
         "hydro",
         "timber"
-      ]
+      ],
+      "arable": 9,
+      "start": {
+        "farm": 3,
+        "forestry": 1,
+        "commerce": 1
+      }
     },
     {
       "id": "jeonbuk",
@@ -521,7 +3755,6 @@
         "agriculture",
         "food"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "plain",
@@ -530,7 +3763,14 @@
       "resources": [
         "rice",
         "tidal"
-      ]
+      ],
+      "arable": 11,
+      "start": {
+        "farm": 7,
+        "food_plant": 1,
+        "commerce": 1,
+        "school": 1
+      }
     },
     {
       "id": "gyeongbuk",
@@ -543,7 +3783,6 @@
         "manufacturing",
         "materials"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "mountain",
@@ -555,7 +3794,16 @@
         "hydro",
         "fishery",
         "timber"
-      ]
+      ],
+      "arable": 8,
+      "start": {
+        "farm": 5,
+        "textile_mill": 2,
+        "commerce": 2,
+        "fishery": 1,
+        "school": 1,
+        "railway": 1
+      }
     },
     {
       "id": "jeonnam",
@@ -568,7 +3816,6 @@
         "agriculture",
         "port"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "plain",
@@ -580,7 +3827,15 @@
         "tidal",
         "fishery",
         "harbor"
-      ]
+      ],
+      "arable": 11,
+      "start": {
+        "farm": 8,
+        "fishery": 2,
+        "commerce": 1,
+        "school": 1,
+        "railway": 1
+      }
     },
     {
       "id": "gyeongnam",
@@ -593,7 +3848,6 @@
         "shipbuilding",
         "manufacturing"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "coast",
@@ -603,7 +3857,15 @@
       "resources": [
         "harbor",
         "fishery"
-      ]
+      ],
+      "arable": 7,
+      "start": {
+        "farm": 5,
+        "fishery": 2,
+        "textile_mill": 1,
+        "commerce": 1,
+        "barracks": 1
+      }
     },
     {
       "id": "busan",
@@ -616,7 +3878,6 @@
         "port",
         "trade"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "coast",
@@ -626,7 +3887,17 @@
         "harbor",
         "market",
         "fishery"
-      ]
+      ],
+      "arable": 4,
+      "start": {
+        "port": 2,
+        "garment": 1,
+        "commerce": 3,
+        "fishery": 1,
+        "power_plant": 1,
+        "construction": 1,
+        "admin_office": 1
+      }
     },
     {
       "id": "jeju",
@@ -639,7 +3910,6 @@
         "agriculture",
         "tourism"
       ],
-      "slots": 4,
       "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
       "terrain": [
         "island",
@@ -648,7 +3918,13 @@
       "resources": [
         "scenery",
         "fishery"
-      ]
+      ],
+      "arable": 8,
+      "start": {
+        "farm": 1,
+        "fishery": 1,
+        "commerce": 1
+      }
     }
   ],
   "countries": [
@@ -708,8 +3984,7 @@
       "factionEffects": {
         "business": 5
       },
-      "description": "단기 금융을 보강하지만 국고와 부채의 여력을 확인해야 한다.",
-      "requiresBill": false
+      "description": "단기 금융을 보강하지만 국고와 부채의 여력을 확인해야 한다."
     },
     {
       "id": "small_business",
@@ -730,8 +4005,7 @@
         "business": 3,
         "workers": 2
       },
-      "description": "대기업 외에도 생산성과 기술이 축적되도록 지원한다.",
-      "requiresBill": false
+      "description": "대기업 외에도 생산성과 기술이 축적되도록 지원한다."
     },
     {
       "id": "price_stability",
@@ -747,10 +4021,9 @@
         "inflation": -0.04
       },
       "factionEffects": {
-        "civil": 3
+        "petite": 3
       },
-      "description": "재정과 공급을 점검한다. 가격을 영구 고정하는 정책은 아니다.",
-      "requiresBill": false
+      "description": "재정과 공급을 점검한다. 가격을 영구 고정하는 정책은 아니다."
     },
     {
       "id": "farm_extension",
@@ -768,8 +4041,7 @@
       "factionEffects": {
         "farmers": 5
       },
-      "description": "농업 교육과 생산기술을 확산한다.",
-      "requiresBill": false
+      "description": "농업 교육과 생산기술을 확산한다."
     },
     {
       "id": "rural_coops",
@@ -789,8 +4061,7 @@
       "factionEffects": {
         "farmers": 4
       },
-      "description": "주민 참여와 자율 회계를 전제로 한다.",
-      "requiresBill": false
+      "description": "주민 참여와 자율 회계를 전제로 한다."
     },
     {
       "id": "grain_buffer",
@@ -808,10 +4079,9 @@
       },
       "factionEffects": {
         "farmers": 2,
-        "civil": 2
+        "petite": 2
       },
-      "description": "흉작과 가격 변동에 대응하는 가상 비축 제도.",
-      "requiresBill": false
+      "description": "흉작과 가격 변동에 대응하는 가상 비축 제도."
     },
     {
       "id": "primary_school",
@@ -827,10 +4097,9 @@
         "education": 0.065
       },
       "factionEffects": {
-        "students": 5
+        "petite": 5
       },
-      "description": "교실과 교원 역량에 장기 투자한다.",
-      "requiresBill": false
+      "description": "교실과 교원 역량에 장기 투자한다."
     },
     {
       "id": "technical_school",
@@ -851,8 +4120,7 @@
         "workers": 3,
         "business": 3
       },
-      "description": "성장의 숙련인력 병목을 완화한다.",
-      "requiresBill": false
+      "description": "성장의 숙련인력 병목을 완화한다."
     },
     {
       "id": "research_fund",
@@ -868,10 +4136,9 @@
         "education": 0.08
       },
       "factionEffects": {
-        "students": 5
+        "petite": 5
       },
-      "description": "장기 연구를 지원한다. 즉시 수출이 늘어나는 수단은 아니다.",
-      "requiresBill": false
+      "description": "장기 연구를 지원한다. 즉시 수출이 늘어나는 수단은 아니다."
     },
     {
       "id": "health_centers",
@@ -890,8 +4157,7 @@
         "workers": 3,
         "farmers": 3
       },
-      "description": "예방 의료와 접근성을 개선한다.",
-      "requiresBill": false
+      "description": "예방 의료와 접근성을 개선한다."
     },
     {
       "id": "housing",
@@ -909,93 +4175,9 @@
         "equality": 0.025
       },
       "factionEffects": {
-        "civil": 5
+        "petite": 5
       },
-      "description": "과밀과 불안정한 주거에 대응한다.",
-      "requiresBill": false
-    },
-    {
-      "id": "labor_inspection",
-      "name": "노동 감독 독립성",
-      "category": "권리",
-      "cost": 12,
-      "monthlyCost": 0.35,
-      "unlockYear": 1963,
-      "effects": {
-        "welfare": 2,
-        "liberty": 3
-      },
-      "monthlyEffects": {
-        "welfare": 0.035,
-        "liberty": 0.025
-      },
-      "factionEffects": {
-        "workers": 6,
-        "business": -2
-      },
-      "description": "산업재해와 장시간 노동을 감독하고 공개한다.",
-      "requiresBill": true
-    },
-    {
-      "id": "association",
-      "name": "결사권 보장",
-      "category": "권리",
-      "cost": 8,
-      "monthlyCost": 0.15,
-      "unlockYear": 1963,
-      "effects": {
-        "liberty": 6
-      },
-      "monthlyEffects": {
-        "liberty": 0.03
-      },
-      "factionEffects": {
-        "workers": 4,
-        "opposition": 5
-      },
-      "description": "합법적 단체의 활동을 보장하는 가상 법안.",
-      "requiresBill": true
-    },
-    {
-      "id": "press_freedom",
-      "name": "언론 자유 보장",
-      "category": "권리",
-      "cost": 8,
-      "monthlyCost": 0.15,
-      "unlockYear": 1963,
-      "effects": {
-        "liberty": 7,
-        "legitimacy": 2
-      },
-      "monthlyEffects": {
-        "liberty": 0.03
-      },
-      "factionEffects": {
-        "students": 6,
-        "opposition": 4
-      },
-      "description": "독립 보도와 정부의 답변 책임을 보장한다.",
-      "requiresBill": true
-    },
-    {
-      "id": "judicial_review",
-      "name": "사법 독립 보강",
-      "category": "권리",
-      "cost": 14,
-      "monthlyCost": 0.3,
-      "unlockYear": 1963,
-      "effects": {
-        "liberty": 5,
-        "legitimacy": 4
-      },
-      "monthlyEffects": {
-        "admin": 0.03
-      },
-      "factionEffects": {
-        "opposition": 6
-      },
-      "description": "권력 행위를 심사할 제도적 통로를 마련한다.",
-      "requiresBill": true
+      "description": "과밀과 불안정한 주거에 대응한다."
     },
     {
       "id": "open_accounts",
@@ -1012,11 +4194,9 @@
         "admin": 0.04
       },
       "factionEffects": {
-        "bureaucracy": 3,
-        "civil": 3
+        "petite": 6
       },
-      "description": "지출 내역과 사업 평가를 공개한다.",
-      "requiresBill": false
+      "description": "지출 내역과 사업 평가를 공개한다."
     },
     {
       "id": "civil_service",
@@ -1032,31 +4212,9 @@
         "admin": 0.055
       },
       "factionEffects": {
-        "bureaucracy": 5
+        "petite": 5
       },
-      "description": "정치적 충성 대신 전문성과 절차를 강화한다.",
-      "requiresBill": false
-    },
-    {
-      "id": "local_council",
-      "name": "지역 참여 예산",
-      "category": "행정",
-      "cost": 12,
-      "monthlyCost": 0.28,
-      "unlockYear": 1963,
-      "effects": {
-        "equality": 4,
-        "legitimacy": 3
-      },
-      "monthlyEffects": {
-        "equality": 0.04
-      },
-      "factionEffects": {
-        "farmers": 3,
-        "civil": 3
-      },
-      "description": "중앙의 결정에 지역 의견을 반영한다.",
-      "requiresBill": true
+      "description": "정치적 충성 대신 전문성과 절차를 강화한다."
     },
     {
       "id": "energy_efficiency",
@@ -1074,31 +4232,9 @@
         "reserves": 0.02
       },
       "factionEffects": {
-        "civil": 3
+        "petite": 3
       },
-      "description": "에너지 수입 충격을 줄이고 생산과 생활의 효율을 높이는 투자.",
-      "requiresBill": false
-    },
-    {
-      "id": "clean_water",
-      "name": "수질·상하수도 기준",
-      "category": "환경",
-      "cost": 16,
-      "monthlyCost": 0.35,
-      "unlockYear": 1963,
-      "effects": {
-        "environment": 5,
-        "welfare": 1
-      },
-      "monthlyEffects": {
-        "environment": 0.055
-      },
-      "factionEffects": {
-        "civil": 4,
-        "business": -1
-      },
-      "description": "산업화의 환경 비용을 반영한다.",
-      "requiresBill": true
+      "description": "에너지 수입 충격을 줄이고 생산과 생활의 효율을 높이는 투자."
     },
     {
       "id": "rail_priority",
@@ -1116,8 +4252,7 @@
       "factionEffects": {
         "business": 4
       },
-      "description": "도로 외의 물류 수단도 함께 발전시킨다.",
-      "requiresBill": false
+      "description": "도로 외의 물류 수단도 함께 발전시킨다."
     },
     {
       "id": "grid_planning",
@@ -1135,32 +4270,9 @@
       },
       "factionEffects": {
         "business": 3,
-        "civil": 2
+        "petite": 2
       },
-      "description": "발전과 송전의 병목을 계획한다.",
-      "requiresBill": false
-    },
-    {
-      "id": "civilian_oversight",
-      "name": "민간 통제의 제도화",
-      "category": "안보",
-      "cost": 10,
-      "monthlyCost": 0.2,
-      "unlockYear": 1963,
-      "effects": {
-        "liberty": 4,
-        "legitimacy": 4,
-        "security": 1
-      },
-      "monthlyEffects": {
-        "legitimacy": 0.02
-      },
-      "factionEffects": {
-        "military": -2,
-        "opposition": 5
-      },
-      "description": "군의 정치적 중립과 책임 있는 감독을 명시한다.",
-      "requiresBill": true
+      "description": "발전과 송전의 병목을 계획한다."
     },
     {
       "id": "diplomatic_diversity",
@@ -1179,480 +4291,7 @@
       "factionEffects": {
         "business": 3
       },
-      "description": "하나의 시장에 대한 과도한 의존을 완화한다.",
-      "requiresBill": false
-    }
-  ],
-  "projects": [
-    {
-      "id": "rural_clinic",
-      "name": "농촌 보건 거점",
-      "cost": 22,
-      "months": 5,
-      "maintenance": 0.15,
-      "income": 0.15,
-      "effects": {
-        "welfare": 4,
-        "equality": 2
-      },
-      "unlockYear": 1962,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "primary_campus",
-      "name": "초등 교육 시설",
-      "cost": 24,
-      "months": 6,
-      "maintenance": 0.15,
-      "income": 0.1,
-      "effects": {
-        "education": 5
-      },
-      "unlockYear": 1962,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "technical_campus",
-      "name": "기술학교",
-      "cost": 30,
-      "months": 8,
-      "maintenance": 0.2,
-      "income": 0.2,
-      "effects": {
-        "education": 4,
-        "industry": 2
-      },
-      "unlockYear": 1963,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "local_road",
-      "name": "지방 연결도로",
-      "cost": 28,
-      "months": 7,
-      "maintenance": 0.12,
-      "income": 0.3,
-      "effects": {
-        "infrastructure": 4,
-        "agriculture": 1
-      },
-      "unlockYear": 1962,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "irrigation",
-      "name": "관개·배수 개선",
-      "cost": 25,
-      "months": 6,
-      "maintenance": 0.1,
-      "income": 0.25,
-      "effects": {
-        "agriculture": 5
-      },
-      "unlockYear": 1962,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "rail_hub",
-      "name": "철도 물류 거점",
-      "cost": 40,
-      "months": 10,
-      "maintenance": 0.2,
-      "income": 0.55,
-      "effects": {
-        "infrastructure": 6,
-        "industry": 1
-      },
-      "unlockYear": 1963,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "power_grid",
-      "name": "송전망 확충",
-      "cost": 38,
-      "months": 9,
-      "maintenance": 0.22,
-      "income": 0.5,
-      "effects": {
-        "infrastructure": 6,
-        "environment": -1
-      },
-      "unlockYear": 1963,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "waterworks",
-      "name": "상하수도 시설",
-      "cost": 32,
-      "months": 8,
-      "maintenance": 0.2,
-      "income": 0.2,
-      "effects": {
-        "environment": 5,
-        "welfare": 3
-      },
-      "unlockYear": 1963,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "light_industry",
-      "name": "경공업 단지",
-      "cost": 36,
-      "months": 8,
-      "maintenance": 0.25,
-      "income": 0.65,
-      "effects": {
-        "industry": 5,
-        "unemployment": -1,
-        "environment": -2
-      },
-      "unlockYear": 1962,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "port_upgrade",
-      "name": "항만 물류 시설",
-      "cost": 45,
-      "months": 11,
-      "maintenance": 0.25,
-      "income": 0.75,
-      "effects": {
-        "infrastructure": 4,
-        "reserves": 3
-      },
-      "unlockYear": 1964,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "steel_complex",
-      "name": "제철 기반 시설",
-      "cost": 65,
-      "months": 16,
-      "maintenance": 0.5,
-      "income": 1,
-      "effects": {
-        "industry": 9,
-        "environment": -5
-      },
-      "unlockYear": 1968,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "shipyard",
-      "name": "조선 생산 시설",
-      "cost": 58,
-      "months": 14,
-      "maintenance": 0.4,
-      "income": 0.95,
-      "effects": {
-        "industry": 7,
-        "reserves": 3,
-        "environment": -3
-      },
-      "unlockYear": 1970,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "research_campus",
-      "name": "공공 연구소",
-      "cost": 48,
-      "months": 12,
-      "maintenance": 0.3,
-      "income": 0.35,
-      "effects": {
-        "education": 7,
-        "industry": 2
-      },
-      "unlockYear": 1966,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "public_housing",
-      "name": "도시 주택 지구",
-      "cost": 42,
-      "months": 10,
-      "maintenance": 0.25,
-      "income": 0.2,
-      "effects": {
-        "welfare": 5,
-        "equality": 3
-      },
-      "unlockYear": 1964,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "market_storage",
-      "name": "농수산물 저장 시설",
-      "cost": 26,
-      "months": 6,
-      "maintenance": 0.1,
-      "income": 0.3,
-      "effects": {
-        "agriculture": 4,
-        "inflation": -0.5
-      },
-      "unlockYear": 1963,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "river_restoration",
-      "name": "하천 환경 개선",
-      "cost": 35,
-      "months": 9,
-      "maintenance": 0.15,
-      "income": 0.1,
-      "effects": {
-        "environment": 7,
-        "welfare": 1
-      },
-      "unlockYear": 1965,
-      "description": "게임용 가상 사업. 준공 수치와 공기는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "coal_mechanization",
-      "name": "탄광 기계화·갱도 안전",
-      "requires": [
-        "coal"
-      ],
-      "cost": 34,
-      "months": 8,
-      "maintenance": 0.25,
-      "income": 0.7,
-      "effects": {
-        "industry": 3,
-        "infrastructure": 1,
-        "unemployment": -1,
-        "environment": -2
-      },
-      "unlockYear": 1962,
-      "development": 12,
-      "description": "갱도 지보와 환기, 운반 설비를 바꿔 같은 탄전에서 더 안전하게 더 많이 캔다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "cement_plant",
-      "name": "시멘트 공장",
-      "requires": [
-        "limestone"
-      ],
-      "cost": 40,
-      "months": 10,
-      "maintenance": 0.3,
-      "income": 0.8,
-      "effects": {
-        "industry": 4,
-        "infrastructure": 3,
-        "environment": -3
-      },
-      "unlockYear": 1962,
-      "development": 12,
-      "description": "석회석 산지 가까이에 소성로를 세워 건설 자재를 직접 만든다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "ore_smelter",
-      "name": "금속 광물 선광·제련",
-      "requires": [
-        "ore"
-      ],
-      "cost": 38,
-      "months": 10,
-      "maintenance": 0.3,
-      "income": 0.85,
-      "effects": {
-        "reserves": 4,
-        "industry": 2,
-        "environment": -3
-      },
-      "unlockYear": 1963,
-      "development": 12,
-      "description": "캐낸 광석을 가려 정련해 수출 단가를 높인다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "multipurpose_dam",
-      "name": "다목적 댐",
-      "requires": [
-        "hydro"
-      ],
-      "cost": 60,
-      "months": 18,
-      "maintenance": 0.3,
-      "income": 0.6,
-      "effects": {
-        "infrastructure": 5,
-        "agriculture": 3,
-        "environment": -2
-      },
-      "unlockYear": 1965,
-      "development": 12,
-      "description": "발전·용수·홍수 조절을 함께 맡는 댐. 착수비에 수몰 지역 이주 보상이 들어 있다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "farmland_consolidation",
-      "name": "곡창 경지 정리",
-      "requires": [
-        "rice"
-      ],
-      "cost": 26,
-      "months": 6,
-      "maintenance": 0.1,
-      "income": 0.35,
-      "effects": {
-        "agriculture": 5,
-        "inflation": -0.4
-      },
-      "unlockYear": 1962,
-      "development": 12,
-      "description": "작은 논배미를 반듯하게 묶고 물길을 다시 낸다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "reclamation",
-      "name": "간척지 조성",
-      "requires": [
-        "tidal"
-      ],
-      "cost": 45,
-      "months": 14,
-      "maintenance": 0.15,
-      "income": 0.5,
-      "effects": {
-        "agriculture": 5,
-        "environment": -4
-      },
-      "unlockYear": 1966,
-      "development": 12,
-      "description": "방조제를 쌓아 갯벌을 농지로 바꾼다. 갯벌의 생태 기능은 잃는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "fishing_port",
-      "name": "어항·수산 가공",
-      "requires": [
-        "fishery"
-      ],
-      "cost": 24,
-      "months": 6,
-      "maintenance": 0.12,
-      "income": 0.45,
-      "effects": {
-        "agriculture": 2,
-        "reserves": 2,
-        "welfare": 1
-      },
-      "unlockYear": 1962,
-      "development": 12,
-      "description": "방파제와 냉동·가공 시설로 잡은 고기를 덜 버리고 더 멀리 판다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "coastal_industrial",
-      "name": "임해 중화학 공업지구",
-      "requires": [
-        "harbor"
-      ],
-      "cost": 70,
-      "months": 18,
-      "maintenance": 0.55,
-      "income": 1.25,
-      "effects": {
-        "industry": 9,
-        "reserves": 3,
-        "environment": -6
-      },
-      "unlockYear": 1968,
-      "development": 14,
-      "description": "깊은 항만 옆에 원료 부두와 대형 공장을 한데 모은다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "export_zone",
-      "name": "수출 자유 지역",
-      "requires": [
-        "harbor"
-      ],
-      "cost": 38,
-      "months": 9,
-      "maintenance": 0.25,
-      "income": 0.9,
-      "effects": {
-        "reserves": 4,
-        "industry": 3,
-        "unemployment": -1,
-        "equality": -1
-      },
-      "unlockYear": 1970,
-      "development": 12,
-      "description": "관세를 면제한 가공 수출 구역. 일자리가 생기지만 이익은 고르게 나뉘지 않는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "reforestation",
-      "name": "산림 녹화·사방 사업",
-      "requires": [
-        "mountain"
-      ],
-      "cost": 20,
-      "months": 8,
-      "maintenance": 0.08,
-      "income": 0.05,
-      "effects": {
-        "environment": 6,
-        "agriculture": 1
-      },
-      "unlockYear": 1962,
-      "development": 12,
-      "description": "헐벗은 산에 나무를 심고 사태를 막는 둑을 쌓는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "tourism_complex",
-      "name": "관광 단지",
-      "requires": [
-        "scenery"
-      ],
-      "cost": 32,
-      "months": 9,
-      "maintenance": 0.2,
-      "income": 0.6,
-      "effects": {
-        "reserves": 2,
-        "welfare": 1,
-        "environment": -1
-      },
-      "unlockYear": 1966,
-      "development": 12,
-      "description": "숙박·교통 시설을 갖춰 국내외 방문객을 맞는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "urban_rail",
-      "name": "도시 철도",
-      "requires": [
-        "market"
-      ],
-      "cost": 62,
-      "months": 20,
-      "maintenance": 0.35,
-      "income": 0.5,
-      "effects": {
-        "infrastructure": 7,
-        "welfare": 2,
-        "environment": 1
-      },
-      "unlockYear": 1971,
-      "development": 12,
-      "description": "대도시 안을 잇는 전철. 공기가 길고 비싸지만 출퇴근길을 바꾼다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
-    },
-    {
-      "id": "island_link",
-      "name": "섬 연락선·도서 전력",
-      "requires": [
-        "island"
-      ],
-      "cost": 22,
-      "months": 6,
-      "maintenance": 0.1,
-      "income": 0.2,
-      "effects": {
-        "welfare": 2,
-        "equality": 2,
-        "infrastructure": 1
-      },
-      "unlockYear": 1963,
-      "development": 12,
-      "description": "정기 여객선과 작은 발전소로 섬 마을을 뭍과 잇는다. 게임용 가상 사업. 착수비·공기·효과는 실제 역사 통계가 아니다."
+      "description": "하나의 시장에 대한 과도한 의존을 완화한다."
     }
   ],
   "edicts": [
@@ -1745,8 +4384,8 @@
       "factionEffects": {
         "business": 2
       },
-      "buildDiscount": 0.15,
-      "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 사업 착수비 15% 감면."
+      "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 공사가 15% 빨리 진행된다.",
+      "constructionBonus": 0.15
     },
     {
       "id": "tourism_opening",
@@ -1809,10 +4448,10 @@
       },
       "factionEffects": {
         "farmers": 1,
-        "civil": 1
+        "petite": 1
       },
-      "buildDiscount": 0.25,
-      "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 사업 착수비 25% 감면."
+      "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 공사가 25% 빨리 진행된다.",
+      "constructionBonus": 0.25
     },
     {
       "id": "local_admin",
@@ -1826,7 +4465,7 @@
         "equality": 0.01
       },
       "factionEffects": {
-        "bureaucracy": 1
+        "petite": 1
       },
       "description": "도·군 행정에 인력과 장비를 보낸다."
     }
@@ -1932,7 +4571,7 @@
           },
           "factionEffects": {
             "military": 1,
-            "opposition": 1
+            "petite": 1
           }
         },
         {
@@ -1961,7 +4600,7 @@
             "legitimacy": 2
           },
           "factionEffects": {
-            "opposition": 2
+            "petite": 2
           }
         },
         {
@@ -2006,8 +4645,7 @@
             "legitimacy": 3
           },
           "factionEffects": {
-            "students": 4,
-            "civil": 3
+            "petite": 7
           }
         },
         {
@@ -2017,7 +4655,7 @@
             "legitimacy": 2
           },
           "factionEffects": {
-            "opposition": 3
+            "petite": 3
           }
         },
         {
@@ -2025,7 +4663,7 @@
           "label": "희생자에 대한 공개적 애도를 표한다",
           "effects": {},
           "factionEffects": {
-            "civil": 2
+            "petite": 2
           },
           "influence": 2
         }
@@ -2105,8 +4743,7 @@
           },
           "phase": "civilian",
           "factionEffects": {
-            "opposition": 6,
-            "students": 4
+            "petite": 8
           }
         },
         {
@@ -2123,7 +4760,7 @@
           "phase": "transition",
           "factionEffects": {
             "military": 6,
-            "students": -8
+            "petite": -8
           }
         },
         {
@@ -2389,7 +5026,7 @@
             "japan": 10
           },
           "factionEffects": {
-            "students": -4
+            "petite": -4
           }
         },
         {
@@ -2680,8 +5317,7 @@
             "authoritarian": true
           },
           "factionEffects": {
-            "students": -12,
-            "opposition": -15
+            "petite": -8
           }
         },
         {
@@ -5134,8 +7770,7 @@
         "legitimacy": 0.5
       },
       "support": {
-        "students": -0.15,
-        "opposition": -0.2,
+        "petite": -0.3,
         "workers": -0.05
       },
       "relations": {
@@ -5154,18 +7789,18 @@
     },
     {
       "id": "first_bill",
-      "name": "의회의 시간",
-      "description": "법안을 한 번 가결한다.",
+      "name": "법이 바뀐 날",
+      "description": "법률을 하나 제정한다.",
       "condition": {
-        "passedBills": 1
+        "lawsEnacted": 1
       }
     },
     {
       "id": "first_project",
       "name": "준공 보고서",
-      "description": "건설 사업을 한 번 완공한다.",
+      "description": "정부 건설로 건물 한 단계를 준공한다.",
       "condition": {
-        "completedProjects": 1
+        "built": 1
       }
     },
     {
@@ -5219,7 +7854,7 @@
     {
       "id": "balanced_region",
       "name": "멀리 있는 중심",
-      "description": "서로 다른 5개 권역에서 사업 준공.",
+      "description": "다섯 권역에서 정부 건설을 준공한다.",
       "condition": {
         "regionsBuilt": 5
       }
@@ -5243,9 +7878,9 @@
     {
       "id": "local_strength",
       "name": "땅이 가진 것",
-      "description": "권역 자원을 쓰는 고유 사업 3건 준공.",
+      "description": "지형·자원을 쓰는 건물을 세 단계 준공한다.",
       "condition": {
-        "uniqueProjects": 3
+        "resourceBuilt": 3
       }
     },
     {
@@ -5254,6 +7889,30 @@
       "description": "지역 시책 3개를 동시에 시행.",
       "condition": {
         "edicts": 3
+      }
+    },
+    {
+      "id": "export_day",
+      "name": "수출의 날",
+      "description": "한 달 수출액이 수입액을 넘는다.",
+      "condition": {
+        "tradeSurplus": true
+      }
+    },
+    {
+      "id": "six_groups",
+      "name": "여섯 집단의 박수",
+      "description": "이해집단 넷 이상이 만족 이상이다.",
+      "condition": {
+        "happyGroups": 4
+      }
+    },
+    {
+      "id": "full_market",
+      "name": "모자람 없는 시장",
+      "description": "공급 부족인 상품이 하나도 없다(국정 운영 중).",
+      "condition": {
+        "noShortage": true
       }
     }
   ],

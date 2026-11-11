@@ -1,0 +1,100 @@
+[
+  {
+    "id": "military_role",
+    "name": "군의 위상",
+    "column": "power",
+    "interval": 2,
+    "description": "군과 문민 정부의 관계를 정한다."
+  },
+  {
+    "id": "local_gov",
+    "name": "지방 행정",
+    "column": "power",
+    "interval": 2,
+    "description": "지방을 누가 운영하는지 정한다."
+  },
+  {
+    "id": "judiciary",
+    "name": "사법",
+    "column": "power",
+    "interval": 2,
+    "description": "법원의 독립 정도를 정한다."
+  },
+  {
+    "id": "civil_service",
+    "name": "관료제",
+    "column": "power",
+    "interval": 2,
+    "description": "공무원을 어떻게 뽑는지 정한다."
+  },
+  {
+    "id": "economic_system",
+    "name": "경제 체제",
+    "column": "economy",
+    "interval": 3,
+    "description": "정부와 민간이 건설과 투자를 어떻게 나누는지 정한다."
+  },
+  {
+    "id": "trade",
+    "name": "무역 정책",
+    "column": "economy",
+    "interval": 2,
+    "description": "관세와 수출 지원, 무역 역량을 정한다."
+  },
+  {
+    "id": "taxation",
+    "name": "조세",
+    "column": "economy",
+    "interval": 2,
+    "description": "어떤 소득과 소비에 세금을 매기는지 정한다."
+  },
+  {
+    "id": "land",
+    "name": "토지 제도",
+    "column": "economy",
+    "interval": 3,
+    "description": "농장의 이익을 지주와 농민이 어떻게 나누는지 정한다."
+  },
+  {
+    "id": "labor",
+    "name": "노동권",
+    "column": "rights",
+    "interval": 2,
+    "description": "임금과 작업장 감독을 정한다."
+  },
+  {
+    "id": "association",
+    "name": "결사",
+    "column": "rights",
+    "interval": 2,
+    "description": "노동자와 시민이 단체를 만들 권리를 정한다."
+  },
+  {
+    "id": "speech",
+    "name": "표현의 자유",
+    "column": "rights",
+    "interval": 2,
+    "description": "언론과 출판의 자유를 정한다."
+  },
+  {
+    "id": "welfare_system",
+    "name": "복지",
+    "column": "rights",
+    "interval": 2,
+    "description": "실업자와 가난한 가구를 어떻게 돕는지 정한다."
+  },
+  {
+    "id": "environment_rules",
+    "name": "환경 규제",
+    "column": "rights",
+    "interval": 2,
+    "description": "공장의 오염을 얼마나 규제하는지 정한다."
+  },
+  {
+    "id": "defense",
+    "name": "국방",
+    "column": "rights",
+    "interval": 2,
+    "description": "군의 규모와 보급 방식을 정한다."
+  }
+]

@@ -10,7 +10,6 @@
       "services",
       "education"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "plain",
@@ -21,7 +20,22 @@
     "resources": [
       "harbor",
       "market"
-    ]
+    ],
+    "arable": 5,
+    "start": {
+      "farm": 3,
+      "textile_mill": 2,
+      "garment": 1,
+      "food_plant": 1,
+      "commerce": 4,
+      "power_plant": 1,
+      "railway": 2,
+      "construction": 1,
+      "admin_office": 2,
+      "school": 2,
+      "barracks": 1,
+      "clinic": 1
+    }
   },
   {
     "id": "gangwon",
@@ -34,7 +48,6 @@
       "mining",
       "forestry"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "mountain",
@@ -47,7 +60,17 @@
       "timber",
       "hydro",
       "fishery"
-    ]
+    ],
+    "arable": 9,
+    "start": {
+      "farm": 2,
+      "coal_mine": 3,
+      "ore_mine": 1,
+      "forestry": 2,
+      "fishery": 1,
+      "barracks": 1,
+      "commerce": 1
+    }
   },
   {
     "id": "chungnam",
@@ -60,7 +83,6 @@
       "agriculture",
       "logistics"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "plain",
@@ -70,7 +92,14 @@
     "resources": [
       "rice",
       "tidal"
-    ]
+    ],
+    "arable": 9,
+    "start": {
+      "farm": 6,
+      "commerce": 1,
+      "school": 1,
+      "railway": 1
+    }
   },
   {
     "id": "chungbuk",
@@ -83,7 +112,6 @@
       "agriculture",
       "materials"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "mountain",
@@ -93,7 +121,13 @@
       "limestone",
       "hydro",
       "timber"
-    ]
+    ],
+    "arable": 9,
+    "start": {
+      "farm": 3,
+      "forestry": 1,
+      "commerce": 1
+    }
   },
   {
     "id": "jeonbuk",
@@ -106,7 +140,6 @@
       "agriculture",
       "food"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "plain",
@@ -115,7 +148,14 @@
     "resources": [
       "rice",
       "tidal"
-    ]
+    ],
+    "arable": 11,
+    "start": {
+      "farm": 7,
+      "food_plant": 1,
+      "commerce": 1,
+      "school": 1
+    }
   },
   {
     "id": "gyeongbuk",
@@ -128,7 +168,6 @@
       "manufacturing",
       "materials"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "mountain",
@@ -140,7 +179,16 @@
       "hydro",
       "fishery",
       "timber"
-    ]
+    ],
+    "arable": 8,
+    "start": {
+      "farm": 5,
+      "textile_mill": 2,
+      "commerce": 2,
+      "fishery": 1,
+      "school": 1,
+      "railway": 1
+    }
   },
   {
     "id": "jeonnam",
@@ -153,7 +201,6 @@
       "agriculture",
       "port"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "plain",
@@ -165,7 +212,15 @@
       "tidal",
       "fishery",
       "harbor"
-    ]
+    ],
+    "arable": 11,
+    "start": {
+      "farm": 8,
+      "fishery": 2,
+      "commerce": 1,
+      "school": 1,
+      "railway": 1
+    }
   },
   {
     "id": "gyeongnam",
@@ -178,7 +233,6 @@
       "shipbuilding",
       "manufacturing"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "coast",
@@ -188,7 +242,15 @@
     "resources": [
       "harbor",
       "fishery"
-    ]
+    ],
+    "arable": 7,
+    "start": {
+      "farm": 5,
+      "fishery": 2,
+      "textile_mill": 1,
+      "commerce": 1,
+      "barracks": 1
+    }
   },
   {
     "id": "busan",
@@ -201,7 +263,6 @@
       "port",
       "trade"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "coast",
@@ -211,7 +272,17 @@
       "harbor",
       "market",
       "fishery"
-    ]
+    ],
+    "arable": 4,
+    "start": {
+      "port": 2,
+      "garment": 1,
+      "commerce": 3,
+      "fishery": 1,
+      "power_plant": 1,
+      "construction": 1,
+      "admin_office": 1
+    }
   },
   {
     "id": "jeju",
@@ -224,7 +295,6 @@
       "agriculture",
       "tourism"
     ],
-    "slots": 4,
     "disclaimer": "게임 편의를 위한 권역. 당시 행정구역 경계를 재현하지 않음. 지형·자원은 게임용 단순화.",
     "terrain": [
       "island",
@@ -233,6 +303,12 @@
     "resources": [
       "scenery",
       "fishery"
-    ]
+    ],
+    "arable": 8,
+    "start": {
+      "farm": 1,
+      "fishery": 1,
+      "commerce": 1
+    }
   }
 ]

@@ -20,7 +20,7 @@
         },
         "factionEffects": {
           "military": 1,
-          "opposition": 1
+          "petite": 1
         }
       },
       {
@@ -49,7 +49,7 @@
           "legitimacy": 2
         },
         "factionEffects": {
-          "opposition": 2
+          "petite": 2
         }
       },
       {
@@ -94,8 +94,7 @@
           "legitimacy": 3
         },
         "factionEffects": {
-          "students": 4,
-          "civil": 3
+          "petite": 7
         }
       },
       {
@@ -105,7 +104,7 @@
           "legitimacy": 2
         },
         "factionEffects": {
-          "opposition": 3
+          "petite": 3
         }
       },
       {
@@ -113,7 +112,7 @@
         "label": "희생자에 대한 공개적 애도를 표한다",
         "effects": {},
         "factionEffects": {
-          "civil": 2
+          "petite": 2
         },
         "influence": 2
       }
@@ -193,8 +192,7 @@
         },
         "phase": "civilian",
         "factionEffects": {
-          "opposition": 6,
-          "students": 4
+          "petite": 8
         }
       },
       {
@@ -211,7 +209,7 @@
         "phase": "transition",
         "factionEffects": {
           "military": 6,
-          "students": -8
+          "petite": -8
         }
       },
       {
@@ -477,7 +475,7 @@
           "japan": 10
         },
         "factionEffects": {
-          "students": -4
+          "petite": -4
         }
       },
       {
@@ -768,8 +766,7 @@
           "authoritarian": true
         },
         "factionEffects": {
-          "students": -12,
-          "opposition": -15
+          "petite": -8
         }
       },
       {

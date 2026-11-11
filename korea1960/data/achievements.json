@@ -9,18 +9,18 @@
   },
   {
     "id": "first_bill",
-    "name": "의회의 시간",
-    "description": "법안을 한 번 가결한다.",
+    "name": "법이 바뀐 날",
+    "description": "법률을 하나 제정한다.",
     "condition": {
-      "passedBills": 1
+      "lawsEnacted": 1
     }
   },
   {
     "id": "first_project",
     "name": "준공 보고서",
-    "description": "건설 사업을 한 번 완공한다.",
+    "description": "정부 건설로 건물 한 단계를 준공한다.",
     "condition": {
-      "completedProjects": 1
+      "built": 1
     }
   },
   {
@@ -74,7 +74,7 @@
   {
     "id": "balanced_region",
     "name": "멀리 있는 중심",
-    "description": "서로 다른 5개 권역에서 사업 준공.",
+    "description": "다섯 권역에서 정부 건설을 준공한다.",
     "condition": {
       "regionsBuilt": 5
     }
@@ -98,9 +98,9 @@
   {
     "id": "local_strength",
     "name": "땅이 가진 것",
-    "description": "권역 자원을 쓰는 고유 사업 3건 준공.",
+    "description": "지형·자원을 쓰는 건물을 세 단계 준공한다.",
     "condition": {
-      "uniqueProjects": 3
+      "resourceBuilt": 3
     }
   },
   {
@@ -109,6 +109,30 @@
     "description": "지역 시책 3개를 동시에 시행.",
     "condition": {
       "edicts": 3
+    }
+  },
+  {
+    "id": "export_day",
+    "name": "수출의 날",
+    "description": "한 달 수출액이 수입액을 넘는다.",
+    "condition": {
+      "tradeSurplus": true
+    }
+  },
+  {
+    "id": "six_groups",
+    "name": "여섯 집단의 박수",
+    "description": "이해집단 넷 이상이 만족 이상이다.",
+    "condition": {
+      "happyGroups": 4
+    }
+  },
+  {
+    "id": "full_market",
+    "name": "모자람 없는 시장",
+    "description": "공급 부족인 상품이 하나도 없다(국정 운영 중).",
+    "condition": {
+      "noShortage": true
     }
   }
 ]

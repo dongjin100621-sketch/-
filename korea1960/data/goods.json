@@ -1,0 +1,324 @@
+[
+  {
+    "id": "grain",
+    "name": "곡물",
+    "category": "staple",
+    "price": 18,
+    "need": {
+      "q0": 2700,
+      "e": 0.25
+    },
+    "world": {
+      "price": 1,
+      "export": 0,
+      "import": true,
+      "noTariff": true
+    },
+    "mark": "곡",
+    "description": "쌀·보리·밀. 가계 지출의 가장 큰 몫. 부족분은 관세 없이 들여온다(원조·도입 양곡의 단순화)."
+  },
+  {
+    "id": "fish",
+    "name": "수산물",
+    "category": "staple",
+    "price": 22,
+    "need": {
+      "q0": 300,
+      "e": 0.5
+    },
+    "world": {
+      "price": 1.1,
+      "export": 110,
+      "import": true
+    },
+    "mark": "어",
+    "description": "연근해 어획과 가공 원료. 수출 품목이기도 하다."
+  },
+  {
+    "id": "groceries",
+    "name": "가공식품",
+    "category": "staple",
+    "price": 36,
+    "need": {
+      "q0": 90,
+      "e": 1.1
+    },
+    "world": {
+      "price": 1,
+      "export": 40,
+      "import": true
+    },
+    "mark": "식",
+    "description": "제분·제당·통조림. 소득이 오르면 곡물보다 빨리 늘어난다."
+  },
+  {
+    "id": "clothes",
+    "name": "의복",
+    "category": "staple",
+    "price": 44,
+    "need": {
+      "q0": 100,
+      "e": 1
+    },
+    "world": {
+      "price": 1.12,
+      "export": 240,
+      "import": true
+    },
+    "mark": "옷",
+    "description": "봉제 공장의 산출. 1960~70년대의 대표 수출품."
+  },
+  {
+    "id": "services",
+    "name": "서비스",
+    "category": "staple",
+    "price": 30,
+    "need": {
+      "q0": 660,
+      "e": 1.1
+    },
+    "world": null,
+    "mark": "서",
+    "description": "상가·시장·관광의 산출. 교역하지 않는다."
+  },
+  {
+    "id": "transport",
+    "name": "운송",
+    "category": "staple",
+    "price": 26,
+    "need": {
+      "q0": 50,
+      "e": 1.1
+    },
+    "world": null,
+    "mark": "운",
+    "description": "철도·항만의 산출. 상가와 가계가 쓴다. 교역하지 않는다."
+  },
+  {
+    "id": "electricity",
+    "name": "전력",
+    "category": "staple",
+    "price": 28,
+    "need": {
+      "q0": 46,
+      "e": 1.3
+    },
+    "world": null,
+    "mark": "전",
+    "description": "발전소·댐의 산출. 공장의 기계화에 필요하다. 교역하지 않는다."
+  },
+  {
+    "id": "fabric",
+    "name": "직물",
+    "category": "industrial",
+    "price": 24,
+    "need": {
+      "q0": 200,
+      "e": 0.4
+    },
+    "world": {
+      "price": 1.04,
+      "export": 110,
+      "import": true
+    },
+    "mark": "직",
+    "description": "방직 공장의 산출이자 봉제 공장의 투입재."
+  },
+  {
+    "id": "wood",
+    "name": "목재",
+    "category": "industrial",
+    "price": 16,
+    "need": {
+      "q0": 250,
+      "e": 0.3
+    },
+    "world": {
+      "price": 1.08,
+      "export": 60,
+      "import": true
+    },
+    "mark": "목",
+    "description": "땔감·건축·갱목. 초기 건설의 주 자재."
+  },
+  {
+    "id": "coal",
+    "name": "석탄",
+    "category": "industrial",
+    "price": 26,
+    "need": {
+      "q0": 64,
+      "e": 0.6
+    },
+    "world": {
+      "price": 1.05,
+      "export": 20,
+      "import": true
+    },
+    "mark": "탄",
+    "description": "발전·철도·시멘트·제철의 연료이자 가정 연료."
+  },
+  {
+    "id": "ore",
+    "name": "광석",
+    "category": "industrial",
+    "price": 34,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1.06,
+      "export": 90,
+      "import": true
+    },
+    "mark": "광",
+    "description": "금속 광석. 제철소가 생기기 전에는 대부분 수출한다."
+  },
+  {
+    "id": "steel",
+    "name": "강철",
+    "category": "industrial",
+    "price": 56,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1,
+      "export": 150,
+      "import": true
+    },
+    "mark": "철",
+    "description": "기계·조선·철근 콘크리트 건설·군수의 투입재."
+  },
+  {
+    "id": "cement",
+    "name": "시멘트",
+    "category": "industrial",
+    "price": 28,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1,
+      "export": 80,
+      "import": true
+    },
+    "mark": "멘",
+    "description": "건설 자재. 석회석 권역에서 만든다."
+  },
+  {
+    "id": "tools",
+    "name": "기계·공구",
+    "category": "industrial",
+    "price": 48,
+    "need": {
+      "q0": 6,
+      "e": 0.8
+    },
+    "world": {
+      "price": 1.05,
+      "export": 110,
+      "import": true
+    },
+    "mark": "기",
+    "description": "광산·농장·공장의 기계화에 쓰는 중간재."
+  },
+  {
+    "id": "fertilizer",
+    "name": "비료",
+    "category": "industrial",
+    "price": 30,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1,
+      "export": 60,
+      "import": true
+    },
+    "mark": "비",
+    "description": "농장의 생산방식을 올리는 투입재."
+  },
+  {
+    "id": "oil",
+    "name": "석유",
+    "category": "industrial",
+    "price": 44,
+    "need": {
+      "q0": 4,
+      "e": 1.2
+    },
+    "world": {
+      "price": 1,
+      "export": 0,
+      "import": true,
+      "schedule": [
+        [
+          165,
+          2.2
+        ],
+        [
+          228,
+          3.1
+        ]
+      ]
+    },
+    "mark": "유",
+    "description": "전량 수입. 1973년 10월과 1979년 1월에 세계 가격이 오른다."
+  },
+  {
+    "id": "electronics",
+    "name": "전자제품",
+    "category": "luxury",
+    "price": 72,
+    "need": {
+      "q0": 3,
+      "e": 1.8
+    },
+    "world": {
+      "price": 1.1,
+      "export": 200,
+      "import": true
+    },
+    "mark": "자",
+    "description": "라디오·텔레비전·부품. 소득이 오를수록 빠르게 늘어나는 수요."
+  },
+  {
+    "id": "ships",
+    "name": "선박",
+    "category": "luxury",
+    "price": 90,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1.1,
+      "export": 150,
+      "import": true
+    },
+    "mark": "선",
+    "description": "조선소의 산출. 거의 전부 수출한다."
+  },
+  {
+    "id": "arms",
+    "name": "군수품",
+    "category": "military",
+    "price": 60,
+    "need": {
+      "q0": 0,
+      "e": 0
+    },
+    "world": {
+      "price": 1,
+      "export": 0,
+      "import": true
+    },
+    "mark": "군",
+    "description": "군 기지가 쓰는 보급품. 군수 공장이 없으면 수입한다."
+  }
+]

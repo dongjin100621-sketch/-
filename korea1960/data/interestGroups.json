@@ -1,0 +1,411 @@
+[
+  {
+    "id": "workers",
+    "name": "노동자",
+    "mark": "노",
+    "cloutWeight": 1,
+    "wage": 1,
+    "invest": 0,
+    "description": "공장·광산·건설 현장에서 임금을 받는 사람들과 일자리를 찾는 사람들. 임금과 일자리, 단결할 권리, 보건과 주거를 바란다.",
+    "demands": [
+      {
+        "id": "jobs",
+        "text": "제조업 일자리",
+        "buildings": [
+          "textile_mill",
+          "garment",
+          "food_plant",
+          "machinery",
+          "electronics",
+          "shipyard",
+          "steel_mill"
+        ],
+        "base": 9,
+        "perYear": 1.04,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "care",
+        "text": "보건소·공공 주택",
+        "buildings": [
+          "clinic",
+          "housing"
+        ],
+        "base": 1,
+        "perYear": 0.36,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "schools",
+        "text": "학교",
+        "buildings": [
+          "school"
+        ],
+        "base": 6,
+        "perYear": 0.36,
+        "from": 4,
+        "weight": 3
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "태업과 이직",
+        "modifiers": {
+          "constructionEff": -0.1,
+          "mfgThroughput": -0.05
+        }
+      },
+      "happy": {
+        "name": "숙련의 축적",
+        "modifiers": {
+          "mfgThroughput": 0.05
+        }
+      },
+      "loyal": {
+        "name": "산업 평화",
+        "modifiers": {
+          "mfgThroughput": 0.03
+        },
+        "monthly": {
+          "stability": 0.03
+        }
+      }
+    }
+  },
+  {
+    "id": "farmers",
+    "name": "농민",
+    "mark": "농",
+    "cloutWeight": 0.7,
+    "wage": 0.95,
+    "invest": 0,
+    "description": "자기 땅이나 남의 땅을 부치는 사람들과 자급 농가. 농지와 곡가, 비료와 물, 농촌의 보건을 바란다.",
+    "demands": [
+      {
+        "id": "water",
+        "text": "관개·농업 기반",
+        "buildings": [
+          "irrigation"
+        ],
+        "base": 0,
+        "perYear": 0.32,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "fertilizer",
+        "text": "비료 공장",
+        "buildings": [
+          "fertilizer_plant"
+        ],
+        "base": 0,
+        "perYear": 0.2,
+        "from": 5,
+        "weight": 4
+      },
+      {
+        "id": "care",
+        "text": "보건소·공공 주택",
+        "buildings": [
+          "clinic",
+          "housing"
+        ],
+        "base": 1,
+        "perYear": 0.36,
+        "from": 4,
+        "weight": 3
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "출하 기피",
+        "modifiers": {
+          "farmThroughput": -0.08
+        }
+      },
+      "happy": {
+        "name": "증산 의욕",
+        "modifiers": {
+          "farmThroughput": 0.06
+        }
+      },
+      "loyal": {
+        "name": "농촌의 지지",
+        "modifiers": {},
+        "monthly": {
+          "stability": 0.03,
+          "legitimacy": 0.02
+        }
+      }
+    }
+  },
+  {
+    "id": "petite",
+    "name": "소시민",
+    "mark": "소",
+    "cloutWeight": 2.6,
+    "wage": 1.35,
+    "invest": 0.08,
+    "description": "상인·사무원·교사·공무원 같은 도시 중간층. 언론과 법의 보호, 공정한 채용, 학교와 상가를 바란다.",
+    "demands": [
+      {
+        "id": "schools",
+        "text": "학교",
+        "buildings": [
+          "school"
+        ],
+        "base": 6,
+        "perYear": 0.4,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "shops",
+        "text": "상가·시장",
+        "buildings": [
+          "commerce"
+        ],
+        "base": 16,
+        "perYear": 0.56,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "offices",
+        "text": "행정청·연구소",
+        "buildings": [
+          "admin_office",
+          "research"
+        ],
+        "base": 3,
+        "perYear": 0.16,
+        "from": 4,
+        "weight": 3
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "냉소와 탈루",
+        "modifiers": {
+          "taxEff": -0.06
+        },
+        "monthly": {
+          "legitimacy": -0.03
+        }
+      },
+      "happy": {
+        "name": "성실 납세",
+        "modifiers": {
+          "taxEff": 0.05
+        }
+      },
+      "loyal": {
+        "name": "행정 협조",
+        "modifiers": {},
+        "monthly": {
+          "admin": 0.04
+        }
+      }
+    }
+  },
+  {
+    "id": "business",
+    "name": "기업가",
+    "mark": "기",
+    "cloutWeight": 55,
+    "wage": 0,
+    "invest": 0.28,
+    "description": "공장·광산·상사를 가진 사람들. 수출 지원과 낮은 이익세, 항만·전력·철도, 중화학 공장을 바란다.",
+    "demands": [
+      {
+        "id": "infra",
+        "text": "항만·철도·발전소",
+        "buildings": [
+          "port",
+          "railway",
+          "power_plant",
+          "hydro_dam"
+        ],
+        "base": 6,
+        "perYear": 0.44,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "heavy",
+        "text": "제철·기계·조선·전자",
+        "buildings": [
+          "steel_mill",
+          "machinery",
+          "shipyard",
+          "electronics"
+        ],
+        "base": 0,
+        "perYear": 0.48,
+        "from": 8,
+        "weight": 4
+      },
+      {
+        "id": "fertilizer",
+        "text": "비료 공장",
+        "buildings": [
+          "fertilizer_plant"
+        ],
+        "base": 0,
+        "perYear": 0.2,
+        "from": 5,
+        "weight": 2
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "투자 보류",
+        "modifiers": {
+          "investBonus": -0.4
+        },
+        "monthly": {
+          "reserves": -0.02
+        }
+      },
+      "happy": {
+        "name": "설비 투자",
+        "modifiers": {
+          "investBonus": 0.2
+        }
+      },
+      "loyal": {
+        "name": "수출 총력",
+        "modifiers": {
+          "tradeCapBonus": 0.1,
+          "mfgThroughput": 0.03
+        }
+      }
+    }
+  },
+  {
+    "id": "landowners",
+    "name": "지주",
+    "mark": "지",
+    "cloutWeight": 30,
+    "wage": 0,
+    "invest": 0.12,
+    "description": "농지개혁 뒤에도 남은 큰 농지와 임야, 도시의 땅을 가진 사람들. 소작과 낮은 토지세, 농장 확장과 도시 상가를 바란다.",
+    "demands": [
+      {
+        "id": "farms",
+        "text": "논·밭 농장",
+        "buildings": [
+          "farm"
+        ],
+        "base": 40,
+        "perYear": 0.4,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "shops",
+        "text": "상가·시장",
+        "buildings": [
+          "commerce"
+        ],
+        "base": 16,
+        "perYear": 0.56,
+        "from": 4,
+        "weight": 3
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "자금 은닉",
+        "modifiers": {
+          "investBonus": -0.15,
+          "taxEff": -0.04
+        }
+      },
+      "happy": {
+        "name": "지역 유지의 협조",
+        "modifiers": {
+          "farmThroughput": 0.03
+        }
+      },
+      "loyal": {
+        "name": "농지 투자",
+        "modifiers": {
+          "investBonus": 0.1
+        }
+      }
+    }
+  },
+  {
+    "id": "military",
+    "name": "군대",
+    "mark": "군",
+    "cloutWeight": 10,
+    "wage": 1.15,
+    "invest": 0,
+    "description": "장교와 병사, 군 조직. 군의 자율과 예산, 군 기지와 보급, 군수의 바탕이 되는 제철을 바란다. 제도적 요구와 그 비용만 다룬다.",
+    "demands": [
+      {
+        "id": "bases",
+        "text": "군 기지",
+        "buildings": [
+          "barracks"
+        ],
+        "base": 3,
+        "perYear": 0.12,
+        "from": 4,
+        "weight": 4
+      },
+      {
+        "id": "supply",
+        "text": "군수 공장·제철소",
+        "buildings": [
+          "arms_plant",
+          "steel_mill"
+        ],
+        "base": 0,
+        "perYear": 0.32,
+        "from": 12,
+        "weight": 4
+      },
+      {
+        "id": "rail",
+        "text": "철도·운수",
+        "buildings": [
+          "railway"
+        ],
+        "base": 2,
+        "perYear": 0.16,
+        "from": 4,
+        "weight": 2
+      }
+    ],
+    "traits": {
+      "unhappy": {
+        "name": "제도적 긴장",
+        "modifiers": {},
+        "monthly": {
+          "stability": -0.06,
+          "legitimacy": -0.03
+        }
+      },
+      "happy": {
+        "name": "기강 확립",
+        "modifiers": {},
+        "monthly": {
+          "security": 0.04
+        }
+      },
+      "loyal": {
+        "name": "안정된 지휘",
+        "modifiers": {},
+        "monthly": {
+          "stability": 0.03,
+          "security": 0.02
+        }
+      }
+    }
+  }
+]

@@ -70,8 +70,7 @@
       "legitimacy": 0.5
     },
     "support": {
-      "students": -0.15,
-      "opposition": -0.2,
+      "petite": -0.3,
       "workers": -0.05
     },
     "relations": {

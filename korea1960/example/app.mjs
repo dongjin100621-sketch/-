@@ -1,6 +1,6 @@
 import {createState,dispatch,dateLabel,calendar,policyReason,projectReason,choiceReason,finance,supportAverage,exportSave,importSave,regionDevelopment,achievements,BUDGET_KEYS,governmentReason} from './engine.mjs';
 
-const data=globalThis.__DATA__ || await fetch('../data/game.json').then(r=>{if(!r.ok)throw Error('콘텐츠를 읽지 못했습니다.');return r.json();});
+const data=globalThis.__DATA__ || await fetch('./game.json').then(r=>{if(!r.ok)throw Error('콘텐츠를 읽지 못했습니다.');return r.json();});
 const KEY='korea1960.reference.v1';
 let state,view='overview',region='capital',filter='전체',message='',storageError='';
 try{const saved=localStorage.getItem(KEY);state=saved?importSave(saved,data):createState(data);}catch(e){state=createState(data);storageError='이전 자동 저장을 읽지 못해 새 게임을 준비했습니다. '+e.message;}

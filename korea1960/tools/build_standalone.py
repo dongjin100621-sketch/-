@@ -54,7 +54,7 @@ def build_game(artifact=False):
     return page(css, script, artifact=artifact)
 
 def build_reference():
-    d = json.loads((ROOT / 'data/game.json').read_text(encoding='utf-8'))
+    d = json.loads((ROOT / 'example/game.json').read_text(encoding='utf-8'))  # 참조 구현은 데이터 1.3.0 사본으로 고정
     engine = re.sub(r'\bexport\s+(?=const|function|class)', '', (ROOT / 'example/engine.mjs').read_text(encoding='utf-8'))
     app = re.sub(r'^import[^\n]+\n', '', (ROOT / 'example/app.mjs').read_text(encoding='utf-8'), flags=re.M)
     css = (ROOT / 'example/style.css').read_text(encoding='utf-8').replace('../assets/fonts/ChronicleKR-Regular.ttf', uri(ROOT / 'assets/fonts/ChronicleKR-Regular.ttf', 'font/ttf'))

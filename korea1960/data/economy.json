@@ -1,0 +1,190 @@
+{
+  "note": "시장 경제 모형의 상수. 모든 값은 게임 설계 값이다. 설명: docs/SIMULATION_RULES.md \"시장 경제(데이터 2.0.0)\".",
+  "unit": 0.0009090909090909091,
+  "workforce": 2830,
+  "workforceGrowth": 0.0013,
+  "subsistenceCap": 800,
+  "subsistenceMobility": 0.06,
+  "subsistence": {
+    "grain": 0.95,
+    "fish": 0.06,
+    "wood": 0.25,
+    "fabric": 0.04
+  },
+  "wage": 36,
+  "wageUp": 0.005,
+  "wageDown": 0.003,
+  "wageFlex": 0.08,
+  "fullEmployment": 0.1,
+  "dependentShare": 0.25,
+  "basePop": {
+    "business": 6,
+    "landowners": 20
+  },
+  "ownersPerLevel": 0.5,
+  "saving": {
+    "workers": 0.02,
+    "farmers": 0.02,
+    "petite": 0.04,
+    "business": 0.15,
+    "landowners": 0.12,
+    "military": 0.03
+  },
+  "price": {
+    "swing": 0.75,
+    "floor": -0.6,
+    "ceiling": 0.9,
+    "speed": 0.5
+  },
+  "shortageAt": 1.6,
+  "shortageMax": 0.5,
+  "scalePerLevel": 0.01,
+  "scaleCap": 20,
+  "techPerPoint": 0.006,
+  "techBase": {
+    "industry": 18,
+    "agriculture": 38,
+    "infrastructure": 25
+  },
+  "minStaff": 0.5,
+  "hireRate": 0.2,
+  "fireRate": 0.06,
+  "infraBase": 4,
+  "infraPerDev": 0.16,
+  "infraPerIndex": 0.08,
+  "accessFloor": 0.5,
+  "constructionBase": 6,
+  "maxPerProject": 10,
+  "queueMax": 8,
+  "privateQueueMax": 2,
+  "investThreshold": 0.0015,
+  "poolCap": 60,
+  "poolStart": 4,
+  "tradeBase": 40000,
+  "tradeCost": 0.04,
+  "forexFloor": 12,
+  "forexScale": 0.04,
+  "aid": {
+    "start": 0.2,
+    "endTurn": 132
+  },
+  "exportGrowth": 0.05,
+  "collectBase": 0.55,
+  "collectPerAdmin": 0.006,
+  "baseExpense": 1.6,
+  "baseExpenseGdp": 0.008,
+  "interest": 0.003,
+  "inflation": {
+    "base": 8,
+    "perCpi": 55,
+    "speed": 0.06,
+    "debtFrom": 220,
+    "debtRate": 0.01
+  },
+  "unemploymentSpeed": 0.35,
+  "budgetDemand": {
+    "industry": {
+      "tools": 0.25
+    },
+    "agriculture": {
+      "fertilizer": 0.3
+    },
+    "education": {
+      "services": 0.5
+    },
+    "welfare": {
+      "groceries": 0.25,
+      "clothes": 0.2
+    },
+    "infrastructure": {
+      "cement": 0.4
+    },
+    "security": {
+      "arms": 0.25
+    }
+  },
+  "depreciation": {
+    "education": {
+      "floor": 20,
+      "rate": 0.004
+    },
+    "infrastructure": {
+      "floor": 20,
+      "rate": 0.004
+    },
+    "industry": {
+      "floor": 12,
+      "rate": 0.004
+    },
+    "agriculture": {
+      "floor": 28,
+      "rate": 0.003
+    },
+    "security": {
+      "floor": 30,
+      "rate": 0.004
+    }
+  },
+  "approval": {
+    "lawWeight": 2,
+    "living": 2.5,
+    "livingCap": 12,
+    "expectGrowth": 0.015,
+    "inGov": 5,
+    "outGov": -2,
+    "speed": 0.12,
+    "modDecay": 0.04,
+    "reform": 6,
+    "dismissed": 8,
+    "thresholds": {
+      "angry": 25,
+      "unhappy": 40,
+      "happy": 60,
+      "loyal": 75
+    },
+    "powerful": 0.22,
+    "marginal": 0.06
+  },
+  "government": {
+    "start": [
+      "landowners",
+      "business"
+    ],
+    "max": 3,
+    "legitimacy": 0.5,
+    "legitimacyCap": 0.15,
+    "center": 0.45
+  },
+  "enactment": {
+    "base": 0.3,
+    "support": 0.9,
+    "outside": 0.25,
+    "legitimacy": 0.003,
+    "seats": 0.4,
+    "decree": 0.08,
+    "min": 0.05,
+    "max": 0.92,
+    "stages": 3,
+    "setbacks": 3,
+    "debate": 0.05,
+    "massDemand": 0.4,
+    "decreeCost": {
+      "liberty": -1,
+      "legitimacy": -1
+    }
+  },
+  "living": {
+    "massBase": 8.1,
+    "welfare": 0.03,
+    "gapBase": 0.5,
+    "equality": 0.4
+  },
+  "privatizePrice": 0.07,
+  "maxLevel": 60,
+  "publicPay": 0.8,
+  "retool": 0.6,
+  "tradePerInfra": 0.01,
+  "subsistencePerAgri": 0.004,
+  "wageMargin": 0.06,
+  "exportSlope": 0.5
+}

@@ -88,8 +88,8 @@
     "factionEffects": {
       "business": 2
     },
-    "buildDiscount": 0.15,
-    "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 사업 착수비 15% 감면."
+    "description": "항만 권역에 수출 공장 인허가와 전력·용수를 먼저 배정한다. 이 권역의 공사가 15% 빨리 진행된다.",
+    "constructionBonus": 0.15
   },
   {
     "id": "tourism_opening",
@@ -152,10 +152,10 @@
     },
     "factionEffects": {
       "farmers": 1,
-      "civil": 1
+      "petite": 1
     },
-    "buildDiscount": 0.25,
-    "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 사업 착수비 25% 감면."
+    "description": "개발이 늦은 권역에 사업비를 얹어 준다. 이 권역의 공사가 25% 빨리 진행된다.",
+    "constructionBonus": 0.25
   },
   {
     "id": "local_admin",
@@ -169,7 +169,7 @@
       "equality": 0.01
     },
     "factionEffects": {
-      "bureaucracy": 1
+      "petite": 1
     },
     "description": "도·군 행정에 인력과 장비를 보낸다."
   }

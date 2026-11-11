@@ -1,0 +1,891 @@
+[
+  {
+    "id": "military_autonomy",
+    "group": "military_role",
+    "name": "군 자율 관행",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "cloutMult": {
+        "military": 1.3
+      }
+    },
+    "stances": {
+      "military": 2,
+      "landowners": 1,
+      "petite": -1
+    },
+    "initial": true,
+    "description": "군이 인사와 예산을 스스로 정하는 관행. 군대의 세력이 커진다."
+  },
+  {
+    "id": "civilian_oversight",
+    "group": "military_role",
+    "name": "민간 통제의 제도화",
+    "unlockYear": 1963,
+    "cost": 10,
+    "monthlyCost": 0.2,
+    "effects": {
+      "liberty": 4,
+      "legitimacy": 4,
+      "security": 1
+    },
+    "monthlyEffects": {
+      "legitimacy": 0.02
+    },
+    "modifiers": {
+      "cloutMult": {
+        "military": 0.8
+      }
+    },
+    "stances": {
+      "military": -2,
+      "petite": 2,
+      "workers": 1
+    },
+    "description": "군의 인사·예산을 문민 정부와 의회가 통제한다."
+  },
+  {
+    "id": "central_appointment",
+    "group": "local_gov",
+    "name": "중앙 임명제",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "landowners": 1,
+      "military": 1,
+      "farmers": -1
+    },
+    "initial": true,
+    "description": "도지사와 시장·군수를 중앙이 임명한다."
+  },
+  {
+    "id": "local_council",
+    "group": "local_gov",
+    "name": "지역 참여 예산",
+    "unlockYear": 1963,
+    "cost": 12,
+    "monthlyCost": 0.28,
+    "effects": {
+      "equality": 4,
+      "legitimacy": 3
+    },
+    "monthlyEffects": {
+      "equality": 0.04
+    },
+    "modifiers": {},
+    "stances": {
+      "farmers": 2,
+      "petite": 1,
+      "landowners": -1
+    },
+    "description": "지역 주민이 예산의 일부를 정한다."
+  },
+  {
+    "id": "local_autonomy",
+    "group": "local_gov",
+    "name": "지방 자치제",
+    "unlockYear": 1968,
+    "cost": 16,
+    "monthlyCost": 0.4,
+    "effects": {
+      "equality": 3,
+      "legitimacy": 4,
+      "liberty": 2
+    },
+    "monthlyEffects": {
+      "equality": 0.03,
+      "admin": 0.02
+    },
+    "modifiers": {
+      "edictCap": 1
+    },
+    "stances": {
+      "farmers": 2,
+      "petite": 2,
+      "landowners": -1,
+      "military": -1
+    },
+    "description": "지방 의회와 단체장을 주민이 뽑는다. 지역 시책을 하나 더 걸 수 있다."
+  },
+  {
+    "id": "executive_primacy",
+    "group": "judiciary",
+    "name": "행정 우위 관행",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "military": 1,
+      "petite": -1
+    },
+    "initial": true,
+    "description": "법원 인사와 예산이 행정부에 기대는 관행."
+  },
+  {
+    "id": "judicial_review",
+    "group": "judiciary",
+    "name": "사법 독립 보강",
+    "unlockYear": 1963,
+    "cost": 14,
+    "monthlyCost": 0.3,
+    "effects": {
+      "liberty": 5,
+      "legitimacy": 4
+    },
+    "monthlyEffects": {
+      "admin": 0.03
+    },
+    "modifiers": {},
+    "stances": {
+      "petite": 2,
+      "workers": 1,
+      "business": 1,
+      "military": -1
+    },
+    "description": "법관 인사와 위헌 심사의 독립을 보강한다."
+  },
+  {
+    "id": "patronage",
+    "group": "civil_service",
+    "name": "연고 임용",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "taxEff": -0.04
+    },
+    "stances": {
+      "landowners": 1,
+      "petite": -1
+    },
+    "initial": true,
+    "description": "연줄과 추천으로 공무원을 뽑는 관행. 세금이 더 샌다."
+  },
+  {
+    "id": "merit_service",
+    "group": "civil_service",
+    "name": "공개 채용·직업 공무원제",
+    "unlockYear": 1962,
+    "cost": 12,
+    "monthlyCost": 0.25,
+    "effects": {
+      "admin": 4
+    },
+    "monthlyEffects": {
+      "admin": 0.03
+    },
+    "modifiers": {
+      "taxEff": 0.04
+    },
+    "stances": {
+      "petite": 2,
+      "business": 1,
+      "landowners": -1
+    },
+    "description": "시험으로 뽑고 신분을 보장한다. 세금이 덜 샌다."
+  },
+  {
+    "id": "aid_allocation",
+    "group": "economic_system",
+    "name": "원조·배분 경제",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "privateShare": 0.3,
+      "investEff": 0.8,
+      "stateDividend": 0.5,
+      "subsidy": true
+    },
+    "stances": {
+      "landowners": 1,
+      "business": -1
+    },
+    "initial": true,
+    "description": "원조 물자와 외화를 정부가 배분한다. 건설점의 30%가 민간 몫."
+  },
+  {
+    "id": "planned_development",
+    "group": "economic_system",
+    "name": "계획 주도 개발",
+    "unlockYear": 1961,
+    "cost": 10,
+    "monthlyCost": 0,
+    "effects": {
+      "admin": 1
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "privateShare": 0.4,
+      "investEff": 1,
+      "stateDividend": 0.75,
+      "subsidy": true,
+      "constructionEff": 0.1
+    },
+    "stances": {
+      "military": 2,
+      "business": 1,
+      "petite": 1,
+      "landowners": -1
+    },
+    "description": "정부가 개발 계획을 세우고 국영 건물의 이익을 더 거둔다. 건설 효율 +10%, 민간 몫 40%."
+  },
+  {
+    "id": "market_led",
+    "group": "economic_system",
+    "name": "민간 주도 시장",
+    "unlockYear": 1964,
+    "cost": 10,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "privateShare": 0.7,
+      "investEff": 1.3,
+      "stateDividend": 0.4,
+      "subsidy": false
+    },
+    "stances": {
+      "business": 2,
+      "petite": 1,
+      "workers": -1,
+      "farmers": -1,
+      "military": -1
+    },
+    "description": "건설점의 70%를 민간 투자에 맡긴다. 투자기금이 빨리 쌓이지만 보조금을 줄 수 없다."
+  },
+  {
+    "id": "social_market",
+    "group": "economic_system",
+    "name": "사회적 시장 경제",
+    "unlockYear": 1968,
+    "cost": 12,
+    "monthlyCost": 0,
+    "effects": {
+      "equality": 2
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "privateShare": 0.45,
+      "investEff": 1,
+      "stateDividend": 0.65,
+      "subsidy": true,
+      "workerDividend": 0.15
+    },
+    "stances": {
+      "workers": 2,
+      "farmers": 1,
+      "petite": 1,
+      "business": -2,
+      "landowners": -1
+    },
+    "description": "민간 공장 이익의 15%를 노동자에게 나눈다. 민간 몫 45%."
+  },
+  {
+    "id": "import_substitution",
+    "group": "trade",
+    "name": "수입 대체 보호",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "tariff": 0.2,
+      "exportSubsidy": 0,
+      "tradeCap": 0.85
+    },
+    "stances": {
+      "business": 1,
+      "farmers": 1,
+      "petite": -1
+    },
+    "initial": true,
+    "description": "관세 20%. 수입품이 비싸 국내 생산자가 보호받지만 소비자 가격이 높다."
+  },
+  {
+    "id": "export_drive",
+    "group": "trade",
+    "name": "수출 주도",
+    "unlockYear": 1962,
+    "cost": 10,
+    "monthlyCost": 0.3,
+    "effects": {
+      "reserves": 2
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "tariff": 0.12,
+      "exportSubsidy": 0.05,
+      "tradeCap": 1.15
+    },
+    "stances": {
+      "business": 2,
+      "workers": 1,
+      "military": 1,
+      "farmers": -1
+    },
+    "description": "관세 12%, 수출 지원 5%. 국내 가격이 세계 가격보다 조금 높아도 수출이 나간다(지원금은 국고 부담)."
+  },
+  {
+    "id": "open_trade",
+    "group": "trade",
+    "name": "개방 무역",
+    "unlockYear": 1967,
+    "cost": 10,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "tariff": 0.04,
+      "exportSubsidy": 0,
+      "tradeCap": 1.35
+    },
+    "stances": {
+      "petite": 2,
+      "farmers": -2,
+      "workers": -1,
+      "landowners": -1
+    },
+    "description": "관세 4%, 무역 역량 +35%. 소비자 가격이 내려가지만 국내 생산자가 세계 가격과 바로 맞선다."
+  },
+  {
+    "id": "indirect_tax",
+    "group": "taxation",
+    "name": "간접세 중심",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "tax": {
+        "consumption": 0.17,
+        "wage": 0,
+        "profit": 0.12,
+        "land": 0.06
+      }
+    },
+    "stances": {
+      "business": 1,
+      "landowners": 1,
+      "workers": -1,
+      "farmers": -1
+    },
+    "initial": true,
+    "description": "소비세 17%, 이익세 12%, 토지세 6%. 걷기 쉽지만 가난한 가구의 부담이 크다."
+  },
+  {
+    "id": "income_tax",
+    "group": "taxation",
+    "name": "소득 비례세",
+    "unlockYear": 1963,
+    "cost": 10,
+    "monthlyCost": 0,
+    "effects": {
+      "equality": 1
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "tax": {
+        "consumption": 0.12,
+        "wage": 0.08,
+        "profit": 0.18,
+        "land": 0.05
+      }
+    },
+    "stances": {
+      "farmers": 1,
+      "business": -1,
+      "landowners": -1
+    },
+    "description": "소비세 12%, 임금세 8%, 이익세 18%, 토지세 5%. 임금과 이익이 커질수록 세입이 는다."
+  },
+  {
+    "id": "progressive_tax",
+    "group": "taxation",
+    "name": "누진 과세",
+    "unlockYear": 1967,
+    "cost": 12,
+    "monthlyCost": 0,
+    "effects": {
+      "equality": 3
+    },
+    "monthlyEffects": {
+      "equality": 0.02
+    },
+    "modifiers": {
+      "tax": {
+        "consumption": 0.1,
+        "wage": 0.07,
+        "profit": 0.28,
+        "land": 0.07
+      }
+    },
+    "stances": {
+      "workers": 2,
+      "farmers": 1,
+      "petite": 1,
+      "business": -2,
+      "landowners": -2
+    },
+    "description": "소비세 10%, 임금세 7%, 이익세 28%, 토지세 7%. 이익에 무겁게 매긴다."
+  },
+  {
+    "id": "tenancy_tolerated",
+    "group": "land",
+    "name": "소작 묵인",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "farmShare": {
+        "landowners": 0.6,
+        "farmers": 0.4
+      }
+    },
+    "stances": {
+      "landowners": 2,
+      "farmers": -2
+    },
+    "initial": true,
+    "description": "농지개혁 뒤에도 남은 소작을 눈감는다. 농장 이익의 60%가 지주 몫."
+  },
+  {
+    "id": "owner_farmer",
+    "group": "land",
+    "name": "경자유전 강화",
+    "unlockYear": 1961,
+    "cost": 12,
+    "monthlyCost": 0,
+    "effects": {
+      "equality": 4
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "farmShare": {
+        "landowners": 0.2,
+        "farmers": 0.8
+      },
+      "farmThroughput": 0.04
+    },
+    "stances": {
+      "farmers": 2,
+      "workers": 1,
+      "landowners": -2
+    },
+    "description": "농사짓는 사람이 농지를 갖게 한다. 농장 이익의 80%가 농민 몫, 농장 처리율 +4%."
+  },
+  {
+    "id": "corporate_farming",
+    "group": "land",
+    "name": "기업농·농지 규모화",
+    "unlockYear": 1969,
+    "cost": 12,
+    "monthlyCost": 0,
+    "effects": {
+      "equality": -2
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "farmShare": {
+        "landowners": 0.45,
+        "business": 0.25,
+        "farmers": 0.3
+      },
+      "farmThroughput": 0.1,
+      "subsistenceCap": -0.1
+    },
+    "stances": {
+      "business": 1,
+      "landowners": 1,
+      "farmers": -2
+    },
+    "description": "농지 상한을 풀어 큰 농장을 허용한다. 농장 처리율 +10%, 자급 농업이 받아 주는 인구 −10%."
+  },
+  {
+    "id": "no_labor_rules",
+    "group": "labor",
+    "name": "노동 규제 미비",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "business": 1,
+      "workers": -2
+    },
+    "initial": true,
+    "description": "근로 기준이 있어도 감독이 없다."
+  },
+  {
+    "id": "labor_inspection",
+    "group": "labor",
+    "name": "노동 감독 독립성",
+    "unlockYear": 1963,
+    "cost": 12,
+    "monthlyCost": 0.35,
+    "effects": {
+      "welfare": 2,
+      "liberty": 3
+    },
+    "monthlyEffects": {
+      "welfare": 0.035,
+      "liberty": 0.025
+    },
+    "modifiers": {
+      "wageMult": {
+        "workers": 1.05
+      }
+    },
+    "stances": {
+      "workers": 1,
+      "petite": 1,
+      "business": -1
+    },
+    "description": "감독 기구를 독립시킨다. 노동자 임금 +5%."
+  },
+  {
+    "id": "worker_protection",
+    "group": "labor",
+    "name": "근로 기준·최저 임금",
+    "unlockYear": 1968,
+    "cost": 16,
+    "monthlyCost": 0.45,
+    "effects": {
+      "welfare": 4,
+      "equality": 3,
+      "liberty": 2
+    },
+    "monthlyEffects": {
+      "welfare": 0.04,
+      "equality": 0.03
+    },
+    "modifiers": {
+      "wageMult": {
+        "workers": 1.14
+      },
+      "mfgThroughput": -0.02
+    },
+    "stances": {
+      "workers": 2,
+      "petite": 1,
+      "business": -2
+    },
+    "description": "최저 임금과 근로 시간을 지키게 한다. 노동자 임금 +14%, 제조업 처리율 −2%."
+  },
+  {
+    "id": "restricted_association",
+    "group": "association",
+    "name": "단체 행동 제한",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {
+      "cloutMult": {
+        "workers": 0.8
+      }
+    },
+    "stances": {
+      "business": 1,
+      "military": 1,
+      "workers": -2,
+      "petite": -1
+    },
+    "initial": true,
+    "description": "노동조합과 단체의 활동을 제한한다. 노동자의 세력이 줄어든다."
+  },
+  {
+    "id": "association",
+    "group": "association",
+    "name": "결사권 보장",
+    "unlockYear": 1963,
+    "cost": 8,
+    "monthlyCost": 0.15,
+    "effects": {
+      "liberty": 6
+    },
+    "monthlyEffects": {
+      "liberty": 0.03
+    },
+    "modifiers": {
+      "cloutMult": {
+        "workers": 1.25
+      }
+    },
+    "stances": {
+      "workers": 2,
+      "petite": 1,
+      "farmers": 1,
+      "business": -1,
+      "military": -1
+    },
+    "description": "단체를 만들고 교섭할 권리를 보장한다. 노동자의 세력이 커진다."
+  },
+  {
+    "id": "press_control",
+    "group": "speech",
+    "name": "언론 통제",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "military": 1,
+      "landowners": 1,
+      "petite": -2,
+      "workers": -1
+    },
+    "initial": true,
+    "description": "신문과 방송을 허가와 검열로 통제한다."
+  },
+  {
+    "id": "press_freedom",
+    "group": "speech",
+    "name": "언론 자유 보장",
+    "unlockYear": 1963,
+    "cost": 8,
+    "monthlyCost": 0.15,
+    "effects": {
+      "liberty": 7,
+      "legitimacy": 2
+    },
+    "monthlyEffects": {
+      "liberty": 0.03
+    },
+    "modifiers": {},
+    "stances": {
+      "petite": 2,
+      "workers": 1,
+      "military": -1,
+      "landowners": -1
+    },
+    "description": "사전 검열을 없애고 발행의 자유를 보장한다."
+  },
+  {
+    "id": "no_welfare",
+    "group": "welfare_system",
+    "name": "사회보장 없음",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "business": 1,
+      "landowners": 1,
+      "workers": -1,
+      "farmers": -1
+    },
+    "initial": true,
+    "description": "실업과 질병을 가족이 감당한다."
+  },
+  {
+    "id": "public_relief",
+    "group": "welfare_system",
+    "name": "공적 부조",
+    "unlockYear": 1962,
+    "cost": 10,
+    "monthlyCost": 0.2,
+    "effects": {
+      "welfare": 2
+    },
+    "monthlyEffects": {
+      "welfare": 0.03
+    },
+    "modifiers": {
+      "relief": 0.25
+    },
+    "stances": {
+      "workers": 1,
+      "farmers": 1,
+      "business": -1
+    },
+    "description": "실업자에게 평균 임금의 25%를 지급한다(국고 부담)."
+  },
+  {
+    "id": "social_insurance",
+    "group": "welfare_system",
+    "name": "사회 보험",
+    "unlockYear": 1968,
+    "cost": 18,
+    "monthlyCost": 0.5,
+    "effects": {
+      "welfare": 4,
+      "equality": 2
+    },
+    "monthlyEffects": {
+      "welfare": 0.05,
+      "equality": 0.02
+    },
+    "modifiers": {
+      "relief": 0.4
+    },
+    "stances": {
+      "workers": 2,
+      "petite": 2,
+      "farmers": 1,
+      "business": -1,
+      "landowners": -1
+    },
+    "description": "의료·산재 보험. 실업자에게 평균 임금의 40%를 지급한다."
+  },
+  {
+    "id": "no_env_rules",
+    "group": "environment_rules",
+    "name": "규제 없음",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "business": 1
+    },
+    "initial": true,
+    "description": "배출 기준이 없다."
+  },
+  {
+    "id": "clean_water",
+    "group": "environment_rules",
+    "name": "수질·상하수도 기준",
+    "unlockYear": 1963,
+    "cost": 16,
+    "monthlyCost": 0.35,
+    "effects": {
+      "environment": 5,
+      "welfare": 1
+    },
+    "monthlyEffects": {
+      "environment": 0.055
+    },
+    "modifiers": {
+      "pollution": 0.85
+    },
+    "stances": {
+      "petite": 2,
+      "farmers": 1,
+      "business": -1
+    },
+    "description": "수질 기준을 세운다. 건물의 환경 부담 −15%."
+  },
+  {
+    "id": "pollution_control",
+    "group": "environment_rules",
+    "name": "공해 방지법",
+    "unlockYear": 1971,
+    "cost": 18,
+    "monthlyCost": 0.45,
+    "effects": {
+      "environment": 6,
+      "welfare": 1
+    },
+    "monthlyEffects": {
+      "environment": 0.06
+    },
+    "modifiers": {
+      "pollution": 0.6,
+      "mfgThroughput": -0.03
+    },
+    "stances": {
+      "petite": 2,
+      "farmers": 2,
+      "workers": 1,
+      "business": -2
+    },
+    "description": "배출 시설을 허가제로 한다. 환경 부담 −40%, 제조업 처리율 −3%."
+  },
+  {
+    "id": "conscript_army",
+    "group": "defense",
+    "name": "징병 중심",
+    "unlockYear": 1960,
+    "cost": 0,
+    "monthlyCost": 0,
+    "effects": {},
+    "monthlyEffects": {},
+    "modifiers": {},
+    "stances": {
+      "military": 1
+    },
+    "initial": true,
+    "description": "징병으로 큰 병력을 유지한다."
+  },
+  {
+    "id": "force_reduction",
+    "group": "defense",
+    "name": "감군·전문화",
+    "unlockYear": 1965,
+    "cost": 10,
+    "monthlyCost": 0,
+    "effects": {
+      "security": -2
+    },
+    "monthlyEffects": {},
+    "modifiers": {
+      "armsDemand": 0.8,
+      "militaryWage": 0.9,
+      "cloutMult": {
+        "military": 0.85
+      }
+    },
+    "stances": {
+      "military": -2,
+      "petite": 1,
+      "business": 1,
+      "farmers": 1
+    },
+    "description": "병력을 줄이고 전문화한다. 군수품 수요 −20%, 군 인건비 −10%, 군대의 세력이 줄어든다."
+  },
+  {
+    "id": "defense_industry",
+    "group": "defense",
+    "name": "방위 산업 육성",
+    "unlockYear": 1970,
+    "cost": 16,
+    "monthlyCost": 0.5,
+    "effects": {
+      "security": 3
+    },
+    "monthlyEffects": {
+      "security": 0.03
+    },
+    "modifiers": {
+      "armsDemand": 1.3,
+      "cloutMult": {
+        "military": 1.15
+      }
+    },
+    "stances": {
+      "military": 2,
+      "business": 1,
+      "petite": -1
+    },
+    "description": "보급품을 나라 안에서 만든다. 군수품 수요 +30%, 군대의 세력이 커진다."
+  }
+]
