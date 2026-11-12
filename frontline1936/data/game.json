@@ -2835,10 +2835,11 @@
   },
   "corruption": {
    "name": "부패",
-   "desc": "물자와 예산이 새어 나간다. 공장 산출과 세금이 줄어든다.",
+   "desc": "물자와 예산이 새어 나가고 훈련이 부족하다. 공장 산출·세금·사단의 조직력이 줄어든다.",
    "fx": {
     "factory": -0.1,
-    "tax": -0.15
+    "tax": -0.15,
+    "org": -0.1
    }
   },
   "german_advisors": {
@@ -3311,6 +3312,7 @@
     "nonaligned": 10
    },
    "leader": "장제스",
+   "surrender": 0.12,
    "capital": "nanjing",
    "research": 2,
    "pp": 1.4,
@@ -16115,7 +16117,19 @@
        "japan",
        "china"
       ],
-      "warSupport": 0.05
+      "warSupport": 0.05,
+      "divisions": [
+       [
+        "jp_inf",
+        4,
+        "kwantung"
+       ],
+       [
+        "jp_inf",
+        2,
+        "jehol"
+       ]
+      ]
      },
      "ai": 10
     },

@@ -178,8 +178,9 @@ export function frontRegions(s, d, cid) {
   for (const r of d.regions) {
     if (r.offmap) continue;
     const st = s.regions[r.id];
-    if (st.controller !== cid && !(friendly(s, cid, st.controller) && s.divisions.some(dv => dv.owner === cid && dv.at === r.id))) continue;
-    if (r.adj.some(n => hostile(s, cid, n))) out.push(r.id);
+    if (st.controller !== cid && !friendly(s, cid, st.controller)) continue;
+    // 우방(괴뢰국·공동 교전국)의 땅도 같은 적과 맞닿으면 우리 전선이다
+    if (r.adj.some(n => hostile(s, cid, n) && (st.controller === cid || atWar(s, st.controller, s.regions[n].controller)))) out.push(r.id);
   }
   return out;
 }
@@ -207,28 +208,39 @@ export function militaryAI(s, d, cid) {
   }));
   const total = sum([...threat.values()]);
   const free = mine.filter(dv => !dv.inBattle && !reserved.has(dv.id) && (!dv.order || dv.order.type === 'move'));
-  const want = new Map([...threat].map(([r, t]) => [r, Math.max(1, Math.round(free.length * t / total))]));
+  const CAP = 10; // 한 지역에 몰아넣지 않는다(보급)
+  const want = new Map([...threat].map(([r, t]) => [r, Math.min(CAP, Math.max(1, Math.round(free.length * t / total)))]));
   const have = new Map(fronts.map(r => [r, mine.filter(dv => dv.at === r || (dv.order && dv.order.dest === r)).length]));
   // 남는 사단을 부족한 전선으로
-  const spare = free.filter(dv => !fronts.includes(dv.at) && !(dv.order && fronts.includes(dv.order.dest)) && !(X.regions.get(dv.at)?.offmap && rand(s) < .5));
-  for (const dv of spare.slice(0, 12)) {
+  // 전선 밖의 사단 + 정원보다 많이 몰린 전선의 사단
+  const crowd = new Map(fronts.map(r => [r, mine.filter(dv => dv.at === r).length]));
+  const extra = free.filter(dv => fronts.includes(dv.at) && !dv.order && crowd.get(dv.at) > CAP + 2 && (crowd.set(dv.at, crowd.get(dv.at) - 1), true));
+  const spare = free.filter(dv => !fronts.includes(dv.at) && !(dv.order && fronts.includes(dv.order.dest)) && !(X.regions.get(dv.at)?.offmap && rand(s) < .5)).concat(extra);
+  for (const dv of spare.slice(0, 16)) {
     const lacking = fronts.filter(r => (have.get(r) || 0) < (want.get(r) || 0)).sort((a, b) => ((have.get(a) || 0) - want.get(a)) - ((have.get(b) || 0) - want.get(b)) || distance(d, dv.at, a) - distance(d, dv.at, b));
     const target = lacking.slice(0, 3).sort((a, b) => distance(d, dv.at, a) - distance(d, dv.at, b))[0];
     if (target && orderMove(s, d, dv, target).ok) have.set(target, (have.get(target) || 0) + 1);
   }
-  // 공격: 전선 지역마다 가장 약한 맞닿은 적 지역
+  // 공격: 적 지역마다 맞닿은 우리 전선 지역들의 사단을 모아(여러 방향에서) 이길 만한 곳부터 친다
+  const cand = new Map();
   for (const r of fronts) {
-    const here = mine.filter(dv => dv.at === r && !reserved.has(dv.id) && !dv.inBattle && !(dv.order && dv.order.type !== 'move') && dv.org > .65 && dv.str > .55);
-    if (!here.length) continue;
-    const targets = X.regions.get(r).adj.filter(n => hostile(s, cid, n)).map(n => {
-      const def = s.divisions.filter(dv => dv.at === n && atWar(s, cid, dv.owner));
-      const t = d.terrain[X.regions.get(n).terrain];
-      return { n, def: power(s, d, def) * (1 + t.def + s.regions[n].fort * .06) / t.attack, empty: !def.length, vp: X.regions.get(n).vp };
-    }).sort((a, b) => a.def - a.vp * 3 - (b.def - b.vp * 3));
-    const t = targets[0]; if (!t) continue;
-    const atk = power(s, d, here);
-    const keep = here.length > 2 && (threat.get(r) || 0) > 30 ? 1 : 0;
-    if (t.empty || atk > t.def * 1.3) for (const dv of here.slice(keep)) orderAttack(s, d, dv, t.n);
+    const here = mine.filter(dv => dv.at === r && !reserved.has(dv.id) && !dv.inBattle && !(dv.order && dv.order.type !== 'move') && dv.org > .6 && dv.str > .5);
+    const keep = here.length > 2 && (threat.get(r) || 0) > 40 ? 1 : 0; // 위협이 큰 전선은 하나를 남긴다
+    for (const n of X.regions.get(r).adj) if (hostile(s, cid, n)) { if (!cand.has(n)) cand.set(n, []); cand.get(n).push(...here.slice(keep)); }
+  }
+  const targets = [...cand.keys()].map(n => {
+    const def = s.divisions.filter(dv => dv.at === n && atWar(s, cid, dv.owner)), t = d.terrain[X.regions.get(n).terrain];
+    return { n, def: power(s, d, def) * (1 + t.def + s.regions[n].fort * .06) / t.attack, empty: !def.length, vp: X.regions.get(n).vp };
+  }).sort((a, b) => (b.vp * 4 + 6) / (b.def + 60) - (a.vp * 4 + 6) / (a.def + 60));
+  const used = new Set();
+  for (const t of targets) {
+    const avail = [...new Set(cand.get(t.n))].filter(dv => !used.has(dv.id)).sort((a, b) => b.org * b.str - a.org * a.str);
+    if (!avail.length) continue;
+    if (t.empty) { const dv = avail[0]; orderAttack(s, d, dv, t.n); used.add(dv.id); continue; }
+    const total = power(s, d, avail);
+    if (total < t.def * 1.2) continue;
+    let sum2 = 0;
+    for (const dv of avail) { if (sum2 >= t.def * 1.8) break; if (orderAttack(s, d, dv, t.n).ok) { used.add(dv.id); sum2 += power(s, d, [dv]); } }
   }
 }
 function aiInvasion(s, d, cid, mine, reserved = new Set()) {
@@ -249,8 +261,7 @@ function aiInvasion(s, d, cid, mine, reserved = new Set()) {
       const from = ports.map(p => [p.id, distance(d, p.id, r.id)]).sort((a, b) => a[1] - b[1])[0];
       if (!from || from[1] > 650) continue;
       const def = power(s, d, s.divisions.filter(dv => dv.at === r.id && atWar(s, cid, dv.owner)));
-      const core = s.regions[r.id].owner === s.regions[r.id].controller && r.vp >= 10;
-      const value = (core ? .4 : 1) * (r.vp * 2 + sum(Object.values(r.res)) * 3 + ((r.res.oil || 0) + (r.res.rubber || 0)) * (4 + fuelShort * 20) + s.regions[r.id].port * 2 + 2) / (1 + def / 150) / (1 + from[1] / 500);
+      const value = (r.vp * 2 + sum(Object.values(r.res)) * 3 + ((r.res.oil || 0) + (r.res.rubber || 0)) * (4 + fuelShort * 20) + s.regions[r.id].port * 2 + 2) / (1 + def / 150) / (1 + from[1] / 500);
       if (value > bv) { bv = value; best = { target: r.id, from: from[0], day: s.day }; }
     }
     if (!best) return;

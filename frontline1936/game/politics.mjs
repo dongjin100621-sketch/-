@@ -174,7 +174,8 @@ function checkCapitulation(s, d, log) {
     const { own, held } = vpOf(s, d, c.id);
     const anyLand = d.regions.some(r => s.regions[r.id].controller === c.id && !(r.offmap && c.homeLost));
     if (hasHome && anyLand) continue;
-    if (own > 0 && held / own > .28 && anyLand) continue;
+    const limit = d.countries.find(x => x.id === c.id)?.surrender ?? .28; // 나라마다 다른 항복 문턱(국민정부는 거의 모든 것을 잃어야 한다)
+    if (own > 0 && held / own > limit && anyLand) continue;
     capitulate(s, d, c.id, log);
   }
 }

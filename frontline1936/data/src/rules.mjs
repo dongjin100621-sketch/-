@@ -260,7 +260,7 @@ export const SPIRITS = {
   zaibatsu: { name: '재벌', desc: '거대 기업 집단이 공업을 이끈다. 건설이 빠르지만 정부의 통제가 약하다.', fx: { construction: .1, stability: -.03 } },
   colonial_rule: { name: '식민 통치', desc: '조선·타이완의 저항과 감시 비용. 식민지의 생산이 줄고 치안이 불안하다.', fx: { colonyOutput: -.15 } },
   warlord_fragmentation: { name: '군벌 할거', desc: '나라가 여러 세력으로 나뉘어 있다. 안정도와 정치력이 낮다.', fx: { stability: -.1, pp: -.2 } },
-  corruption: { name: '부패', desc: '물자와 예산이 새어 나간다. 공장 산출과 세금이 줄어든다.', fx: { factory: -.1, tax: -.15 } },
+  corruption: { name: '부패', desc: '물자와 예산이 새어 나가고 훈련이 부족하다. 공장 산출·세금·사단의 조직력이 줄어든다.', fx: { factory: -.1, tax: -.15, org: -.1 } },
   german_advisors: { name: '독일 군사 고문단', desc: '중앙군 일부가 독일식 훈련을 받는다. 사단의 조직력이 오른다.', fx: { org: .05 } },
   guerrilla_base: { name: '유격 근거지', desc: '험한 산악과 농촌에서 싸운다. 보급 사용이 적고 방어에 유리하다.', fx: { supplyUse: -.3, defense: .1 } },
   peasant_support: { name: '농민의 지지', desc: '토지 개혁 약속이 병력을 모은다. 인력이 늘어난다.', fx: { manpower: .5 } },

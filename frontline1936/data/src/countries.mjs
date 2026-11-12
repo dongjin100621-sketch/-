@@ -10,7 +10,7 @@ export const COUNTRIES = [
     fleets: [{ name: '연합함대', at: 'chugoku', ships: { battleship: 9, carrier: 4, cruiser: 30, destroyer: 90, submarine: 40, convoy: 60 } }, { name: '제2함대', at: 'kyushu', ships: { cruiser: 6, destroyer: 12, submarine: 10 } }],
     air: [['fighter', 300, 'kanto'], ['cas', 150, 'hsinking'], ['bomber', 150, 'kyushu'], ['naval_bomber', 250, 'chugoku'], ['fighter', 100, 'hsinking']] },
   { id: 'china', name: '중화민국 국민정부', short: '국민정부', color: '#4f7cb0', playable: true, ideology: 'authoritarian', popularity: { authoritarian: 55, democracy: 20, communism: 15, nonaligned: 10 },
-    leader: '장제스', capital: 'nanjing', research: 2, pp: 1.4, stability: 40, warSupport: 40,
+    leader: '장제스', surrender: .12, capital: 'nanjing', research: 2, pp: 1.4, stability: 40, warSupport: 40,
     laws: { conscription: 'limited', economy: 'civilian', trade: 'free_trade' }, spirits: ['warlord_fragmentation', 'corruption', 'german_advisors'],
     summary: '넓은 땅과 많은 인구, 약한 공업. 군벌과 공산당이 나라를 나누고 있다. 1937년 전면전이 시작되면 시간을 벌며 버텨야 한다.',
     forces: [['cn_central', 4, 'nanjing'], ['cn_central', 3, 'shanghai'], ['cn_central', 2, 'hangzhou'], ['cn_central', 2, 'wuhan'], ['cn_regional', 3, 'peiping'], ['cn_regional', 2, 'hebei'], ['cn_regional', 2, 'tianjin'], ['cn_regional', 2, 'kalgan'], ['cn_regional', 3, 'jinan'], ['cn_regional', 1, 'qingdao'], ['cn_regional', 3, 'kaifeng'], ['cn_regional', 2, 'xuzhou'], ['cn_regional', 3, 'xian'], ['cn_regional', 2, 'guangzhou'], ['cn_regional', 2, 'changsha'], ['cn_regional', 2, 'chengdu'], ['cn_regional', 1, 'chongqing'], ['cn_regional', 1, 'nanchang'], ['cn_regional', 1, 'fuzhou'], ['cn_regional', 1, 'anhui'], ['cn_regional', 1, 'guiyang']],

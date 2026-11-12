@@ -24,7 +24,7 @@ export const EVENTS = [
   E({ id: 'ev_marco_polo', date: '1937-07-07', to: 'japan', cond: { notWar: 'china' }, title: '루거우차오 사건', desc: '베이핑 근교 루거우차오에서 일본군과 중국군이 충돌했다.',
     history: '1937년 7월 7일. 이 충돌이 중일 전면 전쟁으로 번졌다.',
     options: [
-      { name: '전면전으로 확대한다(역사)', fx: { war: ['japan', 'china'], warSupport: .05 }, ai: 10 },
+      { name: '전면전으로 확대한다(역사)', fx: { war: ['japan', 'china'], warSupport: .05, divisions: [['jp_inf', 4, 'kwantung'], ['jp_inf', 2, 'jehol']] }, ai: 10 },
       { name: '현지에서 수습한다(가상)', fx: { warSupport: -.05, pp: 40, flag: 'mp_delayed' }, ai: 0 }
     ] }),
   E({ id: 'ev_second_incident', date: '1937-11-01', to: 'japan', cond: { flag: 'mp_delayed', notWar: 'china' }, title: '화북의 긴장', desc: '화북에서 다시 충돌이 이어진다. 군부는 결단을 요구한다.',
