@@ -10,6 +10,7 @@ import * as R from '../data/src/rules.mjs';
 import { FOCUS_TREES, AI_FOCUS_ORDER } from '../data/src/focus.mjs';
 import { EVENTS, SYSTEM_EVENTS } from '../data/src/events.mjs';
 import { LEADERS, TRAITS } from '../data/src/leaders.mjs';
+import { TRANSPORT, TRANSPORT_RULES } from '../data/src/transport.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const map = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/map.json'), 'utf8'));
@@ -126,6 +127,31 @@ for (const r of regions) if (COLONY.has(r.id)) r.colony = true;
 
 // 나라
 const allCountries = [...COUNTRIES, ...RELEASABLE.map(c => ({ ...c, releasable: true }))];
+// 교통망: 맞닿은 지역끼리, 종류·등급·개통일 검사. 강 건너기는 map.json(tools/make_rivers.py)에서.
+const pk = (a, b) => a < b ? `${a}|${b}` : `${b}|${a}`;
+const transport = [];
+for (const [a, b, kind, lvl, name, open] of TRANSPORT) {
+  const where = `교통 ${a}-${b}`;
+  if (!adj.has(a) || !adj.has(b)) { err(`${where}: 알 수 없는 지역`); continue; }
+  if (!adj.get(a).has(b)) err(`${where}: 맞닿지 않은 지역`);
+  const rule = TRANSPORT_RULES[kind]; if (!rule) { err(`${where}: 종류 ${kind}`); continue; }
+  if (!(lvl >= 1 && lvl <= rule.max)) err(`${where}: 등급 ${lvl}`);
+  if (open && !/^19[34]\d-\d\d-\d\d$/.test(open)) err(`${where}: 개통일 ${open}`);
+  const id = `${pk(a, b)}:${kind}`;
+  if (transport.some(x => x.id === id)) err(`${where}: 중복`);
+  transport.push({ id, a, b, kind, lvl, name, open: open || null });
+}
+const crossings = {};
+for (const [k, v] of Object.entries(map.crossings || {})) { const [a, b] = k.split('|'); if (!adj.get(a)?.has(b)) continue; crossings[pk(a, b)] = v; }
+if (!Object.keys(crossings).length) err('강 건너기 자료가 없다(tools/make_rivers.py를 먼저 돌린다)');
+// 시작 보급 거점: 각국 수도, 철도 세 갈래 이상의 교차점, 큰 항구(5 이상), 노선이 닿는 큰 도시(승점 15 이상)
+{
+  const startLinks = transport.filter(x => !x.open);
+  const deg = new Map(); for (const x of startLinks) for (const r of [x.a, x.b]) deg.set(r, (deg.get(r) || 0) + (x.kind === 'rail' ? 1 : 0));
+  const touched = new Set(startLinks.flatMap(x => [x.a, x.b]));
+  const caps = new Set(COUNTRIES.map(c => c.capital));
+  for (const r of regions) r.hub = !r.offmap && (caps.has(r.id) || (deg.get(r.id) || 0) >= 3 || r.port >= 5 || (r.vp >= TRANSPORT_RULES.hubVp && touched.has(r.id))) ? 1 : 0;
+}
 const cids = new Set(allCountries.map(c => c.id));
 for (const r of regions) if (!cids.has(r.owner)) err(`${r.id}: 알 수 없는 소유국 ${r.owner}`);
 const tplIds = new Set(R.TEMPLATES.map(t => t.id));
@@ -190,15 +216,15 @@ for (const [c, list] of Object.entries(AI_FOCUS_ORDER)) for (const id of list) i
 for (const e of EVENTS) { if (!cids.has(e.to)) err(`${e.id}: 받는 나라 ${e.to}`); for (const o of e.options) fxCheck(e.id, o.fx); }
 
 const out = {
-  meta: { title: '전선과 공장: 동아시아 1936', version: '0.2.0', start: '1936-01-01', end: '1945-12-31',
+  meta: { title: '전선과 공장: 동아시아 1936', version: '0.3.0', start: '1936-01-01', end: '1945-12-31',
     note: '모든 수치·선택 결과·가상 선택지는 게임을 위한 창작이다. 실제 역사는 사건의 history에 따로 적었다. 지도는 Natural Earth(퍼블릭 도메인)에서 만들었다.' },
   terrain: R.TERRAIN, goods: R.GOODS, buildings: R.BUILDINGS, facilities: R.FACILITIES, equipment: R.EQUIPMENT, battalions: R.BATTALIONS, templates: R.TEMPLATES,
   ships: R.SHIPS, aircraft: R.AIRCRAFT, airMissions: R.AIR_MISSIONS, techCategories: R.TECH_CATEGORIES, techs: R.TECHS, startTechs: R.START_TECHS,
-  laws: R.LAWS, ideologies: R.IDEOLOGIES, spirits: R.SPIRITS, economy: R.ECONOMY, weather: R.WEATHER, climates: R.CLIMATES, leaders: LEADERS, traits: TRAITS,
+  laws: R.LAWS, ideologies: R.IDEOLOGIES, spirits: R.SPIRITS, economy: R.ECONOMY, weather: R.WEATHER, climates: R.CLIMATES, leaders: LEADERS, traits: TRAITS, transport, transportRules: TRANSPORT_RULES, crossings,
   countries: allCountries, factions: FACTIONS, regions, seas, airZones: zones,
   focusTrees: FOCUS_TREES, aiFocusOrder: AI_FOCUS_ORDER, events: EVENTS, systemEvents: SYSTEM_EVENTS
 };
 if (errors.length) { console.error(errors.join('\n')); console.error(`\n${errors.length}개 오류`); process.exit(1); }
 if (!process.argv.includes('--check')) fs.writeFileSync(path.join(ROOT, 'data/game.json'), JSON.stringify(out, null, 1) + '\n');
 const onMap = regions.filter(r => !r.offmap);
-console.log(`데이터 OK: 장군·제독 ${LEADERS.length}, 기후대 ${Object.keys(R.CLIMATES).length}, 나라 ${allCountries.length}(플레이 ${allCountries.filter(c => c.playable).length}), 지역 ${onMap.length}+본국 ${regions.length - onMap.length}, 해역 ${seas.length}, 항공 구역 ${zones.length}, 중점 ${focusIds.size}, 사건 ${EVENTS.length}, 기술 ${R.TECHS.length}, 편제 ${R.TEMPLATES.length}`);
+console.log(`데이터 OK: 교통 노선 ${transport.length}(철도 ${transport.filter(x => x.kind === 'rail').length}), 강 건너기 ${Object.keys(crossings).length}, 시작 보급 거점 ${regions.filter(r => r.hub).length}, 장군·제독 ${LEADERS.length}, 기후대 ${Object.keys(R.CLIMATES).length}, 나라 ${allCountries.length}(플레이 ${allCountries.filter(c => c.playable).length}), 지역 ${onMap.length}+본국 ${regions.length - onMap.length}, 해역 ${seas.length}, 항공 구역 ${zones.length}, 중점 ${focusIds.size}, 사건 ${EVENTS.length}, 기술 ${R.TECHS.length}, 편제 ${R.TEMPLATES.length}`);

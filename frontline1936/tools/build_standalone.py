@@ -9,7 +9,7 @@ import 줄을 그 객체에서 꺼내는 줄로 바꾼다. 데이터(game.json)�
 from pathlib import Path
 import base64, json, re, argparse
 ROOT = Path(__file__).resolve().parents[1]
-ORDER = ['core', 'weather', 'economy', 'military', 'politics', 'ai', 'engine', 'app']
+ORDER = ['core', 'weather', 'transport', 'economy', 'military', 'politics', 'ai', 'engine', 'app']
 
 def uri(path, mime): return f'data:{mime};base64,' + base64.b64encode(path.read_bytes()).decode('ascii')
 

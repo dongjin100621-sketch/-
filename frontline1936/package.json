@@ -1,6 +1,6 @@
 {
   "name": "frontline1936",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "전선과 공장: 동아시아 1936 — 하루 단위 대전략 게임. 실행·테스트에 외부 의존성이 없다.",

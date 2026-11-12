@@ -158,7 +158,20 @@ function checkCapitals(s, d, log) {
     const mc = c.mapCapital || c.capital;
     if (index(d).regions.get(mc).offmap) continue;
     if (friendly(s, c.id, s.regions[mc].controller)) continue;
-    const cand = d.regions.filter(r => !r.offmap && s.regions[r.id].owner === c.id && s.regions[r.id].controller === c.id).sort((a, b) => (b.id === 'chongqing' && s.flags.chongqing_ready ? 100 : 0) - (a.id === 'chongqing' && s.flags.chongqing_ready ? 100 : 0) || b.vp - a.vp || b.pop - a.pop);
+    // 포위된 고립지로 옮기지 않는다: 우리 편이 쥔 땅이 이어진 덩어리 가운데 승점이 가장 큰 곳에서 고른다
+    const X = index(d), mine = r => !r.offmap && s.regions[r.id].owner === c.id && s.regions[r.id].controller === c.id;
+    const comp = new Map(); let best = -1, bestVp = -1;
+    for (const r of d.regions) {
+      if (!mine(r) || comp.has(r.id)) continue;
+      const k = comp.size, q = [r.id]; let vp = 0; comp.set(r.id, k);
+      while (q.length) { const id = q.pop(); vp += X.regions.get(id).vp + 1; for (const n of X.regions.get(id).adj) if (!comp.has(n) && friendly(s, c.id, s.regions[n].controller) && !X.regions.get(n).offmap) { comp.set(n, k); q.push(n); } }
+      if (vp > bestVp) { bestVp = vp; best = k; }
+    }
+    // 적과 맞닿은 전선 도시는 피한다(그런 곳밖에 없으면 어쩔 수 없다)
+    const front = r => X.regions.get(r.id).adj.some(n => atWar(s, c.id, s.regions[n].controller));
+    let cand = d.regions.filter(r => mine(r) && comp.get(r.id) === best);
+    if (cand.some(r => !front(r))) cand = cand.filter(r => !front(r));
+    cand.sort((a, b) => (b.id === 'chongqing' && s.flags.chongqing_ready ? 100 : 0) - (a.id === 'chongqing' && s.flags.chongqing_ready ? 100 : 0) || b.vp - a.vp || b.pop - a.pop);
     if (!cand.length) continue;
     const to = cand[0].id;
     if (c.mapCapital) c.mapCapital = to; if (!index(d).regions.get(c.capital).offmap) c.capital = to;
@@ -169,7 +182,7 @@ function checkCapitals(s, d, log) {
 function checkCapitulation(s, d, log) {
   for (const c of Object.values(s.countries)) {
     if (!c.exists || !isAtWar(s, c.id)) continue;
-    if (c.spirits.includes('guerrilla_base') && s.divisions.some(dv => dv.owner === c.id)) continue; // 유격 근거지: 사단이 남아 있는 한 항복하지 않는다
+    if (c.spirits.includes('guerrilla_base') && (s.divisions.some(dv => dv.owner === c.id) || d.regions.some(r => !r.offmap && s.regions[r.id].controller === c.id))) continue; // 유격 근거지: 사단이나 땅이 남아 있는 한 항복하지 않는다
     const hasHome = d.regions.some(r => r.offmap && r.owner === c.id) && !c.homeLost;
     const { own, held } = vpOf(s, d, c.id);
     const anyLand = d.regions.some(r => s.regions[r.id].controller === c.id && !(r.offmap && c.homeLost));

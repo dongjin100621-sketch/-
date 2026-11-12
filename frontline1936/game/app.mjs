@@ -1,4 +1,4 @@
-/* 전선과 공장: 동아시아 1936 — 화면 0.2(장군·날씨, 지도 질감·부대 기호·아이콘·제목 글꼴)
+/* 전선과 공장: 동아시아 1936 — 화면 0.3(강·철도·보급 거점 층, 보급 지도, 부대 표 겹침 풀기, 지도 풍선 도움말, 접는 범례)
  * 입력을 engine.dispatch로 보내고 돌려받은 상태만 그린다. 지도는 SVG 하나를 만들어 두고 색·부대 층만 고친다. */
 import * as E from './engine.mjs';
 import { index, mods, fmtDate, dateOf, dayOf, atWar, friendly, isAtWar, enemiesOf, clamp, sum, distance, yearOf } from './core.mjs';
@@ -74,7 +74,7 @@ function shell() {
   <main class="stage" id="stage"><div class="map" id="map"></div>
     <div class="mapmodes" role="group" aria-label="지도 모드">${MODES.map(([id, n]) => `<button data-action="mapMode" data-mode="${id}" class="${ui.mapMode === id ? 'on' : ''}">${n}</button>`).join('')}</div>
     <div class="zoom"><button data-action="zoom" data-z="0.75" aria-label="확대">+</button><button data-action="zoom" data-z="1.33" aria-label="축소">−</button><button data-action="fit" aria-label="전체 보기">⤢</button></div>
-    <div class="legend" id="legend"></div><div class="hint" id="toast" hidden></div><div id="screen"></div></main>
+    <div class="legend" id="legend"></div><div class="tip" id="tip" hidden></div><div class="hint" id="toast" hidden></div><div id="screen"></div></main>
   <aside class="side" id="side"></aside>
   <footer class="ticker" id="ticker"></footer></div>`;
 }
@@ -128,13 +128,14 @@ function buildMap() {
   const isles = Object.entries(MAP.regions).filter(([, r]) => r.area < 25).map(([id, r]) => `<circle class="isle" cx="${r.label[0]}" cy="${r.label[1]}" r="9"/><circle data-r="${id}" cx="${r.label[0]}" cy="${r.label[1]}" r="10" fill="transparent" class="isle-hit"/>`).join('');
   const slbl = data.seas.map(s => `<text class="slbl" x="${s.label[0]}" y="${s.label[1]}">${esc(s.name)}</text>`).join('');
   const lbl = data.regions.filter(r => !r.offmap).map(r => `<text class="lbl ${r.area < 300 ? 'sm' : ''}" x="${r.label[0]}" y="${r.label[1] + (r.vp >= 10 ? 13 : 4)}">${esc(r.name.replace(/\(.*\)/, ''))}</text>${r.vp >= 10 ? `<path class="vp" d="M${r.label[0]},${r.label[1] - 7}l2.2,4.5 5,.7-3.6,3.5.9,5-4.5-2.4-4.5,2.4.9-5-3.6-3.5 5-.7z"/>` : ''}`).join('');
+  const water = `<path class="lake" d="${MAP.lakes || ''}"/><path class="river sm" d="${MAP.rivers?.small || ''}"/><path class="river lg" d="${MAP.rivers?.large || ''}"/>`;
   el.innerHTML = `<svg id="svg" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="동아시아·태평양 지도"><defs>
   <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#ffe08a"/></marker>
   <radialGradient id="seaGrad" gradientUnits="userSpaceOnUse" cx="${MW * .42}" cy="${MH * .38}" r="${MW * .75}"><stop offset="0" stop-color="#26506f"/><stop offset=".55" stop-color="#1b3a55"/><stop offset="1" stop-color="#112538"/></radialGradient>
   ${Object.entries(TEX).map(([k, v]) => `<pattern id="tx_${k}" width="17" height="17" patternUnits="userSpaceOnUse">${v}</pattern>`).join('')}<g id="pats"></g></defs>
   <rect x="${-MW}" y="${-MH}" width="${MW * 3}" height="${MH * 3}" fill="url(#seaGrad)"/>
-  <g id="g-seas">${seas}</g><path class="coast" d="${COAST_D}"/><path class="coast2" d="${COAST_D}"/><g id="g-regions">${regs}</g><g id="g-tex" class="tex">${tex}</g><g id="g-borders"></g><g id="g-front"></g><g id="g-isles">${isles}</g><g id="g-wx"></g><g id="g-clbl"></g><g id="g-slbl">${slbl}</g><g id="g-lbl">${lbl}</g><g id="g-over"></g></svg>`;
-  clblSig = '';
+  <g id="g-seas">${seas}</g><path class="coast" d="${COAST_D}"/><path class="coast2" d="${COAST_D}"/><g id="g-regions">${regs}</g><g id="g-tex" class="tex">${tex}</g><g id="g-water">${water}</g><g id="g-borders"></g><g id="g-rail"></g><g id="g-front"></g><g id="g-isles">${isles}</g><g id="g-wx"></g><g id="g-clbl"></g><g id="g-slbl">${slbl}</g><g id="g-lbl">${lbl}</g><g id="g-over"></g></svg>`;
+  clblSig = ''; railSig = '';
   bindMap(el);
   applyViewBox();
 }
@@ -143,6 +144,7 @@ function applyViewBox() {
   const z = MW / v.w;
   $('#g-lbl')?.setAttribute('style', `display:${z > 1.9 ? 'inline' : 'none'}`); $('#g-slbl')?.setAttribute('style', `display:${z > 1.2 ? 'inline' : 'none'}`);
   $('#g-clbl')?.setAttribute('style', `display:${z < 3.2 ? 'inline' : 'none'};opacity:${z > 1.9 ? .38 : 1}`);
+  svg.dataset.z = z > 1.9 ? 'near' : z > 1.15 ? 'mid' : 'far';
 }
 function zoomAt(f, cx, cy) {
   const v = ui.vb, nw = clamp(v.w * f, 240, MW * 1.05), nh = nw * v.h / v.w;
@@ -156,8 +158,24 @@ function bindMap(el) {
   el.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = svgPoint(e); zoomAt(e.deltaY > 0 ? 1.15 : .87, x, y); }, { passive: false });
   el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, y: e.clientY, vb: { ...ui.vb }, moved: 0, target: e.target, pinch: pts.size === 2 ? dist2() : null }; });
   const dist2 = () => { const [a, b] = [...pts.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+  let tipT = 0;
   el.addEventListener('pointermove', e => {
+    if (e.pointerType === 'mouse' && !drag) {
+      const tip = $('#tip'); if (!tip) return;
+      cancelAnimationFrame(tipT);
+      tipT = requestAnimationFrame(() => {
+        const h = state ? tipHtml(e.target) : '';
+        if (!h) { tip.hidden = true; return; }
+        tip.innerHTML = h; tip.hidden = false;
+        const box = el.getBoundingClientRect(), w = tip.offsetWidth, hh = tip.offsetHeight;
+        let x = e.clientX - box.left + 16, y = e.clientY - box.top + 16;
+        if (x + w > box.width - 8) x = e.clientX - box.left - w - 12; if (y + hh > box.height - 8) y = e.clientY - box.top - hh - 12;
+        tip.style.transform = `translate(${Math.max(4, x)}px,${Math.max(4, y)}px)`;
+      });
+      return;
+    }
     if (!drag || !pts.has(e.pointerId)) return;
+    const tp = $('#tip'); if (tp) tp.hidden = true;
     pts.set(e.pointerId, [e.clientX, e.clientY]);
     const r = el.getBoundingClientRect(), s = Math.min(r.width / drag.vb.w, r.height / drag.vb.h);
     if (pts.size === 2) { const d2 = dist2(); if (drag.pinch) { const f = drag.pinch / d2; ui.vb = { ...drag.vb }; zoomAt(f); drag.moved = 99; } return; }
@@ -169,6 +187,7 @@ function bindMap(el) {
     if (drag && drag.moved <= 4 && pts.size === 0) mapClick(drag.target);
     if (pts.size === 0) drag = null;
   };
+  el.addEventListener('pointerleave', () => { const tp = $('#tip'); if (tp) tp.hidden = true; });
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', e => { pts.delete(e.pointerId); drag = null; el.classList.remove('drag'); });
 }
 function mapClick(t) {
@@ -205,7 +224,15 @@ function stripe(owner, ctrl) {
   if (!patterns.has(id)) { patterns.add(id); const g = $('#pats'); if (g) g.insertAdjacentHTML('beforeend', `<pattern id="${id}" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="${C(ctrl).color}"/><rect width="5" height="14" fill="${C(owner).color}"/></pattern>`); }
   return `url(#${id})`;
 }
-let supplyMap = null, supplyDay = -1;
+let supplyAll = null, supplyKey = '';
+/** 오늘의 보급 용량(모든 나라). 플레이어 나라는 사단이 없어도 계산되게 수도에 가상의 수비대를 둔다. */
+function supplyToday() {
+  const k = `${state.day}|${state.railVer || 0}|${state.divisions.length}`;
+  if (k !== supplyKey) { supplyAll = E.mil.computeSupply({ ...state, divisions: [...state.divisions, { owner: state.player, at: me().mapCapital || 'kanto', tpl: 'garrison_generic' }] }, data); supplyKey = k; }
+  return supplyAll;
+}
+const supInfo = (cid, rid) => E.mil.supplyInfo(state, data, cid, rid, supplyToday());
+const SUP_COL = v => v <= .05 ? null : `hsl(${clamp(v / 22, 0, 1) * 120},48%,${30 + clamp(v / 22, 0, 1) * 10}%)`;
 function regionFill(r) {
   const st = state.regions[r.id], mode = ui.mapMode;
   if (mode === 'political') return st.owner === st.controller ? C(st.controller).color : stripe(st.owner, st.controller);
@@ -216,8 +243,8 @@ function regionFill(r) {
   if (mode === 'industry') { const n = sum(['civ', 'arms', 'dock', 'steel', 'tools', 'chem', 'light'].map(b => st.b[b]?.level || 0)); return n ? `hsl(30,${30 + Math.min(n, 15) * 4}%,${30 + Math.min(n, 15) * 3}%)` : '#3c4245'; }
   if (mode === 'infra') return `hsl(205,35%,${18 + st.infra * 6}%)`;
   if (mode === 'supply') {
-    if (supplyDay !== state.day) { supplyMap = E.mil.computeSupply({ ...state, divisions: [...state.divisions, { owner: state.player, at: me().mapCapital || 'kanto', tpl: 'garrison_generic' }] }, data)[state.player]; supplyDay = state.day; }
-    const v = supplyMap?.get(r.id) || 0; return v ? `hsl(${Math.min(120, v * 9)},45%,38%)` : friendly(state, state.player, st.controller) ? '#5a2e2a' : '#3b4043';
+    const v = supplyToday()[state.player]?.get(r.id) || 0, col = SUP_COL(v);
+    return col || (friendly(state, state.player, st.controller) ? '#5a2e2a' : '#33383b');
   }
   return '#555';
 }
@@ -229,8 +256,28 @@ function legendHtml() {
   if (m === 'terrain') return `<b>지형</b><br>${Object.entries(data.terrain).map(([k, t]) => `<span class="sw" style="background:${TERRAIN_COL[k]}"></span>${t.name}`).join(' ')}`;
   if (m === 'resources') return '<b>자원</b> 보라: 석유, 초록: 고무, 파랑: 희소 금속, 갈색: 석탄·철. 진할수록 많다.';
   if (m === 'industry') return '<b>공업</b> 공장 단계가 많을수록 밝다.';
-  if (m === 'supply') return '<b>보급</b> 초록일수록 보급 용량이 크다. 붉은 곳은 우리 땅이지만 보급이 닿지 않는다.';
-  return '<b>기반 시설</b> 밝을수록 도로·철도가 좋다(이동·보급·공장 터).';
+  if (m === 'supply') return `<b>보급</b> 지역마다 하루 보급 용량(우리 나라 기준). 사단 하나가 하루 0.4~1을 쓴다.<div class="grad"><span style="background:linear-gradient(90deg,${[0, 5, 10, 15, 22].map(v => SUP_COL(Math.max(.1, v))).join(',')})"></span><i>0</i><i>11</i><i>22+</i></div><span class="lgx rl"></span>철도(굵을수록 높은 등급) <span class="lgx rlx"></span>끊긴 철도 <span class="lgx rd"></span>도로 <span class="lgx rv"></span>배길 <span class="lgx hb"></span>보급 거점 <span class="sw" style="background:#5a2e2a"></span>보급이 닿지 않는 우리 편 땅<br><span class="mini">수도·항구에서 철도·도로·배길로 실어 나르고, 노선 위 보급 거점에서 둘레로 퍼진다. 거점이 없는 노선 위 지역은 ${pct(data.transportRules.noHub)}만 부린다. 점령하면 그 지역의 철도가 끊기고 ${Math.round(data.transportRules.captureDamage / data.transportRules.repairPerDay)}일쯤 걸려 복구된다.</span>`;
+  return '<b>기반 시설</b> 밝을수록 지역 안의 도로가 좋다(이동·보급이 퍼지는 정도·공장 터). 지역 사이의 철도는 보급 모드에서 본다.';
+}
+/* 철도·도로·배길·보급 거점. 보급 모드에서는 우리가 쓸 수 있는 노선을 밝게, 끊긴 노선을 붉게 그린다. */
+let railSig = '';
+function railLayer() {
+  const T = E.tr.transportLinks(state, data), sup = ui.mapMode === 'supply';
+  const usable = L => E.mil.passable(state, state.player, L.a) && E.mil.passable(state, state.player, L.b);
+  const sig = ui.mapMode + T.list.map(L => `${L.id}${L.lvl}${L.dmg > 0 ? 'x' : ''}${sup && usable(L) ? 'u' : ''}`).join() + Object.values(state.regions).map(r => r.hub ? 1 : 0).join('');
+  if (sig === railSig) return; railSig = sig;
+  const P = id => MAP.nodes?.[id];
+  const groups = {};
+  const add = (cls, L) => { const a = P(L.a), b = P(L.b); if (!a || !b) return; (groups[cls] ||= []).push(`M${a[0]},${a[1]}L${b[0]},${b[1]}`); };
+  for (const L of T.list) {
+    const off = sup && !usable(L) ? ' off' : '';
+    if (L.kind === 'rail') add(L.dmg >= .5 ? `rl x${off}` : `rl l${Math.min(L.lvl, 4)}${L.dmg > 0 ? ' hurt' : ''}${off}`, L);
+    else if (L.kind === 'road') add(`rd${L.dmg >= .5 ? ' x' : ''}${off}`, L);
+    else add(`rv${off}`, L);
+  }
+  const lines = Object.entries(groups).map(([cls, ds]) => cls.startsWith('rl') && !cls.includes(' x') ? `<path class="${cls} base" d="${ds.join('')}"/><path class="${cls} tie" d="${ds.join('')}"/>` : `<path class="${cls}" d="${ds.join('')}"/>`).join('');
+  const hubs = data.regions.filter(r => !r.offmap && state.regions[r.id].hub && P(r.id)).map(r => { const [x, y] = P(r.id); return `<rect class="hubm" x="${x - 4}" y="${y - 4}" width="8" height="8"/><path class="hubm2" d="M${x - 2.2},${y}h4.4M${x},${y - 2.2}v4.4"/>`; }).join('');
+  $('#g-rail').innerHTML = lines + `<g class="hubs">${hubs}</g>`;
 }
 /* 큰 나라 이름: 같은 나라가 통제하는 이어진 땅마다 하나(멀리서 볼 때) */
 let clblSig = '';
@@ -299,7 +346,8 @@ function updateMap() {
   const wxMode = ui.mapMode === 'weather';
   for (const s of data.seas) { const el = document.getElementById(`sea_${s.id}`); if (!el) continue; const code = wxAt(s.id).code, f = wxMode && code !== 'clear' ? WX_COL[code] : ''; if ((el.getAttribute('fill') || '') !== f) { if (f) el.setAttribute('fill', f); else el.removeAttribute('fill'); } el.classList.toggle('wxsea', wxMode); el.classList.toggle('sel', ui.sel.sea === s.id); }
   $('#g-tex').style.display = ['political', 'faction'].includes(ui.mapMode) ? 'inline' : 'none';
-  countryLabels(); weatherLayer();
+  countryLabels(); weatherLayer(); railLayer();
+  const svgEl = $('#svg'); if (svgEl) svgEl.dataset.mode = ui.mapMode;
   // 나라 경계와 전선
   let bd = '', fr = '';
   for (const [k, dpath] of Object.entries(MAP.borders)) {
@@ -315,19 +363,36 @@ function updateMap() {
   const byRegion = new Map();
   for (const dv of state.divisions) { if (!byRegion.has(dv.at)) byRegion.set(dv.at, []); byRegion.get(dv.at).push(dv); }
   const led = new Set(); for (const a of state.armies) if (a.leader) for (const id of a.divisions) led.add(id);
+  // 부대 표 자리: 지역 이름 자리 위에 나라별로 하나씩 놓고, 겹치면 밀어낸다(밀려난 표는 가는 선으로 제자리를 가리킨다)
+  const counters = [];
   for (const [rid, list] of byRegion) {
     const r = R(rid), sea = X.seas.get(rid); const p = r ? r.label : sea ? sea.label : null; if (!p || r?.offmap) continue;
     const groups = new Map(); for (const dv of list) { const k = dv.owner; groups.set(k, (groups.get(k) || []).concat(dv)); }
-    let i = 0;
-    for (const [owner, l] of groups) {
+    let i = 0, n = groups.size;
+    for (const [owner, l] of groups) { counters.push({ rid, owner, l, ax: p[0], ay: p[1] - 24, x: p[0] - (n - 1) * 18.5 + i * 37, y: p[1] - 24 }); i++; }
+  }
+  for (let it = 0; it < 10; it++) {
+    let moved = false;
+    for (let i = 0; i < counters.length; i++) for (let j = i + 1; j < counters.length; j++) {
+      const a = counters[i], b = counters[j], dx = b.x - a.x, dy = b.y - a.y, ox = 37 - Math.abs(dx), oy = 22 - Math.abs(dy);
+      if (ox <= 0 || oy <= 0) continue;
+      moved = true;
+      if (ox / 37 < oy / 22) { const m = ox / 2 * (dx >= 0 ? 1 : -1) || ox / 2; a.x -= m; b.x += m; } else { const m = oy / 2 * (dy >= 0 ? 1 : -1) || oy / 2; a.y -= m; b.y += m; }
+    }
+    if (!moved) break;
+  }
+  for (const k of counters) {
+    const { rid, owner, l, x, y } = k;
+    {
       const mine = owner === state.player, enemy = atWar(state, state.player, owner);
-      const x = p[0] - 17 + i * 37, y = p[1] - 24; i++;
+      if (Math.hypot(x - k.ax, y - k.ay) > 30) out.push(`<path class="ulead" d="M${k.ax},${k.ay + 10}L${x},${y}"/>`);
+      const lowSup = sum(l.map(dv => dv.sup ?? 1)) / l.length < .6;
       const sel = mine && l.some(dv => ui.sel.divisions.includes(dv.id));
       const org = sum(l.map(dv => dv.org)) / l.length, str = sum(l.map(dv => dv.str)) / l.length;
       const types = new Map(); for (const dv of l) { const t = unitType(dv.tpl); types.set(t, (types.get(t) || 0) + 1); }
       const main = [...types].sort((a, b) => b[1] - a[1])[0][0];
       const star = l.some(dv => led.has(dv.id)) ? `<path class="ustar" d="M${x + 14},${y - 13}l1.5,3 3.3.5-2.4,2.3.6,3.3-3-1.6-3,1.6.6-3.3-2.4-2.3 3.3-.5z"/>` : '';
-      out.push(`<g class="unit ${mine ? 'mine' : ''} ${sel ? 'sel' : ''} ${enemy ? 'foe' : ''}" data-unit="${rid}"><rect class="ub" x="${x - 16}" y="${y - 9}" width="34" height="18" rx="2.5" fill="${C(owner).color}"/>${symbol(main, x - 13, y - 5.5)}<text x="${x + 9.5}" y="${y + 4}">${l.length}</text><rect x="${x - 16}" y="${y + 9.5}" width="34" height="3.4" fill="#0b0e10" stroke="none"/><rect x="${x - 16}" y="${y + 9.5}" width="${34 * org}" height="1.7" fill="${enemy ? '#ff7a5c' : '#9fe08a'}" stroke="none"/><rect x="${x - 16}" y="${y + 11.2}" width="${34 * str}" height="1.7" fill="#e8d08a" stroke="none"/>${star}</g>`);
+      out.push(`<g class="unit ${mine ? 'mine' : ''} ${sel ? 'sel' : ''} ${enemy ? 'foe' : ''}" data-unit="${rid}">${lowSup && (mine || friendly(state, state.player, owner)) ? `<g class="usup"><circle cx="${x - 16}" cy="${y - 9}" r="5.5"/><path d="M${x - 16},${y - 12}v3.4M${x - 16},${y - 6.6}v.4"/></g>` : ''}<rect class="ub" x="${x - 16}" y="${y - 9}" width="34" height="18" rx="2.5" fill="${C(owner).color}"/>${symbol(main, x - 13, y - 5.5)}<text x="${x + 9.5}" y="${y + 4}">${l.length}</text><rect x="${x - 16}" y="${y + 9.5}" width="34" height="3.4" fill="#0b0e10" stroke="none"/><rect x="${x - 16}" y="${y + 9.5}" width="${34 * org}" height="1.7" fill="${enemy ? '#ff7a5c' : '#9fe08a'}" stroke="none"/><rect x="${x - 16}" y="${y + 11.2}" width="${34 * str}" height="1.7" fill="#e8d08a" stroke="none"/>${star}</g>`);
     }
   }
   for (const b of Object.values(state.battles || {})) { const r = R(b.region); if (!r) continue; const x = r.label[0] + 21, y = r.label[1] + 7; out.push(`<g class="battle"><circle cx="${x}" cy="${y}" r="9"/><path d="M${x - 4.5},${y - 4.5}l9,9M${x + 4.5},${y - 4.5}l-9,9" /><circle class="bp" cx="${x}" cy="${y}" r="11.5" stroke-dasharray="${(72 * b.progress).toFixed(1)} 72"/></g>`); }
@@ -350,7 +415,27 @@ function updateMap() {
     else { const to = R(dv.order.target)?.label; if (to) out.push(`<path class="arrow atk" d="M${from.join(',')}L${to.join(',')}"/>`); }
   }
   $('#g-over').innerHTML = out.join('');
-  const lg = $('#legend'); if (lg) lg.innerHTML = legendHtml();
+  const lg = $('#legend'); if (lg) { const open = legendOpen(); lg.classList.toggle('closed', !open); lg.innerHTML = `<button class="lg-t" data-action="legend" aria-expanded="${open}">${open ? '범례 접기 ▴' : `범례 · ${esc(MODES.find(m => m[0] === ui.mapMode)?.[1] || '')} ▾`}</button>${open ? `<div class="lg-b">${legendHtml()}</div>` : ''}`; }
+}
+
+function legendOpen() {
+  if (typeof ui.legendOpen === 'boolean') return ui.legendOpen;
+  let v = null; try { v = localStorage.getItem('frontline1936.legend'); } catch { /* 저장소 없음 */ }
+  ui.legendOpen = v === null ? !(typeof innerWidth === 'number' && innerWidth < 700) : v === '1';
+  return ui.legendOpen;
+}
+/* 지도 풍선 도움말(마우스): 지역·해역 위에 잠시 머물면 요약을 보여 준다. */
+function tipHtml(t) {
+  const rid = t.dataset?.r || t.closest?.('[data-unit]')?.dataset.unit, sea = t.dataset?.sea;
+  if (rid && R(rid) && !R(rid).offmap) {
+    const r = R(rid), st = state.regions[rid], c = C(st.controller), ours = friendly(state, state.player, st.controller), i = supInfo(ours ? state.player : st.controller, rid);
+    const links = E.tr.linksAt(state, data, rid).filter(L => L.kind === 'rail');
+    const divs = state.divisions.filter(dv => dv.at === rid);
+    const by = [...new Set(divs.map(dv => dv.owner))].map(o => `${esc(C(o).short)} ${divs.filter(dv => dv.owner === o).length}`).join(' · ');
+    return `<b>${esc(r.name)}</b>${r.vp ? ` <span class="mini">승점 ${r.vp}</span>` : ''}<br><span class="sw" style="background:${c.color}"></span>${esc(c.short)}${st.owner !== st.controller ? ` (원래 ${esc(C(st.owner).short)})` : ''} · ${data.terrain[r.terrain].name} · ${esc(wxAt(rid).name)}<br>${ours ? '' : `${esc(c.short)} `}보급 ${num(i.cap, 1)}/일${st.hub ? ' · 거점' : ''}${links.length ? ` · 철도 ${links.length}갈래${links.some(L => L.dmg > 0) ? '(끊김 있음)' : ''}` : ''}${by ? `<br>사단: ${by}` : ''}${state.battles[rid] ? '<br><span class="bad">전투 중</span>' : ''}`;
+  }
+  if (sea && X.seas.get(sea)) { const s = X.seas.get(sea), sup = state.navSup[sea] || {}; return `<b>${esc(s.name)}</b> · ${esc(wxAt(sea).name)}<br>${Object.entries(sup).map(([k, v]) => `${esc(C(k).short)} ${pct(v)}`).join(', ') || '순찰하는 함대 없음'}`; }
+  return '';
 }
 
 /* ---------- 옆 패널 ---------- */
@@ -380,10 +465,37 @@ function divisionPanel() {
   const list = state.divisions.filter(dv => ui.sel.divisions.includes(dv.id));
   if (!list.length) { ui.sel.divisions = []; return ''; }
   const here = R(list[0].at) || X.seas.get(list[0].at);
-  return `${close}<h2>사단 ${list.length}개</h2><p class="muted">${esc(here?.name || '')}에 있음. <b>지도에서 지역을 누르면</b> 이동합니다. 맞닿은 적 지역은 공격, 바다 건너 적 해안은 상륙(아군 항구에서 출발, 해상 우세 필요)입니다.</p>
+  const supLine = (() => {
+    const at = list[0].at; if (!R(at) || R(at).offmap) return '';
+    const i = supInfo(state.player, at), low = i.ratio < .95;
+    return `<p class="mini">보급(${esc(R(at).name)}): 용량 ${num(i.cap, 1)}/일, 이곳 우리 사단 ${i.n}개가 ${num(i.use, 1)} 사용 → <b class="${i.ratio < .6 ? 'bad' : low ? 'warn' : 'good'}">${pct(i.ratio)}</b>${low ? ' — 사단을 이웃 지역으로 나누거나, 보급 거점을 짓거나, 철도 등급을 올리세요(지역 창의 교통·보급).' : ''}</p>`;
+  })();
+  return `${close}<h2>사단 ${list.length}개</h2>${supLine}<p class="muted">${esc(here?.name || '')}에 있음. <b>지도에서 지역을 누르면</b> 이동합니다. 맞닿은 적 지역은 공격, 바다 건너 적 해안은 상륙(아군 항구에서 출발, 해상 우세 필요)입니다.</p>
   <div class="btns"><button class="small" data-action="stopDivs">멈춤</button><button class="small" data-action="selectRegionDivs">이 지역 전체</button><button class="small" data-action="formArmy">군 편성·장군 배치</button><button class="small" data-action="clearSel">선택 해제</button></div>
   ${(() => { const as = [...new Set(list.map(dv => armyOf(dv)).filter(Boolean))]; return as.length ? `<p class="mini">소속: ${as.map(a => `${esc(a.name)}${a.leader ? `(${esc(leaderName(a))})` : ''}`).join(', ')}</p>` : '<p class="mini">군에 속하지 않은 사단입니다. 군으로 묶으면 장군의 능력이 붙습니다.</p>'; })()}
   <div style="margin-top:10px">${list.map(divRow).join('')}</div>`;
+}
+/** 지역의 교통·보급 카드: 보급 용량과 쓰는 양, 거점, 이웃으로 가는 노선과 강, 철도 짓기. */
+function transportHtml(rid) {
+  const r = R(rid), st = state.regions[rid], cid = state.player;
+  if (r.offmap) return '';
+  const mineCtrl = st.controller === cid, TR = data.transportRules, ours = friendly(state, cid, st.controller);
+  const info = supInfo(ours ? cid : st.controller, rid);
+  const hubWhy = E.buildReason(state, data, cid, { id: 'hub', kind: 'facility', region: rid });
+  const rows = r.adj.map(n => {
+    const links = E.tr.linksBetween(state, data, rid, n), riv = E.tr.crossingOf(data, rid, n);
+    const canRail = mineCtrl && state.regions[n].controller === cid;
+    if (!links.length && !riv && !canRail) return '';
+    const lk = links.map(L => `<span class="tag ${L.kind}">${TR[L.kind].name} ${L.lvl}등급</span> <span class="mini">${esc(L.name)}${L.dmg > 0 ? ` · <span class="bad">끊김 ${pct(L.dmg)}</span>` : ''}</span>`).join(' ');
+    const why = canRail ? E.tr.railReason(state, data, cid, rid, n) : '';
+    const lv = E.tr.railLevel(state, data, rid, n).lvl;
+    const btn = canRail ? `<button class="small" data-action="buildRail" data-from="${rid}" data-to="${n}" ${why ? `disabled title="${esc(why)}"` : ''}>${lv ? `철도 ${lv + 1}등급으로` : '철도 놓기'} (${E.tr.railCost(state, data, rid, n)})</button>` : '';
+    return `<div class="trow"><b>→ ${esc(R(n).name)}</b><span>${lk || '<span class="muted">노선 없음</span>'}${riv ? ` <span class="tag river-x" title="강을 건너 공격하면 공격력이 줄고(공병·상륙 부대는 절반), 다리(철도·도로)가 없으면 건너는 데 오래 걸린다">${E.tr.CROSSING_NAME[riv]} 건너기 −${pct(TR.riverAttack[riv])}</span>` : ''}</span>${btn}</div>`;
+  }).join('');
+  return `<h3 style="margin-top:10px">교통·보급</h3>
+  <div class="kv"><span>보급 용량</span><b>${ours ? '' : `${esc(C(st.controller).short)} `}${num(info.cap, 1)}/일${info.n ? ` · ${ours ? '우리' : esc(C(st.controller).short)} 사단 ${info.n}개가 ${num(info.use, 1)} 사용 → <span class="${info.ratio < .6 ? 'bad' : info.ratio < .95 ? 'warn' : 'good'}">${pct(info.ratio)}</span>` : ''}</b>
+  <span>보급 거점</span><b>${st.hub ? '<span class="tag ok">있음</span> 노선으로 받은 보급을 모두 부린다' : `없음${mineCtrl ? ` <button class="small" data-action="build" data-id="hub" data-kind="facility" data-region="${rid}" ${hubWhy ? `disabled title="${esc(hubWhy)}"` : ''}>+보급 거점 (${X.facilities.get('hub').cost})</button>` : ''}`}</b></div>
+  ${rows ? `<div class="trows">${rows}</div>` : '<p class="mini muted">맞닿은 지역으로 가는 노선이 없습니다.</p>'}`;
 }
 function regionPanel(rid) {
   const r = R(rid), st = state.regions[rid], owner = C(st.owner), ctrl = C(st.controller);
@@ -405,7 +517,8 @@ function regionPanel(rid) {
   <span>항공 구역</span><b>${esc(X.airZones.get(r.airZone)?.name || '')} · ${esc(data.climates[X.airZones.get(r.airZone).climate].name)}</b>${r.coast.length ? `<span>바다</span><b>${r.coast.map(z => esc(X.seas.get(z).name)).join(', ')}</b>` : ''}</div>
   <h3 style="margin-top:10px">자원</h3><div>${res}</div><h3 style="margin-top:8px">건물</h3><div>${blds}</div>
   ${quick ? `<h3 style="margin-top:8px">짓기</h3><div class="btns">${quick}</div>` : ''}
-  ${b ? `<h3 style="margin-top:10px" class="bad">전투 중</h3><p class="mini">공격 ${num(b.attack)} 대 방어 ${num(b.defense)} · 방어 쪽 피해 ${num(b.hitsOnDef, 1)}/일, 공격 쪽 ${num(b.hitsOnAtt, 1)}/일 · 제공권 ${pct(b.air)}</p>${bar(b.progress, 'bad')}` : ''}
+  ${b ? `<h3 style="margin-top:10px" class="bad">전투 중</h3><p class="mini">공격 ${num(b.attack)} 대 방어 ${num(b.defense)} · 방어 쪽 피해 ${num(b.hitsOnDef, 1)}/일, 공격 쪽 ${num(b.hitsOnAtt, 1)}/일 · 제공권 ${pct(b.air)}${b.river ? ` · <span class="warn">${E.tr.CROSSING_NAME[b.river]}을 건너는 공격(−${pct(data.transportRules.riverAttack[b.river])}, 공병·상륙 부대는 덜 깎인다)</span>` : ''}</p>${bar(b.progress, 'bad')}` : ''}
+  ${transportHtml(rid)}
   ${mine.length ? `<h3 style="margin-top:10px">우리 사단 ${mine.length}</h3><button class="small" data-action="selectRegionDivs" data-region="${rid}">모두 고르기</button><div style="margin-top:6px">${mine.slice(0, 12).map(divRow).join('')}</div>` : ''}
   ${others.length ? `<h3 style="margin-top:10px">다른 나라 사단</h3>${[...new Set(others.map(x => x.owner))].map(o => `<p><span class="tag ${atWar(state, state.player, o) ? 'war' : 'ally'}">${esc(C(o).short)}</span> ${others.filter(x => x.owner === o).length}개 · 병력 ${pct(sum(others.filter(x => x.owner === o).map(x => x.str)) / others.filter(x => x.owner === o).length)}</p>`).join('')}` : ''}`;
 }
@@ -531,7 +644,7 @@ function diplomacy() {
 }
 function buildView() {
   const c = me();
-  const q = c.construction.map((x, i) => { const cost = E.econ.constructionCost(data, x); return `<tr><td>${esc(R(x.region).name)}</td><td>${esc(x.kind === 'facility' ? X.facilities.get(x.id).name : X.buildings.get(x.id).name)}</td><td style="min-width:120px">${bar(x.progress / cost)}</td><td>${num(x.progress)}/${cost}</td><td>${i ? `<button class="small" data-action="prioritize" data-i="${i}">맨 앞으로</button>` : ''}<button class="small" data-action="cancelBuild" data-i="${i}">취소</button></td></tr>`; }).join('');
+  const q = c.construction.map((x, i) => { const cost = E.econ.constructionCost(data, x); return `<tr><td>${esc(x.kind === 'rail' ? '' : R(x.region).name)}</td><td>${esc(E.econ.projectName(data, x))}</td><td style="min-width:120px">${bar(x.progress / cost)}</td><td>${num(x.progress)}/${cost}</td><td>${i ? `<button class="small" data-action="prioritize" data-i="${i}">맨 앞으로</button>` : ''}<button class="small" data-action="cancelBuild" data-i="${i}">취소</button></td></tr>`; }).join('');
   const regs = data.regions.filter(r => state.regions[r.id].controller === c.id && state.regions[r.id].owner === c.id && !(r.offmap && c.homeLost));
   const rid = ui.buildRegion && regs.some(r => r.id === ui.buildRegion) ? ui.buildRegion : (c.mapCapital && regs.some(r => r.id === c.mapCapital) ? c.mapCapital : regs[0]?.id);
   const opts = [...data.buildings.map(b => ({ id: b.id, kind: 'building', name: b.name, cost: b.cost })), ...data.facilities.map(f => ({ id: f.id, kind: 'facility', name: f.name, cost: f.cost }))].map(o => { const why = rid ? E.buildReason(state, data, c.id, { ...o, region: rid }) : '지역 없음'; return `<button class="small" data-action="build" data-id="${o.id}" data-kind="${o.kind}" data-region="${rid}" ${why ? `disabled title="${esc(why)}"` : ''}>${esc(o.name)} (${o.cost})</button>`; }).join('');
@@ -641,6 +754,7 @@ function helpView() {
   <div class="card"><h3>국가 중점·연구·법</h3><p>국가 중점은 하나씩 진행해 공장·사단·명분·국가 정신을 얻습니다. 연구는 칸마다 하나씩. 법은 정치력으로 바꾸며 동원 법에는 전쟁 지지도가 필요합니다.</p></div>
   <div class="card"><h3>날씨</h3><p>항공 구역과 바다마다 날마다 날씨가 바뀝니다. 겨울 만주의 눈보라, 봄의 진창, 여름 장마와 남아시아의 우기, 태평양의 태풍. 공격·이동·보급·항공이 약해지고, 폭우·눈보라·태풍에는 상륙할 수 없습니다. 남반구는 계절이 반대입니다. 지도의 '날씨' 모드에서 봅니다.</p></div>
   <div class="card"><h3>장군·제독</h3><p>사단을 골라 군으로 묶으면 장군이 지휘합니다(공격·방어·계획·보급과 지형·혹한·상륙 특성). 제독은 함대에 붙어 화력을 높입니다. 실제 인물이며, 일부는 정해진 시기에만 지휘할 수 있습니다.</p></div>
+  <div class="card"><h3>철도·보급·강</h3><p>보급은 수도와 열린 항구(지도 밖 본국과 이어진 땅도)에서 나와 철도·도로·강의 배길로 실려 갑니다. 노선마다 하루 운송량이 정해져 있고(등급이 높을수록 많다), 노선 위 지역에 <b>보급 거점</b>이 있으면 받은 만큼 모두, 없으면 ${pct(data.transportRules.noHub)}만 부립니다. 거기서 땅을 따라 퍼지며 줄어듭니다(기반 시설·지형·날씨·강). 한 지역의 용량은 그곳 사단들이 나눠 쓰므로, 사단을 너무 몰면 모두 굶습니다. 지역을 점령하면 그 지역의 철도가 끊겼다가 ${Math.round(data.transportRules.captureDamage / data.transportRules.repairPerDay)}일쯤 걸려 복구되고, 점령지의 유격 활동은 가끔 노선을 끊습니다. 철도는 지역 창의 '교통·보급'에서 건설점으로 놓거나 등급을 올립니다. 후방에서는 사단이 철도·배길로 빨리 옮겨 가지만, 적과 맞닿은 지역에서는 내려서 걷습니다. 큰 강을 건너 공격하면 공격력이 ${pct(data.transportRules.riverAttack.large)}(작은 강 ${pct(data.transportRules.riverAttack.small)}) 줄고, 공병이나 상륙 능력이 있으면 덜 줄어듭니다. 다리(철도·도로)가 없는 강은 건너는 데도 오래 걸립니다. 노선은 1936~1945년의 실제 노선을 지역 단위로 묶은 근사입니다.</p></div>
   <div class="card"><h3>전투</h3><p>공격 쪽의 공격이 방어 쪽의 방어보다 크면 피해가 크게 늘어납니다. 조직력이 바닥난 방어 사단은 물러나고, 물러날 곳이 없으면 포위되어 무너집니다. 보급이 모자라면 약해지고 소모됩니다. 지형·요새·제공권·연료가 결과를 바꿉니다.</p></div>
   <div class="card"><h3>항복과 승리</h3><p>본토의 승점 대부분을 잃으면 항복합니다(지도 밖 본국이 있는 미국·영국·소련은 본국이 남아 있는 한 항복하지 않습니다). 1945년 12월 31일 또는 일본의 항복으로 끝납니다.</p></div>
   <div class="card"><h3>역사와 창작</h3><p>사건의 '(역사)' 선택지는 실제로 일어난 쪽, '(가상)'은 이 게임의 가정입니다. 사건마다 실제 역사를 따로 적었습니다. 전쟁 범죄와 민간인 피해는 게임의 보상으로 쓰지 않습니다.</p></div></div>`;
@@ -744,6 +858,8 @@ document.addEventListener('click', e => {
     case 'declare': if (confirm(`${C(id).name}에 전쟁을 선포할까요? 진영과 괴뢰국도 함께 전쟁에 들어갑니다.`)) act({ type: 'declare', target: id }); break;
     case 'joinFaction': act({ type: 'joinFaction' }); break;
     case 'build': act({ type: 'build', id, kind: b.dataset.kind, region: b.dataset.region }); break;
+    case 'buildRail': { const r = act({ type: 'buildRail', from: b.dataset.from, to: b.dataset.to }); if (r.ok) toast(`철도 공사를 대기열에 넣었습니다: ${R(b.dataset.from).name}–${R(b.dataset.to).name}`); break; }
+    case 'legend': ui.legendOpen = !legendOpen(); try { localStorage.setItem('frontline1936.legend', ui.legendOpen ? '1' : '0'); } catch { /* 저장소 없음 */ } updateMap(); break;
     case 'cancelBuild': act({ type: 'cancelBuild', index: +b.dataset.i }); break;
     case 'prioritize': act({ type: 'prioritize', index: +b.dataset.i }); break;
     case 'line': { const l = me().lines.find(x => x.equip === b.dataset.e); act({ type: 'setLine', equip: b.dataset.e, factories: (l ? l.factories : 0) + +b.dataset.d }); break; }
@@ -793,4 +909,4 @@ for (const ev of ['pointerup', 'pointercancel']) document.addEventListener(ev, (
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 window.addEventListener('pagehide', save);
 renderAll();
-globalThis.__GAME__ = { get state() { return state; }, data, E, ui, renderAll };
+globalThis.__GAME__ = { get state() { return state; }, data, E, ui, renderAll, applyViewBox };

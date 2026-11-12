@@ -52,7 +52,8 @@ export const FACILITIES = [
   { id: 'infra', name: '기반 시설', cost: 25, max: 10 },
   { id: 'air', name: '비행장', cost: 15, max: 10 },
   { id: 'port', name: '해군 기지', cost: 30, max: 10, coastal: true },
-  { id: 'fort', name: '요새', cost: 20, max: 10 }
+  { id: 'fort', name: '요새', cost: 20, max: 10 },
+  { id: 'hub', name: '보급 거점', cost: 35, max: 1, rail: true, occupied: true }
 ];
 
 /* 군 장비. cost: 생산점(군수 공장 1곳이 하루에 1점, 효율이 곱해진다). recipe: 이 장비 라인에 배치된 공장 1곳이 한 달에 사는 물자. */

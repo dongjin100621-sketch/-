@@ -3,6 +3,7 @@
 import { clamp, round, sum, index, mods, distance, atWar, friendly, rand } from './core.mjs';
 import { registerDivisionStats } from './economy.mjs';
 import { weatherOf } from './weather.mjs';
+import { transportLinks, linksBetween, crossingOf, damageLinksAt, dailyRail } from './transport.mjs';
 
 /* ---------- 편제와 능력치 ---------- */
 export const templateOf = (s, d, id) => index(d).templates.get(id) || (s.templates || []).find(t => t.id === id) || null;
@@ -29,6 +30,7 @@ export function templateStats(s, d, tplId, cid) {
     for (const [tt, x] of Object.entries(b.terrain || {})) st.terrain[tt] = Math.max(st.terrain[tt] || 0, x);
     if (b.amphibious) st.amphibious = Math.max(st.amphibious, b.amphibious);
     if (b.initiative) st.recon += b.initiative; if (b.entrench) st.entrench += b.entrench;
+    if (bid === 'engineer') st.engineer = true;
   }
   st.org = st.orgN ? st.orgW / st.orgN * (1 + M.org) : 20;
   st.hardness = st.lineN ? st.hardW / st.lineN : 0;
@@ -71,7 +73,23 @@ export function findPath(s, d, dv, dest, { allowAttack = true } = {}) {
   const start = dv.at;
   const dist = new Map([[start, 0]]), prev = new Map(), done = new Set();
   const isSea = id => X.seas.has(id);
-  const landCost = (a, b) => { const r = X.regions.get(b), t = d.terrain[r.terrain]; const infra = s.regions[b].infra; return Math.max(.5, distance(d, a, b) / speed * t.move / clamp(.7 + infra * .06, .7, 1.3) / weatherOf(s, d, b).move); };
+  const TR = d.transportRules;
+  // 땅길: 거리·지형·기반 시설·날씨. 다리 없는 강을 건너면 느리고, 도로는 빠르다. 우리 편 땅끼리는 철도·배길로 옮겨 탈 수 있다.
+  const landCost = (a, b) => {
+    const r = X.regions.get(b), t = d.terrain[r.terrain], infra = s.regions[b].infra, dist = distance(d, a, b), links = linksBetween(s, d, a, b);
+    let c = Math.max(.5, dist / speed * t.move / clamp(.7 + infra * .06, .7, 1.3) / weatherOf(s, d, b).move);
+    const riv = crossingOf(d, a, b);
+    if (riv && !links.some(L => L.kind !== 'river' && L.dmg < .5)) c *= riv === 'large' ? 1.3 : 1.12;
+    if (links.some(L => L.kind === 'road' && L.dmg < .5)) c *= .8;
+    // 철도·배길은 후방끼리만: 적과 맞닿은 지역(전선)에서는 내려서 걷는다
+    if (passable(s, cid, a) && passable(s, cid, b) && !nearFront(a) && !nearFront(b)) for (const L of links) {
+      const R = TR[L.kind], sp = R.speed; if (!sp || L.dmg >= .5) continue;
+      const wm = 1 - (1 - weatherOf(s, d, b).move) * R.weather;
+      c = Math.min(c, (R.load + dist / sp[L.lvl]) / wm);
+    }
+    return c;
+  };
+  const NF = new Map(), nearFront = r => { let v = NF.get(r); if (v === undefined) { const reg = X.regions.get(r); v = !!reg && !reg.offmap && reg.adj.some(n => atWar(s, cid, s.regions[n].controller)); NF.set(r, v); } return v; };
   const neighbors = id => {
     const out = [];
     if (isSea(id)) {
@@ -150,38 +168,73 @@ export function orderAttack(s, d, dv, target) {
 }
 
 /* ---------- 보급 ---------- */
-/** 나라마다 지역별 보급 용량. 원천: 지도 위 수도, 항구(바다가 막히지 않았을 때), 본국과 이어진 땅. 아군 땅을 따라 줄어들며 퍼진다. */
+/** 나라마다 지역별 하루 보급 용량.
+ * (1) 원천: 지도 위 수도, 본국과 이어진 땅, 열린 항구(봉쇄·적의 해상 우세가 줄인다).
+ * (2) 철도·도로·배길로 실어 나른다: 노선마다 하루 운송량 상한이 있고 손상·날씨가 줄인다(철도는 날씨의 영향이 작다).
+ * (3) 노선 위의 지역은 보급 거점(또는 원천)이 있으면 받은 만큼 모두, 없으면 일부(noHub)만 부릴 수 있다.
+ * (4) 거기서 땅을 따라 줄어들며 퍼진다: 기반 시설·지형·날씨, 다리 없는 강, 적의 초토화·유격 활동.
+ * 사단이 모인 곳에서는 이 용량을 나눠 쓴다(supplyRatio). */
 export function computeSupply(s, d) {
-  const X = index(d), out = {};
+  const X = index(d), out = {}, TR = d.transportRules, T = transportLinks(s, d);
   const users = new Set(s.divisions.map(dv => dv.owner));
+  const WS = new Map(), wsup = rid => { let v = WS.get(rid); if (v === undefined) { v = weatherOf(s, d, rid).supply; WS.set(rid, v); } return v; };
   for (const cid of users) {
     const c = s.countries[cid]; if (!c || !c.exists) continue;
-    const M = mods(s, d, c);
-    const cap = new Map(), q = [];
-    const push = (rid, v) => { if (v > (cap.get(rid) || 0)) { cap.set(rid, v); q.push(rid); } };
-    const mc = c.mapCapital;
-    if (mc && passable(s, cid, mc)) push(mc, (14 + s.regions[mc].infra * 1.5) * weatherOf(s, d, mc).supply);
+    const PS = new Map(), pass = rid => { let v = PS.get(rid); if (v === undefined) { v = passable(s, cid, rid); PS.set(rid, v); } return v; };
+    let enemyCut = 0; for (const e of s.wars.filter(w => w[0] === cid || w[1] === cid).map(w => w[0] === cid ? w[1] : w[0])) enemyCut = Math.min(enemyCut, mods(s, d, s.countries[e]).enemySupply || 0);
+    const occ = n => (s.regions[n].owner !== cid && atWar(s, cid, s.regions[n].owner) ? 1 + enemyCut : 1);
+    const src = new Map(), addSrc = (rid, v) => { if (v > (src.get(rid) || 0)) src.set(rid, v); };
+    // 수도, 그리고 괴뢰국·종주국의 수도(서로의 보급망을 쓴다)
+    for (const o of Object.values(s.countries)) {
+      if (!o.exists || !(o.id === cid || o.overlord === cid || c.overlord === o.id)) continue;
+      const mc = o.mapCapital;
+      if (mc && pass(mc)) addSrc(mc, (TR.capitalBase + s.regions[mc].infra * 1.5) * wsup(mc) * (o.id === cid ? 1 : .8));
+    }
     for (const r of d.regions) {
       const st = s.regions[r.id];
-      if (r.offmap) { if (st.controller === cid && !c.homeLost && r.link.land) for (const x of r.link.land) if (passable(s, cid, x)) push(x, 14); continue; }
+      if (r.offmap) { if (st.controller === cid && !c.homeLost && r.link.land) for (const x of r.link.land) if (pass(x)) addSrc(x, TR.homeLink); continue; }
       if (st.port > 0 && friendly(s, cid, st.controller) && (st.controller === cid || s.countries[st.controller].faction === c.faction || s.countries[st.controller].overlord === cid || c.overlord === st.controller)) {
         const open = r.coast.filter(z => !seaBlocked(s, cid, z)).length / Math.max(1, r.coast.length);
-        if (open > 0) push(r.id, (4 + st.port * 1.3) * open * (1 - (c.blockade || 0) * .5) * weatherOf(s, d, r.id).supply);
+        if (open > 0) addSrc(r.id, (5 + st.port * 1.8) * open * (1 - (c.blockade || 0) * .5) * wsup(r.id));
       }
     }
-    // 적의 보급을 깎는 정신(초토화·유격 근거지 등)
-    let enemyCut = 0; for (const e of s.wars.filter(w => w[0] === cid || w[1] === cid).map(w => w[0] === cid ? w[1] : w[0])) enemyCut = Math.min(enemyCut, mods(s, d, s.countries[e]).enemySupply || 0);
+    // (2) 노선
+    const net = new Map(), q = [];
+    const pushNet = (rid, v) => { if (v > (net.get(rid) || 0) + 1e-9) { net.set(rid, v); q.push(rid); } };
+    for (const [rid, v] of src) pushNet(rid, v);
     while (q.length) {
-      const id = q.shift(), v = cap.get(id), r = X.regions.get(id);
+      const id = q.shift(), v = net.get(id);
+      for (const L of T.byRegion.get(id) || []) {
+        const n = L.a === id ? L.b : L.a; if (!pass(n)) continue;
+        const R = TR[L.kind], w = 1 - (1 - wsup(n)) * R.weather;
+        pushNet(n, Math.min(v * .97, R.cap[L.lvl] * (1 - L.dmg) * w * occ(n)));
+      }
+    }
+    // (3) 부릴 수 있는 양, (4) 땅으로 퍼짐
+    const cap = new Map(), q2 = [];
+    const push = (rid, v) => { if (v > (cap.get(rid) || 0) + 1e-9) { cap.set(rid, v); q2.push(rid); } };
+    for (const [rid, v] of net) push(rid, v * (src.has(rid) || s.regions[rid].hub ? 1 : TR.noHub));
+    while (q2.length) {
+      const id = q2.shift(), v = cap.get(id), r = X.regions.get(id);
       for (const n of r.adj) {
-        if (!passable(s, cid, n)) continue;
-        const f = clamp(.7 + s.regions[n].infra * .025, .7, .95) * weatherOf(s, d, n).supply * (s.regions[n].owner !== cid && atWar(s, cid, s.regions[n].owner) ? 1 + enemyCut : 1);
+        if (!pass(n)) continue;
+        const tn = d.terrain[X.regions.get(n).terrain], riv = crossingOf(d, id, n);
+        const f = clamp(.55 + s.regions[n].infra * .035, .55, .88) * clamp(1.25 - .25 * tn.move, .7, 1) * wsup(n) * (riv ? TR.riverSupply[riv] : 1) * occ(n);
         push(n, v * f);
       }
     }
     out[cid] = cap;
   }
   return out;
+}
+/** 오늘 계산한 보급(하루 진행이 계산해 둔 것). AI처럼 대략이면 되는 곳에서 쓴다. */
+let SUP_DAY = { s: null, day: -1, v: null };
+export function supplyToday(s, d) { if (SUP_DAY.s !== s || SUP_DAY.day !== s.day) SUP_DAY = { s, day: s.day, v: computeSupply(s, d) }; return SUP_DAY.v; }
+/** 지역의 보급 사정(화면용): 용량, 사용량, 노선으로 받는 양, 거점 여부. */
+export function supplyInfo(s, d, cid, rid, SUP) {
+  const cap = (SUP[cid] && SUP[cid].get(rid)) || 0;
+  let use = 0, n = 0; for (const dv of s.divisions) if (dv.owner === cid && dv.at === rid) { use += divisionStats(s, d, dv).supply * leaderMods(s, d, dv).supply; n++; }
+  return { cap, use, n, ratio: use <= 1e-9 ? 1 : clamp(cap / use, 0, 1), hub: !!s.regions[rid]?.hub };
 }
 /** 지역 r에서 나라 cid의 보급 비율(용량 ÷ 그곳 사단들의 사용량). */
 export function supplyRatio(s, d, cid, rid, SUP) {
@@ -190,10 +243,26 @@ export function supplyRatio(s, d, cid, rid, SUP) {
   return use <= 1e-9 ? 1 : clamp(cap / use, 0, 1);
 }
 
+/** 철도의 하루: 같은 편이 양 끝을 쥔 노선은 복구되고, 점령지의 유격 활동은 가끔 노선을 끊는다. */
+function railDay(s, d) {
+  const same = (a, b) => friendly(s, s.regions[a].controller, s.regions[b].controller);
+  const G = new Map();
+  const guerrilla = rid => {
+    const st = s.regions[rid]; if (!st || st.owner === st.controller || !atWar(s, st.controller, st.owner)) return 0;
+    if (!G.has(st.controller)) { let g = 0; for (const w of s.wars) { const e = w[0] === st.controller ? w[1] : w[1] === st.controller ? w[0] : null; if (e) g = Math.max(g, -(mods(s, d, s.countries[e]).enemySupply || 0)); } G.set(st.controller, 1 + g * 5); }
+    return G.get(st.controller);
+  };
+  dailyRail(s, d, same, guerrilla);
+}
+
+/** 소모: 병력을 줄이되 5% 아래로는 깎지 않는다. 이미 그 아래(전투에서 무너진 사단)는 되살리지 않는다. */
+const wear = (dv, x) => { if (dv.str > .05) dv.str = round(Math.max(.05, dv.str - x), 4); };
+
 /* ---------- 하루 진행 ---------- */
 export function dailyMilitary(s, d, log) {
   const X = index(d);
-  const SUP = computeSupply(s, d);
+  railDay(s, d);
+  const SUP = computeSupply(s, d); SUP_DAY = { s, day: s.day, v: SUP };
   const sup = new Map();
   for (const dv of s.divisions) { const k = `${dv.owner}|${dv.at}`; if (!sup.has(k)) sup.set(k, X.seas.has(dv.at) ? .5 : X.regions.get(dv.at)?.offmap ? 1 : supplyRatio(s, d, dv.owner, dv.at, SUP)); dv.sup = round(sup.get(k), 3); }
   s.supplyCache = null;
@@ -222,7 +291,7 @@ export function dailyMilitary(s, d, log) {
     }
   }
   // 바다 위의 사단은 적의 해상 우세에서 손실을 입는다
-  for (const dv of s.divisions) if (X.seas.has(dv.at) && seaBlocked(s, dv.owner, dv.at)) dv.str = round(Math.max(.05, dv.str - .05), 4);
+  for (const dv of s.divisions) if (X.seas.has(dv.at) && seaBlocked(s, dv.owner, dv.at)) wear(dv, .05);
   // 전투
   const targets = new Map();
   for (const dv of s.divisions) if (dv.order && dv.order.type === 'attack') { if (!targets.has(dv.order.target)) targets.set(dv.order.target, []); targets.get(dv.order.target).push(dv); }
@@ -232,11 +301,13 @@ export function dailyMilitary(s, d, log) {
   for (const dv of s.divisions) {
     const st = divisionStats(s, d, dv), inBattle = dv.inBattle;
     if (!inBattle) dv.org = round(clamp(dv.org + .05 * (dv.sup ?? 1) * (1 + mods(s, d, s.countries[dv.owner]).recovery + leaderMods(s, d, dv).recovery), 0, 1), 4);
-    if ((dv.sup ?? 1) < .5) dv.str = round(Math.max(.05, dv.str - .004 * (1 - dv.sup)), 4);
+    // 보급 소모. 완전히 끊긴(포위된) 사단은 바닥 없이 줄어 결국 무너진다
+    if ((dv.sup ?? 1) < .05 && !X.regions.get(dv.at)?.offmap && X.regions.has(dv.at)) dv.str = round(Math.max(0, dv.str - .004), 4);
+    else if ((dv.sup ?? 1) < .5) wear(dv, .004 * (1 - dv.sup));
     // 날씨 소모는 야전(전투·이동·공격 중이거나 우리 땅이 아닌 곳)에서만. 막사에 있는 평시 수비대는 닳지 않는다.
     { const w = weatherOf(s, d, dv.at), lm = leaderMods(s, d, dv), r = X.regions.get(dv.at);
       const field = inBattle || dv.order || (r && s.regions[dv.at]?.controller !== dv.owner);
-      if (w.attrition && field && r && !r.offmap) dv.str = round(Math.max(.05, dv.str - w.attrition * (lm.cold ? .5 : 1)), 4); }
+      if (w.attrition && field && r && !r.offmap) wear(dv, w.attrition * (lm.cold ? .5 : 1)); }
     if (!inBattle && dv.str < 1) reinforce(s, d, dv, st, .02 * (dv.sup ?? 1));
     dv.inBattle = false;
   }
@@ -293,12 +364,15 @@ function battle(s, d, rid, attackersAll, log) {
   const fuelF = x => x.st.fuel > 0 ? .5 + .5 * clamp(s.countries[x.dv.owner].rates.fuel, 0, 1) : 1;
   const hD = hardOf(Ds), hA = hardOf(As), W8 = weatherOf(s, d, rid);
   const fort = st.fort * .06 + ((mods(s, d, s.countries[st.controller]).fortBonus || {})[rid] || 0);
-  let attA = 0, brkA = 0, attD = 0, defD = 0;
+  let attA = 0, brkA = 0, attD = 0, defD = 0, river = null;
   for (const x of As) {
     const lm = leaderMods(s, d, x.dv, r.terrain);
     const amph = x.dv.order.amphibious ? (.5 + .5 * x.st.amphibious) + (lm.amphibious ? (.5 - .5 * x.st.amphibious) * .5 : 0) : 1;
     const wf = 1 + W8.attack * (lm.cold && (W8.code === 'snow' || W8.code === 'blizzard') ? .5 : 1);
-    const m = (t.attack + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * amph * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3) * wf * lm.atk;
+    const riv = x.dv.order.amphibious ? null : crossingOf(d, x.dv.at, rid);
+    if (riv && (!river || riv === 'large')) river = riv;
+    const rv = riv ? 1 - d.transportRules.riverAttack[riv] * (x.st.engineer ? .5 : 1) * (x.st.amphibious > 0 || lm.amphibious ? .5 : 1) : 1;
+    const m = rv * (t.attack + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * amph * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3) * wf * lm.atk;
     attA += (x.st.soft * (1 - hD) + x.st.hard * hD) * m; brkA += x.st.brk * x.dv.str * (1 + (x.st.terrain[r.terrain] || 0)) * lm.atk * (x.st.armor > 0 || x.st.fuel > 0 ? lm.brk : 1);
   }
   for (const x of Ds) {
@@ -326,7 +400,7 @@ function battle(s, d, rid, attackersAll, log) {
   };
   apply(Ds, hitD); apply(As, hitA);
   s.battles[rid] = { region: rid, attackers: A.map(x => x.id), defenders: D.map(x => x.id), side, defSide: D[0].owner, attack: round(attA, 1), defense: round(defD, 1), hitsOnDef: round(hitD, 1), hitsOnAtt: round(hitA, 1),
-    progress: round(sum(D.map(x => 1 - x.org)) / D.length, 3), air: round(air.sup(side), 2) };
+    progress: round(sum(D.map(x => 1 - x.org)) / D.length, 3), air: round(air.sup(side), 2), river };
   // 조직력을 잃은 방어 사단은 물러난다(물러날 곳이 없으면 포위되어 무너진다)
   for (const x of Ds) {
     if (x.dv.org > .02) continue;
@@ -353,6 +427,7 @@ export function capture(s, d, rid, cid, log) {
   // 해방: 원래 주인이 같은 편이면 원래 주인에게 돌려준다
   const to = st.owner !== prev && friendly(s, cid, st.owner) && s.countries[st.owner].exists ? st.owner : cid;
   st.controller = to;
+  damageLinksAt(s, d, rid);
   // 남아 있던 다른 나라 사단(이동 중이던 적)은 물러난다
   for (const dv of s.divisions) if (dv.at === rid && atWar(s, dv.owner, to)) { const back = r.adj.find(n => passable(s, dv.owner, n)); if (back) dv.at = back; else dv.str = 0; }
   s.captured.push({ region: rid, from: prev, to, day: s.day });

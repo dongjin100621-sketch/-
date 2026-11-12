@@ -3,7 +3,8 @@ import { clamp, round, sum, index, mods, distance, yearOf, dayOf, atWar, enemies
 import { armsCapacity, dockCapacity, lineFactories, econRegions } from './economy.mjs';
 import { divisionStats, templateStats, orderMove, orderAttack, orderInvade, canInvade, passable, hostile, wingInRange, fleetStrength, orderFleet, seaShare, formArmy, freeLeaders, assignAdmiral, leaderAvailable } from './military.mjs';
 import { focusReason, startFocus, techReason, startResearch, treeOf, setLaw, lawReason, declareWar, canDeclare } from './politics.mjs';
-import { manpowerAvailable as mpAvail } from './military.mjs';
+import { manpowerAvailable as mpAvail, computeSupply, supplyInfo, supplyToday } from './military.mjs';
+import { linksAt, railReason, railLevel } from './transport.mjs';
 
 /* ---------- 매달: 경제·연구·중점·법·모집 ---------- */
 export function monthlyAI(s, d, cid, act) {
@@ -27,6 +28,7 @@ export function monthlyAI(s, d, cid, act) {
     for (const id of ids) { const i = d.laws[g].options.findIndex(o => o.id === id); if (i > cur && !lawReason(s, d, cid, g, id)) { setLaw(s, d, cid, g, id); break; } }
   } else if (yearOf(s.day) >= 1938 && c.laws.economy === 'civilian' && !lawReason(s, d, cid, 'economy', 'early_mobilization') && !mods(s, d, c).noWar) setLaw(s, d, cid, 'economy', 'early_mobilization');
   // 건설
+  aiLogistics(s, d, cid, act);
   aiConstruction(s, d, cid, act);
   // 생산 라인
   aiProduction(s, d, cid);
@@ -39,11 +41,18 @@ export function monthlyAI(s, d, cid, act) {
   }
   // 모집
   const divs = s.divisions.filter(x => x.owner === cid).length, training = c.training.length;
-  const target = Math.round(6 + armsCapacity(s, d, cid) * (war ? 2.2 : 1.4) + (war ? 6 : 0));
   const tpl = bestTemplate(s, d, cid);
+  let target = Math.round(6 + armsCapacity(s, d, cid) * (war ? 2.2 : 1.4) + (war ? 6 : 0));
+  // 공업이 약하고 사람이 많은 나라(국민정부·군벌 등)는 전쟁 중 재고 장비로 채울 수 있는 만큼 더 모은다(대중 동원)
+  if (war && tpl && armsCapacity(s, d, cid) < 15) {
+    const need = templateStats(s, d, tpl, cid).eq;
+    const fromStock = Math.floor(Math.min(...Object.entries(need).map(([e, q]) => (c.stock[e] || 0) / Math.max(1, q))) * .6);
+    target = Math.max(target + Math.min(24, fromStock), Math.round(frontRegions(s, d, cid).length * 2.5));
+  }
+  const mass = war && armsCapacity(s, d, cid) < 15;
   if (tpl && divs + training < target) {
     const st = templateStats(s, d, tpl, cid), avail = mpAvail(s, d, cid);
-    const n = Math.min(3, target - divs - training, Math.floor(avail / Math.max(1, st.manpower)));
+    const n = Math.min(mass ? 6 : 3, target - divs - training, Math.floor(avail / Math.max(1, st.manpower)));
     for (let i = 0; i < n; i++) act({ type: 'train', country: cid, tpl, at: c.mapCapital || c.capital });
   }
   aiAir(s, d, cid);
@@ -56,6 +65,24 @@ export function bestTemplate(s, d, cid) {
   let best = null, bv = -1;
   for (const t of list) { const st = templateStats(s, d, t.id, cid); if (!st) continue; const v = (st.soft + st.def * .5 + st.hp) / Math.max(1, st.manpower / 1000); if (v > bv && !t.id.includes('garrison') && t.id !== 'kla') { bv = v; best = t.id; } }
   return best || list[0]?.id;
+}
+/** 전쟁 중 보급: 사단이 몰린 철도 위 지역에 보급 거점을, 보급이 모자란 곳으로 가는 노선의 등급을 올린다(한 달에 각각 하나). */
+function aiLogistics(s, d, cid, act) {
+  const c = s.countries[cid], X = index(d);
+  if (!isAtWar(s, cid) || c.construction.filter(q => q.kind === 'rail' || q.id === 'hub').length >= 2) return;
+  const count = new Map(); for (const dv of s.divisions) if (dv.owner === cid && X.regions.has(dv.at) && !X.regions.get(dv.at).offmap) count.set(dv.at, (count.get(dv.at) || 0) + 1);
+  if (!count.size) return;
+  const SUP = computeSupply(s, d);
+  const spots = [...count].map(([rid, n]) => ({ rid, n, ...supplyInfo(s, d, cid, rid, SUP) })).filter(x => s.regions[x.rid].controller === cid).sort((a, b) => a.ratio - b.ratio || b.n - a.n || (a.rid < b.rid ? -1 : 1));
+  const hub = spots.find(x => x.n >= 3 && !x.hub && x.ratio < .95 && !c.construction.some(q => q.id === 'hub' && q.region === x.rid) && linksAt(s, d, x.rid).some(L => L.kind === 'rail'));
+  const front = r => { if (r && r.ok && c.construction.length > 1) c.construction.unshift(c.construction.pop()); }; // 보급 사업은 대기열 맨 앞으로
+  if (hub) front(act({ type: 'build', country: cid, id: 'hub', kind: 'facility', region: hub.rid }));
+  for (const x of spots.filter(x => x.ratio < .8)) {
+    // 이 지역에서 보급이 가장 많은 이웃 쪽으로 철도를 놓거나 올린다
+    const nb = X.regions.get(x.rid).adj.filter(n => s.regions[n].controller === cid && !railReason(s, d, cid, x.rid, n)).sort((a, b) => ((SUP[cid].get(b) || 0) - (SUP[cid].get(a) || 0)) || (a < b ? -1 : 1));
+    const pick = nb.find(n => { const lv = railLevel(s, d, x.rid, n).lvl; return lv < 3 && (lv > 0 || linksAt(s, d, n).some(L => L.kind === 'rail')); });
+    if (pick) { front(act({ type: 'buildRail', country: cid, from: x.rid, to: pick })); break; }
+  }
 }
 function aiConstruction(s, d, cid, act) {
   const c = s.countries[cid], X = index(d), war = isAtWar(s, cid);
@@ -174,12 +201,15 @@ function aiNavy(s, d, cid) {
 }
 
 /* ---------- 이틀마다: 전선과 공격 ---------- */
+const JP_SIDE = new Set(['japan', 'manchukuo', 'mengjiang']);
+const INTERIOR = new Set(['chongqing', 'chengdu', 'xikang', 'kunming', 'dali', 'guiyang', 'hanzhong', 'xian', 'lanzhou', 'xining', 'qinghai_w', 'hexi', 'yanan', 'urumqi', 'kashgar', 'hami', 'khotan', 'lhasa', 'chamdo', 'ngari']);
 export function frontRegions(s, d, cid) {
   const X = index(d), out = [];
+  const guerrilla = s.countries[cid].spirits.includes('guerrilla_base'); // 유격 근거지는 제 땅만 지킨다(우방의 진지전에 끼지 않는다)
   for (const r of d.regions) {
     if (r.offmap) continue;
     const st = s.regions[r.id];
-    if (st.controller !== cid && !friendly(s, cid, st.controller)) continue;
+    if (st.controller !== cid && (guerrilla || !friendly(s, cid, st.controller))) continue;
     // 우방(괴뢰국·공동 교전국)의 땅도 같은 적과 맞닿으면 우리 전선이다
     if (r.adj.some(n => hostile(s, cid, n) && (st.controller === cid || atWar(s, st.controller, s.regions[n].controller)))) out.push(r.id);
   }
@@ -210,7 +240,10 @@ export function militaryAI(s, d, cid) {
   const total = sum([...threat.values()]);
   const free = mine.filter(dv => !dv.inBattle && !reserved.has(dv.id) && (!dv.order || dv.order.type === 'move'));
   const CAP = 10; // 한 지역에 몰아넣지 않는다(보급)
-  const want = new Map([...threat].map(([r, t]) => [r, Math.min(CAP, Math.max(1, Math.round(free.length * t / total)))]));
+  // 보급이 감당하는 만큼만: 지역의 보급 용량 ÷ 우리 사단의 평균 사용량
+  const SUP = supplyToday(s, d), avgUse = sum(mine.slice(0, 30).map(dv => divisionStats(s, d, dv).supply)) / Math.min(30, mine.length) || 1;
+  const supCap = r => Math.max(2, Math.floor(((SUP[cid] && SUP[cid].get(r)) || 0) / avgUse * 1.15));
+  const want = new Map([...threat].map(([r, t]) => [r, Math.min(CAP, supCap(r), Math.max(1, Math.round(free.length * t / total)))]));
   const have = new Map(fronts.map(r => [r, mine.filter(dv => dv.at === r || (dv.order && dv.order.dest === r)).length]));
   // 남는 사단을 부족한 전선으로
   // 전선 밖의 사단 + 정원보다 많이 몰린 전선의 사단
@@ -222,6 +255,26 @@ export function militaryAI(s, d, cid) {
     const target = lacking.slice(0, 3).sort((a, b) => distance(d, dv.at, a) - distance(d, dv.at, b))[0];
     if (target && orderMove(s, d, dv, target).ok) have.set(target, (have.get(target) || 0) + 1);
   }
+  // 보급이 모자라는 지역의 남는 사단을 보급에 여유가 있는 이웃(우리 편) 지역으로 나눈다
+  if (s.day % 4 === 0 && SUP[cid]) {
+    const capOf = r => SUP[cid].get(r) || 0, useOf = new Map();
+    for (const dv of mine) useOf.set(dv.at, (useOf.get(dv.at) || 0) + divisionStats(s, d, dv).supply);
+    const at = new Map(); for (const dv of free) if (!dv.order && !X.regions.get(dv.at)?.offmap) { if (!at.has(dv.at)) at.set(dv.at, []); at.get(dv.at).push(dv); }
+    for (const [rid, list] of [...at].sort((a, b) => b[1].length - a[1].length)) {
+      let excess = (useOf.get(rid) || 0) - capOf(rid) * 1.05;
+      if (excess <= 0 || list.length < 2) continue;
+      // 세 걸음 안의 우리 편 지역 가운데 보급에 여유가 있는 곳(가까운 곳 먼저)
+      const near = new Map([[rid, 0]]), q = [rid];
+      while (q.length) { const id = q.shift(), k = near.get(id); if (k >= 3) continue; for (const n of X.regions.get(id).adj) if (!near.has(n) && passable(s, cid, n) && !s.battles[n]) { near.set(n, k + 1); q.push(n); } }
+      const nbs = [...near].filter(([n, k]) => k > 0).map(([n, k]) => ({ n, k, spare: capOf(n) - (useOf.get(n) || 0) })).filter(x => x.spare > avgUse).sort((a, b) => a.k - b.k || b.spare - a.spare || (a.n < b.n ? -1 : 1));
+      for (const dv of list.sort((a, b) => a.org * a.str - b.org * b.str)) {
+        if (excess <= 0) break;
+        const u = divisionStats(s, d, dv).supply, nb = nbs.find(x => x.spare >= u);
+        if (!nb || !orderMove(s, d, dv, nb.n).ok) continue;
+        nb.spare -= u; excess -= u; useOf.set(nb.n, (useOf.get(nb.n) || 0) + u);
+      }
+    }
+  }
   // 공격: 적 지역마다 맞닿은 우리 전선 지역들의 사단을 모아(여러 방향에서) 이길 만한 곳부터 친다
   const cand = new Map();
   for (const r of fronts) {
@@ -229,6 +282,8 @@ export function militaryAI(s, d, cid) {
     const keep = here.length > 2 && (threat.get(r) || 0) > 40 ? 1 : 0; // 위협이 큰 전선은 하나를 남긴다
     for (const n of X.regions.get(r).adj) if (hostile(s, cid, n)) { if (!cand.has(n)) cand.set(n, []); cand.get(n).push(...here.slice(keep)); }
   }
+  // 역사적 작전 한계: 일본 쪽 AI는 중국 내륙 깊숙한 곳(쓰촨·윈난·구이저우·산시성 서부·간쑤·옌안·신장·티베트)을 치지 않는다(실제로도 닿지 못했다)
+  if (JP_SIDE.has(cid)) for (const n of [...cand.keys()]) if (INTERIOR.has(n)) cand.delete(n);
   const targets = [...cand.keys()].map(n => {
     const def = s.divisions.filter(dv => dv.at === n && atWar(s, cid, dv.owner)), t = d.terrain[X.regions.get(n).terrain];
     return { n, def: power(s, d, def) * (1 + t.def + s.regions[n].fort * .06) / t.attack, empty: !def.length, vp: X.regions.get(n).vp };

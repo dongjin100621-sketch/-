@@ -1,4 +1,4 @@
-/* 전선과 공장: 동아시아 1936 — 계산 엔진(게임 0.2.0, 데이터 0.2.0, 저장 형식 2: 장군·군·날씨).
+/* 전선과 공장: 동아시아 1936 — 계산 엔진(게임 0.3.0, 데이터 0.3.0, 저장 형식 3: 철도·보급 거점·강).
  * 화면은 dispatch로 행동을 보내고 돌려받은 상태만 그린다. 하루 진행(advanceDay)은 결정적이다(씨앗이 같으면 결과가 같다). */
 import { clamp, round, sum, index, mods, dateOf, isMonthStart, yearOf, fmtDate, atWar, isAtWar, friendly, END_DAY } from './core.mjs';
 import * as econ from './economy.mjs';
@@ -6,15 +6,16 @@ import * as mil from './military.mjs';
 import * as pol from './politics.mjs';
 import * as ai from './ai.mjs';
 import * as wx from './weather.mjs';
+import * as tr from './transport.mjs';
 
 export const SAVE_FORMAT = 'FRONTLINE1936_SAVE';
-export const SAVE_VERSION = 2;
-export { econ, mil, pol, ai, wx };
+export const SAVE_VERSION = 3;
+export { econ, mil, pol, ai, wx, tr };
 
 export function createState(d, player = 'japan', seed = 1936) {
   const X = index(d);
   const s = { format: SAVE_FORMAT, version: SAVE_VERSION, dataVersion: d.meta.version, seed, rng: seed >>> 0, day: 0, player, countries: {}, regions: {}, divisions: [], fleets: [], air: [], templates: [],
-    wars: [], warStart: {}, factions: {}, flags: {}, leaders: {}, armies: [], weather: {}, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
+    wars: [], warStart: {}, factions: {}, flags: {}, leaders: {}, armies: [], weather: {}, rail: {}, railVer: 0, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
   for (const f of d.factions) s.factions[f.id] = { id: f.id, leader: f.members.length ? f.leader : null };
   for (const c of d.countries) {
     const fac = d.factions.find(f => f.members.includes(c.id));
@@ -33,7 +34,7 @@ export function createState(d, player = 'japan', seed = 1936) {
   for (const r of d.regions) {
     const b = {};
     for (const [k, n] of Object.entries(r.build)) b[k] = { level: n, pm: 0, staff: .9 };
-    s.regions[r.id] = { owner: r.owner, controller: r.owner, infra: r.infra, port: r.port, air: r.air, fort: r.fort, b, damage: 0 };
+    s.regions[r.id] = { owner: r.owner, controller: r.owner, infra: r.infra, port: r.port, air: r.air, fort: r.fort, hub: r.hub || 0, b, damage: 0 };
   }
   const log = logger(s);
   for (const c of d.countries) {
@@ -85,6 +86,11 @@ export function dispatch(s, d, a, { silent = false } = {}) {
     case 'build': {
       const why = buildReason(s, d, cid, a); if (why) return fail(why);
       c.construction.push({ id: a.id, kind: a.kind || 'building', region: a.region, progress: 0 });
+      return { ok: true };
+    }
+    case 'buildRail': {
+      const why = tr.railReason(s, d, cid, a.from, a.to); if (why) return fail(why);
+      c.construction.push({ id: 'rail', kind: 'rail', region: a.from, to: a.to, cost: tr.railCost(s, d, a.from, a.to), progress: 0 });
       return { ok: true };
     }
     case 'cancelBuild': { if (!c.construction[a.index]) return fail('없는 사업입니다.'); c.construction.splice(a.index, 1); return { ok: true }; }
@@ -173,13 +179,15 @@ export function buildReason(s, d, cid, a) {
   const X = index(d), r = X.regions.get(a.region), st = s.regions[a.region], c = s.countries[cid];
   if (!r || !st) return '없는 지역입니다.';
   if (st.controller !== cid) return '통제하는 지역에만 지을 수 있습니다.';
-  if (st.owner !== cid) return '점령지에는 지을 수 없습니다.';
+  const fdef = (a.kind || 'building') === 'facility' ? X.facilities.get(a.id) : null;
+  if (st.owner !== cid && !(fdef && fdef.occupied)) return '점령지에는 지을 수 없습니다.';
   if (r.offmap && c.homeLost) return '본국을 잃었습니다.';
   const queued = c.construction.filter(q => q.region === a.region && q.id === a.id).length;
   if ((a.kind || 'building') === 'facility') {
     const f = X.facilities.get(a.id); if (!f) return '없는 시설입니다.';
     if (r.offmap) return '지도 밖 본국에는 시설을 짓지 않습니다.';
     if (f.coastal && !r.coast.length) return '바다에 닿은 지역에만 지을 수 있습니다.';
+    if (f.rail && !tr.hasRail(s, d, a.region)) return '철도가 닿는 지역에만 지을 수 있습니다.';
     if (st[a.id] + queued >= f.max) return `최대 ${f.max}단계입니다.`;
     return '';
   }
@@ -189,7 +197,7 @@ export function buildReason(s, d, cid, a) {
   if (b.res && have >= (r.res[b.res] || 0)) return r.res[b.res] ? `이 지역의 ${X.goods.get(b.res).name} 매장량 한도(${r.res[b.res]}단계)입니다.` : `이 지역에는 ${X.goods.get(b.res).name} 자원이 없습니다.`;
   if (b.cap === 'arable' && have >= Math.max(1, Math.round(r.pop / 18))) return '이 지역의 경지 한도입니다.';
   const slots = r.offmap ? 400 : Math.max(4, Math.round(4 + st.infra * 2 + r.pop / 40));
-  const used = sum(Object.entries(st.b).filter(([k]) => ['civ', 'arms', 'dock', 'steel', 'tools', 'chem', 'light', 'refinery', 'synthetic'].includes(k)).map(([, v]) => v.level)) + c.construction.filter(q => q.region === a.region && q.kind !== 'facility' && !X.buildings.get(q.id).res && q.id !== 'farm').length;
+  const used = sum(Object.entries(st.b).filter(([k]) => ['civ', 'arms', 'dock', 'steel', 'tools', 'chem', 'light', 'refinery', 'synthetic'].includes(k)).map(([, v]) => v.level)) + c.construction.filter(q => q.region === a.region && (q.kind || 'building') === 'building' && !X.buildings.get(q.id)?.res && q.id !== 'farm').length;
   if (!b.res && b.id !== 'farm' && used >= slots) return `이 지역의 공장 터(${slots})가 다 찼습니다. 기반 시설을 늘리면 터가 생깁니다.`;
   if (b.id === 'dock' && !(st.port > 0) && !r.offmap) return '항구가 있어야 조선소를 지을 수 있습니다.';
   return '';
@@ -211,7 +219,7 @@ export function advanceDay(s, d) {
     if (!c.exists) continue;
     if (!c.econ) { econ.initEconomy(s, d, c.id); log(`${c.short}의 경제가 출범했습니다.`, c.id, 'info'); }
     const done = []; econ.dailyConstruction(s, d, c.id, done);
-    if (c.id === s.player) for (const q of done) log(`준공: ${X.regions.get(q.region).name} ${q.kind === 'facility' ? X.facilities.get(q.id).name : X.buildings.get(q.id).name}`, c.id, 'build');
+    if (c.id === s.player) for (const q of done) log(`준공: ${q.kind === 'rail' ? '' : X.regions.get(q.region).name + ' '}${econ.projectName(d, q)}`, c.id, 'build');
     econ.dailyProduction(s, d, c.id);
     const built = econ.dailyShipyard(s, d, c.id);
     if (built.length) { const m = {}; for (const k of built) m[k] = (m[k] || 0) + 1; pol.addShips(s, d, c.id, m); if (c.id === s.player) log(`진수: ${Object.entries(m).map(([k, n]) => `${X.ships.get(k).name} ${n}척`).join(', ')}`, c.id, 'naval'); }

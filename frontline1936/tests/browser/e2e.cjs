@@ -66,12 +66,38 @@ const ok = (c, m) => { if (c) { pass++; console.log('  ✓ ' + m); } else { fail
     await page.selectOption('select[data-action="setLeaderArmy"] >> nth=0', armyId);
     ok(await G(id => { const a = globalThis.__GAME__.state.armies.find(x => x.id === id); return !!(a && a.leader); }, armyId), '장군 창에서 새 군에 장군 배치');
     await G(() => { globalThis.__GAME__.ui.view = null; globalThis.__GAME__.ui.mapMode = 'weather'; globalThis.__GAME__.renderAll(); });
-    ok((await page.textContent('#legend')).includes('눈보라') || tag === '휴대폰', '날씨 모드 범례');
+    await G(() => { globalThis.__GAME__.ui.legendOpen = true; globalThis.__GAME__.renderAll(); });
+    ok((await page.textContent('#legend')).includes('눈보라'), '날씨 모드 범례');
     { const n = await page.evaluate(() => { const all = [...document.querySelectorAll('#g-seas path')]; return { fill: all.filter(p => p.getAttribute('fill') && p.getAttribute('fill') !== 'none').length, total: all.length }; });
       ok(n.total === 48 && n.fill > 0 && n.fill < 48, `날씨 모드: 궂은 해역만 색(${n.fill}/${n.total})`); }
     await G(() => { globalThis.__GAME__.ui.mapMode = 'political'; globalThis.__GAME__.renderAll(); });
     ok(await page.locator('#g-clbl text').count() > 8, '큰 나라 이름');
     ok(await page.locator('.unit .sybox').count() > 20, '부대 기호');
+    // 강·철도·보급
+    ok(await G(() => (document.querySelector('#g-water .river.lg')?.getAttribute('d') || '').length > 5000), '지도: 큰 강 줄기');
+    ok(await page.locator('#g-rail path.rl').count() >= 4, '지도: 철도 노선');
+    { const o = await G(() => { const s = new Map(); for (const u of document.querySelectorAll('#g-over .unit')) { const r = u.querySelector('.ub'); s.set(u, [+r.getAttribute('x'), +r.getAttribute('y')]); } const v = [...s.values()]; let n = 0; for (let i = 0; i < v.length; i++) for (let j = i + 1; j < v.length; j++) if (Math.abs(v[i][0] - v[j][0]) < 30 && Math.abs(v[i][1] - v[j][1]) < 14) n++; return n; });
+      ok(o === 0, `부대 표가 서로 겹치지 않는다(${o})`); }
+    await G(() => { const g = globalThis.__GAME__; g.ui.sel = { region: 'nanjing', divisions: [], fleet: null, wing: null }; g.renderAll(); });
+    ok((await page.textContent('#side')).includes('교통·보급') && await page.locator('#side .trow').count() >= 2, '지역 창: 교통·보급(노선·강)');
+    ok((await page.textContent('#side')).includes('징후선'), '지역 창: 실제 노선 이름');
+    { const before = await G(() => globalThis.__GAME__.state.countries.china.construction.filter(q => q.kind === 'rail').length);
+      const btn = page.locator('#side [data-action="buildRail"]:not([disabled])').first();
+      if (await btn.count()) { await btn.click(); ok(await G(() => globalThis.__GAME__.state.countries.china.construction.filter(q => q.kind === 'rail').length) === before + 1, '철도 놓기 버튼이 건설 대기열에 들어간다'); }
+      else ok(false, '철도 놓기 버튼'); }
+    await G(() => { const g = globalThis.__GAME__; g.ui.view = 'build'; g.renderAll(); });
+    ok((await page.textContent('.screen')).includes('철도 '), '건설 창: 철도 사업 이름');
+    await G(() => { const g = globalThis.__GAME__; g.ui.view = null; g.ui.sel = { region: null, divisions: [], fleet: null, wing: null }; g.ui.mapMode = 'supply'; g.ui.legendOpen = true; g.renderAll(); });
+    ok((await page.textContent('#legend')).includes('보급 거점') && await G(() => document.getElementById('svg').dataset.mode === 'supply'), '보급 모드: 범례와 노선 강조');
+    await page.click('#legend .lg-t'); ok(await G(() => document.getElementById('legend').classList.contains('closed')), '범례 접기');
+    await page.click('#legend .lg-t'); ok(await G(() => !document.getElementById('legend').classList.contains('closed')), '범례 펴기');
+    if (tag === '데스크톱') {
+      await G(() => { globalThis.__GAME__.ui.mapMode = 'political'; globalThis.__GAME__.renderAll(); });
+      const bx = await page.locator('#rg_wuhan').boundingBox(); await page.mouse.move(bx.x + bx.width / 2, bx.y + bx.height / 2); await page.waitForTimeout(120);
+      ok(await page.locator('#tip:not([hidden])').count() === 1 && (await page.textContent('#tip')).includes('보급'), '지도 풍선 도움말');
+      await page.mouse.move(2, 2);
+    } else ok(await G(() => { const b = document.querySelector('.who-t b'); return !!b && b.getBoundingClientRect().width > 40; }), '휴대폰 윗줄: 나라 이름이 보인다');
+    await G(() => { globalThis.__GAME__.ui.mapMode = 'political'; globalThis.__GAME__.renderAll(); });
     // 시간 진행: 사건 창이 뜨면 고른다
     await G(() => { const g = globalThis.__GAME__; for (let i = 0; i < 345; i++) { g.E.advanceDay(g.state, g.data); if (g.state.pending.length) break; } g.renderAll(); });
     if (await page.locator('.modal .opts button').count()) { ok(await page.locator('.modal.paper .stamp').count() === 1, '사건 창: 종이 문서와 날짜 도장'); await page.click('.modal .opts button >> nth=0'); ok(await G(() => globalThis.__GAME__.state.pending.length) === 0, '사건 선택지 고르기'); } else ok(true, '사건 없음(건너뜀)');

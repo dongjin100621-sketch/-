@@ -1,7 +1,7 @@
 {
  "meta": {
   "title": "전선과 공장: 동아시아 1936",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "start": "1936-01-01",
   "end": "1945-12-31",
   "note": "모든 수치·선택 결과·가상 선택지는 게임을 위한 창작이다. 실제 역사는 사건의 history에 따로 적었다. 지도는 Natural Earth(퍼블릭 도메인)에서 만들었다."
@@ -650,6 +650,14 @@
    "name": "요새",
    "cost": 20,
    "max": 10
+  },
+  {
+   "id": "hub",
+   "name": "보급 거점",
+   "cost": 35,
+   "max": 1,
+   "rail": true,
+   "occupied": true
   }
  ],
  "equipment": [
@@ -4708,6 +4716,1584 @@
    "desc": "통상 파괴 +30%"
   }
  },
+ "transport": [
+  {
+   "id": "chugoku|kyushu:rail",
+   "a": "kyushu",
+   "b": "chugoku",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "간몬 연락(1942년 해저 터널)",
+   "open": null
+  },
+  {
+   "id": "chugoku|kansai:rail",
+   "a": "chugoku",
+   "b": "kansai",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "산요 본선",
+   "open": null
+  },
+  {
+   "id": "chubu|kansai:rail",
+   "a": "kansai",
+   "b": "chubu",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "도카이도 본선",
+   "open": null
+  },
+  {
+   "id": "chubu|kanto:rail",
+   "a": "chubu",
+   "b": "kanto",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "도카이도 본선",
+   "open": null
+  },
+  {
+   "id": "kanto|tohoku:rail",
+   "a": "kanto",
+   "b": "tohoku",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "도호쿠 본선",
+   "open": null
+  },
+  {
+   "id": "chungcheong|gyeongsang:rail",
+   "a": "gyeongsang",
+   "b": "chungcheong",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "경부선",
+   "open": null
+  },
+  {
+   "id": "chungcheong|gyeongseong:rail",
+   "a": "chungcheong",
+   "b": "gyeongseong",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "경부선",
+   "open": null
+  },
+  {
+   "id": "gyeongseong|hwanghae:rail",
+   "a": "gyeongseong",
+   "b": "hwanghae",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "경의선",
+   "open": null
+  },
+  {
+   "id": "hwanghae|pyongan:rail",
+   "a": "hwanghae",
+   "b": "pyongan",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "경의선",
+   "open": null
+  },
+  {
+   "id": "andong|pyongan:rail",
+   "a": "pyongan",
+   "b": "andong",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "압록강 철교",
+   "open": null
+  },
+  {
+   "id": "gangwon|gyeongseong:rail",
+   "a": "gyeongseong",
+   "b": "gangwon",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "경원선",
+   "open": null
+  },
+  {
+   "id": "gangwon|hamgyong:rail",
+   "a": "gangwon",
+   "b": "hamgyong",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "함경선",
+   "open": null
+  },
+  {
+   "id": "hamgyong|jiandao:rail",
+   "a": "hamgyong",
+   "b": "jiandao",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "도문선",
+   "open": null
+  },
+  {
+   "id": "chungcheong|jeolla:rail",
+   "a": "chungcheong",
+   "b": "jeolla",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "호남선",
+   "open": null
+  },
+  {
+   "id": "jinzhou|kwantung:rail",
+   "a": "kwantung",
+   "b": "jinzhou",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "남만주 철도",
+   "open": null
+  },
+  {
+   "id": "fengtian|jinzhou:rail",
+   "a": "jinzhou",
+   "b": "fengtian",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "남만주 철도",
+   "open": null
+  },
+  {
+   "id": "fengtian|hsinking:rail",
+   "a": "fengtian",
+   "b": "hsinking",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "남만주 철도",
+   "open": null
+  },
+  {
+   "id": "harbin|hsinking:rail",
+   "a": "hsinking",
+   "b": "harbin",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "징빈선(옛 동청 철도 남부선)",
+   "open": null
+  },
+  {
+   "id": "harbin|qiqihar:rail",
+   "a": "harbin",
+   "b": "qiqihar",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "빈저우선",
+   "open": null
+  },
+  {
+   "id": "qiqihar|xingan:rail",
+   "a": "qiqihar",
+   "b": "xingan",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "빈저우선(싱안링 구간)",
+   "open": null
+  },
+  {
+   "id": "hulunbuir|xingan:rail",
+   "a": "xingan",
+   "b": "hulunbuir",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "빈저우선",
+   "open": null
+  },
+  {
+   "id": "chita|hulunbuir:rail",
+   "a": "hulunbuir",
+   "b": "chita",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "만저우리 국경 연결",
+   "open": null
+  },
+  {
+   "id": "harbin|mudanjiang:rail",
+   "a": "harbin",
+   "b": "mudanjiang",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "빈쑤이선",
+   "open": null
+  },
+  {
+   "id": "mudanjiang|vladivostok:rail",
+   "a": "mudanjiang",
+   "b": "vladivostok",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "쑤이펀허 국경 연결",
+   "open": null
+  },
+  {
+   "id": "andong|fengtian:rail",
+   "a": "fengtian",
+   "b": "andong",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "안펑선",
+   "open": null
+  },
+  {
+   "id": "jehol|jinzhou:rail",
+   "a": "jinzhou",
+   "b": "jehol",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "펑산선·진청선",
+   "open": null
+  },
+  {
+   "id": "jehol|tianjin:rail",
+   "a": "jehol",
+   "b": "tianjin",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "베이닝선(산하이관)",
+   "open": null
+  },
+  {
+   "id": "hsinking|jiandao:rail",
+   "a": "hsinking",
+   "b": "jiandao",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "징투선",
+   "open": null
+  },
+  {
+   "id": "jiandao|mudanjiang:rail",
+   "a": "jiandao",
+   "b": "mudanjiang",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "투자선",
+   "open": null
+  },
+  {
+   "id": "jiamusi|mudanjiang:rail",
+   "a": "mudanjiang",
+   "b": "jiamusi",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "투자선",
+   "open": "1937-07-01"
+  },
+  {
+   "id": "heihe|qiqihar:rail",
+   "a": "qiqihar",
+   "b": "heihe",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "치베이선",
+   "open": null
+  },
+  {
+   "id": "hsinking|xingan:rail",
+   "a": "hsinking",
+   "b": "xingan",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "핑치선",
+   "open": null
+  },
+  {
+   "id": "amur|chita:rail",
+   "a": "chita",
+   "b": "amur",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도(아무르 철도)",
+   "open": null
+  },
+  {
+   "id": "amur|khabarovsk:rail",
+   "a": "amur",
+   "b": "khabarovsk",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도(아무르 철도)",
+   "open": null
+  },
+  {
+   "id": "iman|khabarovsk:rail",
+   "a": "khabarovsk",
+   "b": "iman",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "우수리 철도",
+   "open": null
+  },
+  {
+   "id": "iman|vladivostok:rail",
+   "a": "iman",
+   "b": "vladivostok",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "우수리 철도",
+   "open": null
+  },
+  {
+   "id": "chita|ulanude:rail",
+   "a": "ulanude",
+   "b": "chita",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도",
+   "open": null
+  },
+  {
+   "id": "irkutsk|ulanude:rail",
+   "a": "irkutsk",
+   "b": "ulanude",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도(바이칼 우회선)",
+   "open": null
+  },
+  {
+   "id": "irkutsk|krasnoyarsk:rail",
+   "a": "krasnoyarsk",
+   "b": "irkutsk",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도",
+   "open": null
+  },
+  {
+   "id": "krasnoyarsk|kuzbass:rail",
+   "a": "kuzbass",
+   "b": "krasnoyarsk",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도",
+   "open": null
+  },
+  {
+   "id": "kuzbass|novosibirsk:rail",
+   "a": "novosibirsk",
+   "b": "kuzbass",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시베리아 횡단 철도",
+   "open": null
+  },
+  {
+   "id": "altai|novosibirsk:rail",
+   "a": "novosibirsk",
+   "b": "altai",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "투르크시브",
+   "open": null
+  },
+  {
+   "id": "altai|semipalatinsk:rail",
+   "a": "altai",
+   "b": "semipalatinsk",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "투르크시브",
+   "open": null
+  },
+  {
+   "id": "almaty|semipalatinsk:rail",
+   "a": "semipalatinsk",
+   "b": "almaty",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "투르크시브",
+   "open": null
+  },
+  {
+   "id": "khabarovsk|lower_amur:rail",
+   "a": "khabarovsk",
+   "b": "lower_amur",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "콤소몰스크 지선",
+   "open": "1940-08-01"
+  },
+  {
+   "id": "chita|dornod:rail",
+   "a": "chita",
+   "b": "dornod",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "보르자–바얀투멘 선",
+   "open": "1939-09-01"
+  },
+  {
+   "id": "peiping|tianjin:rail",
+   "a": "peiping",
+   "b": "tianjin",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "베이닝선",
+   "open": null
+  },
+  {
+   "id": "kalgan|peiping:rail",
+   "a": "peiping",
+   "b": "kalgan",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "징장선",
+   "open": null
+  },
+  {
+   "id": "datong|kalgan:rail",
+   "a": "kalgan",
+   "b": "datong",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "핑쑤이선",
+   "open": null
+  },
+  {
+   "id": "datong|suiyuan:rail",
+   "a": "datong",
+   "b": "suiyuan",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "핑쑤이선",
+   "open": null
+  },
+  {
+   "id": "jehol|peiping:rail",
+   "a": "peiping",
+   "b": "jehol",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "징청선",
+   "open": "1938-10-01"
+  },
+  {
+   "id": "hebei|tianjin:rail",
+   "a": "tianjin",
+   "b": "hebei",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "진푸선·핑한선",
+   "open": null
+  },
+  {
+   "id": "hebei|jinan:rail",
+   "a": "hebei",
+   "b": "jinan",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "진푸선",
+   "open": null
+  },
+  {
+   "id": "jinan|xuzhou:rail",
+   "a": "jinan",
+   "b": "xuzhou",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "진푸선",
+   "open": null
+  },
+  {
+   "id": "nanjing|xuzhou:rail",
+   "a": "xuzhou",
+   "b": "nanjing",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "진푸선(푸커우)",
+   "open": null
+  },
+  {
+   "id": "jinan|qingdao:rail",
+   "a": "jinan",
+   "b": "qingdao",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "자오지선",
+   "open": null
+  },
+  {
+   "id": "hebei|kaifeng:rail",
+   "a": "hebei",
+   "b": "kaifeng",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "핑한선",
+   "open": null
+  },
+  {
+   "id": "kaifeng|nanyang:rail",
+   "a": "kaifeng",
+   "b": "nanyang",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "핑한선",
+   "open": null
+  },
+  {
+   "id": "nanyang|wuhan:rail",
+   "a": "nanyang",
+   "b": "wuhan",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "핑한선",
+   "open": null
+  },
+  {
+   "id": "hebei|taiyuan:rail",
+   "a": "hebei",
+   "b": "taiyuan",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "정타이선",
+   "open": null
+  },
+  {
+   "id": "datong|taiyuan:rail",
+   "a": "taiyuan",
+   "b": "datong",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "퉁푸선",
+   "open": null
+  },
+  {
+   "id": "shanxi_s|taiyuan:rail",
+   "a": "taiyuan",
+   "b": "shanxi_s",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "퉁푸선",
+   "open": null
+  },
+  {
+   "id": "anhui|xuzhou:rail",
+   "a": "xuzhou",
+   "b": "anhui",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "룽하이선·진푸선",
+   "open": null
+  },
+  {
+   "id": "anhui|kaifeng:rail",
+   "a": "anhui",
+   "b": "kaifeng",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "룽하이선",
+   "open": null
+  },
+  {
+   "id": "anhui|nanjing:rail",
+   "a": "anhui",
+   "b": "nanjing",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "화이난선",
+   "open": null
+  },
+  {
+   "id": "kaifeng|shanxi_s:rail",
+   "a": "kaifeng",
+   "b": "shanxi_s",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "룽하이선",
+   "open": null
+  },
+  {
+   "id": "shanxi_s|xian:rail",
+   "a": "shanxi_s",
+   "b": "xian",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "룽하이선",
+   "open": null
+  },
+  {
+   "id": "nanjing|shanghai:rail",
+   "a": "nanjing",
+   "b": "shanghai",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "징후선",
+   "open": null
+  },
+  {
+   "id": "hangzhou|shanghai:rail",
+   "a": "shanghai",
+   "b": "hangzhou",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "후항선",
+   "open": null
+  },
+  {
+   "id": "hangzhou|nanchang:rail",
+   "a": "hangzhou",
+   "b": "nanchang",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "저간선",
+   "open": "1937-09-01"
+  },
+  {
+   "id": "changsha|nanchang:rail",
+   "a": "nanchang",
+   "b": "changsha",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "저간선",
+   "open": "1937-09-01"
+  },
+  {
+   "id": "changsha|wuhan:rail",
+   "a": "wuhan",
+   "b": "changsha",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "웨한선",
+   "open": null
+  },
+  {
+   "id": "changsha|hengyang:rail",
+   "a": "changsha",
+   "b": "hengyang",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "웨한선",
+   "open": null
+  },
+  {
+   "id": "guangzhou|hengyang:rail",
+   "a": "hengyang",
+   "b": "guangzhou",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "웨한선",
+   "open": "1936-09-01"
+  },
+  {
+   "id": "guilin|hengyang:rail",
+   "a": "hengyang",
+   "b": "guilin",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "샹구이선",
+   "open": "1938-10-01"
+  },
+  {
+   "id": "guangzhou|hongkong:rail",
+   "a": "guangzhou",
+   "b": "hongkong",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "광저우–주룽 철도",
+   "open": null
+  },
+  {
+   "id": "kunming|tonkin:rail",
+   "a": "kunming",
+   "b": "tonkin",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "윈난 철도(하이퐁–쿤밍)",
+   "open": null
+  },
+  {
+   "id": "dali|kunming:road",
+   "a": "kunming",
+   "b": "dali",
+   "kind": "road",
+   "lvl": 1,
+   "name": "버마 도로",
+   "open": "1938-12-01"
+  },
+  {
+   "id": "dali|shan:road",
+   "a": "dali",
+   "b": "shan",
+   "kind": "road",
+   "lvl": 1,
+   "name": "버마 도로(라시오)",
+   "open": "1938-12-01"
+  },
+  {
+   "id": "assam|myitkyina:road",
+   "a": "assam",
+   "b": "myitkyina",
+   "kind": "road",
+   "lvl": 1,
+   "name": "레도 도로",
+   "open": "1945-01-20"
+  },
+  {
+   "id": "myitkyina|shan:road",
+   "a": "myitkyina",
+   "b": "shan",
+   "kind": "road",
+   "lvl": 1,
+   "name": "레도 도로",
+   "open": "1945-01-20"
+  },
+  {
+   "id": "guiyang|kunming:road",
+   "a": "kunming",
+   "b": "guiyang",
+   "kind": "road",
+   "lvl": 1,
+   "name": "뎬첸 도로",
+   "open": null
+  },
+  {
+   "id": "chongqing|guiyang:road",
+   "a": "guiyang",
+   "b": "chongqing",
+   "kind": "road",
+   "lvl": 1,
+   "name": "촨첸 도로",
+   "open": null
+  },
+  {
+   "id": "guilin|guiyang:road",
+   "a": "guiyang",
+   "b": "guilin",
+   "kind": "road",
+   "lvl": 1,
+   "name": "첸구이 도로",
+   "open": null
+  },
+  {
+   "id": "chengdu|chongqing:road",
+   "a": "chengdu",
+   "b": "chongqing",
+   "kind": "road",
+   "lvl": 1,
+   "name": "청위 도로",
+   "open": null
+  },
+  {
+   "id": "hanzhong|xian:road",
+   "a": "xian",
+   "b": "hanzhong",
+   "kind": "road",
+   "lvl": 1,
+   "name": "촨산 도로",
+   "open": null
+  },
+  {
+   "id": "chengdu|hanzhong:road",
+   "a": "hanzhong",
+   "b": "chengdu",
+   "kind": "road",
+   "lvl": 1,
+   "name": "촨산 도로",
+   "open": null
+  },
+  {
+   "id": "lanzhou|xian:road",
+   "a": "lanzhou",
+   "b": "xian",
+   "kind": "road",
+   "lvl": 1,
+   "name": "시란 도로",
+   "open": null
+  },
+  {
+   "id": "hexi|lanzhou:road",
+   "a": "hexi",
+   "b": "lanzhou",
+   "kind": "road",
+   "lvl": 1,
+   "name": "서북 도로(간쑤 회랑)",
+   "open": null
+  },
+  {
+   "id": "hami|hexi:road",
+   "a": "hami",
+   "b": "hexi",
+   "kind": "road",
+   "lvl": 1,
+   "name": "서북 도로",
+   "open": null
+  },
+  {
+   "id": "hami|urumqi:road",
+   "a": "urumqi",
+   "b": "hami",
+   "kind": "road",
+   "lvl": 1,
+   "name": "서북 도로",
+   "open": null
+  },
+  {
+   "id": "almaty|urumqi:road",
+   "a": "almaty",
+   "b": "urumqi",
+   "kind": "road",
+   "lvl": 1,
+   "name": "서북 도로(국경)",
+   "open": null
+  },
+  {
+   "id": "assam|imphal:road",
+   "a": "assam",
+   "b": "imphal",
+   "kind": "road",
+   "lvl": 1,
+   "name": "디마푸르–임팔 도로",
+   "open": null
+  },
+  {
+   "id": "darwin|outback:road",
+   "a": "darwin",
+   "b": "outback",
+   "kind": "road",
+   "lvl": 1,
+   "name": "스튜어트 도로",
+   "open": "1940-12-01"
+  },
+  {
+   "id": "mandalay|rangoon:rail",
+   "a": "rangoon",
+   "b": "mandalay",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "버마 철도",
+   "open": null
+  },
+  {
+   "id": "mandalay|myitkyina:rail",
+   "a": "mandalay",
+   "b": "myitkyina",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "버마 철도(미치나)",
+   "open": null
+  },
+  {
+   "id": "mandalay|shan:rail",
+   "a": "mandalay",
+   "b": "shan",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "라시오 지선",
+   "open": null
+  },
+  {
+   "id": "rangoon|tenasserim:rail",
+   "a": "rangoon",
+   "b": "tenasserim",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "모울메인 선",
+   "open": null
+  },
+  {
+   "id": "bengal|bihar:rail",
+   "a": "bengal",
+   "b": "bihar",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "동인도 철도",
+   "open": null
+  },
+  {
+   "id": "bihar|up:rail",
+   "a": "bihar",
+   "b": "up",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "동인도 철도",
+   "open": null
+  },
+  {
+   "id": "delhi|up:rail",
+   "a": "up",
+   "b": "delhi",
+   "kind": "rail",
+   "lvl": 3,
+   "name": "동인도 철도",
+   "open": null
+  },
+  {
+   "id": "delhi|punjab:rail",
+   "a": "delhi",
+   "b": "punjab",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "북서 철도",
+   "open": null
+  },
+  {
+   "id": "delhi|rajputana:rail",
+   "a": "delhi",
+   "b": "rajputana",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "봄베이–바로다 철도",
+   "open": null
+  },
+  {
+   "id": "central_india|up:rail",
+   "a": "up",
+   "b": "central_india",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "대인도 반도 철도",
+   "open": null
+  },
+  {
+   "id": "central_india|hyderabad:rail",
+   "a": "central_india",
+   "b": "hyderabad",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "대인도 반도 철도",
+   "open": null
+  },
+  {
+   "id": "hyderabad|madras:rail",
+   "a": "hyderabad",
+   "b": "madras",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "마드라스 철도",
+   "open": null
+  },
+  {
+   "id": "madras|mysore:rail",
+   "a": "madras",
+   "b": "mysore",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "남인도 철도",
+   "open": null
+  },
+  {
+   "id": "bengal|orissa:rail",
+   "a": "bengal",
+   "b": "orissa",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "벵골–나그푸르 철도",
+   "open": null
+  },
+  {
+   "id": "hyderabad|orissa:rail",
+   "a": "orissa",
+   "b": "hyderabad",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "동해안 선",
+   "open": null
+  },
+  {
+   "id": "central_india|orissa:rail",
+   "a": "orissa",
+   "b": "central_india",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "벵골–나그푸르 철도(나그푸르)",
+   "open": null
+  },
+  {
+   "id": "central_india|rajputana:rail",
+   "a": "rajputana",
+   "b": "central_india",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "서부 철도",
+   "open": null
+  },
+  {
+   "id": "bengal|dacca:rail",
+   "a": "bengal",
+   "b": "dacca",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "동벵골 철도",
+   "open": null
+  },
+  {
+   "id": "assam|dacca:rail",
+   "a": "dacca",
+   "b": "assam",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "아삼–벵골 철도",
+   "open": null
+  },
+  {
+   "id": "bangkok|chiangmai:rail",
+   "a": "bangkok",
+   "b": "chiangmai",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "북부선",
+   "open": null
+  },
+  {
+   "id": "bangkok|korat:rail",
+   "a": "bangkok",
+   "b": "korat",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "동북부선",
+   "open": null
+  },
+  {
+   "id": "bangkok|siam_s:rail",
+   "a": "bangkok",
+   "b": "siam_s",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "남부선",
+   "open": null
+  },
+  {
+   "id": "malaya_n|siam_s:rail",
+   "a": "siam_s",
+   "b": "malaya_n",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "국경 연결선",
+   "open": null
+  },
+  {
+   "id": "kuala_lumpur|malaya_n:rail",
+   "a": "malaya_n",
+   "b": "kuala_lumpur",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "말레이 연방 철도",
+   "open": null
+  },
+  {
+   "id": "johor|kuala_lumpur:rail",
+   "a": "kuala_lumpur",
+   "b": "johor",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "말레이 연방 철도",
+   "open": null
+  },
+  {
+   "id": "johor|singapore:rail",
+   "a": "johor",
+   "b": "singapore",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "조호르 둑길",
+   "open": null
+  },
+  {
+   "id": "annam|tonkin:rail",
+   "a": "tonkin",
+   "b": "annam",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "인도차이나 종단 철도",
+   "open": null
+  },
+  {
+   "id": "annam|cochinchina:rail",
+   "a": "annam",
+   "b": "cochinchina",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "인도차이나 종단 철도",
+   "open": "1936-10-02"
+  },
+  {
+   "id": "bangkok|cambodia:rail",
+   "a": "cambodia",
+   "b": "bangkok",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "프놈펜–방콕 연결",
+   "open": "1942-07-01"
+  },
+  {
+   "id": "batavia|java_c:rail",
+   "a": "batavia",
+   "b": "java_c",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "자바 국철",
+   "open": null
+  },
+  {
+   "id": "java_c|surabaya:rail",
+   "a": "java_c",
+   "b": "surabaya",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "자바 국철",
+   "open": null
+  },
+  {
+   "id": "luzon_n|manila:rail",
+   "a": "manila",
+   "b": "luzon_n",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "마닐라 철도(북부선)",
+   "open": null
+  },
+  {
+   "id": "bicol|manila:rail",
+   "a": "manila",
+   "b": "bicol",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "마닐라 철도(남부선)",
+   "open": "1938-05-01"
+  },
+  {
+   "id": "melbourne|sydney:rail",
+   "a": "sydney",
+   "b": "melbourne",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "시드니–멜버른 선",
+   "open": null
+  },
+  {
+   "id": "brisbane|sydney:rail",
+   "a": "sydney",
+   "b": "brisbane",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "노스 코스트 선",
+   "open": null
+  },
+  {
+   "id": "adelaide|melbourne:rail",
+   "a": "melbourne",
+   "b": "adelaide",
+   "kind": "rail",
+   "lvl": 2,
+   "name": "오버랜드 선",
+   "open": null
+  },
+  {
+   "id": "adelaide|outback:rail",
+   "a": "adelaide",
+   "b": "outback",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "중앙 오스트레일리아 철도",
+   "open": null
+  },
+  {
+   "id": "adelaide|perth:rail",
+   "a": "adelaide",
+   "b": "perth",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "오스트레일리아 횡단 철도",
+   "open": null
+  },
+  {
+   "id": "brisbane|queensland_n:rail",
+   "a": "brisbane",
+   "b": "queensland_n",
+   "kind": "rail",
+   "lvl": 1,
+   "name": "노스 코스트 선(퀸즐랜드)",
+   "open": null
+  },
+  {
+   "id": "nanjing|shanghai:river",
+   "a": "shanghai",
+   "b": "nanjing",
+   "kind": "river",
+   "lvl": 2,
+   "name": "장강 수운",
+   "open": null
+  },
+  {
+   "id": "anhui|nanjing:river",
+   "a": "nanjing",
+   "b": "anhui",
+   "kind": "river",
+   "lvl": 2,
+   "name": "장강 수운",
+   "open": null
+  },
+  {
+   "id": "anhui|nanchang:river",
+   "a": "anhui",
+   "b": "nanchang",
+   "kind": "river",
+   "lvl": 2,
+   "name": "장강 수운(주장)",
+   "open": null
+  },
+  {
+   "id": "nanchang|wuhan:river",
+   "a": "nanchang",
+   "b": "wuhan",
+   "kind": "river",
+   "lvl": 2,
+   "name": "장강 수운",
+   "open": null
+  },
+  {
+   "id": "wuhan|yichang:river",
+   "a": "wuhan",
+   "b": "yichang",
+   "kind": "river",
+   "lvl": 2,
+   "name": "장강 수운",
+   "open": null
+  },
+  {
+   "id": "chongqing|yichang:river",
+   "a": "yichang",
+   "b": "chongqing",
+   "kind": "river",
+   "lvl": 1,
+   "name": "장강 수운(싼샤)",
+   "open": null
+  },
+  {
+   "id": "guangzhou|guilin:river",
+   "a": "guangzhou",
+   "b": "guilin",
+   "kind": "river",
+   "lvl": 1,
+   "name": "시강 수운",
+   "open": null
+  },
+  {
+   "id": "harbin|jiamusi:river",
+   "a": "harbin",
+   "b": "jiamusi",
+   "kind": "river",
+   "lvl": 1,
+   "name": "쑹화강 수운",
+   "open": null
+  },
+  {
+   "id": "khabarovsk|lower_amur:river",
+   "a": "khabarovsk",
+   "b": "lower_amur",
+   "kind": "river",
+   "lvl": 1,
+   "name": "아무르강 수운",
+   "open": null
+  },
+  {
+   "id": "mandalay|rangoon:river",
+   "a": "rangoon",
+   "b": "mandalay",
+   "kind": "river",
+   "lvl": 1,
+   "name": "이라와디 수운",
+   "open": null
+  },
+  {
+   "id": "mandalay|myitkyina:river",
+   "a": "mandalay",
+   "b": "myitkyina",
+   "kind": "river",
+   "lvl": 1,
+   "name": "이라와디 수운",
+   "open": null
+  },
+  {
+   "id": "cambodia|cochinchina:river",
+   "a": "cochinchina",
+   "b": "cambodia",
+   "kind": "river",
+   "lvl": 1,
+   "name": "메콩 수운",
+   "open": null
+  },
+  {
+   "id": "cambodia|laos:river",
+   "a": "cambodia",
+   "b": "laos",
+   "kind": "river",
+   "lvl": 1,
+   "name": "메콩 수운",
+   "open": null
+  }
+ ],
+ "transportRules": {
+  "rail": {
+   "name": "철도",
+   "cap": [
+    0,
+    11,
+    17,
+    23,
+    29
+   ],
+   "speed": [
+    0,
+    28,
+    36,
+    44,
+    52
+   ],
+   "load": 0.8,
+   "weather": 0.5,
+   "cost": 18,
+   "max": 4
+  },
+  "road": {
+   "name": "도로",
+   "cap": [
+    0,
+    7,
+    10
+   ],
+   "speed": 0,
+   "weather": 1,
+   "cost": 10,
+   "max": 2
+  },
+  "river": {
+   "name": "배길",
+   "cap": [
+    0,
+    9,
+    14
+   ],
+   "speed": [
+    0,
+    22,
+    28
+   ],
+   "load": 1,
+   "weather": 0.7,
+   "cost": 0,
+   "max": 2
+  },
+  "capitalBase": 30,
+  "homeLink": 26,
+  "noHub": 0.75,
+  "riverAttack": {
+   "large": 0.35,
+   "small": 0.18
+  },
+  "riverSupply": {
+   "large": 0.85,
+   "small": 0.93
+  },
+  "captureDamage": 0.6,
+  "repairPerDay": 0.05,
+  "sabotage": 0.003,
+  "sabotageDamage": 0.3,
+  "hubCost": 35,
+  "hubVp": 15
+ },
+ "crossings": {
+  "adelaide|melbourne": "large",
+  "adelaide|sydney": "small",
+  "altai|kuzbass": "small",
+  "altai|semipalatinsk": "large",
+  "alxa|yinchuan": "large",
+  "aldan|amur": "small",
+  "amur|chita": "small",
+  "anhui|wuhan": "large",
+  "annam|cambodia": "large",
+  "assam|imphal": "large",
+  "assam|mandalay": "large",
+  "assam|myitkyina": "large",
+  "bangkok|chiangmai": "small",
+  "bangkok|siam_s": "small",
+  "assam|bengal": "large",
+  "bengal|bhutan": "large",
+  "bengal|dacca": "large",
+  "bhutan|bihar": "large",
+  "bihar|nepal": "large",
+  "borneo_e|borneo_s": "small",
+  "borneo_e|borneo_w": "small",
+  "cambodia|laos": "large",
+  "central_india|hyderabad": "small",
+  "central_india|orissa": "small",
+  "assam|chamdo": "large",
+  "chamdo|dali": "large",
+  "chamdo|myitkyina": "large",
+  "chamdo|xikang": "large",
+  "changsha|hengyang": "small",
+  "chengdu|chongqing": "large",
+  "chengdu|guiyang": "large",
+  "chengdu|kunming": "large",
+  "chengdu|xikang": "small",
+  "chiangmai|korat": "small",
+  "chiangmai|laos": "large",
+  "aldan|chita": "small",
+  "chita|irkutsk": "large",
+  "changsha|chongqing": "small",
+  "chongqing|guiyang": "small",
+  "chongqing|yichang": "large",
+  "chungcheong|gyeongsang": "small",
+  "cambodia|cochinchina": "large",
+  "arakan|dacca": "small",
+  "assam|dacca": "large",
+  "dali|myitkyina": "large",
+  "dali|shan": "large",
+  "datong|yanan": "large",
+  "central_india|delhi": "large",
+  "delhi|punjab": "large",
+  "delhi|rajputana": "large",
+  "fengtian|jehol": "small",
+  "fengtian|jinzhou": "small",
+  "fengtian|xingan": "small",
+  "fuzhou|ganzhou": "small",
+  "fuzhou|nanchang": "small",
+  "fuzhou|xiamen": "small",
+  "chungcheong|gangwon": "small",
+  "gangwon|gyeongsang": "small",
+  "changsha|ganzhou": "small",
+  "ganzhou|hengyang": "small",
+  "ganzhou|guangzhou": "small",
+  "guangzhou|guangzhouwan": "large",
+  "guangzhou|hengyang": "small",
+  "guangzhou|hongkong": "small",
+  "guangzhou|leizhou": "large",
+  "guangzhou|shantou": "small",
+  "guilin|guiyang": "small",
+  "guiyang|hengyang": "small",
+  "guiyang|nanning": "small",
+  "chungcheong|gyeongseong": "small",
+  "hamgyong|jiandao": "small",
+  "hamgyong|vladivostok": "small",
+  "anhui|hangzhou": "large",
+  "chengdu|hanzhong": "small",
+  "chongqing|hanzhong": "large",
+  "hanzhong|lanzhou": "small",
+  "hanzhong|yichang": "small",
+  "harbin|heihe": "small",
+  "harbin|jiamusi": "large",
+  "harbin|mudanjiang": "large",
+  "hebei|jinan": "large",
+  "hebei|kaifeng": "large",
+  "hebei|taiyuan": "small",
+  "amur|heihe": "large",
+  "chita|heihe": "large",
+  "heihe|jiamusi": "large",
+  "hollandia|lae": "small",
+  "harbin|hsinking": "large",
+  "chita|hulunbuir": "large",
+  "dornod|hulunbuir": "small",
+  "hulunbuir|xingan": "small",
+  "hyderabad|madras": "small",
+  "hyderabad|mysore": "small",
+  "hyderabad|orissa": "small",
+  "iman|khabarovsk": "large",
+  "imphal|mandalay": "small",
+  "aldan|irkutsk": "large",
+  "irkutsk|krasnoyarsk": "large",
+  "irkutsk|tuva": "large",
+  "jehol|kalgan": "small",
+  "jehol|peiping": "small",
+  "jehol|tianjin": "small",
+  "gyeongsang|jeolla": "small",
+  "amur|jiamusi": "large",
+  "iman|jiamusi": "large",
+  "jiamusi|khabarovsk": "large",
+  "harbin|jiandao": "large",
+  "andong|jinzhou": "small",
+  "kaifeng|shanxi_s": "large",
+  "chubu|kanto": "small",
+  "kashgar|khotan": "small",
+  "khotan|punjab": "large",
+  "altai|khovd": "large",
+  "cambodia|korat": "small",
+  "korat|laos": "large",
+  "krasnoyarsk|kuzbass": "large",
+  "krasnoyarsk|novosibirsk": "large",
+  "dali|kunming": "small",
+  "kunming|laos": "small",
+  "alxa|lanzhou": "large",
+  "hexi|lanzhou": "large",
+  "lanzhou|xikang": "small",
+  "lanzhou|xining": "large",
+  "lanzhou|yinchuan": "small",
+  "assam|lhasa": "large",
+  "bhutan|lhasa": "large",
+  "bihar|lhasa": "large",
+  "chamdo|lhasa": "large",
+  "lhasa|nepal": "large",
+  "madras|mysore": "small",
+  "arakan|mandalay": "small",
+  "mandalay|myitkyina": "small",
+  "mandalay|shan": "large",
+  "iman|mudanjiang": "large",
+  "myitkyina|shan": "large",
+  "anhui|nanchang": "large",
+  "changsha|nanchang": "small",
+  "nanchang|wuhan": "small",
+  "guilin|nanning": "small",
+  "anhui|nanyang": "small",
+  "nanyang|shanxi_s": "large",
+  "nanyang|wuhan": "large",
+  "nanyang|yichang": "small",
+  "delhi|ngari": "small",
+  "ngari|punjab": "large",
+  "altai|novosibirsk": "large",
+  "kuzbass|novosibirsk": "large",
+  "novosibirsk|semipalatinsk": "large",
+  "kalgan|peiping": "small",
+  "andong|pyongan": "small",
+  "hsinking|pyongan": "small",
+  "jiandao|pyongan": "small",
+  "qinghai_w|xikang": "small",
+  "heihe|qiqihar": "small",
+  "qiqihar|xingan": "small",
+  "arakan|rangoon": "large",
+  "bangkok|rangoon": "small",
+  "chiangmai|rangoon": "large",
+  "borneo_w|sarawak": "small",
+  "chiangmai|shan": "large",
+  "laos|shan": "large",
+  "ganzhou|shantou": "small",
+  "shanxi_s|xian": "large",
+  "shanxi_s|yanan": "large",
+  "suiyuan|yanan": "large",
+  "suiyuan|yinchuan": "large",
+  "melbourne|sydney": "large",
+  "datong|taiyuan": "small",
+  "shanxi_s|taiyuan": "small",
+  "taiyuan|yanan": "large",
+  "bangkok|tenasserim": "small",
+  "annam|tonkin": "small",
+  "laos|tonkin": "small",
+  "altai|tuva": "large",
+  "kuzbass|tuva": "small",
+  "irkutsk|ulanude": "large",
+  "tuva|ulanude": "large",
+  "bihar|up": "large",
+  "central_india|up": "large",
+  "tuva|urga": "large",
+  "altai|urumqi": "large",
+  "khotan|urumqi": "small",
+  "iman|vladivostok": "large",
+  "wuhan|yichang": "large",
+  "xian|yichang": "small",
+  "dali|xikang": "large",
+  "kunming|xikang": "large",
+  "xikang|xining": "large",
+  "lanzhou|yanan": "small",
+  "xian|yanan": "small",
+  "changsha|yichang": "large"
+ },
  "countries": [
   {
    "id": "japan",
@@ -6407,7 +7993,8 @@
     "japan_east"
    ],
    "airZone": "az17",
-   "landmass": "m0"
+   "landmass": "m0",
+   "hub": 0
   },
   {
    "id": "tohoku",
@@ -6442,7 +8029,8 @@
     "japan_sea_s"
    ],
    "airZone": "az20",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 0
   },
   {
    "id": "kanto",
@@ -6482,7 +8070,8 @@
     "japan_east"
    ],
    "airZone": "az20",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 1
   },
   {
    "id": "chubu",
@@ -6523,7 +8112,8 @@
     "japan_south"
    ],
    "airZone": "az20",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 0
   },
   {
    "id": "kansai",
@@ -6563,7 +8153,8 @@
     "tsushima_strait"
    ],
    "airZone": "az13",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 1
   },
   {
    "id": "chugoku",
@@ -6599,7 +8190,8 @@
     "japan_sea_s"
    ],
    "airZone": "az13",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 1
   },
   {
    "id": "shikoku",
@@ -6629,7 +8221,8 @@
     "tsushima_strait"
    ],
    "airZone": "az13",
-   "landmass": "m2"
+   "landmass": "m2",
+   "hub": 0
   },
   {
    "id": "kyushu",
@@ -6667,7 +8260,8 @@
     "tsushima_strait"
    ],
    "airZone": "az13",
-   "landmass": "japan_home"
+   "landmass": "japan_home",
+   "hub": 1
   },
   {
    "id": "ryukyu",
@@ -6696,7 +8290,8 @@
     "formosa_strait"
    ],
    "airZone": "az14",
-   "landmass": "m3"
+   "landmass": "m3",
+   "hub": 0
   },
   {
    "id": "ogasawara",
@@ -6722,7 +8317,8 @@
     "japan_south"
    ],
    "airZone": "az30",
-   "landmass": "m4"
+   "landmass": "m4",
+   "hub": 0
   },
   {
    "id": "karafuto",
@@ -6757,7 +8353,8 @@
     "japan_east"
    ],
    "airZone": "az17",
-   "landmass": "m5"
+   "landmass": "m5",
+   "hub": 0
   },
   {
    "id": "chishima",
@@ -6786,7 +8383,8 @@
     "japan_east"
    ],
    "airZone": "az17",
-   "landmass": "m5"
+   "landmass": "m5",
+   "hub": 0
   },
   {
    "id": "gyeongseong",
@@ -6821,7 +8419,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 1
   },
   {
    "id": "gangwon",
@@ -6862,7 +8461,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "chungcheong",
@@ -6896,7 +8496,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 1
   },
   {
    "id": "jeolla",
@@ -6930,7 +8531,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "gyeongsang",
@@ -6966,7 +8568,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "hwanghae",
@@ -7002,7 +8605,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "pyongan",
@@ -7045,7 +8649,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "hamgyong",
@@ -7086,7 +8691,8 @@
    ],
    "airZone": "az18",
    "landmass": "eurasia",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "taiwan",
@@ -7117,7 +8723,8 @@
    ],
    "airZone": "az35",
    "landmass": "m7",
-   "colony": true
+   "colony": true,
+   "hub": 0
   },
   {
    "id": "fengtian",
@@ -7159,7 +8766,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "jinzhou",
@@ -7194,7 +8802,8 @@
     "bohai"
    ],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "andong",
@@ -7229,7 +8838,8 @@
     "bohai"
    ],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "kwantung",
@@ -7263,7 +8873,8 @@
     "bohai"
    ],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "hsinking",
@@ -7299,7 +8910,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "jiandao",
@@ -7332,7 +8944,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "harbin",
@@ -7367,7 +8980,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "qiqihar",
@@ -7398,7 +9012,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "heihe",
@@ -7432,7 +9047,8 @@
    ],
    "coast": [],
    "airZone": "az15",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "mudanjiang",
@@ -7464,7 +9080,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "jiamusi",
@@ -7497,7 +9114,8 @@
    ],
    "coast": [],
    "airZone": "az17",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hulunbuir",
@@ -7528,7 +9146,8 @@
    ],
    "coast": [],
    "airZone": "az15",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "xingan",
@@ -7563,7 +9182,8 @@
    ],
    "coast": [],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "jehol",
@@ -7602,7 +9222,8 @@
     "bohai"
    ],
    "airZone": "az11",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "chahar",
@@ -7635,7 +9256,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "peiping",
@@ -7666,7 +9288,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "tianjin",
@@ -7701,7 +9324,8 @@
     "bohai"
    ],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "hebei",
@@ -7740,7 +9364,8 @@
     "bohai"
    ],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "kalgan",
@@ -7776,7 +9401,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "jinan",
@@ -7814,7 +9440,8 @@
     "bohai"
    ],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "qingdao",
@@ -7848,7 +9475,8 @@
     "bohai"
    ],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "kaifeng",
@@ -7884,7 +9512,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "nanyang",
@@ -7917,7 +9546,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "taiyuan",
@@ -7954,7 +9584,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "datong",
@@ -7989,7 +9620,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "shanxi_s",
@@ -8024,7 +9656,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "suiyuan",
@@ -8059,7 +9692,8 @@
    ],
    "coast": [],
    "airZone": "az28",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "yanan",
@@ -8096,7 +9730,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "xian",
@@ -8130,7 +9765,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hanzhong",
@@ -8162,7 +9798,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "lanzhou",
@@ -8198,7 +9835,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hexi",
@@ -8233,7 +9871,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "alxa",
@@ -8264,7 +9903,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "yinchuan",
@@ -8295,7 +9935,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "xining",
@@ -8326,7 +9967,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "qinghai_w",
@@ -8358,7 +10000,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "urumqi",
@@ -8394,7 +10037,8 @@
    ],
    "coast": [],
    "airZone": "az29",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "kashgar",
@@ -8426,7 +10070,8 @@
     "bengal_bay"
    ],
    "airZone": "az32",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hami",
@@ -8456,7 +10101,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "khotan",
@@ -8492,7 +10138,8 @@
     "bengal_bay"
    ],
    "airZone": "az29",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "lhasa",
@@ -8527,7 +10174,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "ngari",
@@ -8557,7 +10205,8 @@
    ],
    "coast": [],
    "airZone": "az29",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "chamdo",
@@ -8588,7 +10237,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "chengdu",
@@ -8623,7 +10273,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "xikang",
@@ -8657,7 +10308,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "chongqing",
@@ -8693,7 +10345,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "kunming",
@@ -8731,7 +10384,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "dali",
@@ -8766,7 +10420,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "guiyang",
@@ -8800,7 +10455,8 @@
    ],
    "coast": [],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "nanning",
@@ -8834,7 +10490,8 @@
     "tonkin_gulf"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "guilin",
@@ -8867,7 +10524,8 @@
    ],
    "coast": [],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "guangzhou",
@@ -8909,7 +10567,8 @@
     "scs_n"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "shantou",
@@ -8942,7 +10601,8 @@
     "scs_n"
    ],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "leizhou",
@@ -8975,7 +10635,8 @@
     "tonkin_gulf"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "guangzhouwan",
@@ -9005,7 +10666,8 @@
     "scs_n"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hainan",
@@ -9035,7 +10697,8 @@
     "tonkin_gulf"
    ],
    "airZone": "az16",
-   "landmass": "m8"
+   "landmass": "m8",
+   "hub": 0
   },
   {
    "id": "hongkong",
@@ -9067,7 +10730,8 @@
     "scs_n"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "macau",
@@ -9095,7 +10759,8 @@
     "scs_n"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "fuzhou",
@@ -9129,7 +10794,8 @@
     "formosa_strait"
    ],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "xiamen",
@@ -9161,7 +10827,8 @@
     "formosa_strait"
    ],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "nanchang",
@@ -9195,7 +10862,8 @@
    ],
    "coast": [],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "ganzhou",
@@ -9232,7 +10900,8 @@
    ],
    "coast": [],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hangzhou",
@@ -9268,7 +10937,8 @@
     "east_china_sea"
    ],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "wenzhou",
@@ -9301,7 +10971,8 @@
     "formosa_strait"
    ],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "shanghai",
@@ -9338,7 +11009,8 @@
     "yellow_sea"
    ],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "nanjing",
@@ -9375,7 +11047,8 @@
     "east_china_sea"
    ],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "xuzhou",
@@ -9411,7 +11084,8 @@
     "yellow_sea"
    ],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "anhui",
@@ -9448,7 +11122,8 @@
    ],
    "coast": [],
    "airZone": "az14",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "wuhan",
@@ -9487,7 +11162,8 @@
    ],
    "coast": [],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "yichang",
@@ -9520,7 +11196,8 @@
    ],
    "coast": [],
    "airZone": "az3",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "changsha",
@@ -9556,7 +11233,8 @@
    ],
    "coast": [],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "hengyang",
@@ -9592,7 +11270,8 @@
    ],
    "coast": [],
    "airZone": "az35",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "urga",
@@ -9627,7 +11306,8 @@
    ],
    "coast": [],
    "airZone": "az8",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "khovd",
@@ -9660,7 +11340,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "dornod",
@@ -9690,7 +11371,8 @@
    ],
    "coast": [],
    "airZone": "az8",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "gobi",
@@ -9719,7 +11401,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "vladivostok",
@@ -9756,7 +11439,8 @@
     "japan_sea_s"
    ],
    "airZone": "az17",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "iman",
@@ -9789,7 +11473,8 @@
     "japan_sea_n"
    ],
    "airZone": "az17",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "khabarovsk",
@@ -9824,7 +11509,8 @@
     "okhotsk_sea"
    ],
    "airZone": "az17",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "lower_amur",
@@ -9855,7 +11541,8 @@
     "okhotsk_sea"
    ],
    "airZone": "az17",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "okhotsk",
@@ -9885,7 +11572,8 @@
     "okhotsk_sea"
    ],
    "airZone": "az15",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "amur",
@@ -9918,7 +11606,8 @@
    ],
    "coast": [],
    "airZone": "az15",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "chita",
@@ -9956,7 +11645,8 @@
    ],
    "coast": [],
    "airZone": "az8",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "ulanude",
@@ -9987,7 +11677,8 @@
    ],
    "coast": [],
    "airZone": "az8",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "irkutsk",
@@ -10025,7 +11716,8 @@
     "bohai"
    ],
    "airZone": "az8",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "krasnoyarsk",
@@ -10057,7 +11749,8 @@
    ],
    "coast": [],
    "airZone": "az2",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "tuva",
@@ -10089,7 +11782,8 @@
    ],
    "coast": [],
    "airZone": "az21",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "novosibirsk",
@@ -10123,7 +11817,8 @@
    ],
    "coast": [],
    "airZone": "az2",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "altai",
@@ -10156,7 +11851,8 @@
    ],
    "coast": [],
    "airZone": "az2",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "kuzbass",
@@ -10194,7 +11890,8 @@
    ],
    "coast": [],
    "airZone": "az2",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "aldan",
@@ -10224,7 +11921,8 @@
    ],
    "coast": [],
    "airZone": "az15",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "magadan",
@@ -10253,7 +11951,8 @@
     "okhotsk_sea"
    ],
    "airZone": "az25",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "kamchatka",
@@ -10283,7 +11982,8 @@
     "kuril_sea"
    ],
    "airZone": "az25",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "nsakhalin",
@@ -10316,7 +12016,8 @@
     "okhotsk_sea"
    ],
    "airZone": "az17",
-   "landmass": "m5"
+   "landmass": "m5",
+   "hub": 0
   },
   {
    "id": "almaty",
@@ -10350,7 +12051,8 @@
    ],
    "coast": [],
    "airZone": "az32",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "semipalatinsk",
@@ -10384,7 +12086,8 @@
    ],
    "coast": [],
    "airZone": "az2",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "delhi",
@@ -10419,7 +12122,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "punjab",
@@ -10451,7 +12155,8 @@
     "bengal_bay"
    ],
    "airZone": "az32",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "rajputana",
@@ -10480,7 +12185,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "up",
@@ -10512,7 +12218,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "central_india",
@@ -10548,7 +12255,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "hyderabad",
@@ -10584,7 +12292,8 @@
     "laccadive"
    ],
    "airZone": "az10",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "madras",
@@ -10617,7 +12326,8 @@
     "laccadive"
    ],
    "airZone": "az10",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "mysore",
@@ -10651,7 +12361,8 @@
     "laccadive"
    ],
    "airZone": "az10",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "bihar",
@@ -10691,7 +12402,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "orissa",
@@ -10728,7 +12440,8 @@
     "bengal_bay"
    ],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "bengal",
@@ -10770,7 +12483,8 @@
     "bengal_bay"
    ],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "dacca",
@@ -10804,7 +12518,8 @@
     "bengal_bay"
    ],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "assam",
@@ -10842,7 +12557,8 @@
    ],
    "coast": [],
    "airZone": "az7",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "imphal",
@@ -10873,7 +12589,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "ceylon",
@@ -10905,7 +12622,8 @@
     "indian_n"
    ],
    "airZone": "az10",
-   "landmass": "m9"
+   "landmass": "m9",
+   "hub": 1
   },
   {
    "id": "nepal",
@@ -10938,7 +12656,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "bhutan",
@@ -10967,7 +12686,8 @@
    ],
    "coast": [],
    "airZone": "az24",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "rangoon",
@@ -11006,7 +12726,8 @@
     "bengal_bay"
    ],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "mandalay",
@@ -11042,7 +12763,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "myitkyina",
@@ -11074,7 +12796,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "arakan",
@@ -11107,7 +12830,8 @@
     "bengal_bay"
    ],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "tenasserim",
@@ -11143,7 +12867,8 @@
     "andaman_sea"
    ],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "shan",
@@ -11178,7 +12903,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "bangkok",
@@ -11215,7 +12941,8 @@
     "siam_gulf"
    ],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "chiangmai",
@@ -11247,7 +12974,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "korat",
@@ -11278,7 +13006,8 @@
    ],
    "coast": [],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "siam_s",
@@ -11316,7 +13045,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "tonkin",
@@ -11354,7 +13084,8 @@
     "tonkin_gulf"
    ],
    "airZone": "az16",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "annam",
@@ -11388,7 +13119,8 @@
     "scs_s"
    ],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "cochinchina",
@@ -11425,7 +13157,8 @@
     "scs_s"
    ],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "cambodia",
@@ -11462,7 +13195,8 @@
     "siam_gulf"
    ],
    "airZone": "az9",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "laos",
@@ -11497,7 +13231,8 @@
    ],
    "coast": [],
    "airZone": "az22",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "new_caledonia",
@@ -11528,7 +13263,8 @@
     "coral_sea"
    ],
    "airZone": "az33",
-   "landmass": "m10"
+   "landmass": "m10",
+   "hub": 0
   },
   {
    "id": "malaya_n",
@@ -11566,7 +13302,8 @@
     "siam_gulf"
    ],
    "airZone": "az19",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "kuala_lumpur",
@@ -11601,7 +13338,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "johor",
@@ -11634,7 +13372,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 0
   },
   {
    "id": "singapore",
@@ -11666,7 +13405,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "eurasia"
+   "landmass": "eurasia",
+   "hub": 1
   },
   {
    "id": "sarawak",
@@ -11703,7 +13443,8 @@
     "java_sea"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "north_borneo",
@@ -11733,7 +13474,8 @@
     "scs_s"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "brunei",
@@ -11765,7 +13507,8 @@
     "scs_s"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "borneo_w",
@@ -11799,7 +13542,8 @@
     "scs_s"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "borneo_e",
@@ -11837,7 +13581,8 @@
     "java_sea"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "borneo_s",
@@ -11868,7 +13613,8 @@
     "java_sea"
    ],
    "airZone": "az6",
-   "landmass": "m11"
+   "landmass": "m11",
+   "hub": 0
   },
   {
    "id": "batavia",
@@ -11900,7 +13646,8 @@
     "java_sea"
    ],
    "airZone": "az4",
-   "landmass": "m12"
+   "landmass": "m12",
+   "hub": 1
   },
   {
    "id": "java_c",
@@ -11935,7 +13682,8 @@
     "java_sea"
    ],
    "airZone": "az4",
-   "landmass": "m12"
+   "landmass": "m12",
+   "hub": 0
   },
   {
    "id": "surabaya",
@@ -11968,7 +13716,8 @@
     "java_sea"
    ],
    "airZone": "az4",
-   "landmass": "m12"
+   "landmass": "m12",
+   "hub": 1
   },
   {
    "id": "palembang",
@@ -12006,7 +13755,8 @@
     "malacca"
    ],
    "airZone": "az4",
-   "landmass": "m13"
+   "landmass": "m13",
+   "hub": 0
   },
   {
    "id": "padang",
@@ -12041,7 +13791,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "m13"
+   "landmass": "m13",
+   "hub": 0
   },
   {
    "id": "medan",
@@ -12076,7 +13827,8 @@
     "malacca"
    ],
    "airZone": "az19",
-   "landmass": "m13"
+   "landmass": "m13",
+   "hub": 0
   },
   {
    "id": "makassar",
@@ -12109,7 +13861,8 @@
     "java_sea"
    ],
    "airZone": "az5",
-   "landmass": "m14"
+   "landmass": "m14",
+   "hub": 0
   },
   {
    "id": "manado",
@@ -12140,7 +13893,8 @@
     "celebes_sea"
    ],
    "airZone": "az5",
-   "landmass": "m14"
+   "landmass": "m14",
+   "hub": 0
   },
   {
    "id": "ambon",
@@ -12168,7 +13922,8 @@
     "molucca_sea"
    ],
    "airZone": "az31",
-   "landmass": "m15"
+   "landmass": "m15",
+   "hub": 0
   },
   {
    "id": "lesser_sunda",
@@ -12197,7 +13952,8 @@
     "banda_sea"
    ],
    "airZone": "az5",
-   "landmass": "m16"
+   "landmass": "m16",
+   "hub": 0
   },
   {
    "id": "kupang",
@@ -12226,7 +13982,8 @@
     "timor_sea"
    ],
    "airZone": "az5",
-   "landmass": "m17"
+   "landmass": "m17",
+   "hub": 0
   },
   {
    "id": "vogelkop",
@@ -12259,7 +14016,8 @@
     "banda_sea"
    ],
    "airZone": "az31",
-   "landmass": "m18"
+   "landmass": "m18",
+   "hub": 0
   },
   {
    "id": "hollandia",
@@ -12290,7 +14048,8 @@
     "bismarck_sea"
    ],
    "airZone": "az31",
-   "landmass": "m18"
+   "landmass": "m18",
+   "hub": 0
   },
   {
    "id": "timor_p",
@@ -12319,7 +14078,8 @@
     "timor_sea"
    ],
    "airZone": "az5",
-   "landmass": "m17"
+   "landmass": "m17",
+   "hub": 0
   },
   {
    "id": "manila",
@@ -12353,7 +14113,8 @@
     "scs_n"
    ],
    "airZone": "az26",
-   "landmass": "m19"
+   "landmass": "m19",
+   "hub": 1
   },
   {
    "id": "luzon_n",
@@ -12387,7 +14148,8 @@
     "philippine_sea"
    ],
    "airZone": "az26",
-   "landmass": "m19"
+   "landmass": "m19",
+   "hub": 0
   },
   {
    "id": "bicol",
@@ -12419,7 +14181,8 @@
     "philippine_sea"
    ],
    "airZone": "az26",
-   "landmass": "m19"
+   "landmass": "m19",
+   "hub": 0
   },
   {
    "id": "visayas",
@@ -12450,7 +14213,8 @@
     "philippine_sea"
    ],
    "airZone": "az27",
-   "landmass": "m19"
+   "landmass": "m19",
+   "hub": 0
   },
   {
    "id": "mindanao",
@@ -12481,7 +14245,8 @@
     "celebes_sea"
    ],
    "airZone": "az27",
-   "landmass": "m20"
+   "landmass": "m20",
+   "hub": 0
   },
   {
    "id": "port_moresby",
@@ -12510,7 +14275,8 @@
     "bismarck_sea"
    ],
    "airZone": "az23",
-   "landmass": "m18"
+   "landmass": "m18",
+   "hub": 0
   },
   {
    "id": "lae",
@@ -12540,7 +14306,8 @@
     "arafura_sea"
    ],
    "airZone": "az23",
-   "landmass": "m18"
+   "landmass": "m18",
+   "hub": 0
   },
   {
    "id": "rabaul",
@@ -12567,7 +14334,8 @@
     "solomon_sea"
    ],
    "airZone": "az23",
-   "landmass": "m21"
+   "landmass": "m21",
+   "hub": 0
   },
   {
    "id": "bougainville",
@@ -12593,7 +14361,8 @@
     "solomon_sea"
    ],
    "airZone": "az23",
-   "landmass": "m22"
+   "landmass": "m22",
+   "hub": 0
   },
   {
    "id": "guadalcanal",
@@ -12620,7 +14389,8 @@
     "south_pacific"
    ],
    "airZone": "az23",
-   "landmass": "m23"
+   "landmass": "m23",
+   "hub": 0
   },
   {
    "id": "fiji",
@@ -12646,7 +14416,8 @@
     "south_pacific"
    ],
    "airZone": "az36",
-   "landmass": "m24"
+   "landmass": "m24",
+   "hub": 0
   },
   {
    "id": "darwin",
@@ -12677,7 +14448,8 @@
     "timor_sea"
    ],
    "airZone": "az33",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "outback",
@@ -12706,7 +14478,8 @@
    ],
    "coast": [],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "kimberley",
@@ -12738,7 +14511,8 @@
     "indian_s"
    ],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "perth",
@@ -12770,7 +14544,8 @@
     "australia_s"
    ],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "adelaide",
@@ -12809,7 +14584,8 @@
     "australia_s"
    ],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 1
   },
   {
    "id": "queensland_n",
@@ -12843,7 +14619,8 @@
     "coral_sea"
    ],
    "airZone": "az33",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "brisbane",
@@ -12878,7 +14655,8 @@
     "coral_sea"
    ],
    "airZone": "az33",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 0
   },
   {
    "id": "sydney",
@@ -12919,7 +14697,8 @@
     "coral_sea"
    ],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 1
   },
   {
    "id": "melbourne",
@@ -12954,7 +14733,8 @@
     "tasman_sea"
    ],
    "airZone": "az1",
-   "landmass": "m25"
+   "landmass": "m25",
+   "hub": 1
   },
   {
    "id": "tasmania",
@@ -12983,7 +14763,8 @@
     "tasman_sea"
    ],
    "airZone": "az1",
-   "landmass": "m26"
+   "landmass": "m26",
+   "hub": 0
   },
   {
    "id": "north_island",
@@ -13015,7 +14796,8 @@
     "south_pacific"
    ],
    "airZone": "az36",
-   "landmass": "m27"
+   "landmass": "m27",
+   "hub": 1
   },
   {
    "id": "south_island",
@@ -13045,7 +14827,8 @@
     "tasman_sea"
    ],
    "airZone": "az36",
-   "landmass": "m27"
+   "landmass": "m27",
+   "hub": 0
   },
   {
    "id": "guam",
@@ -13071,7 +14854,8 @@
     "marianas"
    ],
    "airZone": "az12",
-   "landmass": "m28"
+   "landmass": "m28",
+   "hub": 0
   },
   {
    "id": "saipan",
@@ -13097,7 +14881,8 @@
     "marianas"
    ],
    "airZone": "az12",
-   "landmass": "m29"
+   "landmass": "m29",
+   "hub": 0
   },
   {
    "id": "palau",
@@ -13123,7 +14908,8 @@
     "palau_sea"
    ],
    "airZone": "az31",
-   "landmass": "m30"
+   "landmass": "m30",
+   "hub": 0
   },
   {
    "id": "truk",
@@ -13150,7 +14936,8 @@
     "marshalls_sea"
    ],
    "airZone": "az12",
-   "landmass": "m31"
+   "landmass": "m31",
+   "hub": 1
   },
   {
    "id": "marshalls",
@@ -13176,7 +14963,8 @@
     "marshalls_sea"
    ],
    "airZone": "az34",
-   "landmass": "m32"
+   "landmass": "m32",
+   "hub": 0
   },
   {
    "id": "wake",
@@ -13202,7 +14990,8 @@
     "wake_sea"
    ],
    "airZone": "az34",
-   "landmass": "m33"
+   "landmass": "m33",
+   "hub": 0
   },
   {
    "id": "midway",
@@ -13228,7 +15017,8 @@
     "midway_sea"
    ],
    "airZone": "az34",
-   "landmass": "m34"
+   "landmass": "m34",
+   "hub": 0
   },
   {
    "id": "hawaii",
@@ -13256,7 +15046,8 @@
     "hawaii_sea"
    ],
    "airZone": "az34",
-   "landmass": "m35"
+   "landmass": "m35",
+   "hub": 1
   },
   {
    "id": "aleutians",
@@ -13282,7 +15073,8 @@
     "bering"
    ],
    "airZone": "az25",
-   "landmass": "m36"
+   "landmass": "m36",
+   "hub": 0
   },
   {
    "id": "alaska",
@@ -13309,7 +15101,8 @@
     "pacific_ne"
    ],
    "airZone": "az25",
-   "landmass": "m37"
+   "landmass": "m37",
+   "hub": 0
   },
   {
    "id": "gilberts",
@@ -13335,7 +15128,8 @@
     "gilbert_sea"
    ],
    "airZone": "az34",
-   "landmass": "m38"
+   "landmass": "m38",
+   "hub": 0
   },
   {
    "id": "home_usa",
@@ -13375,7 +15169,8 @@
    },
    "adj": [],
    "coast": [],
-   "label": null
+   "label": null,
+   "hub": 0
   },
   {
    "id": "home_uk",
@@ -13413,7 +15208,8 @@
    },
    "adj": [],
    "coast": [],
-   "label": null
+   "label": null,
+   "hub": 0
   },
   {
    "id": "home_france",
@@ -13450,7 +15246,8 @@
    },
    "adj": [],
    "coast": [],
-   "label": null
+   "label": null,
+   "hub": 0
   },
   {
    "id": "home_netherlands",
@@ -13485,7 +15282,8 @@
    },
    "adj": [],
    "coast": [],
-   "label": null
+   "label": null,
+   "hub": 0
   },
   {
    "id": "home_ussr",
@@ -13528,7 +15326,8 @@
    },
    "adj": [],
    "coast": [],
-   "label": null
+   "label": null,
+   "hub": 0
   }
  ],
  "seas": [

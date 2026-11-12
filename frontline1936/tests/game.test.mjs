@@ -187,9 +187,13 @@ test('날씨 효과: 눈보라는 이동을 늦추고, 태풍·폭우는 상륙�
   const s = E.createState(d, 'japan', 3);
   const dv = E.pol.spawnDivision(s, d, 'japan', 'jp_inf', 'harbin');
   for (const z of Object.keys(s.weather)) s.weather[z] = 'clear';
-  const clear = E.mil.findPath(s, d, dv, 'qiqihar').days;
+  const land = { ...d, transport: [] }; // 철도 없이 걸을 때
+  const clear = E.mil.findPath(s, land, dv, 'qiqihar').days, railClear = E.mil.findPath(s, d, dv, 'qiqihar').days;
+  assert.ok(railClear < clear * .6, `철도는 걷기보다 빠르다(${railClear} < ${clear})`);
   s.weather[X.regions.get('qiqihar').airZone] = 'blizzard';
-  assert.ok(E.mil.findPath(s, d, dv, 'qiqihar').days > clear * 1.8, '눈보라 속 이동은 두 배쯤 걸린다');
+  assert.ok(E.mil.findPath(s, land, dv, 'qiqihar').days > clear * 1.8, '눈보라 속 행군은 두 배쯤 걸린다');
+  const railBliz = E.mil.findPath(s, d, dv, 'qiqihar').days;
+  assert.ok(railBliz > railClear * 1.2 && railBliz < railClear * 1.8, `철도는 눈보라의 영향을 덜 받는다(${railClear}→${railBliz})`);
   E.pol.declareWar(s, d, 'japan', 'usa', () => {}, { forced: true });
   const inv = E.pol.spawnDivision(s, d, 'japan', 'jp_inf', 'taiwan');
   s.navSup = { [X.regions.get('luzon_n').coast[0]]: { japan: 1 } };
@@ -224,6 +228,98 @@ test('장군의 경험과 AI 배치', () => {
   assert.ok(Object.values(s.leaders).some(L => L.xp > 0 || L.skill > X.leaders.get(L.id).skill), '전투를 치른 장군이 경험을 얻는다');
 });
 
+test('교통망: 실제 노선의 개통 시기, 강 건너기 자료', () => {
+  assert.ok(d.transport.length >= 140 && d.transport.every(L => X.regions.get(L.a).adj.includes(L.b)), '노선은 맞닿은 지역끼리');
+  const s = E.createState(d, 'japan', 3), has = (a, b, k) => E.tr.linksBetween(s, d, a, b).some(L => L.kind === k);
+  assert.ok(has('fengtian', 'hsinking', 'rail') && has('gyeongsang', 'chungcheong', 'rail'), '남만주 철도·경부선');
+  assert.ok(!has('hengyang', 'guangzhou', 'rail') && !has('kunming', 'dali', 'road'), '웨한선 남부(1936년 9월)·버마 도로(1938년 12월)는 아직');
+  s.day = dayOf('1939-01-01');
+  assert.ok(has('hengyang', 'guangzhou', 'rail') && has('kunming', 'dali', 'road'), '개통 뒤에는 쓸 수 있다');
+  assert.equal(E.tr.crossingOf(d, 'hebei', 'kaifeng'), 'large', '황허');
+  assert.equal(E.tr.crossingOf(d, 'kaifeng', 'hebei'), 'large', '양쪽 같은 값');
+  assert.ok(Object.values(d.crossings).filter(v => v === 'large').length > 50);
+  assert.ok(d.regions.filter(r => r.hub).length >= 40 && X.regions.get('fengtian').hub, '시작 보급 거점');
+});
+
+test('보급: 노선과 거점, 철도 손상, 사단이 몰리면 모자란다', () => {
+  const s = E.createState(d, 'japan', 3);
+  const cap = rid => E.mil.computeSupply(s, d).japan.get(rid) || 0;
+  const hsk = cap('hsinking');
+  assert.ok(hsk > 10, `만주국 수도 신징 ${hsk}`);
+  // 거점이 없으면 노선 위 지역은 일부만 부린다
+  const h0 = cap('harbin'); s.regions.harbin.hub = 0; const h1 = cap('harbin');
+  assert.ok(h1 < h0 * .8, `거점 없는 하얼빈 ${h0}→${h1}`);
+  // 철도가 끊기면 그 너머의 보급이 준다
+  const mk = d.regions.filter(r => r.owner === 'manchukuo').map(r => r.id);
+  const total = () => { const m = E.mil.computeSupply(s, d).japan; return mk.reduce((a, r) => a + (m.get(r) || 0), 0); };
+  const q0 = total(), far0 = cap('hulunbuir');
+  for (const L of E.tr.transportLinks(s, d).list) if (mk.includes(L.a) || mk.includes(L.b)) s.rail[L.id] = { lvl: 0, dmg: 1 };
+  s.railVer++;
+  const q1 = total(), far1 = cap('hulunbuir');
+  assert.ok(q1 < q0 * .85 && far1 < far0, `만주의 철도가 모두 끊기면 보급이 준다 ${q0.toFixed(1)}→${q1.toFixed(1)}, 후룬베이얼 ${far0.toFixed(1)}→${far1.toFixed(1)}`);
+  // 한 지역에 사단을 몰면 보급 비율이 떨어진다
+  const SUP = E.mil.computeSupply(s, d);
+  for (let i = 0; i < 25; i++) E.pol.spawnDivision(s, d, 'japan', 'jp_inf', 'heihe');
+  const info = E.mil.supplyInfo(s, d, 'japan', 'heihe', E.mil.computeSupply(s, d));
+  assert.ok(info.n >= 25 && info.ratio < .6, `헤이허에 25개 사단: ${info.cap}/${info.use}`);
+  assert.ok(SUP.japan.get('heihe') > 0);
+});
+
+test('철도: 점령하면 끊기고 날마다 복구된다, 건설점으로 놓고 등급을 올린다', () => {
+  const s = E.createState(d, 'japan', 3);
+  E.pol.declareWar(s, d, 'japan', 'china', () => {}, { forced: true });
+  E.mil.capture(s, d, 'tianjin', 'japan', () => {});
+  const L = E.tr.linksBetween(s, d, 'peiping', 'tianjin').find(x => x.kind === 'rail');
+  assert.ok(L.dmg >= d.transportRules.captureDamage - 1e-9, '점령한 지역의 철도가 끊긴다');
+  const jL = E.tr.linksBetween(s, d, 'jehol', 'tianjin').find(x => x.kind === 'rail'), before = jL.dmg;
+  days(s, 5);
+  assert.ok(E.tr.linksBetween(s, d, 'jehol', 'tianjin').find(x => x.kind === 'rail').dmg < before, '같은 편이 양 끝을 쥐면 복구된다');
+  // 건설
+  assert.match(E.tr.railReason(s, d, 'japan', 'kanto', 'kyushu'), /맞닿은/);
+  const r = E.dispatch(s, d, { type: 'buildRail', country: 'japan', from: 'kyushu', to: 'chugoku' });
+  assert.ok(r.ok, r.reason);
+  const c = s.countries.japan; c.construction.unshift(c.construction.pop());
+  const lv = E.tr.railLevel(s, d, 'kyushu', 'chugoku').lvl;
+  days(s, 60);
+  assert.equal(E.tr.railLevel(s, d, 'kyushu', 'chugoku').lvl, lv + 1, '등급이 오른다');
+  assert.ok(E.dispatch(s, d, { type: 'build', country: 'japan', id: 'hub', kind: 'facility', region: 'tohoku' }).ok, '철도 위 지역에는 보급 거점을 지을 수 있다');
+  assert.match(E.buildReason(s, d, 'japan', { id: 'hub', kind: 'facility', region: 'ogasawara' }), /철도/);
+  invariants(s);
+});
+
+test('강: 큰 강을 건너 공격하면 공격이 약하다', () => {
+  const run = (from, to) => {
+    const s = E.createState(d, 'japan', 3);
+    s.divisions = s.divisions.filter(dv => ![from, to].includes(dv.at));
+    E.pol.declareWar(s, d, 'japan', 'china', () => {}, { forced: true });
+    for (const r of [from, to]) { s.regions[r].controller = r === from ? 'japan' : 'china'; }
+    for (const z of Object.keys(s.weather)) s.weather[z] = 'clear';
+    E.pol.spawnDivision(s, d, 'china', 'cn_regional', to);
+    const atk = [1, 2].map(() => E.pol.spawnDivision(s, d, 'japan', 'jp_marine', from));
+    const plain = [1, 2].map(() => E.pol.spawnDivision(s, d, 'japan', 'jp_inf', from));
+    for (const a of [...atk, ...plain]) E.mil.orderAttack(s, d, a, to);
+    E.mil.dailyMilitary(s, d, () => {});
+    return s.battles[to];
+  };
+  const b = run('hebei', 'kaifeng');
+  assert.equal(b.river, 'large', '허베이→카이펑은 황허를 건넌다');
+  const b2 = run('jinan', 'qingdao');
+  assert.equal(b2.river ?? null, null, '지난→칭다오는 강이 없다');
+});
+
+test('포위되어 보급이 끊긴 사단은 소모로 사라진다(5% 바닥에서 되살아나지 않는다)', () => {
+  const s = E.createState(d, 'japan', 3);
+  E.pol.declareWar(s, d, 'japan', 'china', () => {}, { forced: true });
+  const ring = X.regions.get('kaifeng').adj;
+  s.divisions = s.divisions.filter(dv => dv.at !== 'kaifeng' && !ring.includes(dv.at));
+  for (const r of ring) s.regions[r].controller = 'japan';
+  const dv = E.pol.spawnDivision(s, d, 'china', 'cn_regional', 'kaifeng'); dv.str = .1;
+  days(s, 1);
+  assert.equal(dv.sup, 0, '포위된 지역에는 보급이 닿지 않는다');
+  days(s, 30);
+  assert.ok(!s.divisions.some(x => x.id === dv.id), `포위된 사단이 사라진다(병력 ${dv.str})`);
+});
+
 test('10년 자동 진행: 불변식, 역사 사건, 끝', { timeout: 240000 }, () => {
   const s = E.createState(d, 'ccp', 7); s.autoPlayer = true;
   let i = 0;
@@ -234,4 +330,6 @@ test('10년 자동 진행: 불변식, 역사 사건, 끝', { timeout: 240000 }, 
   assert.ok(s.fired.ev_marco_polo === dayOf('1937-07-07'), '루거우차오 사건은 1937년 7월 7일');
   assert.ok(Object.keys(s.warStart).some(k => k.includes('japan') && k.includes('usa')), '태평양 전쟁이 일어난다');
   assert.ok(s.countries.china.exists, '국민정부는 버틴다');
+  assert.ok(Object.values(s.rail).some(x => x.lvl > 0), 'AI가 철도를 놓거나 올린다');
+  assert.ok(Object.values(s.regions).filter(r => r.hub).length > d.regions.filter(r => r.hub).length, 'AI가 보급 거점을 짓는다');
 });

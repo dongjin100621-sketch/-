@@ -7,6 +7,7 @@
  * compute()는 상태를 읽기만 하고, commit()이 결과를 상태에 적용한다(매달 1일). 하루 단위의 건설·생산은 rates로 나눠 쓴다.
  * 점령한 지역의 건물은 정해진 비율(occupiedOutput)로만 돌고 그 땅의 사람은 점령국의 노동·가계에 넣지 않는다. */
 import { clamp, round, sum, index, mods, law, atWar, yearOf } from './core.mjs';
+import { finishRail } from './transport.mjs';
 
 export const STRATA = ['workers', 'farmers', 'business', 'landowners', 'military'];
 const zero = d => Object.fromEntries(d.goods.map(g => [g.id, 0]));
@@ -278,7 +279,14 @@ export function initEconomy(s, d, cid) {
 /* ---------- 하루 진행: 건설·생산 라인·조선 ---------- */
 export function constructionCost(d, item) {
   const X = index(d);
+  if (item.kind === 'rail') return item.cost;
   return item.kind === 'facility' ? X.facilities.get(item.id).cost : X.buildings.get(item.id).cost;
+}
+/** 건설 사업의 이름. */
+export function projectName(d, q) {
+  const X = index(d);
+  if (q.kind === 'rail') return `철도 ${X.regions.get(q.region).name}–${X.regions.get(q.to).name}`;
+  return q.kind === 'facility' ? X.facilities.get(q.id).name : X.buildings.get(q.id).name;
 }
 /** 하루치 건설점으로 대기열 앞에서부터 짓는다(한 사업에 하루 최대 maxPerProject/30). */
 export function dailyConstruction(s, d, cid, done) {
@@ -287,7 +295,7 @@ export function dailyConstruction(s, d, cid, done) {
   for (const q of c.construction) {
     if (budget <= 1e-9) break;
     const cost = constructionCost(d, q), st = s.regions[q.region];
-    if (st.controller !== cid) continue;
+    if (st.controller !== cid || (q.kind === 'rail' && s.regions[q.to].controller !== cid)) continue;
     const boost = q.kind === 'building' && q.id === 'arms' ? 1 + (lawE.armsBuild || 0) : 1;
     const give = Math.min(budget, E.maxPerProject / 30, (cost - q.progress) / boost);
     q.progress = round(q.progress + give * boost, 4); budget -= give;
@@ -295,7 +303,8 @@ export function dailyConstruction(s, d, cid, done) {
   }
   for (const q of c.construction.filter(q => q.done)) {
     const st = s.regions[q.region];
-    if (q.kind === 'facility') st[q.id] = Math.min(X.facilities.get(q.id).max, st[q.id] + 1);
+    if (q.kind === 'rail') finishRail(s, d, q.region, q.to);
+    else if (q.kind === 'facility') st[q.id] = Math.min(X.facilities.get(q.id).max, (st[q.id] || 0) + 1);
     else { const b = st.b[q.id] || (st.b[q.id] = { level: 0, pm: 0, staff: .5 }); b.level += 1; }
   }
   c.construction = c.construction.filter(q => !q.done);
