@@ -93,11 +93,14 @@ for (const r of regions) if (!r.offmap) r.airZone = zones.find(z => z.regions.in
   const lonlat = ([x, y]) => { let lon = x / P.scale + P.lon0; if (lon > 180) lon -= 360; const ym = (mercTop - y / P.scale) * Math.PI / 180; return [lon, (2 * Math.atan(Math.exp(ym)) - Math.PI / 2) * 180 / Math.PI]; };
   const HIGH = ['lhasa', 'ngari', 'chamdo', 'qinghai_w', 'xining', 'xikang', 'nepal', 'bhutan'];
   const ARID = ['gobi', 'khovd', 'alxa', 'hexi', 'hami', 'kashgar', 'khotan', 'urumqi', 'yinchuan', 'urga', 'dornod', 'outback', 'kimberley', 'rajputana', 'semipalatinsk', 'almaty'];
+  const MARITIME = ['tohoku', 'kanto', 'chubu', 'kansai', 'chugoku', 'shikoku', 'kyushu'];
   const landClimate = (lat, lon, ids) => {
     const a = Math.abs(lat);
     if (ids.filter(r => HIGH.includes(r)).length * 2 >= ids.length) return 'highland';
     if (ids.filter(r => ARID.includes(r)).length * 2 >= ids.length) return 'arid';
-    if (a >= 46) return 'frigid'; if (a >= 37) return 'cold'; if (a >= 28) return 'temperate'; if (a >= 19) return 'subtropical'; if (a >= 8) return 'monsoon'; return 'equatorial';
+    // 바다에 둘러싸인 일본 본토는 같은 위도의 대륙보다 겨울이 무르다: 냉대는 북위 40도부터.
+    const sea = ids.filter(r => MARITIME.includes(r)).length * 2 >= ids.length ? 3 : 0;
+    if (a >= 46 + sea) return 'frigid'; if (a >= 37 + sea) return 'cold'; if (a >= 28) return 'temperate'; if (a >= 19) return 'subtropical'; if (a >= 8) return 'monsoon'; return 'equatorial';
   };
   for (const z of zones) { const [lon, lat] = lonlat(z.center); z.lat = Math.round(lat * 10) / 10; z.lon = Math.round(lon * 10) / 10; z.climate = landClimate(lat, lon, z.regions); z.south = lat < 0; }
   for (const s of seas) {
