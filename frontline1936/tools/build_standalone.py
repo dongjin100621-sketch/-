@@ -39,7 +39,7 @@ def build(artifact=False):
     for w in ('Regular', 'Bold'):
         f = ROOT / f'assets/fonts/FrontlineKR-{w}.woff2'
         css = css.replace(f'../assets/fonts/ChronicleKR-{w}.woff2', uri(f, 'font/woff2') if f.exists() else '')
-    title = '전선과 공장: 동아시아 1936'
+    title = '전선과 공장 1936'
     if artifact:
         return (f'<title>{title}</title><meta name="theme-color" content="#121518"><style>{css}</style>'
                 '<div id="app"><p class="boot">지도를 준비하고 있습니다…</p></div><div id="live" class="sr-only" aria-live="polite"></div>'
