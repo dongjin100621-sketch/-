@@ -1,7 +1,7 @@
 'use strict';
 /* 한 번 열어 두면 오프라인에서도 플레이할 수 있게 파일을 보관한다.
    목록과 VERSION 은 tools/build_pwa.py 가 갱신한다. */
-const VERSION = 'dungeon-d5039da2';
+const VERSION = 'dungeon-188f5130';
 const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/data.js", "js/game.js", "js/gen.js", "js/render.js", "js/sound.js", "js/sprites.js", "js/ui.js", "js/util.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "fonts/galmuri11-bold.woff2", "fonts/galmuri11.woff2"];
 
 self.addEventListener('install', (e) => {
