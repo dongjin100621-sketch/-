@@ -306,3 +306,32 @@ export const ECONOMY = {
   armsOutputPerDay: 1, dockOutputPerDay: 1, lineGrowth: .006, lineStart: .1, lineCapBase: .5,
   occupiedOutput: .4, constructionBase: 2, maxPerProject: 15
 };
+
+/* 날씨. attack: 공격 쪽 공격력에 더함(방어 쪽은 절반), move: 이동 속도 배율, supply: 보급 배율, air: 항공 임무 배율,
+ * naval: 함대 화력 배율, noLanding: 상륙 불가, attrition: 하루 병력 소모, fleetDamage: 바다 위 함대의 하루 손상(선체의 비율). */
+export const WEATHER = {
+  clear: { name: '맑음', attack: 0, move: 1, supply: 1, air: 1, naval: 1 },
+  rain: { name: '비', attack: -.1, move: .85, supply: .95, air: .6, naval: .9 },
+  storm: { name: '폭우', attack: -.25, move: .6, supply: .8, air: .15, naval: .6, noLanding: true },
+  snow: { name: '눈', attack: -.2, move: .7, supply: .85, air: .5, naval: .85 },
+  blizzard: { name: '눈보라', attack: -.4, move: .45, supply: .6, air: .05, naval: .6, attrition: .003, noLanding: true },
+  mud: { name: '진창', attack: -.3, move: .5, supply: .75, air: .9, naval: 1 },
+  heat: { name: '폭염', attack: -.1, move: .9, supply: .9, air: 1, naval: 1, attrition: .001 },
+  typhoon: { name: '태풍', attack: -.3, move: .6, supply: .7, air: .05, naval: .3, noLanding: true, fleetDamage: .012 }
+};
+/* 기후대: 달(1~12)마다 날씨의 확률(나머지는 맑음). 남반구는 여섯 달을 밀어 쓴다. 이 게임의 근사값이다. */
+const M = (spec) => { const out = Array.from({ length: 12 }, () => ({})); for (const [months, p] of spec) for (const m of months) out[m - 1] = p; return out; };
+export const CLIMATES = {
+  frigid: { name: '한대·냉대 대륙', months: M([[[12, 1, 2], { snow: .55, blizzard: .22 }], [[3], { snow: .3, blizzard: .05, mud: .1 }], [[4], { mud: .45, rain: .1 }], [[5], { rain: .15, mud: .15 }], [[6, 7, 8], { rain: .25 }], [[9], { rain: .2 }], [[10], { mud: .3, snow: .1 }], [[11], { snow: .35, blizzard: .05 }]]) },
+  cold: { name: '냉대 계절풍', months: M([[[12, 1, 2], { snow: .42, blizzard: .08 }], [[3], { snow: .1, mud: .15 }], [[4], { rain: .15, mud: .1 }], [[5], { rain: .15 }], [[6], { rain: .3 }], [[7], { rain: .35, storm: .2 }], [[8], { rain: .3, storm: .1 }], [[9], { rain: .15 }], [[10], { rain: .1 }], [[11], { snow: .15 }]]) },
+  temperate: { name: '온대 계절풍', months: M([[[12, 1, 2], { rain: .1, snow: .1 }], [[3, 4, 5], { rain: .25 }], [[6], { rain: .35, storm: .2 }], [[7], { rain: .3, storm: .15, heat: .1 }], [[8], { rain: .2, heat: .15, typhoon: .03 }], [[9], { rain: .2, typhoon: .04 }], [[10, 11], { rain: .15 }]]) },
+  subtropical: { name: '아열대', months: M([[[1, 2, 3], { rain: .15 }], [[4, 5], { rain: .3 }], [[6, 7, 8], { rain: .3, storm: .25, heat: .1, typhoon: .04 }], [[9], { rain: .25, storm: .1, typhoon: .05 }], [[10], { rain: .15, typhoon: .02 }], [[11, 12], { rain: .1 }]]) },
+  monsoon: { name: '열대 계절풍', months: M([[[1, 2, 3], { heat: .1 }], [[4, 5], { heat: .3, rain: .1 }], [[6, 7, 8, 9], { rain: .35, storm: .35 }], [[10], { rain: .3, storm: .1 }], [[11, 12], { rain: .1 }]]) },
+  equatorial: { name: '적도 우림', months: M([[[3, 4, 5, 6, 7, 8, 9, 10], { rain: .35, storm: .15 }], [[11, 12, 1, 2], { rain: .35, storm: .25 }]]) },
+  arid: { name: '건조 대륙', months: M([[[12, 1, 2], { snow: .15, blizzard: .08 }], [[3, 4], { mud: .05 }], [[6, 7, 8], { heat: .35 }], [[11], { snow: .1 }]]) },
+  highland: { name: '고원', months: M([[[11, 12, 1, 2, 3], { snow: .35, blizzard: .15 }], [[4, 5], { snow: .15 }], [[6, 7, 8, 9], { rain: .25 }], [[10], { snow: .15 }]]) },
+  sea_cold: { name: '찬 바다', months: M([[[11, 12, 1, 2, 3], { snow: .2, storm: .15 }], [[4, 5, 6, 7, 8, 9, 10], { rain: .15, storm: .05 }]]) },
+  sea_typhoon: { name: '태풍 바다', months: M([[[1, 2, 3, 4, 5], { rain: .1 }], [[6], { rain: .2, typhoon: .05 }], [[7, 8, 9], { rain: .2, typhoon: .12 }], [[10], { rain: .15, typhoon: .08 }], [[11, 12], { rain: .1, typhoon: .02 }]]) },
+  sea_tropical: { name: '열대 바다', months: M([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], { rain: .25, storm: .1 }]]) },
+  sea_temperate: { name: '온대 바다', months: M([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], { rain: .15, storm: .05 }]]) }
+};

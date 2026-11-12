@@ -2,6 +2,7 @@
  * 하루 한 번 진행한다. 수치와 공식은 이 게임의 설계값이다(docs/SIMULATION_RULES.md). */
 import { clamp, round, sum, index, mods, distance, atWar, friendly, rand } from './core.mjs';
 import { registerDivisionStats } from './economy.mjs';
+import { weatherOf } from './weather.mjs';
 
 /* ---------- 편제와 능력치 ---------- */
 export const templateOf = (s, d, id) => index(d).templates.get(id) || (s.templates || []).find(t => t.id === id) || null;
@@ -70,7 +71,7 @@ export function findPath(s, d, dv, dest, { allowAttack = true } = {}) {
   const start = dv.at;
   const dist = new Map([[start, 0]]), prev = new Map(), done = new Set();
   const isSea = id => X.seas.has(id);
-  const landCost = (a, b) => { const r = X.regions.get(b), t = d.terrain[r.terrain]; const infra = s.regions[b].infra; return Math.max(.5, distance(d, a, b) / speed * t.move / clamp(.7 + infra * .06, .7, 1.3)); };
+  const landCost = (a, b) => { const r = X.regions.get(b), t = d.terrain[r.terrain]; const infra = s.regions[b].infra; return Math.max(.5, distance(d, a, b) / speed * t.move / clamp(.7 + infra * .06, .7, 1.3) / weatherOf(s, d, b).move); };
   const neighbors = id => {
     const out = [];
     if (isSea(id)) {
@@ -130,6 +131,7 @@ export function canInvade(s, d, dv, target) {
   if (!(s.regions[dv.at].port > 0)) return '출발 지역에 항구가 없습니다.';
   if (!r.coast.length) return '바다에 닿지 않은 지역입니다.';
   if (distance(d, dv.at, target) > 700) return '출발지에서 너무 멉니다(지도 거리 700 이내).';
+  if (weatherOf(s, d, target).noLanding || r.coast.every(z => weatherOf(s, d, z).noLanding)) return `날씨(${weatherOf(s, d, target).name})가 나빠 상륙할 수 없습니다. 날이 갤 때까지 기다리세요.`;
   const zones = r.coast.filter(z => seaShare(s, dv.owner, z) >= .5);
   if (!zones.length) return '상륙 지점 앞바다에서 해상 우세(50% 이상)를 차지해야 합니다. 함대를 그 해역에 순찰시키세요.';
   return '';
@@ -158,13 +160,13 @@ export function computeSupply(s, d) {
     const cap = new Map(), q = [];
     const push = (rid, v) => { if (v > (cap.get(rid) || 0)) { cap.set(rid, v); q.push(rid); } };
     const mc = c.mapCapital;
-    if (mc && passable(s, cid, mc)) push(mc, 14 + s.regions[mc].infra * 1.5);
+    if (mc && passable(s, cid, mc)) push(mc, (14 + s.regions[mc].infra * 1.5) * weatherOf(s, d, mc).supply);
     for (const r of d.regions) {
       const st = s.regions[r.id];
       if (r.offmap) { if (st.controller === cid && !c.homeLost && r.link.land) for (const x of r.link.land) if (passable(s, cid, x)) push(x, 14); continue; }
       if (st.port > 0 && friendly(s, cid, st.controller) && (st.controller === cid || s.countries[st.controller].faction === c.faction || s.countries[st.controller].overlord === cid || c.overlord === st.controller)) {
         const open = r.coast.filter(z => !seaBlocked(s, cid, z)).length / Math.max(1, r.coast.length);
-        if (open > 0) push(r.id, (4 + st.port * 1.3) * open * (1 - (c.blockade || 0) * .5));
+        if (open > 0) push(r.id, (4 + st.port * 1.3) * open * (1 - (c.blockade || 0) * .5) * weatherOf(s, d, r.id).supply);
       }
     }
     // 적의 보급을 깎는 정신(초토화·유격 근거지 등)
@@ -173,7 +175,7 @@ export function computeSupply(s, d) {
       const id = q.shift(), v = cap.get(id), r = X.regions.get(id);
       for (const n of r.adj) {
         if (!passable(s, cid, n)) continue;
-        const f = clamp(.7 + s.regions[n].infra * .025, .7, .95) * (s.regions[n].owner !== cid && atWar(s, cid, s.regions[n].owner) ? 1 + enemyCut : 1);
+        const f = clamp(.7 + s.regions[n].infra * .025, .7, .95) * weatherOf(s, d, n).supply * (s.regions[n].owner !== cid && atWar(s, cid, s.regions[n].owner) ? 1 + enemyCut : 1);
         push(n, v * f);
       }
     }
@@ -184,7 +186,7 @@ export function computeSupply(s, d) {
 /** 지역 r에서 나라 cid의 보급 비율(용량 ÷ 그곳 사단들의 사용량). */
 export function supplyRatio(s, d, cid, rid, SUP) {
   const cap = (SUP[cid] && SUP[cid].get(rid)) || 0;
-  let use = 0; for (const dv of s.divisions) if (dv.owner === cid && dv.at === rid) use += divisionStats(s, d, dv).supply;
+  let use = 0; for (const dv of s.divisions) if (dv.owner === cid && dv.at === rid) use += divisionStats(s, d, dv).supply * leaderMods(s, d, dv).supply;
   return use <= 1e-9 ? 1 : clamp(cap / use, 0, 1);
 }
 
@@ -203,7 +205,7 @@ export function dailyMilitary(s, d, log) {
       const nextHostile = !X.seas.has(step.node) && !X.regions.get(step.node).offmap && hostile(s, dv.owner, step.node);
       if (nextHostile && s.divisions.some(e => e.at === step.node && atWar(s, dv.owner, e.owner))) { dv.order = { type: 'attack', target: step.node, then: o.dest }; continue; }
       if (!X.seas.has(step.node) && !X.regions.get(step.node).offmap && !nextHostile && !passable(s, dv.owner, step.node)) { dv.order = null; continue; }
-      o.progress = round(o.progress + 1 / Math.max(.3, step.days) * (dv.sup < .5 ? .7 : 1), 4);
+      o.progress = round(o.progress + 1 / Math.max(.3, step.days) * (dv.sup < .5 ? .7 : 1) * weatherOf(s, d, step.node).move, 4);
       if (o.progress >= 1) {
         dv.at = step.node; o.path.shift(); o.progress = 0;
         if (nextHostile) capture(s, d, step.node, dv.owner, log);
@@ -211,6 +213,7 @@ export function dailyMilitary(s, d, log) {
       }
     } else if (o.type === 'invade') {
       o.prep -= 1;
+      if (o.prep <= 0 && o.prep > -20 && weatherOf(s, d, o.target).noLanding) continue; // 날이 갤 때까지(최대 20일) 기다린다
       if (o.prep <= 0) {
         const why = canInvade(s, d, dv, o.target);
         if (why) { dv.order = null; log(`${dv.name}: 상륙 취소 — ${why}`, dv.owner, 'military'); continue; }
@@ -228,8 +231,12 @@ export function dailyMilitary(s, d, log) {
   // 회복·보충·소모
   for (const dv of s.divisions) {
     const st = divisionStats(s, d, dv), inBattle = dv.inBattle;
-    if (!inBattle) dv.org = round(clamp(dv.org + .05 * (dv.sup ?? 1) * (1 + mods(s, d, s.countries[dv.owner]).recovery), 0, 1), 4);
+    if (!inBattle) dv.org = round(clamp(dv.org + .05 * (dv.sup ?? 1) * (1 + mods(s, d, s.countries[dv.owner]).recovery + leaderMods(s, d, dv).recovery), 0, 1), 4);
     if ((dv.sup ?? 1) < .5) dv.str = round(Math.max(.05, dv.str - .004 * (1 - dv.sup)), 4);
+    // 날씨 소모는 야전(전투·이동·공격 중이거나 우리 땅이 아닌 곳)에서만. 막사에 있는 평시 수비대는 닳지 않는다.
+    { const w = weatherOf(s, d, dv.at), lm = leaderMods(s, d, dv), r = X.regions.get(dv.at);
+      const field = inBattle || dv.order || (r && s.regions[dv.at]?.controller !== dv.owner);
+      if (w.attrition && field && r && !r.offmap) dv.str = round(Math.max(.05, dv.str - w.attrition * (lm.cold ? .5 : 1)), 4); }
     if (!inBattle && dv.str < 1) reinforce(s, d, dv, st, .02 * (dv.sup ?? 1));
     dv.inBattle = false;
   }
@@ -284,17 +291,20 @@ function battle(s, d, rid, attackersAll, log) {
   const armorOf = L => { const w = sum(L.map(x => x.st.width)) || 1; return sum(L.map(x => x.st.armor * x.st.width)) / w; };
   const pierceOf = L => { const w = sum(L.map(x => x.st.width)) || 1; return sum(L.map(x => x.st.pierce * x.st.width)) / w; };
   const fuelF = x => x.st.fuel > 0 ? .5 + .5 * clamp(s.countries[x.dv.owner].rates.fuel, 0, 1) : 1;
-  const hD = hardOf(Ds), hA = hardOf(As);
+  const hD = hardOf(Ds), hA = hardOf(As), W8 = weatherOf(s, d, rid);
   const fort = st.fort * .06 + ((mods(s, d, s.countries[st.controller]).fortBonus || {})[rid] || 0);
   let attA = 0, brkA = 0, attD = 0, defD = 0;
   for (const x of As) {
-    const amph = x.dv.order.amphibious ? .5 + .5 * x.st.amphibious : 1;
-    const m = (t.attack + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * amph * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3);
-    attA += (x.st.soft * (1 - hD) + x.st.hard * hD) * m; brkA += x.st.brk * x.dv.str * (1 + (x.st.terrain[r.terrain] || 0));
+    const lm = leaderMods(s, d, x.dv, r.terrain);
+    const amph = x.dv.order.amphibious ? (.5 + .5 * x.st.amphibious) + (lm.amphibious ? (.5 - .5 * x.st.amphibious) * .5 : 0) : 1;
+    const wf = 1 + W8.attack * (lm.cold && (W8.code === 'snow' || W8.code === 'blizzard') ? .5 : 1);
+    const m = (t.attack + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * amph * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3) * wf * lm.atk;
+    attA += (x.st.soft * (1 - hD) + x.st.hard * hD) * m; brkA += x.st.brk * x.dv.str * (1 + (x.st.terrain[r.terrain] || 0)) * lm.atk * (x.st.armor > 0 || x.st.fuel > 0 ? lm.brk : 1);
   }
   for (const x of Ds) {
-    const m = (1 + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3);
-    attD += (x.st.soft * (1 - hA) + x.st.hard * hA) * m; defD += x.st.def * x.dv.str * (1 + t.def + fort + x.st.entrench);
+    const lm = leaderMods(s, d, x.dv, r.terrain);
+    const m = (1 + (x.st.terrain[r.terrain] || 0)) * (.5 + .5 * (x.dv.sup ?? 1)) * fuelF(x) * x.dv.str * (.85 + rand(s) * .3) * (1 + (x.dv.exp || 0) * .3) * (1 + W8.attack / 2) * lm.atk;
+    attD += (x.st.soft * (1 - hA) + x.st.hard * hA) * m; defD += x.st.def * x.dv.str * (1 + t.def + fort * lm.fort + x.st.entrench) * lm.def;
   }
   attA += air.bonus(side) * .6; attD += air.bonus(D[0].owner) * .6;
   const hits = (att, def) => att <= def ? att * .1 : def * .1 + (att - def) * .4;
@@ -379,7 +389,7 @@ export function dailyAir(s, d, log) {
     for (const w of wings) {
       const c = s.countries[w.owner], M = mods(s, d, c), A = d.aircraft[w.type], lv = Math.max(1, M.equipment[w.type] || 1), fuel = clamp(c.rates.fuel, .2, 1);
       const o = m[w.owner] || (m[w.owner] = { fighter: 0, ground: 0, strat: 0, naval: 0 });
-      const n = w.count * lv * fuel;
+      const n = w.count * lv * fuel * weatherOf(s, d, zone).air;
       if (w.mission === 'superiority' && w.type === 'fighter') o.fighter += n * A.air * (1 + M.air.air);
       else if (w.mission === 'cas') { o.ground += n * A.ground * (1 + M.air.ground); if (w.type === 'fighter') o.fighter += n * A.air * .5; }
       else if (w.mission === 'strategic') o.strat += n * A.strat * (1 + M.air.strat);
@@ -441,7 +451,7 @@ export function dailyNaval(s, d, log) {
   // 이동
   for (const f of s.fleets) {
     if (!f.path || !f.path.length) continue;
-    const next = f.path[0], days = Math.max(.5, distance(d, f.at, next) / 55);
+    const next = f.path[0], days = Math.max(.5, distance(d, f.at, next) / 55) / (weatherOf(s, d, next).naval < .5 ? .6 : 1);
     f.progress = round((f.progress || 0) + 1 / days, 4);
     if (f.progress >= 1) { f.at = next; f.path.shift(); f.progress = 0; if (X.regions.has(next)) { f.mission = 'port'; f.path = []; } }
   }
@@ -453,6 +463,8 @@ export function dailyNaval(s, d, log) {
     m[f.owner] = (m[f.owner] || 0) + fleetStrength(s, d, f);
   }
   for (const m of Object.values(s.navSup)) { const t = sum(Object.values(m)) || 1; for (const k of Object.keys(m)) m[k] = round(m[k] / t, 4); }
+  // 태풍: 바다 위 함대가 손상된다
+  for (const f of s.fleets) { if (!X.seas.has(f.at) || f.mission === 'port') continue; const w = weatherOf(s, d, f.at); if (w.fleetDamage) { const hp = sum(Object.entries(f.ships).map(([k, n]) => d.ships.find(x => x.id === k).hp * n)); damageFleet(s, d, f, hp * w.fleetDamage * (.5 + rand(s)), log); } }
   // 해전: 같은 해역의 적대 함대
   const bySea = new Map();
   for (const f of s.fleets) if (X.seas.has(f.at) && f.mission !== 'port') { if (!bySea.has(f.at)) bySea.set(f.at, []); bySea.get(f.at).push(f); }
@@ -464,6 +476,7 @@ export function dailyNaval(s, d, log) {
       const M = mods(s, d, s.countries[f.owner]), fuel = clamp(s.countries[f.owner].rates.fuel, .2, 1);
       let fire = 0; for (const [k, n] of Object.entries(f.ships)) { const sh = d.ships.find(x => x.id === k), lv = Math.max(1, M.ship[k] || 1); fire += n * lv * fuel * (sh.gun * (1 + M.naval.gun) + sh.torp * (1 + M.naval.torp) + sh.air * (1 + M.naval.air)); }
       if (f.mission === 'raid') fire *= .4;
+      fire *= weatherOf(s, d, sea).naval * admiralMods(s, d, f).fire;
       const foeHp = sum(foes.map(g => fleetStrength(s, d, g))) || 1;
       for (const g of foes) {
         const share = fleetStrength(s, d, g) / foeHp, detect = g.mission === 'raid' ? clamp(.25 + sum(Object.entries(f.ships).map(([k, n]) => (d.ships.find(x => x.id === k).asw) * n)) / 200, .1, .9) : 1;
@@ -483,7 +496,7 @@ export function dailyNaval(s, d, log) {
     let raid = 0, escort = 0;
     for (const f of s.fleets) {
       if (!zones.has(f.at)) continue;
-      if (atWar(s, c.id, f.owner)) raid += (f.ships.submarine || 0) * 6 * (1 + mods(s, d, s.countries[f.owner]).naval.raid) * (f.mission === 'raid' ? 1 : .3) + (f.mission === 'patrol' ? fleetStrength(s, d, f) * .05 : 0);
+      if (atWar(s, c.id, f.owner)) raid += (f.ships.submarine || 0) * 6 * (1 + mods(s, d, s.countries[f.owner]).naval.raid) * admiralMods(s, d, f).raid * (f.mission === 'raid' ? 1 : .3) + (f.mission === 'patrol' ? fleetStrength(s, d, f) * .05 : 0);
       else if (f.owner === c.id || friendly(s, c.id, f.owner)) escort += (f.ships.destroyer || 0) * 4 * (f.mission === 'escort' ? 1.5 : .5);
     }
     const target = zones.size ? clamp(raid / (raid + escort + 60), 0, .75) : 0;
@@ -505,4 +518,102 @@ export function orderFleet(s, d, f, dest) {
   if (port) path.push(port);
   f.path = path; f.progress = 0; if (f.mission === 'port') f.mission = 'patrol';
   return { ok: true, days: Math.round(path.length * 1.5) };
+}
+
+/* ---------- 장군·제독 ---------- */
+const NO_LEADER = { atk: 1, def: 1, brk: 1, recovery: 0, supply: 1, fort: 1, cold: false, amphibious: false };
+/** 사단이 속한 군의 장군이 주는 보정. terrain을 주면 지형 특성도 더한다. */
+let ARMY_CACHE = { ref: null, len: -1, map: new Map() };
+export function leaderMods(s, d, dv, terrain) {
+  if (!dv.army) return NO_LEADER;
+  if (ARMY_CACHE.ref !== s.armies || ARMY_CACHE.len !== s.armies.length) ARMY_CACHE = { ref: s.armies, len: s.armies.length, map: new Map(s.armies.map(x => [x.id, x])) };
+  const a = ARMY_CACHE.map.get(dv.army);
+  const L = a && a.leader && s.leaders[a.leader];
+  if (!L) return NO_LEADER;
+  const has = k => L.traits.includes(k);
+  let atk = 1 + L.atk * .04, def = 1 + L.def * .04;
+  if (has('offensive')) { atk += .1; def -= .05; }
+  if (has('defensive')) def += .1;
+  if (terrain && has('jungle') && (terrain === 'j' || terrain === 's')) { atk += .15; def += .15; }
+  if (terrain && has('mountain') && (terrain === 'm' || terrain === 'h')) { atk += .15; def += .15; }
+  if (terrain && has('guerrilla') && ['m', 'f', 'j'].includes(terrain)) { atk += .1; def += .1; }
+  return { atk, def, brk: has('armor') ? 1.15 : 1, recovery: L.plan * .05, supply: 1 - L.log * .03 - (has('logistics') ? .15 : 0) - (has('guerrilla') ? .2 : 0), fort: has('defensive') ? 1.5 : 1, cold: has('cold'), amphibious: has('amphibious') };
+}
+export function admiralMods(s, d, f) {
+  const L = f.leader && s.leaders[f.leader];
+  if (!L) return { fire: 1, raid: 1 };
+  const has = k => L.traits.includes(k);
+  let fire = 1 + L.atk * .04;
+  if (has('surface')) fire += .15; if (has('carrier') && (f.ships.carrier || 0) > 0) fire += .2;
+  return { fire, raid: has('submarine') ? 1.3 : 1 };
+}
+/** 지금 쓸 수 있는 장군인가(기간·표식·나라). */
+export function leaderAvailable(s, d, id) {
+  const L = s.leaders[id], def = index(d).leaders.get(id);
+  if (!L || !def) return false;
+  const c = s.countries[L.country]; if (!c || !c.exists) return false;
+  if (def.from && s.day < dayOfISO(def.from)) return false;
+  if (def.until && s.day >= dayOfISO(def.until)) return false;
+  if (def.flag && !s.flags[def.flag]) return false;
+  return true;
+}
+const dayOfISO = iso => Math.round((Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) - Date.UTC(1936, 0, 1)) / 864e5);
+/** 매일: 군과 장군을 정리하고 전투한 군의 장군이 경험을 얻는다. */
+export function dailyLeaders(s, d, log) {
+  const alive = new Set(s.divisions.map(dv => dv.id));
+  for (const a of s.armies) a.divisions = a.divisions.filter(id => alive.has(id));
+  for (const a of s.armies) {
+    if (a.leader && !leaderAvailable(s, d, a.leader)) { if (a.owner === s.player) log(`${s.leaders[a.leader].name}이(가) 지휘에서 물러났습니다.`, a.owner, 'military'); s.leaders[a.leader].army = null; a.leader = null; }
+  }
+  for (const f of s.fleets) if (f.leader && (!leaderAvailable(s, d, f.leader) || s.leaders[f.leader].country !== f.owner)) { s.leaders[f.leader].fleet = null; f.leader = null; }
+  for (const L of Object.values(s.leaders)) if (L.fleet && !s.fleets.some(f => f.id === L.fleet)) L.fleet = null;
+  const gone = s.armies.filter(a => !a.divisions.length);
+  for (const a of gone) { if (a.leader) s.leaders[a.leader].army = null; }
+  s.armies = s.armies.filter(a => a.divisions.length);
+  const inBattle = new Set(); for (const b of Object.values(s.battles || {})) for (const id of [...b.attackers, ...b.defenders]) inBattle.add(id);
+  for (const a of s.armies) {
+    if (!a.leader || !a.divisions.some(id => inBattle.has(id))) continue;
+    const L = s.leaders[a.leader]; L.xp = round((L.xp || 0) + .005, 4);
+    if (L.xp >= 1 + L.skill * .4 && L.skill < 6) {
+      L.xp = 0; L.skill += 1; const k = ['atk', 'def', 'plan', 'log'][Math.floor(rand(s) * 4)]; L[k] = Math.min(7, L[k] + 1);
+      if (a.owner === s.player) log(`${L.name}의 지휘 능력이 올랐습니다(${L.skill}단계).`, a.owner, 'military');
+    }
+  }
+  for (const f of s.fleets) { if (!f.leader) continue; if ((s.navalBattles || []).some(b => b.fleet === f.id)) { const L = s.leaders[f.leader]; L.xp = round((L.xp || 0) + .01, 4); if (L.xp >= 1 + L.skill * .4 && L.skill < 6) { L.xp = 0; L.skill += 1; L.atk = Math.min(7, L.atk + 1); } } }
+}
+/** 사단들로 군을 만든다(이전 군에서 빼 온다). 쓸 수 있는 장군이 있으면 가장 능력이 높은 장군을 붙인다. */
+export function formArmy(s, d, cid, ids, name, leaderId) {
+  const list = s.divisions.filter(dv => ids.includes(dv.id) && dv.owner === cid);
+  if (!list.length) return { ok: false, reason: '사단을 고르세요.' };
+  if (list.length > 24) return { ok: false, reason: '한 군에는 24개 사단까지입니다.' };
+  for (const a of s.armies) a.divisions = a.divisions.filter(id => !ids.includes(id));
+  const a = { id: `ar${(s.seq = (s.seq || 0) + 1)}`, owner: cid, name: name || `제${s.armies.filter(x => x.owner === cid).length + 1}군`, leader: null, divisions: list.map(dv => dv.id) };
+  s.armies.push(a);
+  for (const dv of list) dv.army = a.id;
+  const lead = leaderId || freeLeaders(s, d, cid, 'army')[0]?.id;
+  if (lead) assignLeader(s, d, cid, a.id, lead);
+  return { ok: true, id: a.id };
+}
+export const freeLeaders = (s, d, cid, kind) => Object.values(s.leaders).filter(L => L.country === cid && L.kind === kind && !L.army && !L.fleet && leaderAvailable(s, d, L.id)).sort((a, b) => b.skill - a.skill || (b.atk + b.def) - (a.atk + a.def));
+export function assignLeader(s, d, cid, armyId, leaderId) {
+  const a = s.armies.find(x => x.id === armyId && x.owner === cid); if (!a) return { ok: false, reason: '없는 군입니다.' };
+  if (leaderId === null) { if (a.leader) s.leaders[a.leader].army = null; a.leader = null; return { ok: true }; }
+  const L = s.leaders[leaderId];
+  if (!L || L.country !== cid || L.kind !== 'army') return { ok: false, reason: '이 나라의 장군이 아닙니다.' };
+  if (!leaderAvailable(s, d, leaderId)) return { ok: false, reason: '지금은 지휘할 수 없는 장군입니다.' };
+  if (L.army) { const old = s.armies.find(x => x.id === L.army); if (old) old.leader = null; }
+  if (a.leader) s.leaders[a.leader].army = null;
+  a.leader = leaderId; L.army = a.id;
+  return { ok: true };
+}
+export function assignAdmiral(s, d, cid, fleetId, leaderId) {
+  const f = s.fleets.find(x => x.id === fleetId && x.owner === cid); if (!f) return { ok: false, reason: '없는 함대입니다.' };
+  if (leaderId === null) { if (f.leader) s.leaders[f.leader].fleet = null; f.leader = null; return { ok: true }; }
+  const L = s.leaders[leaderId];
+  if (!L || L.country !== cid || L.kind !== 'navy') return { ok: false, reason: '이 나라의 제독이 아닙니다.' };
+  if (!leaderAvailable(s, d, leaderId)) return { ok: false, reason: '지금은 지휘할 수 없는 제독입니다.' };
+  if (L.fleet) { const old = s.fleets.find(x => x.id === L.fleet); if (old) old.leader = null; }
+  if (f.leader) s.leaders[f.leader].fleet = null;
+  f.leader = leaderId; L.fleet = f.id;
+  return { ok: true };
 }

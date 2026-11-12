@@ -42,6 +42,7 @@ test('여섯 주요국 모두 새 게임을 만들 수 있고 처음 상태가 �
     const s = E.createState(d, id, 3);
     invariants(s);
     assert.equal(s.player, id); assert.equal(s.wars.length, 0);
+    assert.ok(Object.keys(s.weather).length === d.airZones.length + d.seas.length);
     assert.ok(s.divisions.some(dv => dv.owner === id));
     assert.ok(s.countries[id].lines.length > 0, `${id} 생산 라인`);
     const R = E.econ.compute(s, d, id);
@@ -165,6 +166,62 @@ test('같은 씨앗이면 같은 결과(결정성)', () => {
   const a = days(E.createState(d, 'usa', 9), 220), b = days(E.createState(d, 'usa', 9), 220);
   assert.equal(JSON.stringify(a.regions), JSON.stringify(b.regions));
   assert.equal(JSON.stringify(a.divisions.map(x => [x.id, x.at, x.str])), JSON.stringify(b.divisions.map(x => [x.id, x.at, x.str])));
+});
+
+
+test('날씨: 모든 항공 구역·해역에 날씨가 있고, 같은 씨앗이면 같으며, 계절을 따른다', () => {
+  const s = E.createState(d, 'japan', 11);
+  for (const z of [...d.airZones, ...d.seas]) assert.ok(d.weather[s.weather[z.id]], z.id);
+  const a = E.createState(d, 'japan', 11); days(a, 30); const b = E.createState(d, 'japan', 11); days(b, 30);
+  assert.equal(JSON.stringify(a.weather), JSON.stringify(b.weather));
+  // 하얼빈의 1월과 7월: 겨울에는 눈, 여름에는 비가 잦다(같은 난수로 여러 해)
+  const zone = X.regions.get('harbin').airZone, tally = { w: {}, s: {} };
+  const t = { day: 0, rng: 7, weather: {} };
+  for (let y = 0; y < 6; y++) for (const [m, k] of [['01', 'w'], ['07', 's']]) { t.day = dayOf(`${1936 + y}-${m}-01`); for (let i = 0; i < 28; i++) { E.wx.dailyWeather(t, d); const c = t.weather[zone]; tally[k][c] = (tally[k][c] || 0) + 1; t.day++; } }
+  assert.ok((tally.w.snow || 0) + (tally.w.blizzard || 0) > 10, JSON.stringify(tally.w));
+  assert.ok(!tally.s.snow && !tally.s.blizzard, '여름에는 눈이 없다');
+  assert.ok((tally.s.rain || 0) + (tally.s.storm || 0) > 10, JSON.stringify(tally.s));
+});
+
+test('날씨 효과: 눈보라는 이동을 늦추고, 태풍·폭우는 상륙을 막는다', () => {
+  const s = E.createState(d, 'japan', 3);
+  const dv = E.pol.spawnDivision(s, d, 'japan', 'jp_inf', 'harbin');
+  for (const z of Object.keys(s.weather)) s.weather[z] = 'clear';
+  const clear = E.mil.findPath(s, d, dv, 'qiqihar').days;
+  s.weather[X.regions.get('qiqihar').airZone] = 'blizzard';
+  assert.ok(E.mil.findPath(s, d, dv, 'qiqihar').days > clear * 1.8, '눈보라 속 이동은 두 배쯤 걸린다');
+  E.pol.declareWar(s, d, 'japan', 'usa', () => {}, { forced: true });
+  const inv = E.pol.spawnDivision(s, d, 'japan', 'jp_inf', 'taiwan');
+  s.navSup = { [X.regions.get('luzon_n').coast[0]]: { japan: 1 } };
+  assert.equal(E.mil.canInvade(s, d, inv, 'luzon_n'), '');
+  s.weather[X.regions.get('luzon_n').airZone] = 'typhoon';
+  assert.match(E.mil.canInvade(s, d, inv, 'luzon_n'), /날씨/);
+});
+
+test('장군: 군을 편성하면 가장 능력 있는 장군이 붙고 공격·방어가 오른다, 시기 밖의 장군은 못 붙는다', () => {
+  const s = E.createState(d, 'ussr', 3);
+  s.armies = s.armies.filter(a => a.owner !== 'ussr'); for (const L of Object.values(s.leaders)) if (L.country === 'ussr') L.army = null; for (const dv of s.divisions) if (dv.owner === 'ussr') dv.army = null;
+  const ids = s.divisions.filter(dv => dv.owner === 'ussr' && dv.at === 'khabarovsk').map(dv => dv.id);
+  const r = E.dispatch(s, d, { type: 'formArmy', divisions: ids });
+  assert.ok(r.ok);
+  const a = s.armies.find(x => x.id === r.id);
+  assert.equal(a.leader, 'blyukher', '1936년 극동의 장군');
+  const dv = s.divisions.find(x => x.id === ids[0]);
+  const lm = E.mil.leaderMods(s, d, dv, 'f');
+  assert.ok(lm.atk > 1 && lm.def > 1 && lm.cold);
+  assert.match(E.dispatch(s, d, { type: 'assignLeader', army: a.id, leader: 'zhukov' }).reason, /지금은/);
+  assert.match(E.dispatch(s, d, { type: 'assignLeader', army: a.id, leader: 'yamamoto' }).reason, /이 나라/);
+  // 숙청된 블류헤르는 1938년 10월 22일에 물러난다
+  s.day = dayOf('1938-10-22'); E.mil.dailyLeaders(s, d, () => {});
+  assert.equal(a.leader, null);
+});
+
+test('장군의 경험과 AI 배치', () => {
+  const s = E.createState(d, 'ccp', 7); s.autoPlayer = true;
+  assert.ok(s.armies.some(a => a.owner === 'japan' && a.leader), '일본 AI는 장군을 붙인다');
+  assert.ok(s.fleets.some(f => f.owner === 'japan' && f.leader === 'yamamoto'), '연합함대 사령장관');
+  days(s, 700);
+  assert.ok(Object.values(s.leaders).some(L => L.xp > 0 || L.skill > X.leaders.get(L.id).skill), '전투를 치른 장군이 경험을 얻는다');
 });
 
 test('10년 자동 진행: 불변식, 역사 사건, 끝', { timeout: 240000 }, () => {

@@ -9,7 +9,7 @@ import 줄을 그 객체에서 꺼내는 줄로 바꾼다. 데이터(game.json)�
 from pathlib import Path
 import base64, json, re, argparse
 ROOT = Path(__file__).resolve().parents[1]
-ORDER = ['core', 'economy', 'military', 'politics', 'ai', 'engine', 'app']
+ORDER = ['core', 'weather', 'economy', 'military', 'politics', 'ai', 'engine', 'app']
 
 def uri(path, mime): return f'data:{mime};base64,' + base64.b64encode(path.read_bytes()).decode('ascii')
 
@@ -39,6 +39,8 @@ def build(artifact=False):
     for w in ('Regular', 'Bold'):
         f = ROOT / f'assets/fonts/FrontlineKR-{w}.woff2'
         css = css.replace(f'../assets/fonts/ChronicleKR-{w}.woff2', uri(f, 'font/woff2') if f.exists() else '')
+    f = ROOT / 'assets/fonts/FrontlineSerif-Bold.woff2'
+    css = css.replace('../assets/fonts/FrontlineSerif-Bold.woff2', uri(f, 'font/woff2') if f.exists() else '')
     title = '전선과 공장 1936'
     if artifact:
         return (f'<title>{title}</title><meta name="theme-color" content="#121518"><style>{css}</style>'

@@ -25,7 +25,7 @@ const ok = (c, m) => { if (c) { pass++; console.log('  ✓ ' + m); } else { fail
     ok(await page.locator('#g-seas path').count() === 48, '지도: 해역 48개');
     ok(await page.locator('.unit').count() > 20, '지도: 사단 표시');
     // 창마다 열기
-    for (const v of ['politics', 'focus', 'research', 'diplomacy', 'build', 'production', 'market', 'design', 'army', 'navy', 'airforce', 'log', 'help']) {
+    for (const v of ['politics', 'focus', 'research', 'diplomacy', 'build', 'production', 'market', 'design', 'army', 'leaders', 'navy', 'airforce', 'log', 'help']) {
       await G(v => { globalThis.__GAME__.ui.view = v; globalThis.__GAME__.renderAll(); }, v);
       ok(await page.locator('.screen').count() === 1, `${v} 창 열림`);
       await overflow(`${v} 창`);
@@ -55,9 +55,26 @@ const ok = (c, m) => { if (c) { pass++; console.log('  ✓ ' + m); } else { fail
     await G(() => { const el = document.getElementById('rg_hangzhou'); el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 1, clientX: 5, clientY: 5 })); document.getElementById('map').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1, clientX: 5, clientY: 5 })); });
     ok(await G(id => { const dv = globalThis.__GAME__.state.divisions.find(x => x.id === id); return dv.order && dv.order.type === 'move' && dv.order.dest === 'hangzhou'; }, target), '지도 클릭으로 이동 명령');
     await overflow('사단 선택');
+    // 군 편성: 장군이 붙는다
+    await page.click('#side [data-action="formArmy"]');
+    const armyId = await G(id => { const s = globalThis.__GAME__.state; const dv = s.divisions.find(x => x.id === id); return dv && dv.army; }, target);
+    ok(!!armyId, '군 편성(사단이 새 군에 들어간다)');
+    ok((await page.textContent('#side')).includes('★') || (await page.textContent('#side')).includes('소속'), '사단 패널에 군 표시');
+    await G(() => { globalThis.__GAME__.ui.view = 'leaders'; globalThis.__GAME__.renderAll(); });
+    ok(await page.locator('.card.leader').count() >= 5, '장군 창: 국민정부 지휘관 카드');
+    ok((await page.textContent('.screen')).includes('쉐웨'), '장군 창: 실존 지휘관 이름과 역할');
+    await page.selectOption('select[data-action="setLeaderArmy"] >> nth=0', armyId);
+    ok(await G(id => { const a = globalThis.__GAME__.state.armies.find(x => x.id === id); return !!(a && a.leader); }, armyId), '장군 창에서 새 군에 장군 배치');
+    await G(() => { globalThis.__GAME__.ui.view = null; globalThis.__GAME__.ui.mapMode = 'weather'; globalThis.__GAME__.renderAll(); });
+    ok((await page.textContent('#legend')).includes('눈보라') || tag === '휴대폰', '날씨 모드 범례');
+    { const n = await page.evaluate(() => { const all = [...document.querySelectorAll('#g-seas path')]; return { fill: all.filter(p => p.getAttribute('fill') && p.getAttribute('fill') !== 'none').length, total: all.length }; });
+      ok(n.total === 48 && n.fill > 0 && n.fill < 48, `날씨 모드: 궂은 해역만 색(${n.fill}/${n.total})`); }
+    await G(() => { globalThis.__GAME__.ui.mapMode = 'political'; globalThis.__GAME__.renderAll(); });
+    ok(await page.locator('#g-clbl text').count() > 8, '큰 나라 이름');
+    ok(await page.locator('.unit .sybox').count() > 20, '부대 기호');
     // 시간 진행: 사건 창이 뜨면 고른다
     await G(() => { const g = globalThis.__GAME__; for (let i = 0; i < 345; i++) { g.E.advanceDay(g.state, g.data); if (g.state.pending.length) break; } g.renderAll(); });
-    if (await page.locator('.modal .opts button').count()) { await page.click('.modal .opts button >> nth=0'); ok(await G(() => globalThis.__GAME__.state.pending.length) === 0, '사건 선택지 고르기'); } else ok(true, '사건 없음(건너뜀)');
+    if (await page.locator('.modal .opts button').count()) { ok(await page.locator('.modal.paper .stamp').count() === 1, '사건 창: 종이 문서와 날짜 도장'); await page.click('.modal .opts button >> nth=0'); ok(await G(() => globalThis.__GAME__.state.pending.length) === 0, '사건 선택지 고르기'); } else ok(true, '사건 없음(건너뜀)');
     const day0 = await G(() => globalThis.__GAME__.state.day);
     await page.click('[data-action="speed"][data-s="5"]'); await page.waitForTimeout(900);
     for (let i = 0; i < 4 && await page.locator('.modal .opts button').count(); i++) { await page.click('.modal .opts button >> nth=0'); await page.waitForTimeout(100); }

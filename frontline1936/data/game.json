@@ -1,7 +1,7 @@
 {
  "meta": {
   "title": "전선과 공장: 동아시아 1936",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "start": "1936-01-01",
   "end": "1945-12-31",
   "note": "모든 수치·선택 결과·가상 선택지는 게임을 위한 창작이다. 실제 역사는 사건의 history에 따로 적었다. 지도는 Natural Earth(퍼블릭 도메인)에서 만들었다."
@@ -3118,6 +3118,1595 @@
   "occupiedOutput": 0.4,
   "constructionBase": 2,
   "maxPerProject": 15
+ },
+ "weather": {
+  "clear": {
+   "name": "맑음",
+   "attack": 0,
+   "move": 1,
+   "supply": 1,
+   "air": 1,
+   "naval": 1
+  },
+  "rain": {
+   "name": "비",
+   "attack": -0.1,
+   "move": 0.85,
+   "supply": 0.95,
+   "air": 0.6,
+   "naval": 0.9
+  },
+  "storm": {
+   "name": "폭우",
+   "attack": -0.25,
+   "move": 0.6,
+   "supply": 0.8,
+   "air": 0.15,
+   "naval": 0.6,
+   "noLanding": true
+  },
+  "snow": {
+   "name": "눈",
+   "attack": -0.2,
+   "move": 0.7,
+   "supply": 0.85,
+   "air": 0.5,
+   "naval": 0.85
+  },
+  "blizzard": {
+   "name": "눈보라",
+   "attack": -0.4,
+   "move": 0.45,
+   "supply": 0.6,
+   "air": 0.05,
+   "naval": 0.6,
+   "attrition": 0.003,
+   "noLanding": true
+  },
+  "mud": {
+   "name": "진창",
+   "attack": -0.3,
+   "move": 0.5,
+   "supply": 0.75,
+   "air": 0.9,
+   "naval": 1
+  },
+  "heat": {
+   "name": "폭염",
+   "attack": -0.1,
+   "move": 0.9,
+   "supply": 0.9,
+   "air": 1,
+   "naval": 1,
+   "attrition": 0.001
+  },
+  "typhoon": {
+   "name": "태풍",
+   "attack": -0.3,
+   "move": 0.6,
+   "supply": 0.7,
+   "air": 0.05,
+   "naval": 0.3,
+   "noLanding": true,
+   "fleetDamage": 0.012
+  }
+ },
+ "climates": {
+  "frigid": {
+   "name": "한대·냉대 대륙",
+   "months": [
+    {
+     "snow": 0.55,
+     "blizzard": 0.22
+    },
+    {
+     "snow": 0.55,
+     "blizzard": 0.22
+    },
+    {
+     "snow": 0.3,
+     "blizzard": 0.05,
+     "mud": 0.1
+    },
+    {
+     "mud": 0.45,
+     "rain": 0.1
+    },
+    {
+     "rain": 0.15,
+     "mud": 0.15
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.2
+    },
+    {
+     "mud": 0.3,
+     "snow": 0.1
+    },
+    {
+     "snow": 0.35,
+     "blizzard": 0.05
+    },
+    {
+     "snow": 0.55,
+     "blizzard": 0.22
+    }
+   ]
+  },
+  "cold": {
+   "name": "냉대 계절풍",
+   "months": [
+    {
+     "snow": 0.42,
+     "blizzard": 0.08
+    },
+    {
+     "snow": 0.42,
+     "blizzard": 0.08
+    },
+    {
+     "snow": 0.1,
+     "mud": 0.15
+    },
+    {
+     "rain": 0.15,
+     "mud": 0.1
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.3
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.2
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "snow": 0.15
+    },
+    {
+     "snow": 0.42,
+     "blizzard": 0.08
+    }
+   ]
+  },
+  "temperate": {
+   "name": "온대 계절풍",
+   "months": [
+    {
+     "rain": 0.1,
+     "snow": 0.1
+    },
+    {
+     "rain": 0.1,
+     "snow": 0.1
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.2
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.15,
+     "heat": 0.1
+    },
+    {
+     "rain": 0.2,
+     "heat": 0.15,
+     "typhoon": 0.03
+    },
+    {
+     "rain": 0.2,
+     "typhoon": 0.04
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.1,
+     "snow": 0.1
+    }
+   ]
+  },
+  "subtropical": {
+   "name": "아열대",
+   "months": [
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.15
+    },
+    {
+     "rain": 0.3
+    },
+    {
+     "rain": 0.3
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.25,
+     "heat": 0.1,
+     "typhoon": 0.04
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.25,
+     "heat": 0.1,
+     "typhoon": 0.04
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.25,
+     "heat": 0.1,
+     "typhoon": 0.04
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1,
+     "typhoon": 0.05
+    },
+    {
+     "rain": 0.15,
+     "typhoon": 0.02
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    }
+   ]
+  },
+  "monsoon": {
+   "name": "열대 계절풍",
+   "months": [
+    {
+     "heat": 0.1
+    },
+    {
+     "heat": 0.1
+    },
+    {
+     "heat": 0.1
+    },
+    {
+     "heat": 0.3,
+     "rain": 0.1
+    },
+    {
+     "heat": 0.3,
+     "rain": 0.1
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.35
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.35
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.35
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.35
+    },
+    {
+     "rain": 0.3,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    }
+   ]
+  },
+  "equatorial": {
+   "name": "적도 우림",
+   "months": [
+    {
+     "rain": 0.35,
+     "storm": 0.25
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.25
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.25
+    },
+    {
+     "rain": 0.35,
+     "storm": 0.25
+    }
+   ]
+  },
+  "arid": {
+   "name": "건조 대륙",
+   "months": [
+    {
+     "snow": 0.15,
+     "blizzard": 0.08
+    },
+    {
+     "snow": 0.15,
+     "blizzard": 0.08
+    },
+    {
+     "mud": 0.05
+    },
+    {
+     "mud": 0.05
+    },
+    {},
+    {
+     "heat": 0.35
+    },
+    {
+     "heat": 0.35
+    },
+    {
+     "heat": 0.35
+    },
+    {},
+    {},
+    {
+     "snow": 0.1
+    },
+    {
+     "snow": 0.15,
+     "blizzard": 0.08
+    }
+   ]
+  },
+  "highland": {
+   "name": "고원",
+   "months": [
+    {
+     "snow": 0.35,
+     "blizzard": 0.15
+    },
+    {
+     "snow": 0.35,
+     "blizzard": 0.15
+    },
+    {
+     "snow": 0.35,
+     "blizzard": 0.15
+    },
+    {
+     "snow": 0.15
+    },
+    {
+     "snow": 0.15
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "rain": 0.25
+    },
+    {
+     "snow": 0.15
+    },
+    {
+     "snow": 0.35,
+     "blizzard": 0.15
+    },
+    {
+     "snow": 0.35,
+     "blizzard": 0.15
+    }
+   ]
+  },
+  "sea_cold": {
+   "name": "찬 바다",
+   "months": [
+    {
+     "snow": 0.2,
+     "storm": 0.15
+    },
+    {
+     "snow": 0.2,
+     "storm": 0.15
+    },
+    {
+     "snow": 0.2,
+     "storm": 0.15
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "snow": 0.2,
+     "storm": 0.15
+    },
+    {
+     "snow": 0.2,
+     "storm": 0.15
+    }
+   ]
+  },
+  "sea_typhoon": {
+   "name": "태풍 바다",
+   "months": [
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.1
+    },
+    {
+     "rain": 0.2,
+     "typhoon": 0.05
+    },
+    {
+     "rain": 0.2,
+     "typhoon": 0.12
+    },
+    {
+     "rain": 0.2,
+     "typhoon": 0.12
+    },
+    {
+     "rain": 0.2,
+     "typhoon": 0.12
+    },
+    {
+     "rain": 0.15,
+     "typhoon": 0.08
+    },
+    {
+     "rain": 0.1,
+     "typhoon": 0.02
+    },
+    {
+     "rain": 0.1,
+     "typhoon": 0.02
+    }
+   ]
+  },
+  "sea_tropical": {
+   "name": "열대 바다",
+   "months": [
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    },
+    {
+     "rain": 0.25,
+     "storm": 0.1
+    }
+   ]
+  },
+  "sea_temperate": {
+   "name": "온대 바다",
+   "months": [
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    },
+    {
+     "rain": 0.15,
+     "storm": 0.05
+    }
+   ]
+  }
+ },
+ "leaders": [
+  {
+   "id": "terauchi",
+   "country": "japan",
+   "name": "데라우치 히사이치",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 2,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "offensive"
+   ],
+   "note": "북지나 방면군·남방군 총사령관."
+  },
+  {
+   "id": "yamashita",
+   "country": "japan",
+   "name": "야마시타 도모유키",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "jungle",
+    "offensive"
+   ],
+   "note": "1941~42년 말레이·싱가포르 작전을 지휘했다. 전후 전범 재판에서 처형되었다."
+  },
+  {
+   "id": "imamura",
+   "country": "japan",
+   "name": "이마무라 히토시",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "amphibious"
+   ],
+   "note": "1942년 자바 작전, 뒤에 라바울의 제8방면군을 지휘했다."
+  },
+  {
+   "id": "honma",
+   "country": "japan",
+   "name": "혼마 마사하루",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 2,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "amphibious"
+   ],
+   "note": "1941~42년 필리핀 작전을 지휘했다. 전후 전범 재판에서 처형되었다."
+  },
+  {
+   "id": "umezu",
+   "country": "japan",
+   "name": "우메즈 요시지로",
+   "kind": "army",
+   "skill": 3,
+   "atk": 2,
+   "def": 4,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "cold",
+    "defensive"
+   ],
+   "note": "1939년부터 관동군 사령관, 1944년 참모총장."
+  },
+  {
+   "id": "hata",
+   "country": "japan",
+   "name": "하타 슌로쿠",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [],
+   "note": "1938년 중지나 파견군, 1941년 지나 파견군 총사령관."
+  },
+  {
+   "id": "yamamoto",
+   "country": "japan",
+   "name": "야마모토 이소로쿠",
+   "kind": "navy",
+   "skill": 4,
+   "atk": 4,
+   "def": 2,
+   "plan": 4,
+   "log": 2,
+   "traits": [
+    "carrier"
+   ],
+   "note": "1939~43년 연합함대 사령장관."
+  },
+  {
+   "id": "nagumo",
+   "country": "japan",
+   "name": "나구모 주이치",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 2,
+   "plan": 2,
+   "log": 3,
+   "traits": [
+    "carrier"
+   ],
+   "note": "1941~42년 제1항공함대(기동 부대) 사령장관."
+  },
+  {
+   "id": "kondo",
+   "country": "japan",
+   "name": "곤도 노부타케",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "surface"
+   ],
+   "note": "제2함대 사령장관."
+  },
+  {
+   "id": "ozawa",
+   "country": "japan",
+   "name": "오자와 지사부로",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "carrier"
+   ],
+   "note": "1942년 말부터 제3함대, 뒤에 제1기동함대를 지휘했다.",
+   "from": "1941-10-01"
+  },
+  {
+   "id": "chen_cheng",
+   "country": "china",
+   "name": "천청",
+   "kind": "army",
+   "skill": 3,
+   "atk": 2,
+   "def": 4,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "defensive"
+   ],
+   "note": "우한 회전과 이창 방면에서 지휘했다."
+  },
+  {
+   "id": "xue_yue",
+   "country": "china",
+   "name": "쉐웨",
+   "kind": "army",
+   "skill": 4,
+   "atk": 3,
+   "def": 5,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "defensive",
+    "mountain"
+   ],
+   "note": "창사 회전(1939·1941·1942)에서 방어를 지휘했다."
+  },
+  {
+   "id": "tang_enbo",
+   "country": "china",
+   "name": "탕언보",
+   "kind": "army",
+   "skill": 2,
+   "atk": 3,
+   "def": 2,
+   "plan": 2,
+   "log": 2,
+   "traits": [],
+   "note": "타이얼좡 전투 등 화북·화중에서 지휘했다."
+  },
+  {
+   "id": "sun_liren",
+   "country": "china",
+   "name": "쑨리런",
+   "kind": "army",
+   "skill": 3,
+   "atk": 4,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "jungle"
+   ],
+   "note": "신1군을 이끌고 버마 전선에서 싸웠다.",
+   "from": "1941-06-01"
+  },
+  {
+   "id": "wei_lihuang",
+   "country": "china",
+   "name": "웨이리황",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 3,
+   "plan": 2,
+   "log": 3,
+   "traits": [],
+   "note": "원정군(Y군)을 지휘했다."
+  },
+  {
+   "id": "ji_cheongcheon",
+   "country": "china",
+   "name": "지청천",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 2,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "guerrilla"
+   ],
+   "note": "한국광복군 총사령관(1940~).",
+   "flag": "kpg"
+  },
+  {
+   "id": "zhu_de",
+   "country": "ccp",
+   "name": "주더",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "guerrilla"
+   ],
+   "note": "팔로군 총사령관."
+  },
+  {
+   "id": "peng_dehuai",
+   "country": "ccp",
+   "name": "펑더화이",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "guerrilla",
+    "offensive"
+   ],
+   "note": "팔로군 부총사령관, 1940년 백단 대전을 지휘했다."
+  },
+  {
+   "id": "lin_biao",
+   "country": "ccp",
+   "name": "린뱌오",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 4,
+   "log": 2,
+   "traits": [
+    "guerrilla",
+    "mountain"
+   ],
+   "note": "1937년 핑싱관 전투를 지휘했다."
+  },
+  {
+   "id": "liu_bocheng",
+   "country": "ccp",
+   "name": "류보청",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 4,
+   "log": 2,
+   "traits": [
+    "guerrilla",
+    "mountain"
+   ],
+   "note": "팔로군 129사 사단장."
+  },
+  {
+   "id": "chen_yi",
+   "country": "ccp",
+   "name": "천이",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "guerrilla"
+   ],
+   "note": "신사군 지휘관."
+  },
+  {
+   "id": "blyukher",
+   "country": "ussr",
+   "name": "블류헤르",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "cold"
+   ],
+   "note": "특별 극동군 사령관. 1938년 숙청되었다.",
+   "until": "1938-10-22"
+  },
+  {
+   "id": "zhukov",
+   "country": "ussr",
+   "name": "주코프",
+   "kind": "army",
+   "skill": 5,
+   "atk": 5,
+   "def": 4,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "armor",
+    "offensive"
+   ],
+   "note": "1939년 할힌골 전투를 지휘했다.",
+   "from": "1939-06-01",
+   "until": "1940-06-01"
+  },
+  {
+   "id": "shtern",
+   "country": "ussr",
+   "name": "시테른",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 3,
+   "plan": 2,
+   "log": 3,
+   "traits": [
+    "cold"
+   ],
+   "note": "1938년 장고봉, 1939년 극동 방면 지휘.",
+   "until": "1941-06-07"
+  },
+  {
+   "id": "apanasenko",
+   "country": "ussr",
+   "name": "아파나센코",
+   "kind": "army",
+   "skill": 3,
+   "atk": 2,
+   "def": 4,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "cold",
+    "defensive"
+   ],
+   "note": "1941~43년 극동 전선 사령관.",
+   "from": "1941-01-01"
+  },
+  {
+   "id": "vasilevsky",
+   "country": "ussr",
+   "name": "바실렙스키",
+   "kind": "army",
+   "skill": 5,
+   "atk": 4,
+   "def": 4,
+   "plan": 5,
+   "log": 4,
+   "traits": [
+    "armor",
+    "cold"
+   ],
+   "note": "1945년 극동 소련군 총사령관.",
+   "from": "1945-06-01"
+  },
+  {
+   "id": "malinovsky",
+   "country": "ussr",
+   "name": "말리놉스키",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "armor"
+   ],
+   "note": "1945년 자바이칼 전선 사령관.",
+   "from": "1945-06-01"
+  },
+  {
+   "id": "meretskov",
+   "country": "ussr",
+   "name": "메레츠코프",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "cold"
+   ],
+   "note": "1945년 제1극동 전선 사령관.",
+   "from": "1945-06-01"
+  },
+  {
+   "id": "yumashev",
+   "country": "ussr",
+   "name": "유마셰프",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "submarine"
+   ],
+   "note": "1939~47년 태평양 함대 사령관.",
+   "from": "1939-03-01"
+  },
+  {
+   "id": "macarthur",
+   "country": "usa",
+   "name": "맥아더",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "amphibious"
+   ],
+   "note": "필리핀 군사 고문, 1942년부터 남서태평양 지역 사령관."
+  },
+  {
+   "id": "stilwell",
+   "country": "usa",
+   "name": "스틸웰",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 4,
+   "traits": [
+    "jungle",
+    "logistics"
+   ],
+   "note": "중국·버마·인도 전구 사령관.",
+   "from": "1942-02-01"
+  },
+  {
+   "id": "eichelberger",
+   "country": "usa",
+   "name": "아이컬버거",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "jungle"
+   ],
+   "note": "부나 전투, 뒤에 제8군 사령관.",
+   "from": "1942-08-01"
+  },
+  {
+   "id": "krueger",
+   "country": "usa",
+   "name": "크루거",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "amphibious"
+   ],
+   "note": "제6군 사령관.",
+   "from": "1943-01-01"
+  },
+  {
+   "id": "hsmith",
+   "country": "usa",
+   "name": "홀랜드 스미스",
+   "kind": "army",
+   "skill": 3,
+   "atk": 4,
+   "def": 2,
+   "plan": 3,
+   "log": 2,
+   "traits": [
+    "amphibious",
+    "offensive"
+   ],
+   "note": "태평양 해병대 상륙 부대 지휘관.",
+   "from": "1942-01-01"
+  },
+  {
+   "id": "nimitz",
+   "country": "usa",
+   "name": "니미츠",
+   "kind": "navy",
+   "skill": 5,
+   "atk": 4,
+   "def": 4,
+   "plan": 5,
+   "log": 4,
+   "traits": [
+    "carrier"
+   ],
+   "note": "1941년 12월부터 태평양 함대 사령관.",
+   "from": "1941-12-17"
+  },
+  {
+   "id": "spruance",
+   "country": "usa",
+   "name": "스프루언스",
+   "kind": "navy",
+   "skill": 4,
+   "atk": 4,
+   "def": 4,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "carrier"
+   ],
+   "note": "미드웨이 해전에서 지휘했다.",
+   "from": "1942-05-01"
+  },
+  {
+   "id": "halsey",
+   "country": "usa",
+   "name": "홀시",
+   "kind": "navy",
+   "skill": 4,
+   "atk": 5,
+   "def": 2,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "carrier"
+   ],
+   "note": "제3함대 사령관."
+  },
+  {
+   "id": "kinkaid",
+   "country": "usa",
+   "name": "킨케이드",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "surface"
+   ],
+   "note": "제7함대 사령관.",
+   "from": "1943-01-01"
+  },
+  {
+   "id": "lockwood",
+   "country": "usa",
+   "name": "록우드",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 2,
+   "plan": 3,
+   "log": 4,
+   "traits": [
+    "submarine"
+   ],
+   "note": "태평양 잠수함대 사령관.",
+   "from": "1943-02-01"
+  },
+  {
+   "id": "slim",
+   "country": "uk",
+   "name": "슬림",
+   "kind": "army",
+   "skill": 5,
+   "atk": 4,
+   "def": 4,
+   "plan": 4,
+   "log": 4,
+   "traits": [
+    "jungle",
+    "logistics"
+   ],
+   "note": "버마 군단, 1943년부터 제14군 사령관.",
+   "from": "1942-03-01"
+  },
+  {
+   "id": "wavell",
+   "country": "uk",
+   "name": "웨이벨",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [],
+   "note": "1941년부터 인도 총사령관, ABDA 사령관.",
+   "from": "1941-07-01"
+  },
+  {
+   "id": "percival",
+   "country": "uk",
+   "name": "퍼시벌",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 3,
+   "plan": 2,
+   "log": 3,
+   "traits": [
+    "defensive"
+   ],
+   "note": "말라야 사령관. 1942년 싱가포르에서 항복했다.",
+   "from": "1941-04-01"
+  },
+  {
+   "id": "wingate",
+   "country": "uk",
+   "name": "윈게이트",
+   "kind": "army",
+   "skill": 3,
+   "atk": 4,
+   "def": 1,
+   "plan": 3,
+   "log": 1,
+   "traits": [
+    "jungle",
+    "guerrilla"
+   ],
+   "note": "장거리 침투 부대(친디트)를 지휘했다.",
+   "from": "1942-03-01",
+   "until": "1944-03-24"
+  },
+  {
+   "id": "somerville",
+   "country": "uk",
+   "name": "서머빌",
+   "kind": "navy",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "carrier"
+   ],
+   "note": "1942~44년 동양 함대 사령관.",
+   "from": "1942-02-01"
+  },
+  {
+   "id": "fraser",
+   "country": "uk",
+   "name": "프레이저",
+   "kind": "navy",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "surface"
+   ],
+   "note": "1944년부터 영국 태평양 함대 사령관.",
+   "from": "1944-11-01"
+  },
+  {
+   "id": "phillips",
+   "country": "uk",
+   "name": "필립스",
+   "kind": "navy",
+   "skill": 2,
+   "atk": 3,
+   "def": 1,
+   "plan": 2,
+   "log": 2,
+   "traits": [
+    "surface"
+   ],
+   "note": "1941년 Z부대 사령관.",
+   "from": "1941-10-01",
+   "until": "1941-12-11"
+  },
+  {
+   "id": "bai_chongxi",
+   "country": "guangxi",
+   "name": "바이충시",
+   "kind": "army",
+   "skill": 4,
+   "atk": 4,
+   "def": 3,
+   "plan": 4,
+   "log": 3,
+   "traits": [
+    "mountain"
+   ],
+   "note": "광시파의 지휘관, 국민정부 부참모총장."
+  },
+  {
+   "id": "li_zongren",
+   "country": "guangxi",
+   "name": "리쭝런",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [],
+   "note": "광시파 지도자, 1938년 타이얼좡 전투를 지휘했다."
+  },
+  {
+   "id": "fu_zuoyi",
+   "country": "shanxi",
+   "name": "푸쭤이",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 4,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "cold"
+   ],
+   "note": "쑤이위안의 지휘관."
+  },
+  {
+   "id": "ma_bufang",
+   "country": "ma",
+   "name": "마부팡",
+   "kind": "army",
+   "skill": 2,
+   "atk": 3,
+   "def": 2,
+   "plan": 2,
+   "log": 2,
+   "traits": [
+    "mountain"
+   ],
+   "note": "칭하이의 군벌."
+  },
+  {
+   "id": "long_yun",
+   "country": "yunnan",
+   "name": "룽윈",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 3,
+   "plan": 2,
+   "log": 3,
+   "traits": [
+    "mountain"
+   ],
+   "note": "윈난의 주석."
+  },
+  {
+   "id": "choibalsan",
+   "country": "mongolia",
+   "name": "초이발산",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 2,
+   "plan": 2,
+   "log": 3,
+   "traits": [
+    "cold"
+   ],
+   "note": "몽골 인민군 지도자."
+  },
+  {
+   "id": "blamey",
+   "country": "australia",
+   "name": "블레이미",
+   "kind": "army",
+   "skill": 3,
+   "atk": 3,
+   "def": 3,
+   "plan": 3,
+   "log": 3,
+   "traits": [
+    "jungle"
+   ],
+   "note": "오스트레일리아 육군 사령관."
+  },
+  {
+   "id": "ter_poorten",
+   "country": "netherlands",
+   "name": "테르 포르턴",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 3,
+   "plan": 2,
+   "log": 2,
+   "traits": [
+    "jungle"
+   ],
+   "note": "동인도 육군 사령관."
+  },
+  {
+   "id": "doorman",
+   "country": "netherlands",
+   "name": "도르만",
+   "kind": "navy",
+   "skill": 2,
+   "atk": 2,
+   "def": 2,
+   "plan": 2,
+   "log": 2,
+   "traits": [
+    "surface"
+   ],
+   "note": "1942년 자바해 해전의 연합 함대 지휘관."
+  },
+  {
+   "id": "phibun",
+   "country": "siam",
+   "name": "피분송크람",
+   "kind": "army",
+   "skill": 2,
+   "atk": 2,
+   "def": 2,
+   "plan": 2,
+   "log": 2,
+   "traits": [],
+   "note": "시암의 총리·군 지도자."
+  }
+ ],
+ "traits": {
+  "jungle": {
+   "name": "밀림 전문",
+   "desc": "밀림·습지에서 공격과 방어 +15%"
+  },
+  "mountain": {
+   "name": "산악 전문",
+   "desc": "산악·구릉에서 공격과 방어 +15%"
+  },
+  "cold": {
+   "name": "혹한 경험",
+   "desc": "눈·눈보라의 공격 불이익과 소모를 절반으로"
+  },
+  "armor": {
+   "name": "기갑 지휘",
+   "desc": "전차·차량화 부대의 돌파 +15%"
+  },
+  "amphibious": {
+   "name": "상륙 전문",
+   "desc": "상륙 공격의 불이익을 절반으로"
+  },
+  "offensive": {
+   "name": "공세",
+   "desc": "공격 +10%, 방어 −5%"
+  },
+  "defensive": {
+   "name": "방어전",
+   "desc": "방어 +10%, 요새 효과 +50%"
+  },
+  "logistics": {
+   "name": "병참",
+   "desc": "보급 사용 −15%"
+  },
+  "guerrilla": {
+   "name": "유격",
+   "desc": "보급 사용 −20%, 산악·삼림·밀림에서 +10%"
+  },
+  "carrier": {
+   "name": "항모 운용",
+   "desc": "함재기 공격 +20%"
+  },
+  "surface": {
+   "name": "함대 결전",
+   "desc": "포격·어뢰 +15%"
+  },
+  "submarine": {
+   "name": "잠수함 운용",
+   "desc": "통상 파괴 +30%"
+  }
  },
  "countries": [
   {
@@ -11959,7 +13548,11 @@
     "madras",
     "mysore",
     "ceylon"
-   ]
+   ],
+   "lat": 10,
+   "lon": 76,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "bohai",
@@ -11982,7 +13575,11 @@
     "jinan",
     "qingdao",
     "irkutsk"
-   ]
+   ],
+   "lat": 38.8,
+   "lon": 120,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "indian_se",
@@ -11997,7 +13594,11 @@
     "java_sea",
     "malacca"
    ],
-   "coast": []
+   "coast": [],
+   "lat": -15,
+   "lon": 100,
+   "south": true,
+   "climate": "sea_temperate"
   },
   {
    "id": "indian_n",
@@ -12015,7 +13616,11 @@
    ],
    "coast": [
     "ceylon"
-   ]
+   ],
+   "lat": 4,
+   "lon": 86,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "andaman_sea",
@@ -12034,7 +13639,11 @@
     "rangoon",
     "tenasserim",
     "siam_s"
-   ]
+   ],
+   "lat": 11.5,
+   "lon": 96,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "bengal_bay",
@@ -12058,7 +13667,11 @@
     "dacca",
     "rangoon",
     "arakan"
-   ]
+   ],
+   "lat": 16,
+   "lon": 88.5,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "tonkin_gulf",
@@ -12078,7 +13691,11 @@
     "hainan",
     "tonkin",
     "annam"
-   ]
+   ],
+   "lat": 19.8,
+   "lon": 107.6,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "malacca",
@@ -12105,7 +13722,11 @@
     "palembang",
     "padang",
     "medan"
-   ]
+   ],
+   "lat": 3.8,
+   "lon": 99.8,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "java_sea",
@@ -12133,7 +13754,11 @@
     "palembang",
     "makassar",
     "lesser_sunda"
-   ]
+   ],
+   "lat": -5,
+   "lon": 111,
+   "south": true,
+   "climate": "sea_tropical"
   },
   {
    "id": "indian_s",
@@ -12150,7 +13775,11 @@
    "coast": [
     "kimberley",
     "perth"
-   ]
+   ],
+   "lat": -32,
+   "lon": 108,
+   "south": true,
+   "climate": "sea_typhoon"
   },
   {
    "id": "scs_s",
@@ -12174,7 +13803,11 @@
     "north_borneo",
     "brunei",
     "borneo_w"
-   ]
+   ],
+   "lat": 9.5,
+   "lon": 112.5,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "siam_gulf",
@@ -12193,7 +13826,11 @@
     "cochinchina",
     "cambodia",
     "malaya_n"
-   ]
+   ],
+   "lat": 9.5,
+   "lon": 102,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "timor_sea",
@@ -12213,7 +13850,11 @@
     "timor_p",
     "darwin",
     "kimberley"
-   ]
+   ],
+   "lat": -11.5,
+   "lon": 127,
+   "south": true,
+   "climate": "sea_typhoon"
   },
   {
    "id": "sulu_sea",
@@ -12235,7 +13876,11 @@
     "bicol",
     "visayas",
     "mindanao"
-   ]
+   ],
+   "lat": 8.5,
+   "lon": 120,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "scs_n",
@@ -12258,7 +13903,11 @@
     "macau",
     "manila",
     "luzon_n"
-   ]
+   ],
+   "lat": 19,
+   "lon": 115,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "formosa_strait",
@@ -12280,7 +13929,11 @@
     "xiamen",
     "wenzhou",
     "luzon_n"
-   ]
+   ],
+   "lat": 24.2,
+   "lon": 119.6,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "yellow_sea",
@@ -12304,7 +13957,11 @@
     "shanghai",
     "nanjing",
     "xuzhou"
-   ]
+   ],
+   "lat": 35.5,
+   "lon": 123.5,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "okhotsk_sea",
@@ -12326,7 +13983,11 @@
     "magadan",
     "kamchatka",
     "nsakhalin"
-   ]
+   ],
+   "lat": 53.5,
+   "lon": 148,
+   "south": false,
+   "climate": "sea_cold"
   },
   {
    "id": "east_china_sea",
@@ -12348,7 +14009,11 @@
     "wenzhou",
     "shanghai",
     "nanjing"
-   ]
+   ],
+   "lat": 29,
+   "lon": 125,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "celebes_sea",
@@ -12369,7 +14034,11 @@
     "makassar",
     "manado",
     "mindanao"
-   ]
+   ],
+   "lat": 3.5,
+   "lon": 123.5,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "philippine_sea",
@@ -12391,7 +14060,11 @@
     "luzon_n",
     "bicol",
     "visayas"
-   ]
+   ],
+   "lat": 16,
+   "lon": 130,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "japan_sea_s",
@@ -12413,7 +14086,11 @@
     "gyeongsang",
     "hamgyong",
     "vladivostok"
-   ]
+   ],
+   "lat": 38.5,
+   "lon": 133,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "molucca_sea",
@@ -12432,7 +14109,11 @@
     "manado",
     "ambon",
     "vogelkop"
-   ]
+   ],
+   "lat": 0.2,
+   "lon": 126.6,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "banda_sea",
@@ -12454,7 +14135,11 @@
     "kupang",
     "vogelkop",
     "timor_p"
-   ]
+   ],
+   "lat": -6,
+   "lon": 126.5,
+   "south": true,
+   "climate": "sea_tropical"
   },
   {
    "id": "arafura_sea",
@@ -12477,7 +14162,11 @@
     "lae",
     "darwin",
     "queensland_n"
-   ]
+   ],
+   "lat": -9.5,
+   "lon": 136,
+   "south": true,
+   "climate": "sea_typhoon"
   },
   {
    "id": "palau_sea",
@@ -12499,7 +14188,11 @@
     "vogelkop",
     "hollandia",
     "palau"
-   ]
+   ],
+   "lat": 6,
+   "lon": 135,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "australia_s",
@@ -12517,7 +14210,11 @@
     "adelaide",
     "melbourne",
     "tasmania"
-   ]
+   ],
+   "lat": -41.5,
+   "lon": 135,
+   "south": true,
+   "climate": "sea_cold"
   },
   {
    "id": "coral_sea",
@@ -12537,7 +14234,11 @@
     "queensland_n",
     "brisbane",
     "sydney"
-   ]
+   ],
+   "lat": -16.5,
+   "lon": 152,
+   "south": true,
+   "climate": "sea_typhoon"
   },
   {
    "id": "tsushima_strait",
@@ -12560,7 +14261,11 @@
     "gangwon",
     "jeolla",
     "gyeongsang"
-   ]
+   ],
+   "lat": 34,
+   "lon": 129.3,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "japan_south",
@@ -12581,7 +14286,11 @@
     "chubu",
     "kansai",
     "ogasawara"
-   ]
+   ],
+   "lat": 30.5,
+   "lon": 140,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "marianas",
@@ -12601,7 +14310,11 @@
    "coast": [
     "guam",
     "saipan"
-   ]
+   ],
+   "lat": 17,
+   "lon": 145.5,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "bismarck_sea",
@@ -12621,7 +14334,11 @@
     "port_moresby",
     "lae",
     "rabaul"
-   ]
+   ],
+   "lat": -2.5,
+   "lon": 148,
+   "south": true,
+   "climate": "sea_tropical"
   },
   {
    "id": "japan_sea_n",
@@ -12643,7 +14360,11 @@
     "vladivostok",
     "iman",
     "khabarovsk"
-   ]
+   ],
+   "lat": 43.5,
+   "lon": 136.5,
+   "south": false,
+   "climate": "sea_cold"
   },
   {
    "id": "kuril_sea",
@@ -12663,7 +14384,11 @@
    "coast": [
     "chishima",
     "kamchatka"
-   ]
+   ],
+   "lat": 46,
+   "lon": 157,
+   "south": false,
+   "climate": "sea_cold"
   },
   {
    "id": "japan_east",
@@ -12685,7 +14410,11 @@
     "kanto",
     "karafuto",
     "chishima"
-   ]
+   ],
+   "lat": 38,
+   "lon": 147,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "carolines",
@@ -12704,7 +14433,11 @@
    ],
    "coast": [
     "truk"
-   ]
+   ],
+   "lat": 5,
+   "lon": 152,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "wake_sea",
@@ -12725,7 +14458,11 @@
    ],
    "coast": [
     "wake"
-   ]
+   ],
+   "lat": 20,
+   "lon": 166,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "bering",
@@ -12744,7 +14481,11 @@
     "kamchatka",
     "aleutians",
     "alaska"
-   ]
+   ],
+   "lat": 57,
+   "lon": 175,
+   "south": false,
+   "climate": "sea_cold"
   },
   {
    "id": "tasman_sea",
@@ -12764,7 +14505,11 @@
     "tasmania",
     "north_island",
     "south_island"
-   ]
+   ],
+   "lat": -38,
+   "lon": 160,
+   "south": true,
+   "climate": "sea_temperate"
   },
   {
    "id": "solomon_sea",
@@ -12785,7 +14530,11 @@
     "rabaul",
     "bougainville",
     "guadalcanal"
-   ]
+   ],
+   "lat": -8,
+   "lon": 153.5,
+   "south": true,
+   "climate": "sea_tropical"
   },
   {
    "id": "gilbert_sea",
@@ -12802,7 +14551,11 @@
    ],
    "coast": [
     "gilberts"
-   ]
+   ],
+   "lat": 0,
+   "lon": 173.5,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "marshalls_sea",
@@ -12820,7 +14573,11 @@
    "coast": [
     "truk",
     "marshalls"
-   ]
+   ],
+   "lat": 9,
+   "lon": 168,
+   "south": false,
+   "climate": "sea_typhoon"
   },
   {
    "id": "hawaii_sea",
@@ -12836,7 +14593,11 @@
    ],
    "coast": [
     "hawaii"
-   ]
+   ],
+   "lat": 22,
+   "lon": -160,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "central_pacific",
@@ -12853,7 +14614,11 @@
     "south_pacific",
     "wake_sea"
    ],
-   "coast": []
+   "coast": [],
+   "lat": 10,
+   "lon": -175,
+   "south": false,
+   "climate": "sea_tropical"
   },
   {
    "id": "midway_sea",
@@ -12871,7 +14636,11 @@
    ],
    "coast": [
     "midway"
-   ]
+   ],
+   "lat": 28.5,
+   "lon": -179,
+   "south": false,
+   "climate": "sea_temperate"
   },
   {
    "id": "south_pacific",
@@ -12892,7 +14661,11 @@
     "guadalcanal",
     "fiji",
     "north_island"
-   ]
+   ],
+   "lat": -14,
+   "lon": 175,
+   "south": true,
+   "climate": "sea_typhoon"
   },
   {
    "id": "north_pacific",
@@ -12908,7 +14681,11 @@
     "pacific_ne",
     "wake_sea"
    ],
-   "coast": []
+   "coast": [],
+   "lat": 45,
+   "lon": 173,
+   "south": false,
+   "climate": "sea_cold"
   },
   {
    "id": "pacific_ne",
@@ -12925,7 +14702,11 @@
    ],
    "coast": [
     "alaska"
-   ]
+   ],
+   "lat": 38,
+   "lon": -160,
+   "south": false,
+   "climate": "sea_temperate"
   }
  ],
  "airZones": [
@@ -12944,7 +14725,11 @@
     1217,
     2165
    ],
-   "name": "시드니 상공"
+   "name": "시드니 상공",
+   "lat": -31.1,
+   "lon": 135.9,
+   "climate": "temperate",
+   "south": true
   },
   {
    "id": "az2",
@@ -12959,7 +14744,11 @@
     213,
     215
    ],
-   "name": "노보시비르스크 상공"
+   "name": "노보시비르스크 상공",
+   "lat": 54.2,
+   "lon": 85.7,
+   "climate": "frigid",
+   "south": false
   },
   {
    "id": "az3",
@@ -12979,7 +14768,11 @@
     683,
     780
    ],
-   "name": "충칭 상공"
+   "name": "충칭 상공",
+   "lat": 34.2,
+   "lon": 109.2,
+   "climate": "temperate",
+   "south": false
   },
   {
    "id": "az4",
@@ -12993,7 +14786,11 @@
     672,
     1639
    ],
-   "name": "바타비아 상공"
+   "name": "바타비아 상공",
+   "lat": -6.5,
+   "lon": 108.6,
+   "climate": "equatorial",
+   "south": true
   },
   {
    "id": "az5",
@@ -13008,7 +14805,11 @@
     927,
     1620
    ],
-   "name": "마카사르 상공"
+   "name": "마카사르 상공",
+   "lat": -5.5,
+   "lon": 121.4,
+   "climate": "equatorial",
+   "south": true
   },
   {
    "id": "az6",
@@ -13024,7 +14825,11 @@
     788,
     1470
    ],
-   "name": "동보르네오 상공"
+   "name": "동보르네오 상공",
+   "lat": 2,
+   "lon": 114.4,
+   "climate": "equatorial",
+   "south": false
   },
   {
    "id": "az7",
@@ -13040,7 +14845,11 @@
     468,
     832
    ],
-   "name": "청두 상공"
+   "name": "청두 상공",
+   "lat": 32,
+   "lon": 98.4,
+   "climate": "highland",
+   "south": false
   },
   {
    "id": "az8",
@@ -13055,7 +14864,11 @@
     712,
     299
    ],
-   "name": "울란바토르 상공"
+   "name": "울란바토르 상공",
+   "lat": 51.6,
+   "lon": 110.6,
+   "climate": "frigid",
+   "south": false
   },
   {
    "id": "az9",
@@ -13071,7 +14884,11 @@
     573,
     1231
    ],
-   "name": "방콕 상공"
+   "name": "방콕 상공",
+   "lat": 13.8,
+   "lon": 103.7,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az10",
@@ -13085,7 +14902,11 @@
     70,
     1253
    ],
-   "name": "마드라스 상공"
+   "name": "마드라스 상공",
+   "lat": 12.7,
+   "lon": 78.5,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az11",
@@ -13106,7 +14927,11 @@
     982,
     539
    ],
-   "name": "신징 상공"
+   "name": "신징 상공",
+   "lat": 43.6,
+   "lon": 124.1,
+   "climate": "cold",
+   "south": false
   },
   {
    "id": "az12",
@@ -13119,7 +14944,11 @@
     1491,
     1271
    ],
-   "name": "트루크 상공"
+   "name": "트루크 상공",
+   "lat": 11.8,
+   "lon": 149.6,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az13",
@@ -13133,7 +14962,11 @@
     1172,
     781
    ],
-   "name": "간사이 상공"
+   "name": "간사이 상공",
+   "lat": 34.2,
+   "lon": 133.6,
+   "climate": "temperate",
+   "south": false
   },
   {
    "id": "az14",
@@ -13150,7 +14983,11 @@
     916,
     865
    ],
-   "name": "난징 상공"
+   "name": "난징 상공",
+   "lat": 30.6,
+   "lon": 120.8,
+   "climate": "temperate",
+   "south": false
   },
   {
    "id": "az15",
@@ -13165,7 +15002,11 @@
     1047,
     204
    ],
-   "name": "아무르 상공"
+   "name": "아무르 상공",
+   "lat": 54.5,
+   "lon": 127.4,
+   "climate": "frigid",
+   "south": false
   },
   {
    "id": "az16",
@@ -13185,7 +15026,11 @@
     707,
     1040
    ],
-   "name": "광저우 상공"
+   "name": "광저우 상공",
+   "lat": 22.8,
+   "lon": 110.4,
+   "climate": "subtropical",
+   "south": false
   },
   {
    "id": "az17",
@@ -13204,7 +15049,11 @@
     1278,
     425
    ],
-   "name": "블라디보스토크 상공"
+   "name": "블라디보스토크 상공",
+   "lat": 47.6,
+   "lon": 138.9,
+   "climate": "frigid",
+   "south": false
   },
   {
    "id": "az18",
@@ -13222,7 +15071,11 @@
     1045,
     690
    ],
-   "name": "경기 상공"
+   "name": "경기 상공",
+   "lat": 37.9,
+   "lon": 127.3,
+   "climate": "cold",
+   "south": false
   },
   {
    "id": "az19",
@@ -13239,7 +15092,11 @@
     532,
     1444
    ],
-   "name": "싱가포르 상공"
+   "name": "싱가포르 상공",
+   "lat": 3.3,
+   "lon": 101.6,
+   "climate": "equatorial",
+   "south": false
   },
   {
    "id": "az20",
@@ -13252,7 +15109,11 @@
     1286,
     703
    ],
-   "name": "간토 상공"
+   "name": "간토 상공",
+   "lat": 37.3,
+   "lon": 139.3,
+   "climate": "cold",
+   "south": false
   },
   {
    "id": "az21",
@@ -13268,7 +15129,11 @@
     446,
     504
    ],
-   "name": "허시 회랑 상공"
+   "name": "허시 회랑 상공",
+   "lat": 44.8,
+   "lon": 97.3,
+   "climate": "arid",
+   "south": false
   },
   {
    "id": "az22",
@@ -13289,7 +15154,11 @@
     446,
     1048
    ],
-   "name": "랑군 상공"
+   "name": "랑군 상공",
+   "lat": 22.5,
+   "lon": 97.3,
+   "climate": "subtropical",
+   "south": false
   },
   {
    "id": "az23",
@@ -13304,7 +15173,11 @@
     1524,
     1653
    ],
-   "name": "포트모르즈비 상공"
+   "name": "포트모르즈비 상공",
+   "lat": -7.2,
+   "lon": 151.2,
+   "climate": "equatorial",
+   "south": true
   },
   {
    "id": "az24",
@@ -13324,7 +15197,11 @@
     173,
     964
    ],
-   "name": "델리 상공"
+   "name": "델리 상공",
+   "lat": 26.3,
+   "lon": 83.7,
+   "climate": "subtropical",
+   "south": false
   },
   {
    "id": "az25",
@@ -13338,7 +15215,11 @@
     2034,
     122
    ],
-   "name": "캄차카 상공"
+   "name": "캄차카 상공",
+   "lat": 56.8,
+   "lon": 176.7,
+   "climate": "frigid",
+   "south": false
   },
   {
    "id": "az26",
@@ -13351,7 +15232,11 @@
     937,
     1200
    ],
-   "name": "마닐라 상공"
+   "name": "마닐라 상공",
+   "lat": 15.3,
+   "lon": 121.9,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az27",
@@ -13363,7 +15248,11 @@
     983,
     1331
    ],
-   "name": "비사야 상공"
+   "name": "비사야 상공",
+   "lat": 8.9,
+   "lon": 124.2,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az28",
@@ -13383,7 +15272,11 @@
     801,
     650
    ],
-   "name": "베이핑 상공"
+   "name": "베이핑 상공",
+   "lat": 39.4,
+   "lon": 115.1,
+   "climate": "cold",
+   "south": false
   },
   {
    "id": "az29",
@@ -13396,7 +15289,11 @@
     186,
     682
    ],
-   "name": "디화 상공"
+   "name": "디화 상공",
+   "lat": 38.2,
+   "lon": 84.3,
+   "climate": "arid",
+   "south": false
   },
   {
    "id": "az30",
@@ -13407,7 +15304,11 @@
     1343,
     955
    ],
-   "name": "오가사와라·이오지마 상공"
+   "name": "오가사와라·이오지마 상공",
+   "lat": 26.7,
+   "lon": 142.2,
+   "climate": "subtropical",
+   "south": false
   },
   {
    "id": "az31",
@@ -13421,7 +15322,11 @@
     1184,
     1515
    ],
-   "name": "암본 상공"
+   "name": "암본 상공",
+   "lat": -0.3,
+   "lon": 134.2,
+   "climate": "equatorial",
+   "south": true
   },
   {
    "id": "az32",
@@ -13434,7 +15339,11 @@
     45,
     669
    ],
-   "name": "펀자브 상공"
+   "name": "펀자브 상공",
+   "lat": 38.7,
+   "lon": 77.3,
+   "climate": "arid",
+   "south": false
   },
   {
    "id": "az33",
@@ -13448,7 +15357,11 @@
     1440,
     1939
    ],
-   "name": "브리즈번 상공"
+   "name": "브리즈번 상공",
+   "lat": -21,
+   "lon": 147,
+   "climate": "subtropical",
+   "south": true
   },
   {
    "id": "az34",
@@ -13463,7 +15376,11 @@
     2099,
     1209
    ],
-   "name": "하와이 상공"
+   "name": "하와이 상공",
+   "lat": 14.8,
+   "lon": 180,
+   "climate": "monsoon",
+   "south": false
   },
   {
    "id": "az35",
@@ -13482,7 +15399,11 @@
     814,
     955
    ],
-   "name": "우한 상공"
+   "name": "우한 상공",
+   "lat": 26.7,
+   "lon": 115.7,
+   "climate": "subtropical",
+   "south": false
   },
   {
    "id": "az36",
@@ -13495,7 +15416,11 @@
     1987,
     2249
    ],
-   "name": "뉴질랜드 북섬 상공"
+   "name": "뉴질랜드 북섬 상공",
+   "lat": -34.7,
+   "lon": 174.4,
+   "climate": "temperate",
+   "south": true
   }
  ],
  "focusTrees": {

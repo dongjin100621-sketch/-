@@ -30,7 +30,7 @@ export function index(d) {
   x = {
     goods: map(d.goods), buildings: map(d.buildings), facilities: map(d.facilities), equipment: map(d.equipment), battalions: map(d.battalions),
     templates: map(d.templates), ships: map(d.ships), techs: map(d.techs), countries: map(d.countries), regions: map(d.regions), seas: map(d.seas),
-    airZones: map(d.airZones), events: map(d.events), factions: map(d.factions),
+    airZones: map(d.airZones), events: map(d.events), factions: map(d.factions), leaders: map(d.leaders || []),
     focus: new Map(Object.values(d.focusTrees).flat().map(f => [f.id, f])),
     lawOption: new Map(Object.values(d.laws).flatMap(g => g.options.map(o => [o.id, o]))),
     seaByCoast: new Map(), dist: new Map()

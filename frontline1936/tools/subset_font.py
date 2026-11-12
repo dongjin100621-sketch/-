@@ -4,7 +4,7 @@
 원본: @expo-google-fonts/noto-sans-kr 0.4.4의 NotoSansKR_400Regular.ttf, NotoSansKR_700Bold.ttf (SIL OFL 1.1)
   npm pack @expo-google-fonts/noto-sans-kr@0.4.4  →  압축을 풀어 아래 경로를 넘긴다.
 
-python3 tools/subset_font.py <NotoSansKR_400Regular.ttf> <NotoSansKR_700Bold.ttf>
+python3 tools/subset_font.py <NotoSansKR_400Regular.ttf> <NotoSansKR_700Bold.ttf> [<NotoSerifKR_700Bold.ttf>]
 결과: assets/fonts/FrontlineKR-Regular.woff2, assets/fonts/FrontlineKR-Bold.woff2
 원래의 FrontlineKR-Regular.ttf(제작 패키지 v1, example/ 참조 구현용)는 지우지 않는다.
 콘텐츠나 화면 문구를 바꾼 뒤 새 글자가 시스템 글꼴로 보이면 이 도구를 다시 실행한다.
@@ -34,7 +34,25 @@ def build(src, weight, out):
     font.flavor = 'woff2'; font.save(out)
     return Path(out).stat().st_size
 
+def build_serif(src, out):
+    opts = subset.Options()
+    opts.flavor = 'woff2'; opts.layout_features = ['*']; opts.name_IDs = ['*']; opts.name_languages = ['*']; opts.notdef_outline = True; opts.hinting = False
+    font = TTFont(src)
+    sub = subset.Subsetter(opts); sub.populate(text=''.join(chars)); sub.subset(font)
+    for rec in font['name'].names:
+        if rec.nameID in (1, 16): rec.string = 'Frontline Serif'
+        elif rec.nameID in (2, 17): rec.string = 'Bold'
+        elif rec.nameID == 4: rec.string = 'Frontline Serif Bold'
+        elif rec.nameID == 6: rec.string = 'FrontlineSerif-Bold'
+    font.flavor = 'woff2'; font.save(out)
+    return Path(out).stat().st_size
+
 if __name__ == '__main__':
+    # 세 번째 인자(선택): Noto Serif KR Bold → 제목용 assets/fonts/FrontlineSerif-Bold.woff2
+    if len(sys.argv) == 4:
+        out = root / 'assets/fonts/FrontlineSerif-Bold.woff2'
+        print(f'{out.relative_to(root)}: {build_serif(sys.argv[3], out):,} bytes')
+        sys.argv = sys.argv[:3]
     if len(sys.argv) != 3: sys.exit(__doc__)
     covered = []
     for src, weight in ((sys.argv[1], 400), (sys.argv[2], 700)):

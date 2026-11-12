@@ -1,7 +1,7 @@
 /* 전선과 공장 — 컴퓨터가 맡은 나라의 판단. 결정적이며(상태의 난수만 쓴다) 사람에게 주어진 것과 같은 행동만 쓴다. */
 import { clamp, round, sum, index, mods, distance, yearOf, dayOf, atWar, enemiesOf, isAtWar, friendly, rand, pairKey } from './core.mjs';
 import { armsCapacity, dockCapacity, lineFactories, econRegions } from './economy.mjs';
-import { divisionStats, templateStats, orderMove, orderAttack, orderInvade, canInvade, passable, hostile, wingInRange, fleetStrength, orderFleet, seaShare } from './military.mjs';
+import { divisionStats, templateStats, orderMove, orderAttack, orderInvade, canInvade, passable, hostile, wingInRange, fleetStrength, orderFleet, seaShare, formArmy, freeLeaders, assignAdmiral, leaderAvailable } from './military.mjs';
 import { focusReason, startFocus, techReason, startResearch, treeOf, setLaw, lawReason, declareWar, canDeclare } from './politics.mjs';
 import { manpowerAvailable as mpAvail } from './military.mjs';
 
@@ -48,6 +48,7 @@ export function monthlyAI(s, d, cid, act) {
   }
   aiAir(s, d, cid);
   aiNavy(s, d, cid);
+  aiLeaders(s, d, cid);
 }
 export function bestTemplate(s, d, cid) {
   const own = d.templates.filter(t => t.country === cid).concat((s.templates || []).filter(t => t.owner === cid));
@@ -332,4 +333,21 @@ function positionPeacetime(s, d, cid, mine) {
   if (!spots.length) return;
   let i = 0;
   for (const dv of mine) { if (dv.order || X.regions.get(dv.at)?.offmap) continue; const t = spots[i++ % spots.length]; if (t !== dv.at && rand(s) < .3) orderMove(s, d, dv, t); }
+}
+
+/** 장군·제독 배치: 사단이 가장 많이 모인 지역부터 군을 만들어 능력이 높은 장군을 붙이고, 큰 함대부터 제독을 붙인다. */
+export function aiLeaders(s, d, cid) {
+  // 컴퓨터 나라의 군은 매달 다시 짠다
+  for (const a of s.armies.filter(a => a.owner === cid)) { if (a.leader) s.leaders[a.leader].army = null; }
+  for (const dv of s.divisions) if (dv.owner === cid) dv.army = null;
+  s.armies = s.armies.filter(a => a.owner !== cid);
+  const leaders = freeLeaders(s, d, cid, 'army');
+  if (leaders.length) {
+    const by = new Map(); for (const dv of s.divisions) if (dv.owner === cid && !index(d).regions.get(dv.at)?.offmap && !index(d).seas.has(dv.at)) by.set(dv.at, (by.get(dv.at) || []).concat(dv.id));
+    const groups = [...by.values()].filter(l => l.length >= 2).sort((a, b) => b.length - a.length);
+    for (let i = 0; i < Math.min(leaders.length, groups.length); i++) formArmy(s, d, cid, groups[i].slice(0, 24), null, leaders[i].id);
+  }
+  const admirals = Object.values(s.leaders).filter(L => L.country === cid && L.kind === 'navy' && leaderAvailable(s, d, L.id)).sort((a, b) => b.skill - a.skill);
+  const fleets = s.fleets.filter(f => f.owner === cid).sort((a, b) => fleetStrength(s, d, b) - fleetStrength(s, d, a));
+  for (let i = 0; i < Math.min(admirals.length, fleets.length); i++) if (fleets[i].leader !== admirals[i].id) assignAdmiral(s, d, cid, fleets[i].id, admirals[i].id);
 }

@@ -1,19 +1,20 @@
-/* 전선과 공장: 동아시아 1936 — 계산 엔진(게임 0.1.0, 데이터 0.1.0, 저장 형식 1).
+/* 전선과 공장: 동아시아 1936 — 계산 엔진(게임 0.2.0, 데이터 0.2.0, 저장 형식 2: 장군·군·날씨).
  * 화면은 dispatch로 행동을 보내고 돌려받은 상태만 그린다. 하루 진행(advanceDay)은 결정적이다(씨앗이 같으면 결과가 같다). */
 import { clamp, round, sum, index, mods, dateOf, isMonthStart, yearOf, fmtDate, atWar, isAtWar, friendly, END_DAY } from './core.mjs';
 import * as econ from './economy.mjs';
 import * as mil from './military.mjs';
 import * as pol from './politics.mjs';
 import * as ai from './ai.mjs';
+import * as wx from './weather.mjs';
 
 export const SAVE_FORMAT = 'FRONTLINE1936_SAVE';
-export const SAVE_VERSION = 1;
-export { econ, mil, pol, ai };
+export const SAVE_VERSION = 2;
+export { econ, mil, pol, ai, wx };
 
 export function createState(d, player = 'japan', seed = 1936) {
   const X = index(d);
   const s = { format: SAVE_FORMAT, version: SAVE_VERSION, dataVersion: d.meta.version, seed, rng: seed >>> 0, day: 0, player, countries: {}, regions: {}, divisions: [], fleets: [], air: [], templates: [],
-    wars: [], warStart: {}, factions: {}, flags: {}, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
+    wars: [], warStart: {}, factions: {}, flags: {}, leaders: {}, armies: [], weather: {}, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
   for (const f of d.factions) s.factions[f.id] = { id: f.id, leader: f.members.length ? f.leader : null };
   for (const c of d.countries) {
     const fac = d.factions.find(f => f.members.includes(c.id));
@@ -27,6 +28,8 @@ export function createState(d, player = 'japan', seed = 1936) {
       construction: [], lines: [], naval: [], training: [], stock: {}, manpower: { used: 0, training: 0, lost: 0, bonus: 0 }, casualties: 0, blockade: 0, homeLost: false, divCount: 0
     };
   }
+  for (const l of d.leaders) s.leaders[l.id] = { id: l.id, country: l.country, name: l.name, kind: l.kind, skill: l.skill, atk: l.atk, def: l.def, plan: l.plan, log: l.log, traits: [...l.traits], xp: 0, army: null, fleet: null };
+  wx.dailyWeather(s, d);
   for (const r of d.regions) {
     const b = {};
     for (const [k, n] of Object.entries(r.build)) b[k] = { level: n, pm: 0, staff: .9 };
@@ -48,6 +51,7 @@ export function createState(d, player = 'japan', seed = 1936) {
     c.stock.inf_eq = (c.stock.inf_eq || 0) + 500;
   }
   for (const c of Object.values(s.countries)) if (c.exists) econ.initEconomy(s, d, c.id);
+  for (const c of Object.values(s.countries)) if (c.exists) ai.aiLeaders(s, d, c.id);
   for (const c of Object.values(s.countries)) if (c.exists && c.id !== player) ai.monthlyAI(s, d, c.id, a => dispatch(s, d, a, { silent: true }));
   // 플레이어도 처음에는 생산 라인과 연구를 기본값으로 채워 둔다(바꿀 수 있다).
   ai.monthlyAI(s, d, player, a => (a.type === 'build' || a.type === 'shipyard' || a.type === 'train') ? null : dispatch(s, d, a, { silent: true }));
@@ -135,6 +139,10 @@ export function dispatch(s, d, a, { silent = false } = {}) {
       return ok ? { ok: true, count: ok, reason } : fail(reason);
     }
     case 'stop': for (const dv of divs(a.divisions || [])) dv.order = null; return { ok: true };
+    case 'formArmy': return mil.formArmy(s, d, cid, a.divisions || [], a.name, a.leader);
+    case 'assignLeader': return mil.assignLeader(s, d, cid, a.army, a.leader ?? null);
+    case 'assignAdmiral': return mil.assignAdmiral(s, d, cid, a.fleet, a.leader ?? null);
+    case 'disbandArmy': { const ar = s.armies.find(x => x.id === a.army && x.owner === cid); if (!ar) return fail('없는 군입니다.'); if (ar.leader) s.leaders[ar.leader].army = null; for (const dv of s.divisions) if (dv.army === ar.id) dv.army = null; s.armies = s.armies.filter(x => x !== ar); return { ok: true }; }
     case 'fleetMove': { const f = s.fleets.find(x => x.id === a.fleet && x.owner === cid); if (!f) return fail('없는 함대입니다.'); return mil.orderFleet(s, d, f, a.dest); }
     case 'fleetMission': { const f = s.fleets.find(x => x.id === a.fleet && x.owner === cid); if (!f) return fail('없는 함대입니다.'); if (!['patrol', 'raid', 'escort', 'port'].includes(a.mission)) return fail('없는 임무입니다.'); if (a.mission !== 'port' && !X.seas.has(f.at)) return fail('먼저 바다로 내보내세요.'); f.mission = a.mission; return { ok: true }; }
     case 'air': {
@@ -197,6 +205,7 @@ export function advanceDay(s, d) {
     for (const c of live) if (c.id !== s.player || s.autoPlayer) ai.monthlyAI(s, d, c.id, a => dispatch(s, d, a, { silent: true }));
     snapshot(s, d);
   }
+  wx.dailyWeather(s, d);
   pol.dailyPolitics(s, d, log);
   for (const c of Object.values(s.countries)) {
     if (!c.exists) continue;
@@ -225,6 +234,7 @@ export function advanceDay(s, d) {
   mil.dailyNaval(s, d, log);
   if (s.day % 2 === 0) for (const c of live) if (c.exists && (c.id !== s.player || s.autoPlayer)) ai.militaryAI(s, d, c.id);
   mil.dailyMilitary(s, d, log);
+  mil.dailyLeaders(s, d, log);
   s.day += 1;
   return s;
 }

@@ -2,8 +2,11 @@
  * 어두운 강철색 틀 + 지도 중심. 색은 아래 토큰으로만 정한다. 질감·이미지·외부 글꼴은 쓰지 않는다. 최소 터치 36px. */
 @font-face{font-family:"Chronicle KR";src:url("../assets/fonts/ChronicleKR-Regular.woff2") format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Chronicle KR";src:url("../assets/fonts/ChronicleKR-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Frontline Serif";src:url("../assets/fonts/FrontlineSerif-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
 :root{
   --font:"Chronicle KR",system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --serif:"Frontline Serif","Noto Serif KR","Nanum Myeongjo","Batang",serif;
+  --paper:#e8dfc8;--paper2:#d9ceb2;--pink:#2b261d;--pmuted:#6a5f4b;--stamp:#9a3b2b;
   --bg:#121518;--frame:#1b2024;--panel:#20262b;--panel2:#262d33;--line:#38424a;--line2:#4b5660;
   --ink:#e8e3d6;--muted:#9ba4ab;--dim:#6f7880;--brass:#c9a45a;--brass2:#e2c27f;
   --good:#71b06b;--bad:#d0614f;--warn:#d6a84a;--cool:#5d97c6;
@@ -175,6 +178,95 @@ th{color:var(--muted);font-weight:400;font-size:12px}
 .div .bars .bar{margin:0;height:6px}
 .mini{font-size:12px;color:var(--muted)}
 
+
+/* ---------- 0.2: 제목 글꼴·아이콘·틀 ---------- */
+h1,h2,.screen-head h1,.who-t b,.modal h2,.start h1,.card h3,.leader h3{font-family:var(--serif);font-weight:700;letter-spacing:.01em}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav button .g{display:flex;align-items:center;justify-content:center;height:22px}
+.nav button.on .ic{stroke:var(--brass2)}
+.topbar{background:linear-gradient(180deg,#232a30 0%,#181d21 100%);box-shadow:inset 0 -1px 0 #00000080,0 2px 8px #0006;position:relative;z-index:6}
+.topbar .who .emblem{width:30px;height:22px;border-radius:2px;flex:none;background:linear-gradient(90deg,var(--c) 0 62%,#00000059 62% 66%,var(--c) 66%);box-shadow:inset 0 0 0 1px #0007,0 1px 2px #0008;position:relative}
+.topbar .who .emblem::after{content:"";position:absolute;inset:4px 21px 4px 4px;border-radius:1px;background:#ffffff38}
+.who-t{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.who-t b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+.who-t small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+.res .r.bad b{color:#f19a88}
+.nav{background:linear-gradient(90deg,#181d21,#1d2328)}
+.side{background:linear-gradient(180deg,#232a30,#1e2429)}
+.side h2{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.card{box-shadow:0 1px 0 #ffffff08 inset,0 2px 6px #0004}
+.screen{background:radial-gradient(ellipse at 20% 0%,#1f272d 0%,#14181bf7 60%)}
+/* 지도 층 */
+.map{background:#112538}
+.map .sea{fill:transparent;stroke:#3c6589;stroke-width:1;stroke-opacity:.55;stroke-dasharray:5 6;vector-effect:non-scaling-stroke}
+.map .sea.wxsea{fill-opacity:.5;stroke-dasharray:none}
+.map .sea.sel{fill:#4d86b3;fill-opacity:.28}
+.map .coast{fill:none;stroke:#5c98c2;stroke-opacity:.28;stroke-width:9;stroke-linejoin:round;pointer-events:none}
+.map .coast2{fill:none;stroke:#8cc0de;stroke-opacity:.22;stroke-width:3;stroke-linejoin:round;pointer-events:none}
+.map .rg{stroke:#0b0e10;stroke-opacity:.45}
+.map .tex{pointer-events:none;opacity:.9}
+.map .bd{stroke:#0a0c0e;stroke-width:1.9;stroke-opacity:.9}
+.map .clbl{font-family:var(--serif);font-weight:700;fill:#fbf5e6;fill-opacity:.82;stroke:#0d1012;stroke-opacity:.55;paint-order:stroke;text-anchor:middle;pointer-events:none}
+.map .cap{fill:none;stroke:#fff3c9;stroke-width:1.6}
+.map .cap2{fill:#fff3c9;stroke:#2a2418;stroke-width:.8}
+.map .unit .ub{stroke:#0b0e10;stroke-width:1}
+.map .unit .sybox{fill:#f3eee2;stroke:#1b1f23;stroke-width:.8}
+.map .unit .sy{fill:none;stroke:#1b1f23;stroke-width:1.15}
+.map .unit text{font-size:11px;fill:#fff;paint-order:stroke;stroke:#0009;stroke-width:2px}
+.map .unit.mine .ub{stroke:var(--focus);stroke-width:1.5}
+.map .unit.foe .ub{stroke:#ff8b6a;stroke-width:1.4}
+.map .unit.sel .ub{stroke:#fff;stroke-width:2.6}
+.map .ustar{fill:#ffd866;stroke:#3a2a00;stroke-width:.6}
+.map .battle circle{fill:#b8382a;stroke:#ffd7c8;stroke-width:1.1}
+.map .battle path{stroke:#fff;stroke-width:1.8;stroke-linecap:round}
+.map .battle .bp{fill:none;stroke:#ffd27a;stroke-width:2;transform-box:fill-box}
+.map .fleet{cursor:pointer}
+.map .fleet .hull{stroke:#0b0e10;stroke-width:1}
+.map .fleet.mine .hull{stroke:var(--focus)}
+.map .fleet.sel .hull{stroke:#fff;stroke-width:2.2}
+.map .fleet text{font-size:9px;fill:#fff;paint-order:stroke;stroke:#000a;stroke-width:2px;text-anchor:middle;font-weight:700}
+.map .fleet .sub{stroke:#9fd2ff;stroke-width:1.4;stroke-dasharray:3 2}
+.map .wx{pointer-events:none}
+.map .wx.faint{opacity:.85}
+.map .wx-c{fill:#e8eef3;stroke:#3c4b57;stroke-width:.8}.map .wx-c.dark{fill:#7c8a96}
+.map .wx-r{stroke:#9fd2ff;stroke-width:1.4;stroke-linecap:round}
+.map .wx-b{fill:#ffd447;stroke:#6a4c00;stroke-width:.5}
+.map .wx-s{stroke:#f4f8ff;stroke-width:1.6;stroke-linecap:round;paint-order:stroke}
+.map .wx-w{stroke:#d9e6f2;stroke-width:1.2;stroke-linecap:round}
+.map .wx-m{fill:none;stroke:#c99a63;stroke-width:1.6;stroke-linecap:round}
+.map .wx-h{fill:#ffcf5a;stroke:#9a5a00;stroke-width:.6}.map .wx-hr{stroke:#ffcf5a;stroke-width:1.3;stroke-linecap:round}
+.map .wx-t{fill:none;stroke:#e0b3ff;stroke-width:2.2;stroke-linecap:round}.map .wx-te{fill:#e0b3ff}
+.wxchip{display:inline-block;padding:0 8px;border-radius:9px;background:var(--w);color:#0d1114;font-weight:700;font-size:12px}
+.legend{background:linear-gradient(180deg,#1f262bf2,#181d21f2);box-shadow:0 4px 14px #0007}
+/* 장군 */
+.leader.off{opacity:.55}
+.lhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.lhead .lname{flex:1;min-width:0}
+.lhead h3{margin:0}
+.badge{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;color:#fff;background:radial-gradient(circle at 35% 30%,#ffffff40,transparent 60%),var(--c);box-shadow:inset 0 0 0 2px #0006,0 0 0 2px #c9a45a66}
+.stars{color:#f0c75e;letter-spacing:1px}
+.lstats{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;font-size:12px;margin-bottom:6px}
+.lstats .bar{margin:0;height:6px}
+/* 시작 화면 */
+.start{position:relative;background:radial-gradient(ellipse at 70% 25%,#22374a 0%,#101a24 55%,#0c1117 100%)}
+.start-map{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.start-map .sm-halo{fill:none;stroke:#3d7fb0;stroke-opacity:.18;stroke-width:12}
+.start-map .sm-land{fill:#3b4a44;fill-opacity:.32;stroke:#7fa8a0;stroke-opacity:.25;stroke-width:1}
+.start-in{position:relative}
+.start h1{font-size:44px;line-height:1.1;text-shadow:0 2px 18px #000a}
+.start .sub{letter-spacing:.12em}
+.pick button{background:linear-gradient(180deg,#232b31f2,#1b2126f2);backdrop-filter:blur(2px)}
+.pick button b{font-family:var(--serif);font-size:18px}
+/* 사건: 종이 문서 */
+.modal.paper{background:linear-gradient(180deg,var(--paper),var(--paper2));color:var(--pink);border:1px solid #8a7a58;box-shadow:0 20px 50px #000b,inset 0 0 60px #b9a67a55}
+.modal.paper h2{color:#3a2516;font-size:24px;border-bottom:2px solid #3a251644;padding-bottom:6px}
+.modal.paper .stamp{display:inline-block;color:var(--stamp);border:1.5px solid var(--stamp);border-radius:3px;padding:1px 8px;font-size:12px;font-weight:700;transform:rotate(-1.5deg);margin-bottom:8px;letter-spacing:.04em}
+.modal.paper .hist{background:#ffffff3d;border-left-color:#7a5a2a;color:#4a3f2c}
+.modal.paper .opts button{background:#f6efdd;border:1px solid #8a7a58;color:#2b261d}
+.modal.paper .opts button:hover{background:#fff8e6;border-color:#5a3a1a}
+.modal.paper .opts small{color:#6a5f4b}
+.modal.paper .mini{color:var(--pmuted)}
+
 @media (max-width:900px){
   :root{--side-w:100%;--top-h:auto}
   .shell{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}
@@ -195,5 +287,7 @@ th{color:var(--muted);font-weight:400;font-size:12px}
   .screen{padding:12px 12px 40px}
   .legend{display:none}
   .fnode{width:128px}
+  .who-t b{max-width:120px;font-size:15px}.who-t small{display:none}
+  .start h1{font-size:32px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

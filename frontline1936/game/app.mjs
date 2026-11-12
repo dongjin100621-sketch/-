@@ -1,7 +1,7 @@
-/* 전선과 공장: 동아시아 1936 — 화면 0.1
+/* 전선과 공장: 동아시아 1936 — 화면 0.2(장군·날씨, 지도 질감·부대 기호·아이콘·제목 글꼴)
  * 입력을 engine.dispatch로 보내고 돌려받은 상태만 그린다. 지도는 SVG 하나를 만들어 두고 색·부대 층만 고친다. */
 import * as E from './engine.mjs';
-import { index, mods, fmtDate, dateOf, atWar, friendly, isAtWar, enemiesOf, clamp, sum, distance, yearOf } from './core.mjs';
+import { index, mods, fmtDate, dateOf, dayOf, atWar, friendly, isAtWar, enemiesOf, clamp, sum, distance, yearOf } from './core.mjs';
 
 const data = globalThis.__DATA__ || await (await fetch('../data/game.json')).json();
 const MAP = globalThis.__MAP__ || await (await fetch('../data/map.json')).json();
@@ -36,10 +36,10 @@ function startNew() { state = E.createState(data, ui.pick, (Date.now() % 1e6) | 
 function startView() {
   const saved = loadAutosave();
   const cards = data.countries.filter(c => c.playable).map(c => `<button class="${ui.pick === c.id ? 'on' : ''}" data-action="pick" data-id="${c.id}"><b><span class="sw" style="background:${c.color}"></span>${esc(c.name)}</b><small>${esc(c.leader)} · ${esc(data.ideologies[c.ideology].name)}</small><span>${esc(c.summary)}</span></button>`).join('');
-  return `<div class="start"><div class="start-in">
+  return `<div class="start"><svg class="start-map" viewBox="60 120 2440 1700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path class="sm-halo" d="${COAST_D}"/><path class="sm-land" d="${COAST_D}"/></svg><div class="start-in">
   <div class="sub">1936년 1월 1일 ~ 1945년 12월 31일 · 하루 단위 대전략</div>
   <h1>전선과 공장: 동아시아 1936</h1>
-  <p class="lead">동아시아와 태평양의 208개 지역과 48개 해역. 국가 중점으로 나라의 길을 고르고, 시장 경제가 돌리는 공장에서 장비를 만들고, 사단을 설계해 전선을 지킨다. 실제 역사는 사건의 해설에 따로 적었고, 수치와 선택의 결과는 게임을 위한 창작이다.</p>
+  <p class="lead">동아시아와 태평양의 208개 지역과 48개 해역. 국가 중점으로 나라의 길을 고르고, 시장 경제가 돌리는 공장에서 장비를 만들고, 사단을 설계해 장군에게 맡기고, 만주의 눈보라와 남방의 우기·태풍 속에서 전선을 지킨다. 실제 역사는 사건의 해설에 따로 적었고, 수치와 선택의 결과는 게임을 위한 창작이다.</p>
   <h2 style="margin-top:22px">나라를 고르세요</h2>
   <div class="pick">${cards}</div>
   <div class="start-actions"><button class="primary" data-action="new">새 게임 — ${esc(data.countries.find(c => c.id === ui.pick).name)}</button>${saved ? `<button data-action="continue">이어 하기 (${fmtDate(saved.day)}, ${esc(saved.countries[saved.player].name)})</button>` : ''}<button data-action="openLoad">저장 불러오기</button><button data-action="help">게임 방법</button></div>
@@ -48,27 +48,48 @@ function startView() {
 }
 
 /* ---------- 틀 ---------- */
-const NAV = [['politics', '정치', '⚖'], ['focus', '국가 중점', '◆'], ['research', '연구', '⚗'], ['diplomacy', '외교', '⚑'], ['build', '건설', '⌂'], ['production', '생산', '⚙'], ['market', '시장', '¤'], ['design', '사단 설계', '▦'], ['army', '육군', '⚔'], ['navy', '해군', '⚓'], ['airforce', '공군', '✈'], ['log', '기록', '☰'], ['help', '도움말', '?']];
+/* ---------- 아이콘(직접 그린 선 그림, 24×24) ---------- */
+const ICONS = {
+  politics: 'M12 3v18M7 21h10M4 7h16M7 7l-3 6a3 3 0 0 0 6 0zM17 7l-3 6a3 3 0 0 0 6 0z',
+  focus: 'M12 3l8 9-8 9-8-9zM12 8l4 4-4 4-4-4z',
+  research: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M7.5 15h9',
+  diplomacy: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  build: 'M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6',
+  production: 'M3 21V9l5 3V9l5 3V9l5 3V5h3v16zM7 17h2M12 17h2M17 17h2',
+  market: 'M4 20V11M10 20V5M16 20v-8M21 20H3',
+  design: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  army: 'M4 4l16 16M20 4L4 20M4 4h4M4 4v4M20 4h-4M20 4v4',
+  leaders: 'M12 2l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17l-5.9 3 1.2-6.5L2.5 8.9 9.1 8z',
+  navy: 'M12 3v15M8 7h8M5 13a7 7 0 0 0 14 0M12 18v3',
+  airforce: 'M12 2l2 7 8 4v2l-8-2-1 5 3 2v1l-4-1-4 1v-1l3-2-1-5-8 2v-2l8-4z',
+  log: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6',
+  help: 'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 1.7V15M12 18.5v.5M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z'
+};
+const icon = id => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[id] || ''}"/></svg>`;
+const NAV = [['politics', '정치'], ['focus', '국가 중점'], ['research', '연구'], ['diplomacy', '외교'], ['build', '건설'], ['production', '생산'], ['market', '시장'], ['design', '사단 설계'], ['army', '육군'], ['leaders', '장군'], ['navy', '해군'], ['airforce', '공군'], ['log', '기록'], ['help', '도움말']];
+const MODES = [['political', '정치'], ['faction', '진영'], ['weather', '날씨'], ['terrain', '지형'], ['resources', '자원'], ['industry', '공업'], ['supply', '보급'], ['infra', '기반 시설']];
 function shell() {
   return `<div class="shell"><header class="topbar" id="top"></header>
-  <nav class="nav" aria-label="창">${NAV.map(([id, name, g]) => `<button data-action="nav" data-view="${id}" class="${ui.view === id ? 'on' : ''}" title="${name}"><span class="g" aria-hidden="true">${g}</span>${name}</button>`).join('')}</nav>
+  <nav class="nav" aria-label="창">${NAV.map(([id, name]) => `<button data-action="nav" data-view="${id}" class="${ui.view === id ? 'on' : ''}" title="${name}"><span class="g">${icon(id)}</span>${name}</button>`).join('')}</nav>
   <main class="stage" id="stage"><div class="map" id="map"></div>
-    <div class="mapmodes" role="group" aria-label="지도 모드">${[['political', '정치'], ['faction', '진영'], ['terrain', '지형'], ['resources', '자원'], ['industry', '공업'], ['supply', '보급'], ['infra', '기반 시설']].map(([id, n]) => `<button data-action="mapMode" data-mode="${id}" class="${ui.mapMode === id ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="mapmodes" role="group" aria-label="지도 모드">${MODES.map(([id, n]) => `<button data-action="mapMode" data-mode="${id}" class="${ui.mapMode === id ? 'on' : ''}">${n}</button>`).join('')}</div>
     <div class="zoom"><button data-action="zoom" data-z="0.75" aria-label="확대">+</button><button data-action="zoom" data-z="1.33" aria-label="축소">−</button><button data-action="fit" aria-label="전체 보기">⤢</button></div>
     <div class="legend" id="legend"></div><div class="hint" id="toast" hidden></div><div id="screen"></div></main>
   <aside class="side" id="side"></aside>
   <footer class="ticker" id="ticker"></footer></div>`;
 }
+const wxAt = id => E.wx.weatherOf(state, data, id);
 function topbar() {
-  const c = me(), sm = E.summary(state, data, state.player), M = mods(state, data, c);
-  const r = (k, v, title, view) => `<button class="r" data-action="nav" data-view="${view}" title="${esc(title)}"><small>${k}</small><b>${v}</b></button>`;
+  const c = me(), sm = E.summary(state, data, state.player);
+  const r = (k, v, title, view, cls = '') => `<button class="r ${cls}" data-action="nav" data-view="${view}" title="${esc(title)}"><small>${k}</small><b>${v}</b></button>`;
   const speeds = ['Ⅱ', '1', '2', '3', '4', '5'];
-  const res = `${r('정치력', num(sm.pp), '하루에 쌓인다. 법·전쟁 명분에 쓴다.', 'politics')}${r('안정도', pct(sm.stability), '낮으면 공장 산출이 줄어든다.', 'politics')}${r('전쟁 지지도', pct(sm.warSupport), '동원 법의 조건.', 'politics')}${r('인력', people(sm.manpower), '모집할 수 있는 사람.', 'army')}
-  ${r('민간 공장', num(sm.civ), '건설점을 만든다.', 'build')}${r('군수 공장', num(sm.arms, 1), '생산 라인에 배치한다.', 'production')}${r('조선소', num(sm.docks, 1), '함선을 만든다.', 'production')}${r('연료', pct(sm.fuel), '부족하면 기계화 부대·함대·항공기가 약해진다.', 'market')}${r('사단', num(sm.divisions), '육군', 'army')}${sm.blockade > .02 ? r('봉쇄', pct(sm.blockade), '적 잠수함이 무역을 줄인다.', 'navy') : ''}${isAtWar(state, c.id) ? r('전쟁', enemiesOf(state, c.id).length + '개국', '교전국', 'diplomacy') : ''}`;
+  const w = c.mapCapital ? wxAt(c.mapCapital) : null;
+  const res = `${r('정치력', num(sm.pp), '하루에 쌓인다. 법·전쟁 명분에 쓴다.', 'politics')}${r('안정도', pct(sm.stability), '낮으면 공장 산출이 줄어든다.', 'politics', sm.stability < .3 ? 'bad' : '')}${r('전쟁 지지도', pct(sm.warSupport), '동원 법의 조건.', 'politics')}${r('인력', people(sm.manpower), '모집할 수 있는 사람.', 'army')}
+  ${r('민간 공장', num(sm.civ), '건설점을 만든다.', 'build')}${r('군수 공장', num(sm.arms, 1), '생산 라인에 배치한다.', 'production')}${r('조선소', num(sm.docks, 1), '함선을 만든다.', 'production')}${r('연료', pct(sm.fuel), '부족하면 기계화 부대·함대·항공기가 약해진다.', 'market', sm.fuel < .6 ? 'bad' : '')}${r('사단', num(sm.divisions), '육군', 'army')}${sm.blockade > .02 ? r('봉쇄', pct(sm.blockade), '적 잠수함이 무역을 줄인다.', 'navy', 'bad') : ''}${isAtWar(state, c.id) ? r('전쟁', enemiesOf(state, c.id).length + '개국', '교전국', 'diplomacy', 'bad') : ''}${w ? r('수도 날씨', w.name, '지도의 날씨 모드에서 전 지역을 본다.', 'help') : ''}`;
   const top = $('#top');
-  if (top.dataset.who !== c.id) {
-    top.dataset.who = c.id;
-    top.innerHTML = `<div class="who"><span class="sw" style="background:${c.color}"></span><b>${esc(c.name)}</b></div><div class="res"></div>
+  if (top.dataset.who !== c.id + c.name) {
+    top.dataset.who = c.id + c.name;
+    top.innerHTML = `<div class="who"><span class="emblem" style="--c:${c.color}" aria-hidden="true"></span><span class="who-t"><b>${esc(c.name)}</b><small>${esc(data.ideologies[c.ideology].name)} · ${esc(data.countries.find(x => x.id === c.id).leader)}</small></span></div><div class="res"></div>
   <div class="clock"><span class="date"></span>${speeds.map((t, i) => `<button data-action="speed" data-s="${i}" aria-label="${i ? `속도 ${i}` : '멈춤'}">${t}</button>`).join('')}<button data-action="menu" aria-label="메뉴">☰</button></div>`;
   }
   const rs = top.querySelector('.res'); if (rs.dataset.h !== res) { rs.innerHTML = res; rs.dataset.h = res; }
@@ -82,25 +103,47 @@ function tickerHtml() {
 
 /* ---------- 지도 ---------- */
 const [, , MW, MH] = MAP.viewBox;
+const COAST_D = Object.values(MAP.regions).map(r => r.d).join('');
 function fitMap() {
   const c = state && (me().mapCapital ? R(me().mapCapital) : null);
-  const narrow = typeof innerWidth === 'number' && innerWidth < 700, w = narrow ? 520 : 1040, h = narrow ? 760 : 760;
+  const narrow = typeof innerWidth === 'number' && innerWidth < 700, w = narrow ? 520 : 1040, h = 760;
   if (c) ui.vb = { x: c.label[0] - w / 2, y: c.label[1] - h / 2, w, h };
   else ui.vb = { x: 0, y: 0, w: MW, h: MH };
 }
+/* 지형 무늬(정치·진영 모드에서 색 위에 옅게 겹친다) */
+const TEX = {
+  m: '<path d="M1,13l5-7 5,7M10,6l3-4 3,4" fill="none" stroke="#000" stroke-opacity=".38" stroke-width="1.1"/><path d="M6,6l1.6,2.2" stroke="#fff" stroke-opacity=".25"/>',
+  h: '<path d="M1,11q4-5 8,0M10,5q3-4 6,0" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1"/>',
+  f: '<circle cx="4" cy="4" r="1.6" fill="#000" fill-opacity=".22"/><circle cx="12" cy="10" r="1.6" fill="#000" fill-opacity=".22"/>',
+  j: '<circle cx="3" cy="3" r="1.5" fill="#000" fill-opacity=".26"/><circle cx="9" cy="7" r="1.5" fill="#000" fill-opacity=".26"/><circle cx="14" cy="12" r="1.5" fill="#000" fill-opacity=".26"/><path d="M5,13v-3" stroke="#000" stroke-opacity=".25"/>',
+  d: '<circle cx="3" cy="4" r=".7" fill="#fff" fill-opacity=".35"/><circle cx="11" cy="9" r=".7" fill="#fff" fill-opacity=".35"/><circle cx="7" cy="14" r=".6" fill="#000" fill-opacity=".25"/>',
+  s: '<path d="M2,5h5M9,11h5M4,15h4" stroke="#000" stroke-opacity=".3" stroke-width="1"/>',
+  u: '<rect x="3" y="3" width="3" height="3" fill="#000" fill-opacity=".22"/><rect x="10" y="9" width="3" height="3" fill="#000" fill-opacity=".22"/>'
+};
 function buildMap() {
   const el = $('#map'); if (!el) return;
-  const seas = Object.entries(MAP.seas).map(([id, s]) => `<path class="sea" data-sea="${id}" d="${s.d}"/>`).join('');
+  const seas = Object.entries(MAP.seas).map(([id, s]) => `<path class="sea" data-sea="${id}" id="sea_${id}" d="${s.d}"/>`).join('');
   const regs = Object.entries(MAP.regions).map(([id, r]) => `<path class="rg" data-r="${id}" id="rg_${id}" d="${r.d}"/>`).join('');
+  const tex = data.regions.filter(r => !r.offmap && TEX[r.terrain]).map(r => `<path d="${MAP.regions[r.id].d}" fill="url(#tx_${r.terrain})"/>`).join('');
   const isles = Object.entries(MAP.regions).filter(([, r]) => r.area < 25).map(([id, r]) => `<circle class="isle" cx="${r.label[0]}" cy="${r.label[1]}" r="9"/><circle data-r="${id}" cx="${r.label[0]}" cy="${r.label[1]}" r="10" fill="transparent" class="isle-hit"/>`).join('');
   const slbl = data.seas.map(s => `<text class="slbl" x="${s.label[0]}" y="${s.label[1]}">${esc(s.name)}</text>`).join('');
   const lbl = data.regions.filter(r => !r.offmap).map(r => `<text class="lbl ${r.area < 300 ? 'sm' : ''}" x="${r.label[0]}" y="${r.label[1] + (r.vp >= 10 ? 13 : 4)}">${esc(r.name.replace(/\(.*\)/, ''))}</text>${r.vp >= 10 ? `<path class="vp" d="M${r.label[0]},${r.label[1] - 7}l2.2,4.5 5,.7-3.6,3.5.9,5-4.5-2.4-4.5,2.4.9-5-3.6-3.5 5-.7z"/>` : ''}`).join('');
-  el.innerHTML = `<svg id="svg" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="동아시아·태평양 지도"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#ffe08a"/></marker><g id="pats"></g></defs>
-  <g id="g-seas">${seas}</g><g id="g-regions">${regs}</g><g id="g-borders"></g><g id="g-front"></g><g id="g-isles">${isles}</g><g id="g-slbl">${slbl}</g><g id="g-lbl">${lbl}</g><g id="g-over"></g></svg>`;
+  el.innerHTML = `<svg id="svg" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="동아시아·태평양 지도"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#ffe08a"/></marker>
+  <radialGradient id="seaGrad" gradientUnits="userSpaceOnUse" cx="${MW * .42}" cy="${MH * .38}" r="${MW * .75}"><stop offset="0" stop-color="#26506f"/><stop offset=".55" stop-color="#1b3a55"/><stop offset="1" stop-color="#112538"/></radialGradient>
+  ${Object.entries(TEX).map(([k, v]) => `<pattern id="tx_${k}" width="17" height="17" patternUnits="userSpaceOnUse">${v}</pattern>`).join('')}<g id="pats"></g></defs>
+  <rect x="${-MW}" y="${-MH}" width="${MW * 3}" height="${MH * 3}" fill="url(#seaGrad)"/>
+  <g id="g-seas">${seas}</g><path class="coast" d="${COAST_D}"/><path class="coast2" d="${COAST_D}"/><g id="g-regions">${regs}</g><g id="g-tex" class="tex">${tex}</g><g id="g-borders"></g><g id="g-front"></g><g id="g-isles">${isles}</g><g id="g-wx"></g><g id="g-clbl"></g><g id="g-slbl">${slbl}</g><g id="g-lbl">${lbl}</g><g id="g-over"></g></svg>`;
+  clblSig = '';
   bindMap(el);
   applyViewBox();
 }
-function applyViewBox() { const svg = $('#svg'); if (!svg || !ui.vb) return; const v = ui.vb; svg.setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); const z = MW / v.w; $('#g-lbl')?.setAttribute('style', `display:${z > 1.6 ? 'inline' : 'none'}`); $('#g-slbl')?.setAttribute('style', `display:${z > 1.2 ? 'inline' : 'none'}`); }
+function applyViewBox() {
+  const svg = $('#svg'); if (!svg || !ui.vb) return; const v = ui.vb; svg.setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`);
+  const z = MW / v.w;
+  $('#g-lbl')?.setAttribute('style', `display:${z > 1.9 ? 'inline' : 'none'}`); $('#g-slbl')?.setAttribute('style', `display:${z > 1.2 ? 'inline' : 'none'}`);
+  $('#g-clbl')?.setAttribute('style', `display:${z < 3.2 ? 'inline' : 'none'};opacity:${z > 1.9 ? .38 : 1}`);
+}
 function zoomAt(f, cx, cy) {
   const v = ui.vb, nw = clamp(v.w * f, 240, MW * 1.05), nh = nw * v.h / v.w;
   const px = cx ?? v.x + v.w / 2, py = cy ?? v.y + v.h / 2;
@@ -155,6 +198,7 @@ function orderTo(rid) {
   renderAll();
 }
 const TERRAIN_COL = { p: '#8a9a62', h: '#9b8b5f', m: '#7b6f63', f: '#4f7350', j: '#3f6b45', d: '#b8a57a', s: '#5c7d6f', u: '#8d8d8d' };
+const WX_COL = { clear: '#6f7f63', rain: '#4f7fa8', storm: '#2f5c96', snow: '#c9d3dc', blizzard: '#eef2f6', mud: '#7d5d3c', heat: '#c58640', typhoon: '#7f45a8' };
 const patterns = new Set();
 function stripe(owner, ctrl) {
   const id = `st_${owner}_${ctrl}`;
@@ -166,6 +210,7 @@ function regionFill(r) {
   const st = state.regions[r.id], mode = ui.mapMode;
   if (mode === 'political') return st.owner === st.controller ? C(st.controller).color : stripe(st.owner, st.controller);
   if (mode === 'faction') { const c = C(st.controller), f = c.faction || (c.overlord && C(c.overlord).faction); return f ? data.factions.find(x => x.id === f).color : atWar(state, state.player, st.controller) ? '#7a3b33' : '#5d6266'; }
+  if (mode === 'weather') return WX_COL[wxAt(r.id).code];
   if (mode === 'terrain') return TERRAIN_COL[r.terrain];
   if (mode === 'resources') { const v = sum(Object.values(r.res)); return v ? `hsl(${r.res.oil ? 280 : r.res.rubber ? 140 : r.res.rare ? 200 : 35},45%,${62 - Math.min(v, 8) * 4}%)` : '#555b5e'; }
   if (mode === 'industry') { const n = sum(['civ', 'arms', 'dock', 'steel', 'tools', 'chem', 'light'].map(b => st.b[b]?.level || 0)); return n ? `hsl(30,${30 + Math.min(n, 15) * 4}%,${30 + Math.min(n, 15) * 3}%)` : '#3c4245'; }
@@ -178,18 +223,83 @@ function regionFill(r) {
 }
 function legendHtml() {
   const m = ui.mapMode;
-  if (m === 'political') return '<b>정치</b><br>통제하는 나라의 색. 줄무늬는 점령지(옅은 줄 = 원래 주인). 별은 승점 10 이상의 도시.';
+  if (m === 'political') return '<b>정치</b><br>통제하는 나라의 색. 줄무늬는 점령지(옅은 줄 = 원래 주인). 별은 승점 10 이상의 도시, 겹원은 수도. 무늬는 지형.';
   if (m === 'faction') return `<b>진영</b><br>${data.factions.map(f => `<span class="sw" style="background:${f.color}"></span>${f.name}`).join(' ')}<br><span class="sw" style="background:#7a3b33"></span>나와 전쟁 중 <span class="sw" style="background:#5d6266"></span>무소속`;
+  if (m === 'weather') return `<b>날씨</b> (${fmtDate(state.day)})<br>${Object.entries(data.weather).map(([k, w]) => `<span class="sw" style="background:${WX_COL[k]}"></span>${w.name}`).join(' ')}<br><span class="mini">비·폭우·눈·진창은 공격·이동·보급을, 폭우·눈보라·태풍은 항공과 상륙을 막는다.</span>`;
   if (m === 'terrain') return `<b>지형</b><br>${Object.entries(data.terrain).map(([k, t]) => `<span class="sw" style="background:${TERRAIN_COL[k]}"></span>${t.name}`).join(' ')}`;
   if (m === 'resources') return '<b>자원</b> 보라: 석유, 초록: 고무, 파랑: 희소 금속, 갈색: 석탄·철. 진할수록 많다.';
   if (m === 'industry') return '<b>공업</b> 공장 단계가 많을수록 밝다.';
   if (m === 'supply') return '<b>보급</b> 초록일수록 보급 용량이 크다. 붉은 곳은 우리 땅이지만 보급이 닿지 않는다.';
   return '<b>기반 시설</b> 밝을수록 도로·철도가 좋다(이동·보급·공장 터).';
 }
+/* 큰 나라 이름: 같은 나라가 통제하는 이어진 땅마다 하나(멀리서 볼 때) */
+let clblSig = '';
+function countryLabels() {
+  const sig = data.regions.map(r => state.regions[r.id].controller).join(',') + Object.values(state.countries).map(c => c.mapCapital).join(',');
+  if (sig === clblSig) return; clblSig = sig;
+  const seen = new Set(), out = [];
+  for (const r of data.regions) {
+    if (r.offmap || seen.has(r.id)) continue;
+    const cid = state.regions[r.id].controller, cluster = [], q = [r.id]; seen.add(r.id);
+    while (q.length) { const id = q.pop(); cluster.push(R(id)); for (const n of R(id).adj) if (!seen.has(n) && state.regions[n].controller === cid) { seen.add(n); q.push(n); } }
+    const area = sum(cluster.map(x => x.area));
+    if (area < 1500) continue;
+    const cx = sum(cluster.map(x => x.label[0] * x.area)) / area, cy = sum(cluster.map(x => x.label[1] * x.area)) / area;
+    const near = cluster.reduce((a, x) => Math.hypot(x.label[0] - cx, x.label[1] - cy) < Math.hypot(a.label[0] - cx, a.label[1] - cy) ? x : a);
+    const fs = clamp(Math.sqrt(area) / 6.5, 13, 50);
+    out.push(`<text class="clbl" x="${near.label[0].toFixed(0)}" y="${(near.label[1] + fs * .35).toFixed(0)}" font-size="${fs.toFixed(1)}" letter-spacing="${(fs * .16).toFixed(1)}" stroke-width="${(fs / 9).toFixed(1)}">${esc(C(cid).short)}</text>`);
+  }
+  for (const c of Object.values(state.countries)) { if (!c.exists || !c.mapCapital || !R(c.mapCapital) || R(c.mapCapital).offmap) continue; const p = R(c.mapCapital).label; out.push(`<circle class="cap" cx="${p[0]}" cy="${p[1] - 2}" r="6.5"/><circle class="cap2" cx="${p[0]}" cy="${p[1] - 2}" r="3.2"/>`); }
+  $('#g-clbl').innerHTML = out.join('');
+}
+/* 날씨 기호 */
+const CLOUD = (x, y) => `M${x - 7},${y + 2}h14a3.6,3.6 0 0 0-1.6-6.8 5,5 0 0 0-9.4.8 3.2,3.2 0 0 0-3,6z`;
+function wxGlyph(code, x, y) {
+  switch (code) {
+    case 'rain': return `<path class="wx-c" d="${CLOUD(x, y)}"/><path class="wx-r" d="M${x - 4},${y + 5}l-1.5,4M${x},${y + 5}l-1.5,4M${x + 4},${y + 5}l-1.5,4"/>`;
+    case 'storm': return `<path class="wx-c dark" d="${CLOUD(x, y)}"/><path class="wx-b" d="M${x + 1},${y + 3}l-3,5h3l-2,5 5-7h-3l2-3z"/>`;
+    case 'snow': return `<path class="wx-s" d="M${x},${y - 6}v12M${x - 5.2},${y - 3}l10.4,6M${x - 5.2},${y + 3}l10.4-6"/>`;
+    case 'blizzard': return `<path class="wx-s" d="M${x},${y - 6}v12M${x - 5.2},${y - 3}l10.4,6M${x - 5.2},${y + 3}l10.4-6"/><path class="wx-w" d="M${x - 11},${y - 2}h5M${x - 12},${y + 2}h6M${x + 7},${y}h5"/>`;
+    case 'mud': return `<path class="wx-m" d="M${x - 8},${y - 2}q2-3 4,0t4,0t4,0t4,0M${x - 8},${y + 3}q2-3 4,0t4,0t4,0t4,0"/>`;
+    case 'heat': return `<circle class="wx-h" cx="${x}" cy="${y}" r="3.5"/><path class="wx-hr" d="M${x},${y - 8}v2.5M${x},${y + 5.5}v2.5M${x - 8},${y}h2.5M${x + 5.5},${y}h2.5M${x - 5.6},${y - 5.6}l1.8,1.8M${x + 3.8},${y + 3.8}l1.8,1.8M${x - 5.6},${y + 5.6}l1.8-1.8M${x + 3.8},${y - 3.8}l1.8-1.8"/>`;
+    case 'typhoon': return `<path class="wx-t" d="M${x},${y}m-7,0a7,7 0 0 1 12-5M${x},${y}m7,0a7,7 0 0 1-12,5"/><circle class="wx-te" cx="${x}" cy="${y}" r="2.4"/>`;
+    default: return '';
+  }
+}
+function weatherLayer() {
+  const all = ui.mapMode === 'weather', out = [];
+  for (const z of [...data.airZones, ...data.seas]) {
+    const code = state.weather?.[z.id]; if (!code || code === 'clear') continue;
+    if (!all && !['storm', 'blizzard', 'typhoon', 'mud'].includes(code)) continue;
+    const p = z.center || z.label;
+    out.push(`<g class="wx ${all ? '' : 'faint'}">${wxGlyph(code, p[0], p[1] + (z.center ? -26 : -22))}</g>`);
+  }
+  $('#g-wx').innerHTML = out.join('');
+}
+/* 부대 기호(사단 편제의 주력 병과) */
+const unitTypeCache = new Map();
+function unitType(tplId) {
+  if (unitTypeCache.has(tplId)) return unitTypeCache.get(tplId);
+  const t = E.mil.templateOf(state, data, tplId); let v = 'inf';
+  if (t) { const b = t.bat, n = sum(Object.values(b)) || 1; if (b.armor) v = 'arm'; else if ((b.motorized || 0) * 2 >= n) v = 'mot'; else if ((b.cavalry || 0) * 2 >= n) v = 'cav'; else if (b.marine || t.amphibiousBonus) v = 'mar'; else if (b.mountain) v = 'mtn'; }
+  unitTypeCache.set(tplId, v); return v;
+}
+function symbol(type, x, y) {
+  const s = 'class="sy"', box = `<rect class="sybox" x="${x}" y="${y}" width="14" height="9"/>`, X1 = `<path ${s} d="M${x},${y}L${x + 14},${y + 9}M${x + 14},${y}L${x},${y + 9}"/>`;
+  if (type === 'arm') return box + `<rect ${s} x="${x + 2.5}" y="${y + 2}" width="9" height="5" rx="2.5"/>`;
+  if (type === 'cav') return box + `<path ${s} d="M${x},${y + 9}L${x + 14},${y}"/>`;
+  if (type === 'mot') return box + X1 + `<path ${s} d="M${x + 7},${y}v9"/>`;
+  if (type === 'mar') return box + X1 + `<path ${s} d="M${x + 2.5},${y + 7.5}q2.25-2 4.5,0t4.5,0"/>`;
+  if (type === 'mtn') return box + X1 + `<path d="M${x + 4},${y + 9}l3-3.5 3,3.5z" fill="#1b1f23"/>`;
+  return box + X1;
+}
 function updateMap() {
   const svg = $('#svg'); if (!svg) return;
   for (const r of data.regions) { if (r.offmap) continue; const el = document.getElementById(`rg_${r.id}`); if (!el) continue; const f = regionFill(r); if (el.getAttribute('fill') !== f) el.setAttribute('fill', f); el.classList.toggle('sel', ui.sel.region === r.id); }
-  for (const el of svg.querySelectorAll('.sea')) el.classList.toggle('sel', ui.sel.sea === el.dataset.sea);
+  const wxMode = ui.mapMode === 'weather';
+  for (const s of data.seas) { const el = document.getElementById(`sea_${s.id}`); if (!el) continue; const code = wxAt(s.id).code, f = wxMode && code !== 'clear' ? WX_COL[code] : ''; if ((el.getAttribute('fill') || '') !== f) { if (f) el.setAttribute('fill', f); else el.removeAttribute('fill'); } el.classList.toggle('wxsea', wxMode); el.classList.toggle('sel', ui.sel.sea === s.id); }
+  $('#g-tex').style.display = ['political', 'faction'].includes(ui.mapMode) ? 'inline' : 'none';
+  countryLabels(); weatherLayer();
   // 나라 경계와 전선
   let bd = '', fr = '';
   for (const [k, dpath] of Object.entries(MAP.borders)) {
@@ -204,30 +314,39 @@ function updateMap() {
   const out = [];
   const byRegion = new Map();
   for (const dv of state.divisions) { if (!byRegion.has(dv.at)) byRegion.set(dv.at, []); byRegion.get(dv.at).push(dv); }
+  const led = new Set(); for (const a of state.armies) if (a.leader) for (const id of a.divisions) led.add(id);
   for (const [rid, list] of byRegion) {
     const r = R(rid), sea = X.seas.get(rid); const p = r ? r.label : sea ? sea.label : null; if (!p || r?.offmap) continue;
     const groups = new Map(); for (const dv of list) { const k = dv.owner; groups.set(k, (groups.get(k) || []).concat(dv)); }
     let i = 0;
     for (const [owner, l] of groups) {
       const mine = owner === state.player, enemy = atWar(state, state.player, owner);
-      const x = p[0] - 14 + i * 30, y = p[1] - 22; i++;
+      const x = p[0] - 17 + i * 37, y = p[1] - 24; i++;
       const sel = mine && l.some(dv => ui.sel.divisions.includes(dv.id));
-      const str = sum(l.map(dv => dv.str)) / l.length, org = sum(l.map(dv => dv.org)) / l.length;
-      out.push(`<g class="unit ${mine ? 'mine' : ''} ${sel ? 'sel' : ''}" data-unit="${rid}"><rect x="${x - 12}" y="${y - 9}" width="26" height="17" rx="2" fill="${C(owner).color}"/><text x="${x + 1}" y="${y + 3}">${l.length}</text><rect x="${x - 12}" y="${y + 9}" width="${26 * org}" height="3" fill="${enemy ? '#ff7a5c' : '#9fe08a'}" stroke="none"/></g>`);
+      const org = sum(l.map(dv => dv.org)) / l.length, str = sum(l.map(dv => dv.str)) / l.length;
+      const types = new Map(); for (const dv of l) { const t = unitType(dv.tpl); types.set(t, (types.get(t) || 0) + 1); }
+      const main = [...types].sort((a, b) => b[1] - a[1])[0][0];
+      const star = l.some(dv => led.has(dv.id)) ? `<path class="ustar" d="M${x + 14},${y - 13}l1.5,3 3.3.5-2.4,2.3.6,3.3-3-1.6-3,1.6.6-3.3-2.4-2.3 3.3-.5z"/>` : '';
+      out.push(`<g class="unit ${mine ? 'mine' : ''} ${sel ? 'sel' : ''} ${enemy ? 'foe' : ''}" data-unit="${rid}"><rect class="ub" x="${x - 16}" y="${y - 9}" width="34" height="18" rx="2.5" fill="${C(owner).color}"/>${symbol(main, x - 13, y - 5.5)}<text x="${x + 9.5}" y="${y + 4}">${l.length}</text><rect x="${x - 16}" y="${y + 9.5}" width="34" height="3.4" fill="#0b0e10" stroke="none"/><rect x="${x - 16}" y="${y + 9.5}" width="${34 * org}" height="1.7" fill="${enemy ? '#ff7a5c' : '#9fe08a'}" stroke="none"/><rect x="${x - 16}" y="${y + 11.2}" width="${34 * str}" height="1.7" fill="#e8d08a" stroke="none"/>${star}</g>`);
     }
   }
-  for (const b of Object.values(state.battles || {})) { const r = R(b.region); if (!r) continue; out.push(`<g class="battle"><circle cx="${r.label[0] + 18}" cy="${r.label[1] + 6}" r="8"/><text x="${r.label[0] + 18}" y="${r.label[1] + 9.5}">⚔</text></g>`); }
+  for (const b of Object.values(state.battles || {})) { const r = R(b.region); if (!r) continue; const x = r.label[0] + 21, y = r.label[1] + 7; out.push(`<g class="battle"><circle cx="${x}" cy="${y}" r="9"/><path d="M${x - 4.5},${y - 4.5}l9,9M${x + 4.5},${y - 4.5}l-9,9" /><circle class="bp" cx="${x}" cy="${y}" r="11.5" stroke-dasharray="${(72 * b.progress).toFixed(1)} 72"/></g>`); }
   const seaGroups = new Map();
-  for (const f of state.fleets) { const sea = X.seas.get(f.at), r = R(f.at); const p = sea ? sea.label : r && !r.offmap ? r.label : null; if (!p) continue; const k = `${f.at}`; seaGroups.set(k, (seaGroups.get(k) || []).concat(f)); }
+  for (const f of state.fleets) { const sea = X.seas.get(f.at), r = R(f.at); const p = sea ? sea.label : r && !r.offmap ? r.label : null; if (!p) continue; seaGroups.set(f.at, (seaGroups.get(f.at) || []).concat(f)); }
   for (const [at, list] of seaGroups) {
     const sea = X.seas.get(at), p = sea ? sea.label : R(at).label;
-    list.forEach((f, i) => { const n = sum(Object.entries(f.ships).filter(([k]) => k !== 'convoy').map(([, v]) => v)); if (!n && !f.ships.convoy) return; const x = p[0] + (sea ? -16 : 16) + (i % 3) * 30, y = p[1] + (sea ? 14 : -4) + Math.floor(i / 3) * 18; const sel = ui.sel.fleet === f.id; out.push(`<g class="fleet" data-fleet="${f.id}"><rect x="${x - 13}" y="${y - 7}" width="26" height="14" rx="7" fill="${C(f.owner).color}" stroke="${sel ? '#fff' : f.owner === state.player ? '#f0d48a' : '#0b0e10'}" stroke-width="${sel ? 2.4 : 1}"/><text x="${x}" y="${y + 3}">⚓${n}</text></g>`); });
+    list.forEach((f, i) => {
+      const n = sum(Object.entries(f.ships).filter(([k]) => k !== 'convoy').map(([, v]) => v)); if (!n && !f.ships.convoy) return;
+      const x = p[0] + (sea ? -18 : 18) + (i % 3) * 34, y = p[1] + (sea ? 16 : -4) + Math.floor(i / 3) * 18, sel = ui.sel.fleet === f.id;
+      const big = (f.ships.carrier || 0) + (f.ships.battleship || 0);
+      out.push(`<g class="fleet ${sel ? 'sel' : ''} ${f.owner === state.player ? 'mine' : ''}" data-fleet="${f.id}"><path class="hull" d="M${x - 15},${y - 2}h30l-5,7h-21z" fill="${C(f.owner).color}"/>${big ? `<rect x="${x - 6}" y="${y - 7}" width="9" height="5" fill="${C(f.owner).color}" class="hull"/>` : `<rect x="${x - 3}" y="${y - 5}" width="5" height="3" fill="${C(f.owner).color}" class="hull"/>`}${f.mission === 'raid' ? `<path class="sub" d="M${x - 12},${y + 8}h24"/>` : ''}<text x="${x + 1}" y="${y + 3.6}">${n || f.ships.convoy}</text>${f.leader ? `<path class="ustar" d="M${x + 15},${y - 9}l1.2,2.4 2.6.4-1.9,1.8.5,2.6-2.4-1.3-2.4,1.3.5-2.6-1.9-1.8 2.6-.4z"/>` : ''}</g>`);
+    });
   }
   // 고른 사단의 명령 화살표
   for (const dv of state.divisions) {
     if (!ui.sel.divisions.includes(dv.id) || !dv.order) continue;
     const from = (R(dv.at) || X.seas.get(dv.at))?.label; if (!from) continue;
-    if (dv.order.type === 'move') { let pts = [from]; for (const step of dv.order.path) { const p = (R(step.node) || X.seas.get(step.node))?.label; if (p) pts.push(p); } if (pts.length > 1) out.push(`<path class="arrow" d="M${pts.map(p => p.join(',')).join('L')}"/>`); }
+    if (dv.order.type === 'move') { const pts = [from]; for (const step of dv.order.path) { const q = (R(step.node) || X.seas.get(step.node))?.label; if (q) pts.push(q); } if (pts.length > 1) out.push(`<path class="arrow" d="M${pts.map(q => q.join(',')).join('L')}"/>`); }
     else { const to = R(dv.order.target)?.label; if (to) out.push(`<path class="arrow atk" d="M${from.join(',')}L${to.join(',')}"/>`); }
   }
   $('#g-over').innerHTML = out.join('');
@@ -244,17 +363,26 @@ function sideHtml() {
   return '';
 }
 const close = '<button class="small" data-action="clearSel" style="float:right">닫기</button>';
+function wxLine(id) {
+  const w = wxAt(id), fx = [];
+  if (w.attack) fx.push(`공격 ${pct(w.attack)}`); if (w.move < 1) fx.push(`이동 ×${w.move}`); if (w.supply < 1) fx.push(`보급 ×${w.supply}`); if (w.air < 1) fx.push(`항공 ×${w.air}`); if (w.noLanding) fx.push('상륙 불가'); if (w.attrition) fx.push('소모');
+  return `<span class="wxchip" style="--w:${WX_COL[w.code]}">${esc(w.name)}</span>${fx.length ? ` <span class="mini">${fx.join(', ')}</span>` : ''}`;
+}
+const armyOf = dv => dv.army && state.armies.find(a => a.id === dv.army);
+const leaderName = a => a && a.leader ? state.leaders[a.leader].name : '';
 function divRow(dv) {
   const st = E.mil.divisionStats(state, data, dv), o = dv.order;
   const ord = !o ? '대기' : o.type === 'move' ? `이동 → ${esc(R(o.dest)?.name || X.seas.get(o.dest)?.name || '')}` : o.type === 'attack' ? `공격 → ${esc(R(o.target).name)}` : `상륙 준비 → ${esc(R(o.target).name)} (${o.prep}일)`;
-  return `<button class="div ${ui.sel.divisions.includes(dv.id) ? 'sel' : ''}" data-action="toggleDiv" data-id="${dv.id}"><b>${esc(dv.name)} <span class="mini">${esc(dv.tplName)}</span></b><span class="mini">${ord}</span><div class="bars">${bar(dv.str, 'good')}${bar(dv.org, 'cool')}</div><span class="mini">병력 ${pct(dv.str)} · 조직력 ${pct(dv.org)} · 보급 ${pct(dv.sup ?? 1)}</span><span class="mini">공격 ${num(st.soft)} · 방어 ${num(st.def)}</span></button>`;
+  const ar = armyOf(dv);
+  return `<button class="div ${ui.sel.divisions.includes(dv.id) ? 'sel' : ''}" data-action="toggleDiv" data-id="${dv.id}"><b>${esc(dv.name)} <span class="mini">${esc(dv.tplName)}${ar ? ` · ${esc(ar.name)}${ar.leader ? '★' : ''}` : ''}</span></b><span class="mini">${ord}</span><div class="bars">${bar(dv.str, 'good')}${bar(dv.org, 'cool')}</div><span class="mini">병력 ${pct(dv.str)} · 조직력 ${pct(dv.org)} · 보급 ${pct(dv.sup ?? 1)}</span><span class="mini">공격 ${num(st.soft)} · 방어 ${num(st.def)}</span></button>`;
 }
 function divisionPanel() {
   const list = state.divisions.filter(dv => ui.sel.divisions.includes(dv.id));
   if (!list.length) { ui.sel.divisions = []; return ''; }
   const here = R(list[0].at) || X.seas.get(list[0].at);
   return `${close}<h2>사단 ${list.length}개</h2><p class="muted">${esc(here?.name || '')}에 있음. <b>지도에서 지역을 누르면</b> 이동합니다. 맞닿은 적 지역은 공격, 바다 건너 적 해안은 상륙(아군 항구에서 출발, 해상 우세 필요)입니다.</p>
-  <div class="btns"><button class="small" data-action="stopDivs">멈춤</button><button class="small" data-action="selectRegionDivs">이 지역 전체</button><button class="small" data-action="clearSel">선택 해제</button></div>
+  <div class="btns"><button class="small" data-action="stopDivs">멈춤</button><button class="small" data-action="selectRegionDivs">이 지역 전체</button><button class="small" data-action="formArmy">군 편성·장군 배치</button><button class="small" data-action="clearSel">선택 해제</button></div>
+  ${(() => { const as = [...new Set(list.map(dv => armyOf(dv)).filter(Boolean))]; return as.length ? `<p class="mini">소속: ${as.map(a => `${esc(a.name)}${a.leader ? `(${esc(leaderName(a))})` : ''}`).join(', ')}</p>` : '<p class="mini">군에 속하지 않은 사단입니다. 군으로 묶으면 장군의 능력이 붙습니다.</p>'; })()}
   <div style="margin-top:10px">${list.map(divRow).join('')}</div>`;
 }
 function regionPanel(rid) {
@@ -273,7 +401,8 @@ function regionPanel(rid) {
   <span>지형</span><b>${t.name} (공격 ×${t.attack}, 방어 +${pct(t.def)}, 전투 폭 ${t.width})</b>
   <span>승점</span><b>${r.vp}</b><span>인구</span><b>${num(r.pop * 10, 0)}만 명</b>
   <span>시설</span><b>기반 ${st.infra} · 항구 ${st.port} · 비행장 ${st.air} · 요새 ${st.fort}${st.damage ? ` · <span class="bad">폭격 손상 ${pct(st.damage)}</span>` : ''}</b>
-  <span>항공 구역</span><b>${esc(X.airZones.get(r.airZone)?.name || '')}</b>${r.coast.length ? `<span>바다</span><b>${r.coast.map(z => esc(X.seas.get(z).name)).join(', ')}</b>` : ''}</div>
+  <span>날씨</span><b>${wxLine(rid)}</b>
+  <span>항공 구역</span><b>${esc(X.airZones.get(r.airZone)?.name || '')} · ${esc(data.climates[X.airZones.get(r.airZone).climate].name)}</b>${r.coast.length ? `<span>바다</span><b>${r.coast.map(z => esc(X.seas.get(z).name)).join(', ')}</b>` : ''}</div>
   <h3 style="margin-top:10px">자원</h3><div>${res}</div><h3 style="margin-top:8px">건물</h3><div>${blds}</div>
   ${quick ? `<h3 style="margin-top:8px">짓기</h3><div class="btns">${quick}</div>` : ''}
   ${b ? `<h3 style="margin-top:10px" class="bad">전투 중</h3><p class="mini">공격 ${num(b.attack)} 대 방어 ${num(b.defense)} · 방어 쪽 피해 ${num(b.hitsOnDef, 1)}/일, 공격 쪽 ${num(b.hitsOnAtt, 1)}/일 · 제공권 ${pct(b.air)}</p>${bar(b.progress, 'bad')}` : ''}
@@ -283,7 +412,7 @@ function regionPanel(rid) {
 function seaPanel(sid) {
   const s = X.seas.get(sid), sup = state.navSup[sid] || {};
   const fl = state.fleets.filter(f => f.at === sid);
-  return `${close}<h2>${esc(s.name)}</h2><p class="muted">해상 우세: ${Object.entries(sup).map(([k, v]) => `${esc(C(k).short)} ${pct(v)}`).join(', ') || '순찰하는 함대 없음'}</p>
+  return `${close}<h2>${esc(s.name)}</h2><p>날씨: ${wxLine(sid)} · ${esc(data.climates[s.climate].name)}</p><p class="muted">해상 우세: ${Object.entries(sup).map(([k, v]) => `${esc(C(k).short)} ${pct(v)}`).join(', ') || '순찰하는 함대 없음'}</p>
   ${fl.map(f => `<p><span class="tag ${atWar(state, state.player, f.owner) ? 'war' : f.owner === state.player ? 'ok' : 'ally'}">${esc(C(f.owner).short)}</span> ${esc(f.name)} — ${shipList(f)} (${esc(missionName(f.mission))})</p>`).join('')}
   <p class="mini">맞닿은 해안: ${s.coast.map(r => esc(R(r).name)).join(', ') || '없음'}</p>`;
 }
@@ -294,6 +423,7 @@ function fleetPanel() {
   const where = X.seas.get(f.at)?.name || R(f.at)?.name;
   const dmg = f.damage ? sum(Object.entries(f.damage).map(([k, v]) => v)) / Math.max(1, sum(Object.entries(f.ships).map(([k, n]) => X.ships.get(k).hp * n))) : 0;
   return `${close}<h2>${esc(f.name)}</h2><p>${shipList(f)}</p><div class="kv"><span>위치</span><b>${esc(where)}${f.path?.length ? ` → ${esc(X.seas.get(f.path.at(-1))?.name || R(f.path.at(-1))?.name)}` : ''}</b><span>임무</span><b>${missionName(f.mission)}</b><span>손상</span><b>${pct(dmg)}</b><span>전력</span><b>${num(E.mil.fleetStrength(state, data, f))}</b></div>
+  <label class="mini">제독 <select data-action="setFleetAdmiral" data-id="${f.id}"><option value="">없음</option>${Object.values(state.leaders).filter(L => L.country === state.player && L.kind === 'navy' && E.mil.leaderAvailable(state, data, L.id)).map(L => `<option value="${L.id}" ${f.leader === L.id ? 'selected' : ''}>${esc(L.name)} ${'★'.repeat(L.skill)}${L.fleet && L.fleet !== f.id ? ' (다른 함대)' : ''}</option>`).join('')}</select></label>
   <p class="muted" style="margin-top:8px"><b>지도에서 해역이나 아군 항구를 누르면</b> 그곳으로 갑니다.</p>
   <div class="btns">${['patrol', 'raid', 'escort', 'port'].map(m => `<button class="small ${f.mission === m ? 'primary' : ''}" data-action="fleetMission" data-id="${f.id}" data-m="${m}">${missionName(m)}</button>`).join('')}</div>
   <p class="mini" style="margin-top:8px">순찰: 해상 우세를 잡고 적 함대와 싸운다(상륙의 조건). 통상 파괴: 잠수함이 적 무역과 보급을 끊는다. 호위: 우리 수송을 지킨다. 정박: 항구에서 수리한다.</p>`;
@@ -310,7 +440,7 @@ function wingPanel() {
 function screenHtml() {
   const v = ui.view; if (!v) return '';
   const head = (t, extra = '') => `<div class="screen-head"><h1>${t}</h1>${extra}<button data-action="closeView">지도로 (Esc)</button></div>`;
-  const body = { politics, focus: focusView, research, diplomacy, build: buildView, production, market, design, army, navy, airforce, log: logView, help: helpView }[v];
+  const body = { politics, focus: focusView, research, diplomacy, build: buildView, production, market, design, army, leaders: leadersView, navy, airforce, log: logView, help: helpView }[v];
   return `<section class="screen" aria-label="${esc(NAV.find(n => n[0] === v)?.[1] || '')}">${head(NAV.find(n => n[0] === v)[1])}${body()}</section>`;
 }
 function politics() {
@@ -463,6 +593,30 @@ function army() {
   <h2 style="margin-top:14px">훈련</h2>${tr ? `<div class="scroll-x"><table><tbody>${tr}</tbody></table></div>` : '<p class="muted">사단 설계 창에서 모집합니다.</p>'}
   <h2 style="margin-top:14px">배치 (${list.length}개 사단)</h2><div class="cards">${groups || '<p class="muted">사단이 없습니다.</p>'}</div>`;
 }
+function leadersView() {
+  const c = me(), armies = state.armies.filter(a => a.owner === c.id), fleets = state.fleets.filter(f => f.owner === c.id);
+  const list = Object.values(state.leaders).filter(L => L.country === c.id).sort((a, b) => (E.mil.leaderAvailable(state, data, b.id) - E.mil.leaderAvailable(state, data, a.id)) || (a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : 0) || b.skill - a.skill);
+  const status = L => {
+    const def = X.leaders.get(L.id);
+    if (!E.mil.leaderAvailable(state, data, L.id)) { if (def.from && state.day < dayOf(def.from)) return `<span class="tag">${def.from.slice(0, 4)}년 ${+def.from.slice(5, 7)}월부터</span>`; if (def.flag && !state.flags[def.flag]) return '<span class="tag">사건 뒤</span>'; return '<span class="tag">물러남</span>'; }
+    if (L.army) return `<span class="tag ok">${esc(armies.find(a => a.id === L.army)?.name || '')} 지휘</span>`;
+    if (L.fleet) return `<span class="tag ok">${esc(fleets.find(f => f.id === L.fleet)?.name || '')} 지휘</span>`;
+    return '<span class="tag">대기</span>';
+  };
+  const card = L => {
+    const def = X.leaders.get(L.id), avail = E.mil.leaderAvailable(state, data, L.id);
+    const opts = L.kind === 'army' ? armies.map(a => `<option value="${a.id}" ${L.army === a.id ? 'selected' : ''}>${esc(a.name)} (${a.divisions.length}개 사단)</option>`) : fleets.map(f => `<option value="${f.id}" ${L.fleet === f.id ? 'selected' : ''}>${esc(f.name)}</option>`);
+    return `<div class="card leader ${avail ? '' : 'off'}"><div class="lhead"><span class="badge" style="--c:${c.color}">${esc(L.name.slice(0, 1))}</span><div class="lname"><h3>${esc(L.name)}</h3><span class="mini">${L.kind === 'army' ? '육군' : '해군'} · <span class="stars">${'★'.repeat(L.skill)}</span>${L.xp ? ` · 경험 ${pct(L.xp / (1 + L.skill * .4))}` : ''}</span></div>${status(L)}</div>
+    <div class="lstats">${[['공격', L.atk], ['방어', L.def], ['계획', L.plan], ['보급', L.log]].map(([k, v]) => `<span>${k}</span>${bar(v / 7, 'cool')}<b>${v}</b>`).join('')}</div>
+    <div>${L.traits.map(tr => `<span class="tag" title="${esc(data.traits[tr].desc)}">${esc(data.traits[tr].name)}</span>`).join('')}</div>
+    <p class="mini">${esc(def.note)}</p>
+    ${avail ? `<label class="mini">${L.kind === 'army' ? '지휘할 군' : '지휘할 함대'} <select data-action="${L.kind === 'army' ? 'setLeaderArmy' : 'setLeaderFleet'}" data-id="${L.id}"><option value="">대기</option>${opts.join('')}</select></label>` : ''}</div>`;
+  };
+  const rows = armies.map(a => { const regs = [...new Set(a.divisions.map(id => state.divisions.find(dv => dv.id === id)?.at).filter(Boolean))]; return `<tr><td><b>${esc(a.name)}</b></td><td>${a.leader ? esc(state.leaders[a.leader].name) : '<span class="muted">없음</span>'}</td><td>${a.divisions.length}</td><td style="white-space:normal;text-align:left">${regs.slice(0, 4).map(r => esc(R(r)?.name || X.seas.get(r)?.name || '')).join(', ')}${regs.length > 4 ? ' 외' : ''}</td><td><button class="small" data-action="selectArmy" data-id="${a.id}">지도에서 고르기</button><button class="small" data-action="disbandArmy" data-id="${a.id}">해산</button></td></tr>`; }).join('');
+  return `<p class="muted">장군은 군(사단 묶음)을, 제독은 함대를 지휘합니다. 공격·방어는 1점에 4%, 계획은 조직력 회복을 빠르게, 보급은 보급 사용을 줄입니다. 특성은 지형·날씨·상륙에서 더 힘을 냅니다. 전투를 치르면 경험이 쌓여 능력이 오릅니다. 지도에서 ★가 붙은 부대 표는 장군이 지휘하는 군입니다.</p>
+  <h2>군 ${armies.length}</h2>${rows ? `<div class="scroll-x"><table><thead><tr><th>군</th><th>장군</th><th>사단</th><th>위치</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="muted">지도에서 사단을 고른 뒤 옆 패널의 "군 편성·장군 배치"를 누르세요.</p>'}
+  <h2 style="margin-top:14px">장군·제독</h2><div class="cards">${list.map(card).join('') || '<p class="muted">이 나라에는 이름난 지휘관 자료가 없습니다.</p>'}</div>`;
+}
 function navy() {
   const list = state.fleets.filter(f => f.owner === state.player);
   return `<p class="mini">함대를 고른 뒤 지도에서 해역이나 아군 항구를 누르면 이동합니다. 상륙하려면 목표 앞바다를 순찰해 해상 우세(50% 이상)를 잡아야 합니다. 잠수함은 통상 파괴로 적의 무역과 보급을 끊습니다.</p>
@@ -485,6 +639,8 @@ function helpView() {
   <div class="card"><h3>지도</h3><p>끌어서 움직이고 휠·두 손가락으로 확대합니다. 지역을 누르면 정보와 건설, 우리 사단 표를 누르면 사단을 고릅니다. 사단을 고른 채 지역을 누르면 이동·공격·상륙 명령입니다. 붉은 점선은 전선입니다.</p></div>
   <div class="card"><h3>경제와 공장</h3><p>민간 공장은 건설점을, 군수 공장은 생산 라인의 장비를, 조선소는 배를 만듭니다. 모든 공장은 나라마다 따로 도는 시장에서 원료(강철·고무·희소 금속·석유·공구)를 삽니다. 원료가 부족하면 느려지고, 금수와 봉쇄는 수입을 막습니다.</p></div>
   <div class="card"><h3>국가 중점·연구·법</h3><p>국가 중점은 하나씩 진행해 공장·사단·명분·국가 정신을 얻습니다. 연구는 칸마다 하나씩. 법은 정치력으로 바꾸며 동원 법에는 전쟁 지지도가 필요합니다.</p></div>
+  <div class="card"><h3>날씨</h3><p>항공 구역과 바다마다 날마다 날씨가 바뀝니다. 겨울 만주의 눈보라, 봄의 진창, 여름 장마와 남아시아의 우기, 태평양의 태풍. 공격·이동·보급·항공이 약해지고, 폭우·눈보라·태풍에는 상륙할 수 없습니다. 남반구는 계절이 반대입니다. 지도의 '날씨' 모드에서 봅니다.</p></div>
+  <div class="card"><h3>장군·제독</h3><p>사단을 골라 군으로 묶으면 장군이 지휘합니다(공격·방어·계획·보급과 지형·혹한·상륙 특성). 제독은 함대에 붙어 화력을 높입니다. 실제 인물이며, 일부는 정해진 시기에만 지휘할 수 있습니다.</p></div>
   <div class="card"><h3>전투</h3><p>공격 쪽의 공격이 방어 쪽의 방어보다 크면 피해가 크게 늘어납니다. 조직력이 바닥난 방어 사단은 물러나고, 물러날 곳이 없으면 포위되어 무너집니다. 보급이 모자라면 약해지고 소모됩니다. 지형·요새·제공권·연료가 결과를 바꿉니다.</p></div>
   <div class="card"><h3>항복과 승리</h3><p>본토의 승점 대부분을 잃으면 항복합니다(지도 밖 본국이 있는 미국·영국·소련은 본국이 남아 있는 한 항복하지 않습니다). 1945년 12월 31일 또는 일본의 항복으로 끝납니다.</p></div>
   <div class="card"><h3>역사와 창작</h3><p>사건의 '(역사)' 선택지는 실제로 일어난 쪽, '(가상)'은 이 게임의 가정입니다. 사건마다 실제 역사를 따로 적었습니다. 전쟁 범죄와 민간인 피해는 게임의 보상으로 쓰지 않습니다.</p></div></div>`;
@@ -498,7 +654,7 @@ function modalHtml() {
   const p = state.pending[0];
   if (p) {
     const ev = X.events.get(p.event);
-    return `<div class="modal-back"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="evt"><h2 id="evt">${esc(ev.title)}</h2><p class="mini">${fmtDate(state.day)}</p><p>${esc(ev.desc)}</p><div class="hist"><b>실제 역사</b> ${esc(ev.history)}</div><div class="opts">${ev.options.map((o, i) => `<button data-action="eventOpt" data-id="${ev.id}" data-o="${i}">${esc(o.name)}<small>${esc(eventFxText(o.fx))}</small></button>`).join('')}</div></div></div>`;
+    return `<div class="modal-back"><div class="modal paper" role="dialog" aria-modal="true" aria-labelledby="evt"><div class="stamp">${fmtDate(state.day)} · ${esc(C(p.country).name)}</div><h2 id="evt">${esc(ev.title)}</h2><p>${esc(ev.desc)}</p><div class="hist"><b>실제 역사</b> ${esc(ev.history)}</div><div class="opts">${ev.options.map((o, i) => `<button data-action="eventOpt" data-id="${ev.id}" data-o="${i}">${esc(o.name)}<small>${esc(eventFxText(o.fx))}</small></button>`).join('')}</div></div></div>`;
   }
   if (state.ended && ui.modal !== 'hideEnd') return endHtml();
   return '';
@@ -574,6 +730,9 @@ document.addEventListener('click', e => {
     case 'toggleDiv': { const s = new Set(ui.sel.divisions); s.has(id) ? s.delete(id) : s.add(id); if (!ui.sel.divisions.length) ui.sel = { region: ui.sel.region, divisions: [id], fleet: null, wing: null }; else ui.sel.divisions = [...s]; renderAll(); break; }
     case 'selectRegionDivs': { const rid = b.dataset.region || (state.divisions.find(dv => dv.id === ui.sel.divisions[0]) || {}).at; ui.sel = { region: rid, divisions: state.divisions.filter(dv => dv.owner === state.player && dv.at === rid).map(dv => dv.id), fleet: null, wing: null }; ui.view = null; if (R(rid)?.label) { ui.vb = { ...ui.vb, x: R(rid).label[0] - ui.vb.w / 2, y: R(rid).label[1] - ui.vb.h / 2 }; applyViewBox(); } renderAll(); break; }
     case 'stopDivs': act({ type: 'stop', divisions: ui.sel.divisions }); break;
+    case 'formArmy': { const r = act({ type: 'formArmy', divisions: ui.sel.divisions }); if (r.ok) { const ar = state.armies.find(x => x.id === r.id); toast(`${ar.name}을(를) 편성했습니다${ar.leader ? ` — 지휘: ${state.leaders[ar.leader].name}` : ' (남은 장군이 없습니다)'}.`); } break; }
+    case 'selectArmy': { const ar = state.armies.find(x => x.id === id); if (ar) { ui.sel = { region: null, divisions: [...ar.divisions], fleet: null, wing: null }; ui.view = null; const dv = state.divisions.find(x => x.id === ar.divisions[0]); const p = dv && (R(dv.at) || X.seas.get(dv.at))?.label; if (p) { ui.vb = { ...ui.vb, x: p[0] - ui.vb.w / 2, y: p[1] - ui.vb.h / 2 }; applyViewBox(); } renderAll(); } break; }
+    case 'disbandArmy': act({ type: 'disbandArmy', army: id }); break;
     case 'focusInfo': ui.focusInfo = id; renderAll(); break;
     case 'focus': act({ type: 'focus', id }); break;
     case 'cancelFocus': act({ type: 'cancelFocus' }); break;
@@ -617,6 +776,9 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.action === 'buildRegion') { ui.buildRegion = t.value; renderAll(); }
+  if (t.dataset.action === 'setLeaderArmy') { const L = state.leaders[t.dataset.id]; if (t.value) act({ type: 'assignLeader', army: t.value, leader: L.id }); else if (L.army) act({ type: 'assignLeader', army: L.army, leader: null }); }
+  if (t.dataset.action === 'setLeaderFleet') { const L = state.leaders[t.dataset.id]; if (t.value) act({ type: 'assignAdmiral', fleet: t.value, leader: L.id }); else if (L.fleet) act({ type: 'assignAdmiral', fleet: L.fleet, leader: null }); }
+  if (t.dataset.action === 'setFleetAdmiral') { if (t.value) act({ type: 'assignAdmiral', fleet: t.dataset.id, leader: t.value }); else act({ type: 'assignAdmiral', fleet: t.dataset.id, leader: null }); }
 });
 document.addEventListener('input', e => { if (e.target.dataset.action === 'tplName') ui.design.name = e.target.value; });
 document.addEventListener('keydown', e => {

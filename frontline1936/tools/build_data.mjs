@@ -9,6 +9,7 @@ import { COUNTRIES, FACTIONS, RELEASABLE } from '../data/src/countries.mjs';
 import * as R from '../data/src/rules.mjs';
 import { FOCUS_TREES, AI_FOCUS_ORDER } from '../data/src/focus.mjs';
 import { EVENTS, SYSTEM_EVENTS } from '../data/src/events.mjs';
+import { LEADERS, TRAITS } from '../data/src/leaders.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const map = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/map.json'), 'utf8'));
@@ -86,6 +87,36 @@ for (const r of regions) if (!r.offmap) r.airZone = zones.find(z => z.regions.in
   const biggest = [...size].sort((a, b) => b[1] - a[1])[0][0], japan = seen.get('kanto');
   for (const r of regions) if (!r.offmap) r.landmass = seen.get(r.id) === biggest ? 'eurasia' : seen.get(r.id) === japan ? 'japan_home' : `m${seen.get(r.id)}`;
 }
+// 기후: 항공 구역·해역의 중심 좌표(위도·경도)로 기후대를 정한다. 남반구는 계절을 뒤집는다.
+{
+  const P = map.projection, mercTop = Math.log(Math.tan(Math.PI / 4 + P.latTop * Math.PI / 360)) * 180 / Math.PI;
+  const lonlat = ([x, y]) => { let lon = x / P.scale + P.lon0; if (lon > 180) lon -= 360; const ym = (mercTop - y / P.scale) * Math.PI / 180; return [lon, (2 * Math.atan(Math.exp(ym)) - Math.PI / 2) * 180 / Math.PI]; };
+  const HIGH = ['lhasa', 'ngari', 'chamdo', 'qinghai_w', 'xining', 'xikang', 'nepal', 'bhutan'];
+  const ARID = ['gobi', 'khovd', 'alxa', 'hexi', 'hami', 'kashgar', 'khotan', 'urumqi', 'yinchuan', 'urga', 'dornod', 'outback', 'kimberley', 'rajputana', 'semipalatinsk', 'almaty'];
+  const landClimate = (lat, lon, ids) => {
+    const a = Math.abs(lat);
+    if (ids.filter(r => HIGH.includes(r)).length * 2 >= ids.length) return 'highland';
+    if (ids.filter(r => ARID.includes(r)).length * 2 >= ids.length) return 'arid';
+    if (a >= 46) return 'frigid'; if (a >= 37) return 'cold'; if (a >= 28) return 'temperate'; if (a >= 19) return 'subtropical'; if (a >= 8) return 'monsoon'; return 'equatorial';
+  };
+  for (const z of zones) { const [lon, lat] = lonlat(z.center); z.lat = Math.round(lat * 10) / 10; z.lon = Math.round(lon * 10) / 10; z.climate = landClimate(lat, lon, z.regions); z.south = lat < 0; }
+  for (const s of seas) {
+    const [lon, lat] = lonlat(s.label), a = Math.abs(lat), lon360 = lon < 0 ? lon + 360 : lon;
+    s.lat = Math.round(lat * 10) / 10; s.lon = Math.round(lon * 10) / 10; s.south = lat < 0;
+    s.climate = a >= 40 ? 'sea_cold' : a >= 8 && a <= 36 && lon360 >= 105 && lon360 <= 175 ? 'sea_typhoon' : a < 12 ? 'sea_tropical' : 'sea_temperate';
+  }
+  for (const z of [...zones, ...seas]) if (!R.CLIMATES[z.climate]) err(`기후 없음: ${z.id}`);
+}
+const LEADER_CHECK = () => {
+  const ids = new Set();
+  for (const l of LEADERS) {
+    if (ids.has(l.id)) err(`장군 ID 중복: ${l.id}`); ids.add(l.id);
+    if (!cids.has(l.country)) err(`${l.id}: 나라 ${l.country}`);
+    for (const k of ['skill', 'atk', 'def', 'plan', 'log']) if (!(l[k] >= 1 && l[k] <= 5)) err(`${l.id}.${k}`);
+    for (const t of l.traits) if (!TRAITS[t]) err(`${l.id}: 특성 ${t}`);
+    if (!['army', 'navy'].includes(l.kind)) err(`${l.id}: 종류`);
+  }
+};
 // 식민지(일본의 국가 정신 '식민 통치'가 산출을 깎는 곳): 조선·타이완
 const COLONY = new Set([...RELEASABLE.find(c => c.id === 'korea').cores, 'taiwan']);
 for (const r of regions) if (COLONY.has(r.id)) r.colony = true;
@@ -107,6 +138,7 @@ for (const c of allCountries) {
   const sum = Object.values(c.popularity).reduce((a, b) => a + b, 0); if (Math.abs(sum - 100) > .01) err(`${c.id}: 지지율 합 ${sum}`);
   if (!c.releasable && !regions.some(r => r.owner === c.id)) err(`${c.id}: 지역이 없다`);
 }
+LEADER_CHECK();
 // 건물·자원
 const bIds = new Set(R.BUILDINGS.map(b => b.id)), resIds = new Set(['coal', 'iron', 'oil', 'rubber', 'rare']);
 for (const r of regions) {
@@ -155,15 +187,15 @@ for (const [c, list] of Object.entries(AI_FOCUS_ORDER)) for (const id of list) i
 for (const e of EVENTS) { if (!cids.has(e.to)) err(`${e.id}: 받는 나라 ${e.to}`); for (const o of e.options) fxCheck(e.id, o.fx); }
 
 const out = {
-  meta: { title: '전선과 공장: 동아시아 1936', version: '0.1.0', start: '1936-01-01', end: '1945-12-31',
+  meta: { title: '전선과 공장: 동아시아 1936', version: '0.2.0', start: '1936-01-01', end: '1945-12-31',
     note: '모든 수치·선택 결과·가상 선택지는 게임을 위한 창작이다. 실제 역사는 사건의 history에 따로 적었다. 지도는 Natural Earth(퍼블릭 도메인)에서 만들었다.' },
   terrain: R.TERRAIN, goods: R.GOODS, buildings: R.BUILDINGS, facilities: R.FACILITIES, equipment: R.EQUIPMENT, battalions: R.BATTALIONS, templates: R.TEMPLATES,
   ships: R.SHIPS, aircraft: R.AIRCRAFT, airMissions: R.AIR_MISSIONS, techCategories: R.TECH_CATEGORIES, techs: R.TECHS, startTechs: R.START_TECHS,
-  laws: R.LAWS, ideologies: R.IDEOLOGIES, spirits: R.SPIRITS, economy: R.ECONOMY,
+  laws: R.LAWS, ideologies: R.IDEOLOGIES, spirits: R.SPIRITS, economy: R.ECONOMY, weather: R.WEATHER, climates: R.CLIMATES, leaders: LEADERS, traits: TRAITS,
   countries: allCountries, factions: FACTIONS, regions, seas, airZones: zones,
   focusTrees: FOCUS_TREES, aiFocusOrder: AI_FOCUS_ORDER, events: EVENTS, systemEvents: SYSTEM_EVENTS
 };
 if (errors.length) { console.error(errors.join('\n')); console.error(`\n${errors.length}개 오류`); process.exit(1); }
 if (!process.argv.includes('--check')) fs.writeFileSync(path.join(ROOT, 'data/game.json'), JSON.stringify(out, null, 1) + '\n');
 const onMap = regions.filter(r => !r.offmap);
-console.log(`데이터 OK: 나라 ${allCountries.length}(플레이 ${allCountries.filter(c => c.playable).length}), 지역 ${onMap.length}+본국 ${regions.length - onMap.length}, 해역 ${seas.length}, 항공 구역 ${zones.length}, 중점 ${focusIds.size}, 사건 ${EVENTS.length}, 기술 ${R.TECHS.length}, 편제 ${R.TEMPLATES.length}`);
+console.log(`데이터 OK: 장군·제독 ${LEADERS.length}, 기후대 ${Object.keys(R.CLIMATES).length}, 나라 ${allCountries.length}(플레이 ${allCountries.filter(c => c.playable).length}), 지역 ${onMap.length}+본국 ${regions.length - onMap.length}, 해역 ${seas.length}, 항공 구역 ${zones.length}, 중점 ${focusIds.size}, 사건 ${EVENTS.length}, 기술 ${R.TECHS.length}, 편제 ${R.TEMPLATES.length}`);
