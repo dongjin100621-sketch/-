@@ -129,14 +129,14 @@ export function canInvade(s, d, dv, target) {
   if (!hostile(s, dv.owner, target)) return '전쟁 중인 적의 지역이 아닙니다.';
   if (!(s.regions[dv.at].port > 0)) return '출발 지역에 항구가 없습니다.';
   if (!r.coast.length) return '바다에 닿지 않은 지역입니다.';
+  if (distance(d, dv.at, target) > 700) return '출발지에서 너무 멉니다(지도 거리 700 이내).';
   const zones = r.coast.filter(z => seaShare(s, dv.owner, z) >= .5);
   if (!zones.length) return '상륙 지점 앞바다에서 해상 우세(50% 이상)를 차지해야 합니다. 함대를 그 해역에 순찰시키세요.';
-  if (distance(d, dv.at, target) > 900) return '출발지에서 너무 멉니다(지도 거리 900 이내).';
   return '';
 }
 export function orderInvade(s, d, dv, target) {
   const why = canInvade(s, d, dv, target); if (why) return { ok: false, reason: why };
-  dv.order = { type: 'invade', target, prep: 10 + Math.round(distance(d, dv.at, target) / 60) };
+  dv.order = { type: 'invade', target, prep: 15 + Math.round(distance(d, dv.at, target) / 25) };
   return { ok: true, days: dv.order.prep };
 }
 export function orderAttack(s, d, dv, target) {

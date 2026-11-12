@@ -26,7 +26,7 @@ export const FOCUS_TREES = {
     F('jp_taiwan_base', '타이완 남방 기지', 35, 6, 5, 'jp_south_strike', '', { facility: [['air', 3, 'taiwan'], ['port', 2, 'taiwan']] }, {}, '남방 작전을 위한 비행장과 항구.'),
     F('jp_tripartite', '삼국 동맹', 35, 3, 5, 'jp_national_mobilization|jp_south_strike', '', { faction: 'create:axis', warSupport: .05 }, { year: 1940 }, '독일·이탈리아와의 동맹(1940년 9월). 추축국 진영을 이끈다.'),
     F('jp_neutrality_pact', '일소 중립 조약', 35, 2, 5, 'jp_tripartite', '', { event: 'ev_neutrality_pact' }, { year: 1941 }, '북쪽을 안정시키는 중립 조약(1941년 4월).'),
-    F('jp_southern_operation', '남방 작전 계획', 70, 4, 6, 'jp_tripartite', '', { wargoal: ['usa', 'uk', 'netherlands'], warSupport: .1 }, { flag: 'oil_embargo' }, '석유 금수에 맞서 미국·영국·네덜란드와의 전쟁을 준비한다(역사의 결정은 1941년 12월).'),
+    F('jp_southern_operation', '남방 작전 계획', 70, 4, 6, 'jp_tripartite', '', { wargoal: ['usa', 'uk', 'netherlands'], warSupport: .1, divisions: [['jp_inf', 6, 'taiwan'], ['jp_marine', 2, 'taiwan']] }, { flag: 'oil_embargo' }, '석유 금수에 맞서 미국·영국·네덜란드와의 전쟁을 준비한다(역사의 결정은 1941년 12월).'),
     F('jp_resource_development', '남방 자원 개발', 70, 4, 7, 'jp_southern_operation', '', { spirit: 'resource_mobilization', build: [['refinery', 1, 'palembang']] }, { controls: ['palembang'] }, '점령한 유전과 정유소를 다시 돌린다. 점령지의 생산은 저항과 손상으로 낮다.'),
     F('jp_air_expansion', '항공 병력 확충', 70, 1, 5, 'jp_national_mobilization', '', { build: [['arms', 2, 'chubu']], research: { cat: 'air', bonus: .5, uses: 2 } }, {}, '항공기 공장과 연구.'),
     F('jp_war_economy', '군수 생산 증강', 70, 2, 6, 'jp_air_expansion', '', { build: [['arms', 3, 'kansai']] }, { atWar: true }, '군수 공장을 늘린다.'),

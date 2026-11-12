@@ -89,6 +89,7 @@ export function mods(s, d, c) {
 export const law = (d, c, group) => index(d).lawOption.get(c.laws[group]);
 
 /* ---------- 관계 ---------- */
+export const pairKey = (a, b) => a < b ? `${a}|${b}` : `${b}|${a}`;
 export const atWar = (s, a, b) => a !== b && s.wars.some(w => (w[0] === a && w[1] === b) || (w[0] === b && w[1] === a));
 export const enemiesOf = (s, a) => s.wars.filter(w => w[0] === a || w[1] === a).map(w => (w[0] === a ? w[1] : w[0]));
 export const isAtWar = (s, a) => s.wars.some(w => w[0] === a || w[1] === a);

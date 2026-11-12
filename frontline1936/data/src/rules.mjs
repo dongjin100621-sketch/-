@@ -240,8 +240,8 @@ export const LAWS = {
     { id: 'civilian', name: '민간 경제', pp: 0, fx: { consumption: 1, arms: -.3, tax: .12, armsBuild: -.3 } },
     { id: 'early_mobilization', name: '초기 동원', pp: 100, fx: { consumption: .95, arms: -.1, tax: .14, armsBuild: -.1 } },
     { id: 'partial_mobilization', name: '부분 동원', pp: 120, need: { warSupport: 25 }, fx: { consumption: .9, arms: 0, tax: .16, armsBuild: 0 } },
-    { id: 'war_economy', name: '전시 경제', pp: 150, need: { warSupport: 50 }, fx: { consumption: .8, arms: .1, tax: .2, armsBuild: .1, stability: -.05 } },
-    { id: 'total_war', name: '총력전 경제', pp: 180, need: { warSupport: 80, atWar: true }, fx: { consumption: .65, arms: .2, tax: .24, armsBuild: .2, stability: -.15 } }
+    { id: 'war_economy', name: '전시 경제', pp: 150, need: { warSupport: 50 }, fx: { consumption: .88, arms: .1, tax: .2, armsBuild: .1, stability: -.05 } },
+    { id: 'total_war', name: '총력전 경제', pp: 180, need: { warSupport: 80, atWar: true }, fx: { consumption: .78, arms: .2, tax: .24, armsBuild: .2, stability: -.15 } }
   ] },
   trade: { name: '무역법', options: [
     { id: 'free_trade', name: '자유 무역', pp: 100, fx: { tradeCap: 1.4, research: .05, construction: .05 } },
@@ -302,7 +302,7 @@ export const ECONOMY = {
   hireRate: .15, fireRate: .1, minStaff: .2, scalePerLevel: .01, scaleCap: 20,
   tradeBase: 40, tradePerPort: 12, tradeCost: .08, importFloor: .3,
   investShare: { business: .4, landowners: .2 }, poolCap: 4000,
-  tax: { consumption: .5, wage: .3, profit: .2 }, interest: .004, baseExpensePerPop: .02,
+  tax: { consumption: .5, wage: .3, profit: .2 }, interest: .003, baseExpensePerPop: .02,
   armsOutputPerDay: 1, dockOutputPerDay: 1, lineGrowth: .006, lineStart: .1, lineCapBase: .5,
   occupiedOutput: .4, constructionBase: 2, maxPerProject: 15
 };

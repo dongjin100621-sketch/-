@@ -13,7 +13,7 @@ export { econ, mil, pol, ai };
 export function createState(d, player = 'japan', seed = 1936) {
   const X = index(d);
   const s = { format: SAVE_FORMAT, version: SAVE_VERSION, dataVersion: d.meta.version, seed, rng: seed >>> 0, day: 0, player, countries: {}, regions: {}, divisions: [], fleets: [], air: [], templates: [],
-    wars: [], factions: {}, flags: {}, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
+    wars: [], warStart: {}, factions: {}, flags: {}, fired: {}, pending: [], log: [], notices: [], captured: [], battles: {}, airSup: {}, navSup: {}, history: [], seq: 0, ended: null };
   for (const f of d.factions) s.factions[f.id] = { id: f.id, leader: f.members.length ? f.leader : null };
   for (const c of d.countries) {
     const fac = d.factions.find(f => f.members.includes(c.id));
@@ -57,7 +57,7 @@ export function createState(d, player = 'japan', seed = 1936) {
   return s;
 }
 export function logger(s) {
-  const fn = (text, country = null, kind = 'info', extra = {}) => { s.log.push({ day: s.day, text, country, kind, ...extra }); if (s.log.length > 400) s.log.splice(0, s.log.length - 400); };
+  const fn = (text, country = null, kind = 'info', extra = {}) => { s.log.push({ day: s.day, text, country, kind, ...extra }); if (s.log.length > 1200) s.log.splice(0, s.log.length - 1200); };
   s._log = fn; Object.defineProperty(s, '_log', { enumerable: false, writable: true, configurable: true, value: fn });
   return fn;
 }

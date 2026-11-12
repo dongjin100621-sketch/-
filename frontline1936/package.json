@@ -1,0 +1,15 @@
+{
+  "name": "frontline1936",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "전선과 공장: 동아시아 1936 — 하루 단위 대전략 게임. 실행·테스트에 외부 의존성이 없다.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test tests/game.test.mjs",
+    "data": "node tools/build_data.mjs",
+    "build": "python3 tools/build_standalone.py",
+    "build:artifact": "python3 tools/build_standalone.py --artifact --output dist/FRONTLINE1936_artifact.html",
+    "test:browser": "node tests/browser/e2e.cjs"
+  }
+}

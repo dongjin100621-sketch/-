@@ -111,7 +111,7 @@ export function declareWar(s, d, a, b, log, { forced = false, quiet = false } = 
   for (const x of A) for (const y of B) {
     if (x === y || atWar(s, x, y)) continue;
     if (A.includes(y) || B.includes(x)) continue;
-    s.wars.push([x, y]); added.push([x, y]);
+    s.wars.push([x, y]); added.push([x, y]); s.warStart = s.warStart || {}; s.warStart[`${x < y ? x : y}|${x < y ? y : x}`] = s.day;
   }
   for (const c of [a, ...A, b, ...B]) { const C = s.countries[c]; if (C.naps.includes(a) || C.naps.includes(b)) C.naps = C.naps.filter(z => z !== a && z !== b); }
   if (!added.length) return false;
@@ -169,6 +169,7 @@ function checkCapitals(s, d, log) {
 function checkCapitulation(s, d, log) {
   for (const c of Object.values(s.countries)) {
     if (!c.exists || !isAtWar(s, c.id)) continue;
+    if (c.spirits.includes('guerrilla_base') && s.divisions.some(dv => dv.owner === c.id)) continue; // 유격 근거지: 사단이 남아 있는 한 항복하지 않는다
     const hasHome = d.regions.some(r => r.offmap && r.owner === c.id) && !c.homeLost;
     const { own, held } = vpOf(s, d, c.id);
     const anyLand = d.regions.some(r => s.regions[r.id].controller === c.id && !(r.offmap && c.homeLost));
@@ -335,7 +336,7 @@ export function dailyPolitics(s, d, log) {
     // 안정도·전쟁 지지도: 목표를 향해 천천히
     const losses = (c.casualties || 0) / Math.max(1, popOf(s, d, c.id) * 1e5);
     const lawStab = sum(Object.values(c.laws).map(id => index(d).lawOption.get(id)?.fx.stability || 0));
-    const sTarget = clamp(c.stabBase + M.stability + lawStab - (war ? clamp(losses * 20, 0, .2) : 0) - (c.econ?.debt > (c.econ?.last?.gdp || 1) * 24 ? .1 : 0), 0, 1);
+    const sTarget = clamp(c.stabBase + M.stability + lawStab - (war ? clamp(losses * 20, 0, .2) : 0) - (c.econ?.debt > (c.econ?.last?.gdp || 1) * 36 ? .1 : 0), 0, 1);
     const wTarget = clamp(Math.min(c.wsBase + M.warSupport + (war ? .05 : 0), M.warSupportCap / 100), 0, 1);
     c.stability = round(c.stability + clamp(sTarget - c.stability, -.003, .003), 4);
     c.warSupport = round(c.warSupport + clamp(wTarget - c.warSupport, -.003, .003), 4);

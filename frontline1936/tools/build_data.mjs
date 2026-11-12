@@ -73,6 +73,19 @@ function airZones(k) {
 }
 const zones = airZones(36);
 for (const r of regions) if (!r.offmap) r.airZone = zones.find(z => z.regions.includes(r.id)).id;
+// 땅덩어리: 육지 인접으로 이어진 지역 묶음. 가장 큰 것이 유라시아 대륙, 간토가 든 것이 일본 본토.
+{
+  const seen = new Map(); let n = 0;
+  for (const r of regions) {
+    if (r.offmap || seen.has(r.id)) continue;
+    const q = [r.id]; seen.set(r.id, n);
+    while (q.length) { const id = q.shift(); for (const x of regions.find(y => y.id === id).adj) if (!seen.has(x)) { seen.set(x, n); q.push(x); } }
+    n++;
+  }
+  const size = new Map(); for (const v of seen.values()) size.set(v, (size.get(v) || 0) + 1);
+  const biggest = [...size].sort((a, b) => b[1] - a[1])[0][0], japan = seen.get('kanto');
+  for (const r of regions) if (!r.offmap) r.landmass = seen.get(r.id) === biggest ? 'eurasia' : seen.get(r.id) === japan ? 'japan_home' : `m${seen.get(r.id)}`;
+}
 // 식민지(일본의 국가 정신 '식민 통치'가 산출을 깎는 곳): 조선·타이완
 const COLONY = new Set([...RELEASABLE.find(c => c.id === 'korea').cores, 'taiwan']);
 for (const r of regions) if (COLONY.has(r.id)) r.colony = true;
