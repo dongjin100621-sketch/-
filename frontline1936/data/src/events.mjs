@@ -107,7 +107,7 @@ export const EVENTS = [
   E({ id: 'ev_lend_lease', to: 'usa', title: '무기 대여법', desc: '중국과 영국에 무기를 빌려줄 수 있게 되었다.',
     history: '1941년 3월 11일 성립.',
     options: [{ name: '중국과 영국에 보낸다(역사)', fx: { others: { china: { equipment: { inf_eq: 2500, artillery: 120, motor: 400, fighter: 80 } }, uk: { equipment: { fighter: 120, motor: 600 } } } }, ai: 10 }] }),
-  E({ id: 'ev_aid_china', to: 'china', title: '외국의 원조', desc: '항공기와 무기가 들어온다.',
+  E({ id: 'ev_aid_china', to: 'china', repeat: true, title: '외국의 원조', desc: '항공기와 무기가 들어온다.',
     history: '1937~41년 소련은 항공기와 의용 조종사를, 미국과 영국은 차관과 물자를 보냈다.',
     options: [{ name: '받는다', fx: { equipment: { fighter: 80, inf_eq: 1500, artillery: 60 } }, ai: 10 }] }),
   E({ id: 'ev_sinkiang_alignment', to: 'sinkiang', title: '소련과의 협력', desc: '소련이 고문과 무기를 보내며 협력을 제안한다.',

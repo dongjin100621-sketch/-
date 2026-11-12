@@ -1,0 +1,241 @@
+/* 전선과 공장 — 컴퓨터가 맡은 나라의 판단. 결정적이며(상태의 난수만 쓴다) 사람에게 주어진 것과 같은 행동만 쓴다. */
+import { clamp, round, sum, index, mods, distance, yearOf, dayOf, atWar, enemiesOf, isAtWar, friendly, rand } from './core.mjs';
+import { armsCapacity, dockCapacity, lineFactories, econRegions } from './economy.mjs';
+import { divisionStats, templateStats, orderMove, orderAttack, orderInvade, canInvade, passable, hostile, wingInRange, fleetStrength, orderFleet } from './military.mjs';
+import { focusReason, startFocus, techReason, startResearch, treeOf, setLaw, lawReason, declareWar, canDeclare } from './politics.mjs';
+import { manpowerAvailable as mpAvail } from './military.mjs';
+
+/* ---------- 매달: 경제·연구·중점·법·모집 ---------- */
+export function monthlyAI(s, d, cid, act) {
+  const c = s.countries[cid], X = index(d), war = isAtWar(s, cid);
+  // 국가 중점
+  if (!c.focus.current) {
+    const order = d.aiFocusOrder[cid] || treeOf(d, cid).map(f => f.id);
+    for (const id of [...order, ...treeOf(d, cid).map(f => f.id)]) if (!focusReason(s, d, cid, id)) { startFocus(s, d, cid, id); break; }
+  }
+  // 연구
+  const prio = war ? ['infantry', 'artillery', 'land_doctrine', 'air', 'industry', 'armor', 'naval', 'naval_doctrine', 'air_doctrine'] : ['industry', 'infantry', 'artillery', 'land_doctrine', 'air', 'naval', 'armor', 'naval_doctrine', 'air_doctrine'];
+  const naval = ['japan', 'usa', 'uk'].includes(cid);
+  for (let i = 0; i < c.research.slots.length; i++) {
+    if (c.research.slots[i]) continue;
+    const opts = d.techs.filter(t => !techReason(s, d, cid, t.id)).sort((a, b) => (a.year - b.year) * 3 + (prio.indexOf(a.cat) - prio.indexOf(b.cat)) * (naval && a.cat.startsWith('naval') ? .2 : 1) - ((naval && b.cat.startsWith('naval') ? .2 : 1) - 1));
+    if (opts.length) startResearch(s, d, cid, i, opts[0].id);
+  }
+  // 법
+  if (war) for (const [g, ids] of [['economy', ['partial_mobilization', 'war_economy', 'total_war']], ['conscription', ['extensive', 'service', 'total']]]) {
+    const cur = d.laws[g].options.findIndex(o => o.id === c.laws[g]);
+    for (const id of ids) { const i = d.laws[g].options.findIndex(o => o.id === id); if (i > cur && !lawReason(s, d, cid, g, id)) { setLaw(s, d, cid, g, id); break; } }
+  } else if (yearOf(s.day) >= 1938 && c.laws.economy === 'civilian' && !lawReason(s, d, cid, 'economy', 'early_mobilization') && !mods(s, d, c).noWar) setLaw(s, d, cid, 'economy', 'early_mobilization');
+  // 건설
+  aiConstruction(s, d, cid, act);
+  // 생산 라인
+  aiProduction(s, d, cid);
+  // 조선
+  if (dockCapacity(s, d, cid) >= 1 && c.naval.length < 3) {
+    const docks = Math.round(dockCapacity(s, d, cid));
+    const want = war ? (naval ? ['destroyer', 'submarine', 'carrier', 'cruiser'] : ['submarine', 'destroyer']) : naval ? ['destroyer', 'cruiser', 'carrier', 'battleship'] : ['destroyer'];
+    const ship = want[(c.naval.length + Math.floor(s.day / 30)) % want.length];
+    act({ type: 'shipyard', country: cid, ship, docks: Math.max(1, Math.round(docks / 2)), count: 3 });
+  }
+  // 모집
+  const divs = s.divisions.filter(x => x.owner === cid).length, training = c.training.length;
+  const target = Math.round(6 + armsCapacity(s, d, cid) * (war ? 2.2 : 1.4) + (war ? 6 : 0));
+  const tpl = bestTemplate(s, d, cid);
+  if (tpl && divs + training < target) {
+    const st = templateStats(s, d, tpl, cid), avail = mpAvail(s, d, cid);
+    const n = Math.min(3, target - divs - training, Math.floor(avail / Math.max(1, st.manpower)));
+    for (let i = 0; i < n; i++) act({ type: 'train', country: cid, tpl, at: c.mapCapital || c.capital });
+  }
+  aiAir(s, d, cid);
+  aiNavy(s, d, cid);
+}
+export function bestTemplate(s, d, cid) {
+  const own = d.templates.filter(t => t.country === cid).concat((s.templates || []).filter(t => t.owner === cid));
+  const list = own.length ? own : d.templates.filter(t => t.country === '*');
+  let best = null, bv = -1;
+  for (const t of list) { const st = templateStats(s, d, t.id, cid); if (!st) continue; const v = (st.soft + st.def * .5 + st.hp) / Math.max(1, st.manpower / 1000); if (v > bv && !t.id.includes('garrison') && t.id !== 'kla') { bv = v; best = t.id; } }
+  return best || list[0]?.id;
+}
+function aiConstruction(s, d, cid, act) {
+  const c = s.countries[cid], X = index(d), war = isAtWar(s, cid);
+  if (c.construction.length >= Math.max(2, Math.round(c.rates.points * 30 / 25))) return;
+  const regs = econRegions(s, d, cid).filter(r => s.regions[r.id].owner === cid);
+  if (!regs.length) return;
+  const short = g => c.econ.short[g] || 0, price = g => c.econ.prices[g] / X.goods.get(g).price;
+  const opts = [];
+  for (const r of regs) {
+    const st = s.regions[r.id], lv = b => (st.b[b]?.level || 0) + c.construction.filter(q => q.region === r.id && q.id === b).length;
+    for (const res of ['coal', 'iron', 'oil', 'rubber', 'rare']) if ((r.res[res] || 0) > lv(res)) opts.push({ id: res, region: r.id, v: 1.2 * price(res) + 2 * short(res) + (res === 'oil' ? .6 : 0) });
+    const base = r.offmap ? 1.3 : 1;
+    opts.push({ id: 'civ', region: r.id, v: base * (yearOf(s.day) < 1939 && !war ? 1.5 : .5) + st.infra * .05 });
+    opts.push({ id: 'arms', region: r.id, v: base * (war ? 1.6 : yearOf(s.day) >= 1938 ? 1.1 : .5) + st.infra * .05 });
+    if (price('steel') > 1.15 || short('steel') > 0) opts.push({ id: 'steel', region: r.id, v: price('steel') + short('steel') * 2 });
+    if (price('tools') > 1.15 || short('tools') > 0) opts.push({ id: 'tools', region: r.id, v: price('tools') + short('tools') * 2 });
+    if (price('fuel') > 1.2 || short('fuel') > 0) { if (lv('refinery') < (r.res.oil || 0) + 1) opts.push({ id: 'refinery', region: r.id, v: price('fuel') + short('fuel') * 2 }); if (mods(s, d, c).buildingsUnlocked.has('synthetic')) opts.push({ id: 'synthetic', region: r.id, v: price('fuel') + short('fuel') * 2 - .3 }); }
+    if (price('consumer') > 1.3 || price('textiles') > 1.3) opts.push({ id: 'light', region: r.id, v: (price('consumer') + price('textiles')) / 2 });
+    if (price('grain') > 1.3 && !r.offmap && lv('farm') < Math.max(2, r.pop / 20)) opts.push({ id: 'farm', region: r.id, v: price('grain') });
+    if (!r.offmap && st.infra < 5 && r.vp >= 5) opts.push({ id: 'infra', kind: 'facility', region: r.id, v: .7 + r.vp / 50 });
+  }
+  opts.sort((a, b) => b.v - a.v || (a.region < b.region ? -1 : 1));
+  for (const o of opts.slice(0, 2)) act({ type: 'build', country: cid, id: o.id, kind: o.kind || 'building', region: o.region });
+}
+function aiProduction(s, d, cid) {
+  const c = s.countries[cid], X = index(d), cap = Math.floor(armsCapacity(s, d, cid));
+  if (cap <= 0) return;
+  // 필요한 장비: 사단 정원 대비 부족분 + 기본 비율
+  const need = {};
+  for (const dv of s.divisions) if (dv.owner === cid) { const st = divisionStats(s, d, dv); for (const [e, q] of Object.entries(st.eq)) need[e] = (need[e] || 0) + q * (1 - dv.str) + q * .3; }
+  for (const t of c.training) { const st = templateStats(s, d, t.tpl, cid); for (const [e, q] of Object.entries(st.eq)) need[e] = (need[e] || 0) + q; }
+  const M = mods(s, d, c);
+  const weights = {};
+  for (const [e, q] of Object.entries(need)) { const have = c.stock[e] || 0, eq = X.equipment.get(e); if (!eq || (eq.tech && !c.research.done.includes(eq.tech))) continue; weights[e] = Math.max(0, q - have) * eq.cost; }
+  const air = ['fighter', 'cas', 'naval_bomber', 'bomber'].filter(e => M.equipment[e] || c.research.done.includes(X.equipment.get(e).levels?.[0]));
+  const totalNeed = sum(Object.values(weights));
+  const plan = {};
+  const groundShare = air.length ? .7 : 1;
+  for (const [e, w] of Object.entries(weights)) plan[e] = totalNeed > 0 ? cap * groundShare * w / totalNeed : 0;
+  if (totalNeed <= 0) { plan.inf_eq = cap * groundShare * .5; plan.artillery = cap * groundShare * .3; plan.support_eq = cap * groundShare * .2; }
+  const airW = { fighter: .5, cas: .2, naval_bomber: ['japan', 'usa', 'uk'].includes(cid) ? .2 : 0, bomber: .1 };
+  const airSum = sum(air.map(e => airW[e]));
+  for (const e of air) plan[e] = (plan[e] || 0) + cap * (1 - groundShare) * airW[e] / Math.max(.01, airSum);
+  const lines = [];
+  for (const [e, f] of Object.entries(plan)) { const n = Math.round(f); if (n <= 0) continue; const old = c.lines.find(l => l.equip === e); lines.push({ id: old ? old.id : `ln_${e}`, equip: e, factories: n, eff: old ? old.eff : d.economy.lineStart, carry: old ? old.carry : 0 }); }
+  while (sum(lines.map(l => l.factories)) > cap) { const m = lines.reduce((a, b) => b.factories > a.factories ? b : a); m.factories -= 1; }
+  c.lines = lines.filter(l => l.factories > 0);
+}
+/* ---------- 항공·해군 배치(매달) ---------- */
+function aiAir(s, d, cid) {
+  const X = index(d), war = isAtWar(s, cid), c = s.countries[cid];
+  const fronts = frontRegions(s, d, cid);
+  const frontZones = [...new Set(fronts.map(r => X.regions.get(r).airZone))];
+  const homeZone = X.regions.get(c.mapCapital || c.capital)?.airZone;
+  for (const w of s.air.filter(w => w.owner === cid)) {
+    if (X.regions.get(w.base)?.offmap) { w.mission = 'idle'; continue; }
+    if (!war) { w.mission = w.type === 'fighter' ? 'superiority' : 'idle'; w.zone = X.regions.get(w.base).airZone; continue; }
+    if (w.type === 'naval_bomber') {
+      const seas = (X.seaByCoast.get(w.base) || []); const target = d.seas.filter(z => s.fleets.some(f => f.at === z.id && atWar(s, cid, f.owner))).sort((a, b) => distance(d, w.base, a.id) - distance(d, w.base, b.id))[0];
+      w.mission = 'naval_strike'; w.zone = target && distance(d, w.base, target.id) < d.aircraft.naval_bomber.range ? target.id : seas[0] || null; if (!w.zone) w.mission = 'idle'; continue;
+    }
+    const zones = frontZones.filter(z => wingInRange(s, d, { ...w, zone: z }));
+    const zone = zones.sort((a, b) => sum(Object.values(s.battles || {}).filter(x => X.regions.get(x.region).airZone === b).map(() => 1)) - sum(Object.values(s.battles || {}).filter(x => X.regions.get(x.region).airZone === a).map(() => 1)))[0];
+    if (zone) { w.zone = zone; w.mission = w.type === 'fighter' ? 'superiority' : w.type === 'cas' ? 'cas' : 'strategic'; }
+    else {
+      // 전선 근처의 비행장으로 옮긴다
+      const base = fronts.map(r => r).concat(d.regions.filter(r => !r.offmap && s.regions[r.id].controller === cid && s.regions[r.id].air > 0).map(r => r.id)).find(r => s.regions[r] && s.regions[r].air > 0 && s.regions[r].controller === cid && frontZones.some(z => { const zz = X.airZones.get(z); return zz && Math.hypot(zz.center[0] - X.regions.get(r).label[0], zz.center[1] - X.regions.get(r).label[1]) < d.aircraft[w.type].range; }));
+      if (base) w.base = base;
+      w.zone = homeZone; w.mission = w.type === 'fighter' ? 'superiority' : 'idle';
+    }
+  }
+}
+function aiNavy(s, d, cid) {
+  const X = index(d), war = isAtWar(s, cid), c = s.countries[cid];
+  const fleets = s.fleets.filter(f => f.owner === cid);
+  if (!fleets.length) return;
+  if (!war) { for (const f of fleets) if (f.mission !== 'port' && !(f.path && f.path.length)) f.mission = 'port'; return; }
+  // 잠수함을 따로 떼어 적 항구 근처에서 통상 파괴
+  for (const f of fleets) if ((f.ships.submarine || 0) >= 4 && sum(Object.entries(f.ships).filter(([k]) => k !== 'submarine' && k !== 'convoy').map(([, n]) => n)) > 0) {
+    const n = f.ships.submarine; f.ships.submarine = 0;
+    s.fleets.push({ id: `fl${(s.seq = (s.seq || 0) + 1)}`, owner: cid, name: `${f.name} 잠수함대`, at: f.at, ships: { submarine: n }, mission: 'port', path: [] });
+  }
+  const enemies = enemiesOf(s, cid);
+  const enemyZones = new Set(); for (const r of d.regions) if (enemies.includes(s.regions[r.id].controller) && s.regions[r.id].port > 0) for (const z of r.coast) enemyZones.add(z);
+  const homeZones = new Set(); for (const r of d.regions) if (s.regions[r.id].controller === cid && s.regions[r.id].port > 0) for (const z of r.coast) homeZones.add(z);
+  for (const f of s.fleets.filter(f => f.owner === cid)) {
+    if (f.path && f.path.length) continue;
+    if (X.regions.get(f.at)?.offmap && (mods(s, d, c).homeLocked)) continue;
+    const subs = (f.ships.submarine || 0) > 0 && sum(Object.values(f.ships)) === f.ships.submarine;
+    const hp = f.damage ? sum(Object.entries(f.damage).map(([k, v]) => v / (d.ships.find(x => x.id === k).hp * Math.max(1, f.ships[k] || 0)))) : 0;
+    if (hp > .4) { const port = d.regions.find(r => s.regions[r.id].controller === cid && s.regions[r.id].port >= 3 && !r.offmap); if (port && f.at !== port.id) orderFleet(s, d, f, port.id); continue; }
+    if (subs) { const target = [...enemyZones].sort((a, b) => distance(d, f.at, a) - distance(d, f.at, b))[0]; if (target) { if (f.at !== target) orderFleet(s, d, f, target); f.mission = 'raid'; } continue; }
+    // 주력 함대: 전선·상륙 목표에 가까운 아군 해역을 순찰
+    const fronts = frontRegions(s, d, cid).filter(r => X.regions.get(r).coast.length);
+    const zone = fronts.flatMap(r => X.regions.get(r).coast).concat([...homeZones]).sort((a, b) => distance(d, f.at, a) - distance(d, f.at, b))[0];
+    if (zone) { if (f.at !== zone) orderFleet(s, d, f, zone); f.mission = 'patrol'; }
+  }
+}
+
+/* ---------- 이틀마다: 전선과 공격 ---------- */
+export function frontRegions(s, d, cid) {
+  const X = index(d), out = [];
+  for (const r of d.regions) {
+    if (r.offmap) continue;
+    const st = s.regions[r.id];
+    if (st.controller !== cid && !(friendly(s, cid, st.controller) && s.divisions.some(dv => dv.owner === cid && dv.at === r.id))) continue;
+    if (r.adj.some(n => hostile(s, cid, n))) out.push(r.id);
+  }
+  return out;
+}
+const power = (s, d, list) => sum(list.map(dv => { const st = divisionStats(s, d, dv); return (st.soft + st.hard * 2 + st.def * .3 + st.brk * .3) * dv.str * (.3 + .7 * dv.org); }));
+export function militaryAI(s, d, cid) {
+  const X = index(d), c = s.countries[cid], war = isAtWar(s, cid);
+  const mine = s.divisions.filter(dv => dv.owner === cid && !X.seas.has(dv.at));
+  if (!mine.length) return;
+  // 일본의 태평양 개전(역사의 결정 시점 이후)
+  if (cid === 'japan' && s.flags.pacific_decision && s.day >= dayOf('1941-12-07')) for (const t of ['usa', 'uk', 'netherlands']) if (!atWar(s, cid, t) && !canDeclare(s, d, cid, t)) declareWar(s, d, cid, t, s._log);
+  if (!war) { if (s.day % 30 === 0) positionPeacetime(s, d, cid, mine); return; }
+  const fronts = frontRegions(s, d, cid);
+  if (!fronts.length) return;
+  // 전선마다 위협(맞닿은 적 사단의 힘 + 승점)
+  const threat = new Map(fronts.map(r => {
+    const enemyAdj = X.regions.get(r).adj.filter(n => hostile(s, cid, n));
+    const e = power(s, d, s.divisions.filter(dv => enemyAdj.includes(dv.at) && atWar(s, cid, dv.owner)));
+    return [r, 1 + e + X.regions.get(r).vp * 3 + (r === c.mapCapital ? 40 : 0)];
+  }));
+  const total = sum([...threat.values()]);
+  const free = mine.filter(dv => !dv.inBattle && (!dv.order || dv.order.type === 'move'));
+  const want = new Map([...threat].map(([r, t]) => [r, Math.max(1, Math.round(free.length * t / total))]));
+  const have = new Map(fronts.map(r => [r, mine.filter(dv => dv.at === r || (dv.order && dv.order.dest === r)).length]));
+  // 남는 사단을 부족한 전선으로
+  const spare = free.filter(dv => !fronts.includes(dv.at) && !(dv.order && fronts.includes(dv.order.dest)) && !(X.regions.get(dv.at)?.offmap && rand(s) < .5));
+  for (const dv of spare.slice(0, 12)) {
+    const lacking = fronts.filter(r => (have.get(r) || 0) < (want.get(r) || 0)).sort((a, b) => ((have.get(a) || 0) - want.get(a)) - ((have.get(b) || 0) - want.get(b)) || distance(d, dv.at, a) - distance(d, dv.at, b));
+    const target = lacking.slice(0, 3).sort((a, b) => distance(d, dv.at, a) - distance(d, dv.at, b))[0];
+    if (target && orderMove(s, d, dv, target).ok) have.set(target, (have.get(target) || 0) + 1);
+  }
+  // 공격: 전선 지역마다 가장 약한 맞닿은 적 지역
+  for (const r of fronts) {
+    const here = mine.filter(dv => dv.at === r && !dv.inBattle && !(dv.order && dv.order.type !== 'move') && dv.org > .65 && dv.str > .55);
+    if (!here.length) continue;
+    const targets = X.regions.get(r).adj.filter(n => hostile(s, cid, n)).map(n => {
+      const def = s.divisions.filter(dv => dv.at === n && atWar(s, cid, dv.owner));
+      const t = d.terrain[X.regions.get(n).terrain];
+      return { n, def: power(s, d, def) * (1 + t.def + s.regions[n].fort * .06) / t.attack, empty: !def.length, vp: X.regions.get(n).vp };
+    }).sort((a, b) => a.def - a.vp * 3 - (b.def - b.vp * 3));
+    const t = targets[0]; if (!t) continue;
+    const atk = power(s, d, here);
+    const keep = here.length > 2 && (threat.get(r) || 0) > 30 ? 1 : 0;
+    if (t.empty || atk > t.def * 1.3) for (const dv of here.slice(keep)) orderAttack(s, d, dv, t.n);
+  }
+  // 상륙(해군이 있는 나라): 약한 적 해안 지역
+  if (s.day % 20 === 0 && sum(s.fleets.filter(f => f.owner === cid).map(f => fleetStrength(s, d, f))) > 400) aiInvasion(s, d, cid, mine);
+}
+function aiInvasion(s, d, cid, mine) {
+  const X = index(d);
+  const ports = [...new Set(mine.filter(dv => s.regions[dv.at]?.port > 0 && !X.regions.get(dv.at).offmap).map(dv => dv.at))];
+  if (!ports.length) return;
+  const targets = d.regions.filter(r => !r.offmap && r.coast.length && hostile(s, cid, r.id)).map(r => {
+    const def = s.divisions.filter(dv => dv.at === r.id && atWar(s, cid, dv.owner));
+    const value = r.vp * 2 + sum(Object.values(r.res)) * 4 + ((r.res.oil || 0) + (r.res.rubber || 0)) * 6 + s.regions[r.id].port;
+    return { r, def: power(s, d, def), value };
+  }).filter(x => x.def < 400).sort((a, b) => b.value - a.value);
+  for (const t of targets.slice(0, 4)) {
+    const from = ports.filter(p => distance(d, p, t.r.id) < 900).sort((a, b) => distance(d, a, t.r.id) - distance(d, b, t.r.id))[0];
+    if (!from) continue;
+    const avail = mine.filter(dv => dv.at === from && !dv.order && dv.org > .8 && dv.str > .8);
+    const need = Math.max(1, Math.min(4, Math.ceil(t.def / 150) + 1));
+    if (avail.length < need) continue;
+    let sent = 0; for (const dv of avail.slice(0, need)) if (orderInvade(s, d, dv, t.r.id).ok) sent++;
+    if (sent) return;
+  }
+}
+function positionPeacetime(s, d, cid, mine) {
+  const X = index(d), c = s.countries[cid];
+  // 전쟁 명분이 있거나 적대적인 이웃 국경으로, 없으면 승점이 큰 지역으로 흩어 둔다
+  const rivals = new Set(c.wargoals);
+  for (const o of Object.values(s.countries)) if (o.exists && o.wargoals.includes(cid)) rivals.add(o.id);
+  const border = d.regions.filter(r => !r.offmap && s.regions[r.id].controller === cid && r.adj.some(n => rivals.has(s.regions[n].controller))).map(r => r.id);
+  const spots = border.length ? border : d.regions.filter(r => !r.offmap && s.regions[r.id].controller === cid && r.vp >= 5).map(r => r.id);
+  if (!spots.length) return;
+  let i = 0;
+  for (const dv of mine) { if (dv.order || X.regions.get(dv.at)?.offmap) continue; const t = spots[i++ % spots.length]; if (t !== dv.at && rand(s) < .3) orderMove(s, d, dv, t); }
+}

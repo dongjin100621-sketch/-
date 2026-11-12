@@ -809,7 +809,7 @@
    "pierce": 4,
    "hardness": 0,
    "width": 2,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.06,
    "manpower": 1000,
    "eq": {
@@ -830,7 +830,7 @@
    "pierce": 5,
    "hardness": 0,
    "width": 3,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.2,
    "manpower": 500,
    "eq": {
@@ -852,7 +852,7 @@
    "pierce": 4,
    "hardness": 0,
    "width": 2,
-   "speed": 32,
+   "speed": 14,
    "supply": 0.07,
    "manpower": 1000,
    "eq": {
@@ -873,7 +873,7 @@
    "pierce": 4,
    "hardness": 0,
    "width": 2,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.07,
    "manpower": 1000,
    "eq": {
@@ -900,7 +900,7 @@
    "pierce": 4,
    "hardness": 0,
    "width": 2,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.07,
    "manpower": 1000,
    "eq": {
@@ -927,7 +927,7 @@
    "pierce": 4,
    "hardness": 0.1,
    "width": 2,
-   "speed": 55,
+   "speed": 24,
    "supply": 0.1,
    "fuel": 0.3,
    "manpower": 1200,
@@ -951,7 +951,7 @@
    "pierce": 22,
    "hardness": 0.8,
    "width": 2,
-   "speed": 40,
+   "speed": 20,
    "supply": 0.25,
    "fuel": 0.8,
    "manpower": 500,
@@ -975,7 +975,7 @@
    "pierce": 2,
    "hardness": 0,
    "width": 0,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.03,
    "manpower": 300,
    "eq": {
@@ -998,7 +998,7 @@
    "pierce": 2,
    "hardness": 0,
    "width": 0,
-   "speed": 32,
+   "speed": 14,
    "supply": 0.03,
    "manpower": 200,
    "eq": {
@@ -1021,7 +1021,7 @@
    "pierce": 5,
    "hardness": 0,
    "width": 0,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.1,
    "manpower": 300,
    "eq": {
@@ -1042,7 +1042,7 @@
    "pierce": 40,
    "hardness": 0,
    "width": 0,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.05,
    "manpower": 300,
    "eq": {
@@ -1064,7 +1064,7 @@
    "pierce": 10,
    "hardness": 0,
    "width": 0,
-   "speed": 22,
+   "speed": 10,
    "supply": 0.05,
    "manpower": 300,
    "eq": {
@@ -1441,7 +1441,7 @@
    "air": 55,
    "aa": 8,
    "asw": 2,
-   "speed": 32,
+   "speed": 14,
    "fuel": 0.35,
    "levels": [
     "cv1",
@@ -3038,8 +3038,7 @@
    "name": "유럽의 전쟁",
    "desc": "본국이 유럽에서 싸우고 있다. 본국 병력과 함대를 이 전역으로 보내기 어렵다.",
    "fx": {
-    "deployTime": 1,
-    "homeLocked": true
+    "deployTime": 1.5
    }
   },
   "government_in_exile": {
@@ -5208,7 +5207,8 @@
    "coast": [
     "yellow_sea"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "gangwon",
@@ -5247,7 +5247,8 @@
     "japan_sea_s",
     "tsushima_strait"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "chungcheong",
@@ -5279,7 +5280,8 @@
    "coast": [
     "yellow_sea"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "jeolla",
@@ -5311,7 +5313,8 @@
     "tsushima_strait",
     "yellow_sea"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "gyeongsang",
@@ -5345,7 +5348,8 @@
     "tsushima_strait",
     "japan_sea_s"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "hwanghae",
@@ -5379,7 +5383,8 @@
    "coast": [
     "yellow_sea"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "pyongan",
@@ -5420,7 +5425,8 @@
     "bohai",
     "yellow_sea"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "hamgyong",
@@ -5459,7 +5465,8 @@
    "coast": [
     "japan_sea_s"
    ],
-   "airZone": "az18"
+   "airZone": "az18",
+   "colony": true
   },
   {
    "id": "taiwan",
@@ -5488,7 +5495,8 @@
    "coast": [
     "formosa_strait"
    ],
-   "airZone": "az35"
+   "airZone": "az35",
+   "colony": true
   },
   {
    "id": "fengtian",
@@ -16436,6 +16444,7 @@
   {
    "id": "ev_aid_china",
    "to": "china",
+   "repeat": true,
    "title": "외국의 원조",
    "desc": "항공기와 무기가 들어온다.",
    "history": "1937~41년 소련은 항공기와 의용 조종사를, 미국과 영국은 차관과 물자를 보냈다.",

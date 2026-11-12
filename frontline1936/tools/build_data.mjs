@@ -73,6 +73,9 @@ function airZones(k) {
 }
 const zones = airZones(36);
 for (const r of regions) if (!r.offmap) r.airZone = zones.find(z => z.regions.includes(r.id)).id;
+// 식민지(일본의 국가 정신 '식민 통치'가 산출을 깎는 곳): 조선·타이완
+const COLONY = new Set([...RELEASABLE.find(c => c.id === 'korea').cores, 'taiwan']);
+for (const r of regions) if (COLONY.has(r.id)) r.colony = true;
 
 // 나라
 const allCountries = [...COUNTRIES, ...RELEASABLE.map(c => ({ ...c, releasable: true }))];

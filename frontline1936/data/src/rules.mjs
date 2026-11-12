@@ -72,18 +72,18 @@ export const EQUIPMENT = [
 
 /* 대대·중대. 수치는 한 대대(지원 중대는 한 중대). width: 전투 폭, speed: 하루에 갈 수 있는 거리(지도 단위), fuel: 하루 연료(1,000 단위). */
 export const BATTALIONS = [
-  { id: 'infantry', name: '보병', line: true, hp: 25, org: 60, soft: 6, hard: 1, def: 22, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 22, supply: .06, manpower: 1000, eq: { inf_eq: 100 } },
-  { id: 'artillery', name: '포병', line: true, hp: 1, org: 0, soft: 24, hard: 2, def: 10, brk: 6, armor: 0, pierce: 5, hardness: 0, width: 3, speed: 22, supply: .2, manpower: 500, eq: { artillery: 12, inf_eq: 20 } },
-  { id: 'cavalry', name: '기병', line: true, hp: 25, org: 70, soft: 5, hard: 1, def: 20, brk: 5, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 32, supply: .07, manpower: 1000, eq: { inf_eq: 120 } },
-  { id: 'mountain', name: '산악 보병', line: true, hp: 20, org: 70, soft: 6, hard: 1, def: 24, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 22, supply: .07, manpower: 1000, eq: { inf_eq: 120, support_eq: 10 }, terrain: { m: .25, h: .15 }, tech: 'mountaineers' },
-  { id: 'marine', name: '해병', line: true, hp: 20, org: 70, soft: 6, hard: 1, def: 23, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 22, supply: .07, manpower: 1000, eq: { inf_eq: 120, support_eq: 10 }, amphibious: .5, terrain: { j: .1 }, tech: 'marines' },
-  { id: 'motorized', name: '차량화 보병', line: true, hp: 25, org: 60, soft: 6, hard: 1, def: 23, brk: 4, armor: 0, pierce: 4, hardness: .1, width: 2, speed: 55, supply: .1, fuel: .3, manpower: 1200, eq: { inf_eq: 100, motor: 35 }, tech: 'motorized' },
-  { id: 'armor', name: '전차', line: true, hp: 2, org: 10, soft: 16, hard: 7, def: 4, brk: 30, armor: 20, pierce: 22, hardness: .8, width: 2, speed: 40, supply: .25, fuel: .8, manpower: 500, eq: { armor: 50, motor: 10 }, tech: 'tank1' },
-  { id: 'engineer', name: '공병 중대', support: true, hp: 2, org: 20, soft: 2, hard: 0, def: 8, brk: 2, armor: 0, pierce: 2, hardness: 0, width: 0, speed: 22, supply: .03, manpower: 300, eq: { support_eq: 10, inf_eq: 10 }, entrench: .1 },
-  { id: 'recon', name: '정찰 중대', support: true, hp: 2, org: 20, soft: 2, hard: 0, def: 4, brk: 2, armor: 0, pierce: 2, hardness: 0, width: 0, speed: 32, supply: .03, manpower: 200, eq: { inf_eq: 30, support_eq: 5 }, initiative: .1 },
-  { id: 'support_art', name: '지원 포병 중대', support: true, hp: .5, org: 0, soft: 12, hard: 1, def: 6, brk: 2, armor: 0, pierce: 5, hardness: 0, width: 0, speed: 22, supply: .1, manpower: 300, eq: { artillery: 6 } },
-  { id: 'anti_tank', name: '대전차 중대', support: true, hp: .5, org: 0, soft: 2, hard: 8, def: 4, brk: 1, armor: 0, pierce: 40, hardness: 0, width: 0, speed: 22, supply: .05, manpower: 300, eq: { at_gun: 10 }, tech: 'at1' },
-  { id: 'anti_air', name: '대공 중대', support: true, hp: .5, org: 0, soft: 2, hard: 2, def: 4, brk: 1, armor: 0, pierce: 10, hardness: 0, width: 0, speed: 22, supply: .05, manpower: 300, eq: { aa_gun: 10 }, aa: 15, tech: 'aa1' }
+  { id: 'infantry', name: '보병', line: true, hp: 25, org: 60, soft: 6, hard: 1, def: 22, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 10, supply: .06, manpower: 1000, eq: { inf_eq: 100 } },
+  { id: 'artillery', name: '포병', line: true, hp: 1, org: 0, soft: 24, hard: 2, def: 10, brk: 6, armor: 0, pierce: 5, hardness: 0, width: 3, speed: 10, supply: .2, manpower: 500, eq: { artillery: 12, inf_eq: 20 } },
+  { id: 'cavalry', name: '기병', line: true, hp: 25, org: 70, soft: 5, hard: 1, def: 20, brk: 5, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 14, supply: .07, manpower: 1000, eq: { inf_eq: 120 } },
+  { id: 'mountain', name: '산악 보병', line: true, hp: 20, org: 70, soft: 6, hard: 1, def: 24, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 10, supply: .07, manpower: 1000, eq: { inf_eq: 120, support_eq: 10 }, terrain: { m: .25, h: .15 }, tech: 'mountaineers' },
+  { id: 'marine', name: '해병', line: true, hp: 20, org: 70, soft: 6, hard: 1, def: 23, brk: 3, armor: 0, pierce: 4, hardness: 0, width: 2, speed: 10, supply: .07, manpower: 1000, eq: { inf_eq: 120, support_eq: 10 }, amphibious: .5, terrain: { j: .1 }, tech: 'marines' },
+  { id: 'motorized', name: '차량화 보병', line: true, hp: 25, org: 60, soft: 6, hard: 1, def: 23, brk: 4, armor: 0, pierce: 4, hardness: .1, width: 2, speed: 24, supply: .1, fuel: .3, manpower: 1200, eq: { inf_eq: 100, motor: 35 }, tech: 'motorized' },
+  { id: 'armor', name: '전차', line: true, hp: 2, org: 10, soft: 16, hard: 7, def: 4, brk: 30, armor: 20, pierce: 22, hardness: .8, width: 2, speed: 20, supply: .25, fuel: .8, manpower: 500, eq: { armor: 50, motor: 10 }, tech: 'tank1' },
+  { id: 'engineer', name: '공병 중대', support: true, hp: 2, org: 20, soft: 2, hard: 0, def: 8, brk: 2, armor: 0, pierce: 2, hardness: 0, width: 0, speed: 10, supply: .03, manpower: 300, eq: { support_eq: 10, inf_eq: 10 }, entrench: .1 },
+  { id: 'recon', name: '정찰 중대', support: true, hp: 2, org: 20, soft: 2, hard: 0, def: 4, brk: 2, armor: 0, pierce: 2, hardness: 0, width: 0, speed: 14, supply: .03, manpower: 200, eq: { inf_eq: 30, support_eq: 5 }, initiative: .1 },
+  { id: 'support_art', name: '지원 포병 중대', support: true, hp: .5, org: 0, soft: 12, hard: 1, def: 6, brk: 2, armor: 0, pierce: 5, hardness: 0, width: 0, speed: 10, supply: .1, manpower: 300, eq: { artillery: 6 } },
+  { id: 'anti_tank', name: '대전차 중대', support: true, hp: .5, org: 0, soft: 2, hard: 8, def: 4, brk: 1, armor: 0, pierce: 40, hardness: 0, width: 0, speed: 10, supply: .05, manpower: 300, eq: { at_gun: 10 }, tech: 'at1' },
+  { id: 'anti_air', name: '대공 중대', support: true, hp: .5, org: 0, soft: 2, hard: 2, def: 4, brk: 1, armor: 0, pierce: 10, hardness: 0, width: 0, speed: 10, supply: .05, manpower: 300, eq: { aa_gun: 10 }, aa: 15, tech: 'aa1' }
 ];
 
 /* 시작 편제(나라별). bat: 전선 대대, sup: 지원 중대. 플레이어는 사단 설계 창에서 새 편제를 만든다. */
@@ -124,7 +124,7 @@ export const SHIPS = [
   { id: 'destroyer', name: '구축함', cost: 380, hp: 30, gun: 4, torp: 6, air: 0, aa: 2, asw: 8, speed: 36, fuel: .05, levels: ['dd1', 'dd2'] },
   { id: 'cruiser', name: '순양함', cost: 1300, hp: 80, gun: 16, torp: 4, air: 0, aa: 6, asw: 2, speed: 33, fuel: .12, levels: ['cl1', 'cl2'] },
   { id: 'battleship', name: '전함', cost: 5200, hp: 260, gun: 60, torp: 0, air: 0, aa: 8, asw: 0, speed: 26, fuel: .4, levels: ['bb1', 'bb2'] },
-  { id: 'carrier', name: '항공모함', cost: 4600, hp: 130, gun: 0, torp: 0, air: 55, aa: 8, asw: 2, speed: 32, fuel: .35, levels: ['cv1', 'cv2'] },
+  { id: 'carrier', name: '항공모함', cost: 4600, hp: 130, gun: 0, torp: 0, air: 55, aa: 8, asw: 2, speed: 14, fuel: .35, levels: ['cv1', 'cv2'] },
   { id: 'submarine', name: '잠수함', cost: 320, hp: 22, gun: 0, torp: 16, air: 0, aa: 0, asw: 0, speed: 18, fuel: .03, raid: 6, levels: ['ss1', 'ss2'] },
   { id: 'convoy', name: '수송선', cost: 40, hp: 10, gun: 0, torp: 0, air: 0, aa: 0, asw: 0, speed: 16, fuel: .02 }
 ];
@@ -288,7 +288,7 @@ export const SPIRITS = {
   burma_road: { name: '버마 루트', desc: '버마를 거쳐 물자가 들어온다.', fx: { tradeCap: .2 } },
   hump_airlift: { name: '험프 공수', desc: '히말라야를 넘는 공수로 물자가 들어온다.', fx: { tradeCap: .15 } },
   resource_mobilization: { name: '자원 동원', desc: '채굴과 원료 생산을 늘린다.', fx: { resource: .15 } },
-  european_war: { name: '유럽의 전쟁', desc: '본국이 유럽에서 싸우고 있다. 본국 병력과 함대를 이 전역으로 보내기 어렵다.', fx: { deployTime: 1, homeLocked: true } },
+  european_war: { name: '유럽의 전쟁', desc: '본국이 유럽에서 싸우고 있다. 본국 병력과 함대를 이 전역으로 보내기 어렵다.', fx: { deployTime: 1.5 } },
   government_in_exile: { name: '망명 정부', desc: '본국을 잃었다. 식민지의 자원과 병력으로 싸운다.', fx: { stability: -.05 } },
   great_patriotic_war: { name: '대조국 전쟁', desc: '서부에서 독일과 싸우고 있다. 본토의 병력과 물자를 극동으로 보내기 어렵다.', fx: { deployTime: 1, homeLocked: true, warSupport: .1 } }
 };
