@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0e0b16">
+<meta name="description" content="열 층 아래 심연의 군주에게서 첫 불씨를 되찾는 도트 던전 RPG">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="심연의 불씨">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>심연의 불씨</title>
+<link rel="preload" href="fonts/galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-screen="title">
+
+<!-- 타이틀 -->
+<section id="title" class="screen" aria-label="타이틀">
+  <canvas id="titleArt" aria-hidden="true"></canvas>
+  <h1 class="logo"><span>심연의 불씨</span><small>EMBER OF THE ABYSS</small></h1>
+  <div class="title-box">
+    <div class="title-menu">
+      <button class="btn gold" id="btnContinue" hidden>이어하기</button>
+      <button class="btn" id="btnNew">새 모험</button>
+      <button class="btn" id="btnHelpT">조작법</button>
+      <button class="btn" id="btnSoundT">소리 설정</button>
+    </div>
+    <p class="records" id="records"></p>
+  </div>
+  <p class="tap-hint" id="tapHint">♪ 화면을 한 번 누르면 소리가 켜져요</p>
+</section>
+
+<!-- 게임 -->
+<section id="game" class="screen" aria-label="던전">
+  <header id="hud">
+    <div class="hud-top">
+      <span class="chip floor" id="hudFloor">B1</span>
+      <span class="chip" id="hudLv">LV 1</span>
+      <span class="chip stat" id="hudAtk">공 0</span>
+      <span class="chip stat" id="hudDef">방 0</span>
+      <span class="chip gold" id="hudGold">0</span>
+      <span class="status" id="hudStatus"></span>
+      <button class="icon-btn" id="btnMenu" aria-label="메뉴">☰</button>
+    </div>
+    <div class="bars">
+      <div class="bar hp" id="barHp"><b></b><i></i><span></span></div>
+      <div class="bar mp" id="barMp"><i></i><span></span></div>
+    </div>
+    <div class="bar xp" id="barXp"><i></i></div>
+  </header>
+
+  <div id="view">
+    <canvas id="cv"></canvas>
+    <div id="bossBar" hidden><span id="bossName"></span><div class="bar boss"><i></i></div></div>
+    <div id="log" aria-live="polite"></div>
+    <div id="card" aria-hidden="true"></div>
+    <button class="btn gold" id="btnStairs" hidden>▼ 내려가기</button>
+  </div>
+
+  <footer id="controls">
+    <div id="dpad" aria-label="이동">
+      <button data-dir="0,-1" class="up" aria-label="위">▲</button>
+      <button data-dir="-1,0" class="left" aria-label="왼쪽">◀</button>
+      <button data-dir="wait" class="mid" aria-label="제자리 대기">·</button>
+      <button data-dir="1,0" class="right" aria-label="오른쪽">▶</button>
+      <button data-dir="0,1" class="down" aria-label="아래">▼</button>
+    </div>
+    <div id="actions">
+      <div class="skills" id="skills"></div>
+      <div class="tools">
+        <button class="tool" id="btnBag"><img alt=""><span>가방</span></button>
+        <button class="tool" id="btnExplore"><img alt=""><span>탐험</span></button>
+        <button class="tool" id="btnRest"><img alt=""><span>휴식</span></button>
+        <button class="tool" id="btnMap"><img alt=""><span>지도</span></button>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<!-- 엔딩 -->
+<section id="ending" class="screen" aria-label="엔딩">
+  <canvas id="endArt" aria-hidden="true"></canvas>
+  <div class="end-box" id="endBox"></div>
+</section>
+
+<!-- 창 -->
+<div id="modal" hidden>
+  <div class="panel" id="panel" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="js/sprites.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script src="js/gen.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>

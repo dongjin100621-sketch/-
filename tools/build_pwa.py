@@ -1,5 +1,5 @@
 """<앱>/sw.js 의 파일 목록과 버전을 갱신하고 docs/<앱>/ (GitHub Pages 배포용)로 복사한다.
-사용법: python3 tools/build_pwa.py [luminaria|hanja]   (앱 파일을 고친 뒤 실행, 기본값 luminaria)"""
+사용법: python3 tools/build_pwa.py [luminaria|hanja|dungeon]   (앱 파일을 고친 뒤 실행, 기본값 luminaria)"""
 import os, re, shutil, hashlib, sys
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 app = sys.argv[1] if len(sys.argv) > 1 else 'luminaria'
@@ -11,6 +11,8 @@ if not os.path.isfile(os.path.join(src, 'sw.js')):
 files = ['./', 'index.html', 'manifest.webmanifest', 'css/style.css']
 files += sorted('js/' + f for f in os.listdir(f'{src}/js') if f.endswith('.js'))
 files += sorted('icons/' + f for f in os.listdir(f'{src}/icons') if f.endswith('.png'))
+if os.path.isdir(f'{src}/fonts'):
+    files += sorted('fonts/' + f for f in os.listdir(f'{src}/fonts') if f.endswith('.woff2'))
 # 설정 자료(sheet)는 용량이 커서 처음 열 때 받지 않고, 볼 때 보관한다.
 if os.path.isdir(f'{src}/img'):
     files += sorted('img/' + f for f in os.listdir(f'{src}/img') if '_sheet' not in f and f.endswith(('.jpg', '.png', '.webp')))

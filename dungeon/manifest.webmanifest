@@ -1,0 +1,17 @@
+{
+  "name": "심연의 불씨",
+  "short_name": "심연의 불씨",
+  "description": "열 층 아래 심연의 군주에게서 첫 불씨를 되찾는 도트 던전 RPG",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e0b16",
+  "theme_color": "#0e0b16",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
