@@ -5,6 +5,31 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const josa = (word, a, b) => { const c = word.charCodeAt(word.length - 1); return (c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28) ? a : b; };
 
+/* ── 장비 등급 표시 (낡은·기본·쓸만한·유물) ── */
+const gearName = (id) => `<span class="gn g-${gradeOf(id)}">${esc(EQUIP[id].name)}</span>`;
+const gearTag = (id) => `<i class="gtag g-${gradeOf(id)}">${GRADES[gradeOf(id)].name}</i>`;
+/* 장비 설명: 능력치(레벨마다 자라는 값은 주인이 있으면 실제 값, 없으면 「레벨×k」), 고유한 힘, 깨어남 진행 */
+function gearDesc(id, h) {
+  const e = EQUIP[id];
+  const parts = [];
+  for (const k of ['patk', 'matk', 'pdef', 'mdef', 'spd', 'hp', 'sp', 'crit']) {
+    const g = e.grow && e.grow[k];
+    if (!e[k] && !g) continue;
+    if (g && h) { const v = Party.gearStat(e, k, h.lv); parts.push(`${STAT_NAME[k]} ${v > 0 ? '+' : ''}${v}`); }
+    else if (g) parts.push(`${STAT_NAME[k]} ${e[k] ? (e[k] > 0 ? '+' : '') + e[k] + ' ' : ''}(레벨마다 +${g})`);
+    else parts.push(`${STAT_NAME[k]} ${e[k] > 0 ? '+' : ''}${e[k]}`);
+  }
+  let out = (e.slot === 'weapon' ? TYPE_NAME[e.type] + ' · ' : '') + (e.desc || parts.join(', '));
+  if (e.note) out += ` · <b class="gnote">${e.note}</b>`;
+  if (e.awaken) {
+    const G = App.G, a = e.awaken;
+    const cur = Math.min(a.n, (G && G.awaken && G.awaken[id]) || 0);
+    out += `<span class="awk">무언가 깃들어 있다 — ${AWAKEN_TEXT[a.kind](a.n)} 깨어날 것 같다. <b>${cur.toLocaleString()} / ${a.n.toLocaleString()}</b></span>`;
+  }
+  return out;
+}
+const byGrade = (a, b) => GRADES[gradeOf(b)].order - GRADES[gradeOf(a)].order || EQUIP[a].name.localeCompare(EQUIP[b].name);
+
 /* ── 대화창 ── */
 const Dialog = (() => {
   let active = false, typing = null, resolve = null, choiceRes = null, choiceIdx = 0, choices = [];
@@ -166,7 +191,7 @@ const Menu = (() => {
       return `<div class="sk${learned ? '' : ' locked'}">${k.type ? `<img src="${Gfx.icon(k.type, 16)}" alt="">` : '<i class="dot"></i>'}<b>${learned ? k.name : '???'}</b><small>${learned ? `SP ${k.sp}` : `Lv ${lv}`}</small>
         ${(usable || rev) ? `<button class="btn tiny" data-use="${id}">쓰기</button>` : ''}<p>${learned ? k.desc : `레벨 ${lv}에 배운다.`}</p></div>`;
     }).join('');
-    const eq = ['weapon', 'armor', 'acc'].map(sl => `<div class="eqr"><span>${{ weapon: '무기', armor: '방어구', acc: '장신구' }[sl]}</span><b>${h.equip[sl] ? EQUIP[h.equip[sl]].name : '—'}</b></div>`).join('');
+    const eq = ['weapon', 'armor', 'acc'].map(sl => `<div class="eqr"><span>${{ weapon: '무기', armor: '방어구', acc: '장신구' }[sl]}</span><b>${h.equip[sl] ? gearName(h.equip[sl]) : '—'}</b></div>`).join('');
     const p = frame(`<div class="detail">
       <div class="dtop"><img src="${Gfx.icon(d.spr, 64, 'f')}" alt=""><div><h3>${d.name} <small>${d.job} · Lv ${h.lv}</small></h3>
         <p class="bio">${d.bio}</p>
@@ -183,7 +208,8 @@ const Menu = (() => {
   }
   function fieldSkill(h, sid) {
     const k = SKILLS[sid];
-    if (h.sp < k.sp) { Sound.sfx('error'); toast('SP가 모자랍니다.'); return; }
+    const cost = Math.ceil(k.sp * Party.stats(h).fx.spCost);
+    if (h.sp < cost) { Sound.sfx('error'); toast('SP가 모자랍니다.'); return; }
     pickMember(`${k.name} — 누구에게?`, (t) => {
       const ts = Party.stats(t);
       if (k.revive) { if (t.hp > 0) return false; t.hp = Math.max(1, Math.round(ts.hp * k.revive)); }
@@ -193,7 +219,8 @@ const Menu = (() => {
         const amt = k.power / 100 * (Party.stats(h).matk * 3 + 40);
         for (const x of targets) { const xs = Party.stats(x); x.hp = Math.min(xs.hp, Math.round(x.hp + amt)); }
       }
-      h.sp -= k.sp;
+      if (h.sp < cost) return false;
+      h.sp -= cost;
       Sound.sfx('heal');
       return true;
     }, () => render());
@@ -215,11 +242,7 @@ const Menu = (() => {
       return d ? `<em class="${d > 0 ? 'up' : 'dn'}">${STAT_NAME[k]} ${d > 0 ? '+' : ''}${d}</em>` : '';
     }).join('');
   }
-  const eqDesc = (id) => {
-    const e = EQUIP[id];
-    const parts = ['patk', 'matk', 'pdef', 'mdef', 'spd', 'hp', 'sp', 'crit'].filter(k => e[k]).map(k => `${STAT_NAME[k]} ${e[k] > 0 ? '+' : ''}${e[k]}`);
-    return (e.slot === 'weapon' ? TYPE_NAME[e.type] + ' · ' : '') + (e.desc || parts.join(', '));
-  };
+  const eqDesc = gearDesc;
   function renderEquip() {
     const ids = members();
     if (!eqWho || !ids.includes(eqWho)) eqWho = ids[0];
@@ -227,14 +250,14 @@ const Menu = (() => {
     const chips = ids.map(id => `<button class="chip${id === eqWho ? ' on' : ''}" data-id="${id}"><img src="${Gfx.face(HEROES[id].spr, 22, 'f')}" alt="">${HEROES[id].name}</button>`).join('');
     const slots = ['weapon', 'armor', 'acc'].map(sl => {
       const cur = h.equip[sl];
-      return `<button class="slot${eqSlot === sl ? ' on' : ''}" data-slot="${sl}"><span>${{ weapon: '무기', armor: '방어구', acc: '장신구' }[sl]}</span><b>${cur ? EQUIP[cur].name : '—'}</b><small>${cur ? eqDesc(cur) : ''}</small></button>`;
+      return `<button class="slot${eqSlot === sl ? ' on' : ''}" data-slot="${sl}"><span>${{ weapon: '무기', armor: '방어구', acc: '장신구' }[sl]}</span><b>${cur ? gearTag(cur) + gearName(cur) : '—'}</b><small>${cur ? eqDesc(cur, h) : ''}</small></button>`;
     }).join('');
     let list = '';
     if (eqSlot) {
-      const cands = Object.entries(G().gear).filter(([id, n]) => n > 0 && EQUIP[id] && EQUIP[id].slot === eqSlot && Party.canEquip(h, id));
+      const cands = Object.entries(G().gear).filter(([id, n]) => n > 0 && EQUIP[id] && EQUIP[id].slot === eqSlot && Party.canEquip(h, id)).sort(([a], [b]) => byGrade(a, b));
       list = `<h4>바꿀 장비</h4><div class="elist">` +
         (h.equip[eqSlot] && eqSlot !== 'weapon' ? `<button class="eitem" data-eq=""><b>벗기</b><span class="diff">${statDiff(h, eqSlot, null)}</span></button>` : '') +
-        (cands.length ? cands.map(([id, n]) => `<button class="eitem" data-eq="${id}"><b>${EQUIP[id].name}</b><small>×${n} · ${eqDesc(id)}</small><span class="diff">${statDiff(h, eqSlot, id)}</span></button>`).join('') : '<p class="hint">가방에 맞는 장비가 없습니다.</p>') + '</div>';
+        (cands.length ? cands.map(([id, n]) => `<button class="eitem" data-eq="${id}"><b>${gearTag(id)}${gearName(id)}</b><small>×${n} · ${eqDesc(id, h)}</small><span class="diff">${statDiff(h, eqSlot, id)}</span></button>`).join('') : '<p class="hint">가방에 맞는 장비가 없습니다.</p>') + '</div>';
     }
     const s = Party.stats(h);
     const p = frame(`<div class="chips">${chips}</div>
@@ -258,13 +281,13 @@ const Menu = (() => {
   /* 아이템 */
   function renderItems() {
     const its = Object.entries(G().items).filter(([, n]) => n > 0);
-    const gear = Object.entries(G().gear).filter(([, n]) => n > 0);
+    const gear = Object.entries(G().gear).filter(([id, n]) => n > 0 && EQUIP[id]).sort(([a], [b]) => byGrade(a, b));
     const p = frame(`<div class="ilist">${its.length ? its.map(([id, n]) => {
       const it = ITEMS[id];
       const usable = !it.dmg && !it.bp;
       return `<button class="iitem" data-id="${id}"${usable ? '' : ' disabled'}><img src="${Gfx.icon(it.icon, 24)}" alt=""><b>${it.name}</b><small>×${n}</small><p>${it.desc}${usable ? '' : ' (전투 중에만)'}</p></button>`;
     }).join('') : '<p class="hint">아이템이 없습니다.</p>'}</div>
-      ${gear.length ? `<h4>장비 가방</h4><div class="ilist">${gear.map(([id, n]) => `<div class="iitem static"><b>${EQUIP[id].name}</b><small>×${n}</small><p>${eqDesc(id)}</p></div>`).join('')}</div>` : ''}`);
+      ${gear.length ? `<h4>장비 가방</h4><div class="ilist">${gear.map(([id, n]) => `<div class="iitem static"><b>${gearTag(id)}${gearName(id)}</b><small>×${n}</small><p>${eqDesc(id)}</p></div>`).join('')}</div>` : ''}`);
     p.querySelectorAll('.iitem[data-id]').forEach(b => b.addEventListener('click', () => {
       const id = b.dataset.id, it = ITEMS[id];
       pickMember(`${it.name} — 누구에게?`, (t) => {
@@ -401,13 +424,13 @@ const Shop = (() => {
       rows = list.map(id => {
         const it = ITEMS[id] || EQUIP[id];
         const price = it.price;
-        const desc = ITEMS[id] ? ITEMS[id].desc : (EQUIP[id].slot === 'weapon' ? TYPE_NAME[EQUIP[id].type] + ' · ' : '') + (EQUIP[id].desc || ['patk', 'matk', 'pdef', 'mdef', 'spd', 'crit', 'sp'].filter(k => EQUIP[id][k]).map(k => `${STAT_NAME[k]} ${EQUIP[id][k] > 0 ? '+' : ''}${EQUIP[id][k]}`).join(', '));
+        const desc = ITEMS[id] ? ITEMS[id].desc : gearDesc(id);
         const icon = ITEMS[id] ? ITEMS[id].icon : (EQUIP[id].slot === 'weapon' ? EQUIP[id].type : EQUIP[id].slot === 'armor' ? 'armor' : 'ring');
-        return `<button class="srow" data-id="${id}"${G().gold < price ? ' disabled' : ''}><img src="${Gfx.icon(icon, 24)}" alt=""><div><b>${it.name}</b><small>${desc}</small>${EQUIP[id] ? `<div class="whos">${gearInfo(id)}</div>` : ''}</div><span class="pr">${price.toLocaleString()} G<small>가진 수 ${owned(id)}</small></span></button>`;
+        return `<button class="srow" data-id="${id}"${G().gold < price ? ' disabled' : ''}><img src="${Gfx.icon(icon, 24)}" alt=""><div><b>${EQUIP[id] ? gearTag(id) + gearName(id) : it.name}</b><small>${desc}</small>${EQUIP[id] ? `<div class="whos">${gearInfo(id)}</div>` : ''}</div><span class="pr">${price.toLocaleString()} G<small>가진 수 ${owned(id)}</small></span></button>`;
       }).join('');
     } else {
       const sell = [...Object.entries(G().items).map(([id, n]) => [id, n, ITEMS[id]]), ...Object.entries(G().gear).map(([id, n]) => [id, n, EQUIP[id]])].filter(([, n, it]) => n > 0 && it && it.price > 0);
-      rows = sell.length ? sell.map(([id, n, it]) => `<button class="srow" data-id="${id}"><div><b>${it.name}</b><small>×${n}</small></div><span class="pr">${Math.floor(it.price / 2).toLocaleString()} G</span></button>`).join('') : '<p class="hint">팔 수 있는 것이 없습니다. (장착한 장비는 팔 수 없어요)</p>';
+      rows = sell.length ? sell.map(([id, n, it]) => `<button class="srow" data-id="${id}"><div><b>${EQUIP[id] ? gearTag(id) + gearName(id) : it.name}</b><small>×${n}</small></div><span class="pr">${Math.floor(it.price / 2).toLocaleString()} G</span></button>`).join('') : '<p class="hint">팔 수 있는 것이 없습니다. (장착한 장비와 유물·깃든 장비는 팔 수 없어요)</p>';
     }
     const p = Modal.show(`<div class="mhead"><div class="tabs"><button class="tab${mode === 'buy' ? ' on' : ''}" data-m="buy">사기</button><button class="tab${mode === 'sell' ? ' on' : ''}" data-m="sell">팔기</button></div><button class="icon-btn close" id="sClose" aria-label="닫기">✕</button></div>
       <div class="mgold"><span>${esc(label)}</span><span>● ${G().gold.toLocaleString()} G</span></div><div class="mbody"><div class="slist">${rows}</div></div>`, 'menu shop', () => App.onMenuClosed());

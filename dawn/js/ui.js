@@ -16,7 +16,7 @@ function gearDesc(id, h) {
     const g = e.grow && e.grow[k];
     if (!e[k] && !g) continue;
     if (g && h) { const v = Party.gearStat(e, k, h.lv); parts.push(`${STAT_NAME[k]} ${v > 0 ? '+' : ''}${v}`); }
-    else if (g) parts.push(`${STAT_NAME[k]} ${e[k] ? (e[k] > 0 ? '+' : '') + e[k] + '+' : '+'}레벨×${g}`);
+    else if (g) parts.push(`${STAT_NAME[k]} ${e[k] ? (e[k] > 0 ? '+' : '') + e[k] + ' ' : ''}(레벨마다 +${g})`);
     else parts.push(`${STAT_NAME[k]} ${e[k] > 0 ? '+' : ''}${e[k]}`);
   }
   let out = (e.slot === 'weapon' ? TYPE_NAME[e.type] + ' · ' : '') + (e.desc || parts.join(', '));

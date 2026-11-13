@@ -260,6 +260,9 @@ const Field = (() => {
       return true;
     }
     const ch = tileAt(x, y);
+    // 숨은 상자(유물): 나무·바위 같은 곳에 숨어 있고, 이따금 반짝인다
+    const hc = map.chests.find(o => o.hidden && o.x === x && o.y === y && !G().opened[o.id]);
+    if (hc) { App.openChest(hc); return true; }
     const ev = map.events.find(e => e.check && e.x === x && e.y === y && (!e.unless || !App.cond(e.unless)));
     if (ev) { App.runScript(ev.script); return true; }
     if (ch === 'o') {
@@ -373,6 +376,19 @@ const Field = (() => {
       ctx.strokeRect(marker.x * TS - cx + S, marker.y * TS - cy + S, TS - 2 * S, TS - 2 * S);
     }
 
+    // 숨은 상자의 반짝임: 4초에 한 번 잠깐 빛난다
+    for (const c of map.chests) {
+      if (!c.hidden || G().opened[c.id]) continue;
+      const ph = ((time + (c.x * 37 + c.y * 91) * 13) % 4000) / 4000;
+      if (ph > 0.12) continue;
+      const k = Math.sin(ph / 0.12 * Math.PI);
+      const x = c.x * TS - cx + TS * 0.62, y = c.y * TS - cy + TS * 0.3;
+      if (x < -TS || y < -TS || x > f.W + TS || y > f.H + TS) continue;
+      const a = Math.max(1, Math.round(S * 2.5 * k)), w = Math.max(1, Math.round(S * 0.7));
+      ctx.fillStyle = `rgba(255,248,200,${0.95 * k})`;
+      ctx.fillRect(Math.round(x - a), Math.round(y - w / 2), a * 2, w);
+      ctx.fillRect(Math.round(x - w / 2), Math.round(y - a), w, a * 2);
+    }
     // 사람들 (y 순서)
     const actors = npcs.filter(n => n.vis).map(n => ({ y: n.fy, draw: () => drawNpc(n, TS, cx, cy, S) }));
     actors.push({ y: player.fy, draw: () => drawPlayer(TS, cx, cy, S) });

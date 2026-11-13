@@ -3,7 +3,8 @@
 
 const World = (() => {
   const $ = (id) => document.getElementById(id);
-  const LV = { village: '1', forest: '3~8', sandport: '9', tomb: '10~16', frostvale: '17', icecave: '18~24', mistcastle: '25', magetower: '26~32', dusktower: '34~40' };
+  const LV = { village: '1', forest: '3~8', sandport: '9', tomb: '10~16', frostvale: '17', icecave: '18~24', mistcastle: '25', magetower: '26~32', dusktower: '34~40',
+    meadow: '1~8 · 잡몹 사냥터', dunes: '9~16 · 잡몹 사냥터', snowfield: '17~24 · 잡몹 사냥터', marsh: '25~32 · 잡몹 사냥터' };
   const ICON = { town: null, forest: 'tree', tomb: 'skull', cave: 'crystal', castle: 'lamp', tower: 'crystal_gold', dusk: 'ember' };
   const CENTERS = { 1: [0.16, 0.50], 2: [0.50, 0.86], 3: [0.56, 0.14], 4: [0.86, 0.40], 5: [0.53, 0.50] };
   let cv, ctx, tex = null, sel = null, time = 0, at = 'village';
@@ -118,10 +119,10 @@ const World = (() => {
         ctx.strokeStyle = `rgba(255,220,100,${0.6 + 0.4 * Math.sin(time / 150)})`; ctx.lineWidth = S;
         ctx.beginPath(); ctx.ellipse(x, y + S, S * 10, S * 4, 0, 0, Math.PI * 2); ctx.stroke();
       }
-      const ic = ICON[w.kind];
+      const ic = w.icon || ICON[w.kind];
       if (ic) ctx.drawImage(Gfx.sprite(ic), Math.round(x - 8 * S), Math.round(y - 14 * S), 16 * S, 16 * S);
       else drawHouse(x, y, S, w.region);
-      const bellDone = w.region < 5 && App.G.flags['bell' + w.region] && w.kind !== 'town' && w.kind !== 'castle';
+      const bellDone = w.region < 5 && App.G.flags['bell' + w.region] && !['town', 'castle', 'field'].includes(w.kind);
       if (bellDone) ctx.drawImage(Gfx.sprite('bell'), Math.round(x + 2 * S), Math.round(y - 18 * S), 8 * S, 8 * S);
     }
     // 현재 위치

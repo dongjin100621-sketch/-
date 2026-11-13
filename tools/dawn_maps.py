@@ -580,7 +580,7 @@ make_field('meadow', '바람 들판', 'village', 'plains', 301, 'T',
     north=[['g1e', 3], ['g1f', 3], ['g1g', 3], ['g1h', 3], ['g1c', 2], ['g1r', 1]])
 
 make_field('dunes', '붉은 사구', 'desert', 'desert', 302, 'R',
-    clumps=[('C', 12, 1), ('R', 8, 1), ('C', 4, 2)], ponds=[(8, 9, 2, 2)], deco=(16, 70),
+    clumps=[('C', 18, 1), ('R', 12, 1), ('C', 6, 2), ('R', 3, 2)], ponds=[(8, 9, 2, 2)], deco=(22, 70),
     main=MAIN, branches=[MAIN2, [(11, 21), (3, 21), (3, 27)], [(29, 20), (36, 20), (36, 25)], [(11, 13), (6, 13), (6, 3)], [(21, 7), (15, 7), (15, 2)],
                          [(30, 3), (36, 3), (36, 10)], [(29, 13), (35, 13)]],
     chests=[dict(id='gd1', x=36, y=26, gear='seed_ring'), dict(id='gd2', x=6, y=2, gear='sword_g3'), dict(id='gd3', x=3, y=28, item='herb2', n=2),
@@ -592,7 +592,7 @@ make_field('dunes', '붉은 사구', 'desert', 'desert', 302, 'R',
     north=[['g2c', 3], ['g2e', 3], ['g2f', 3], ['g2a', 2], ['g2r', 1]])
 
 make_field('snowfield', '은빛 설원', 'snow', 'snow', 303, 'P',
-    clumps=[('P', 10, 2), ('B', 6, 1), ('R', 6, 1)], ponds=[(31, 24, 3, 2), (8, 6, 3, 1)], deco=(8, 60),
+    clumps=[('P', 16, 2), ('B', 9, 1), ('R', 8, 1), ('T', 4, 1)], ponds=[(31, 24, 3, 2), (8, 6, 3, 1)], deco=(10, 60),
     main=MAIN, branches=[MAIN2, [(11, 21), (3, 21), (3, 26)], [(29, 20), (37, 20)], [(11, 13), (3, 13), (3, 3)], [(21, 7), (14, 7), (14, 2)],
                          [(30, 3), (37, 3), (37, 8)], [(29, 13), (34, 13), (34, 9)]],
     chests=[dict(id='gs1', x=3, y=2, gear='seed_robe'), dict(id='gs2', x=3, y=27, item='feather', n=2), dict(id='gs3', x=37, y=9, gold=2500),

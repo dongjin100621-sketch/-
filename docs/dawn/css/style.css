@@ -432,3 +432,13 @@ body.shake .screen { animation: shake .45s; }
   #bMenu { max-height: 30vh; }
   .mi { min-height: 32px; }
 }
+
+/* 장비 등급: 낡은·기본·쓸만한·유물 */
+.gn.g-worn { color: #a59fb6; } .gn.g-basic { color: inherit; } .gn.g-good { color: var(--green); }
+.gn.g-relic { color: #ffb84a; text-shadow: 0 0 6px rgba(255,170,60,.45); }
+.gtag { display: inline-block; font-style: normal; font-size: 9px; line-height: 1; padding: 2px 3px 1px; margin-right: 4px; vertical-align: 2px; box-shadow: 0 0 0 1px currentColor; }
+.gtag.g-worn { color: #a59fb6; } .gtag.g-basic { color: #c7c2d8; } .gtag.g-good { color: var(--green); } .gtag.g-relic { color: #ffb84a; }
+.gnote { color: #ffd98a; font-weight: normal; }
+.awk { display: block; margin-top: 2px; color: var(--cyan); font-size: 11px; }
+.awk b { color: var(--gold); }
+.rup { color: #ffb84a; font-size: 10px; }

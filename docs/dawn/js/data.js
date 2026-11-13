@@ -221,39 +221,39 @@ const EQUIP = {
   sword2: { name: '강철검', slot: 'weapon', type: 'sword', price: 420, patk: 22 },
   sword3: { name: '기사검', slot: 'weapon', type: 'sword', price: 1300, patk: 38 },
   sword4: { name: '미스릴검', slot: 'weapon', type: 'sword', price: 3600, patk: 58 },
-  sword5: { name: '여명의 검', slot: 'weapon', type: 'sword', price: 0, patk: 84, crit: 5 },
+  sword5: { grade: 'good', name: '여명의 검', slot: 'weapon', type: 'sword', price: 0, patk: 84, crit: 5 },
   spear1: { name: '나무창', slot: 'weapon', type: 'spear', price: 80, patk: 10 },
   spear2: { name: '강철창', slot: 'weapon', type: 'spear', price: 420, patk: 23 },
   spear3: { name: '기사창', slot: 'weapon', type: 'spear', price: 1300, patk: 39 },
   spear4: { name: '미스릴창', slot: 'weapon', type: 'spear', price: 3600, patk: 59 },
-  spear5: { name: '새벽별 창', slot: 'weapon', type: 'spear', price: 0, patk: 85 },
+  spear5: { grade: 'good', name: '새벽별 창', slot: 'weapon', type: 'spear', price: 0, patk: 85 },
   dagger1:{ name: '청동 단검', slot: 'weapon', type: 'dagger', price: 70, patk: 8, spd: 2, crit: 3 },
   dagger2:{ name: '강철 단검', slot: 'weapon', type: 'dagger', price: 380, patk: 19, spd: 3, crit: 4 },
   dagger3:{ name: '은빛 단검', slot: 'weapon', type: 'dagger', price: 1200, patk: 33, spd: 5, crit: 5 },
   dagger4:{ name: '미스릴 단검', slot: 'weapon', type: 'dagger', price: 3400, patk: 51, spd: 6, crit: 6 },
-  dagger5:{ name: '바람칼', slot: 'weapon', type: 'dagger', price: 0, patk: 76, spd: 10, crit: 8 },
+  dagger5:{ grade: 'good', name: '바람칼', slot: 'weapon', type: 'dagger', price: 0, patk: 76, spd: 10, crit: 8 },
   axe1:   { name: '손도끼', slot: 'weapon', type: 'axe', price: 90, patk: 12, spd: -1 },
   axe2:   { name: '전투 도끼', slot: 'weapon', type: 'axe', price: 460, patk: 26, spd: -2 },
   axe3:   { name: '양날 도끼', slot: 'weapon', type: 'axe', price: 1400, patk: 43, spd: -2 },
   axe4:   { name: '미스릴 도끼', slot: 'weapon', type: 'axe', price: 3800, patk: 64, spd: -3 },
-  axe5:   { name: '거인의 도끼', slot: 'weapon', type: 'axe', price: 0, patk: 92, spd: -3 },
+  axe5:   { grade: 'good', name: '거인의 도끼', slot: 'weapon', type: 'axe', price: 0, patk: 92, spd: -3 },
   bow1:   { name: '단궁', slot: 'weapon', type: 'bow', price: 80, patk: 9, spd: 1 },
   bow2:   { name: '장궁', slot: 'weapon', type: 'bow', price: 400, patk: 21, spd: 1 },
   bow3:   { name: '사냥꾼의 활', slot: 'weapon', type: 'bow', price: 1250, patk: 36, spd: 2, crit: 3 },
   bow4:   { name: '미스릴 활', slot: 'weapon', type: 'bow', price: 3500, patk: 55, spd: 3 },
-  bow5:   { name: '별빛 활', slot: 'weapon', type: 'bow', price: 0, patk: 80, spd: 4, crit: 5 },
+  bow5:   { grade: 'good', name: '별빛 활', slot: 'weapon', type: 'bow', price: 0, patk: 80, spd: 4, crit: 5 },
   staff1: { name: '떡갈나무 지팡이', slot: 'weapon', type: 'staff', price: 80, patk: 4, matk: 10 },
   staff2: { name: '마법 지팡이', slot: 'weapon', type: 'staff', price: 420, patk: 8, matk: 22 },
   staff3: { name: '수정 지팡이', slot: 'weapon', type: 'staff', price: 1300, patk: 14, matk: 38, sp: 10 },
   staff4: { name: '현자의 지팡이', slot: 'weapon', type: 'staff', price: 3600, patk: 20, matk: 58, sp: 20 },
-  staff5: { name: '여명의 지팡이', slot: 'weapon', type: 'staff', price: 0, patk: 28, matk: 84, sp: 30 },
+  staff5: { grade: 'good', name: '여명의 지팡이', slot: 'weapon', type: 'staff', price: 0, patk: 28, matk: 84, sp: 30 },
 
   armor1: { name: '여행자 옷', slot: 'armor', price: 60, pdef: 7, mdef: 4 },
   armor2: { name: '가죽 갑옷', slot: 'armor', price: 360, pdef: 16, mdef: 9 },
   armor3: { name: '사슬 갑옷', slot: 'armor', price: 1100, pdef: 28, mdef: 16 },
   armor4: { name: '기사 갑옷', slot: 'armor', price: 3000, pdef: 44, mdef: 27 },
   armor5: { name: '미스릴 갑옷', slot: 'armor', price: 6400, pdef: 62, mdef: 40 },
-  armor6: { name: '여명의 갑옷', slot: 'armor', price: 0, pdef: 82, mdef: 58 },
+  armor6: { grade: 'good', name: '여명의 갑옷', slot: 'armor', price: 0, pdef: 82, mdef: 58 },
   robe1:  { name: '견습 로브', slot: 'armor', price: 60, pdef: 4, mdef: 8 },
   robe2:  { name: '마도 로브', slot: 'armor', price: 360, pdef: 9, mdef: 18 },
   robe3:  { name: '현자 로브', slot: 'armor', price: 1100, pdef: 16, mdef: 30 },
@@ -269,9 +269,96 @@ const EQUIP = {
   badge_bp:  { name: '용기의 휘장', slot: 'acc', price: 1500, startBp: 1, desc: '전투를 BP 2로 시작한다' },
   charm_poison:{ name: '독막이 부적', slot: 'acc', price: 400, immune: ['poison'], desc: '독에 걸리지 않는다' },
   ring_crit: { name: '회심의 반지', slot: 'acc', price: 1200, crit: 15, desc: '치명타 +15%' },
-  gem_latent:{ name: '각성의 보석', slot: 'acc', price: 0, latentUp: 0.6, desc: '잠재력이 1.6배 빨리 찬다' },
-  neck_star: { name: '별의 목걸이', slot: 'acc', price: 0, patk: 10, matk: 10, pdef: 10, mdef: 10, spd: 5, desc: '모든 능력 상승' },
-  ring_sage: { name: '현자의 반지', slot: 'acc', price: 0, sp: 40, matk: 8, desc: '최대 SP +40, 마법 공격 +8' }
+  gem_latent:{ grade: 'good', name: '각성의 보석', slot: 'acc', price: 0, latentUp: 0.6, desc: '잠재력이 1.6배 빨리 찬다' },
+  neck_star: { grade: 'good', name: '별의 목걸이', slot: 'acc', price: 0, patk: 10, matk: 10, pdef: 10, mdef: 10, spd: 5, desc: '모든 능력 상승' },
+  ring_sage: { grade: 'good', name: '현자의 반지', slot: 'acc', price: 0, sp: 40, matk: 8, desc: '최대 SP +40, 마법 공격 +8' },
+
+  /* ── 낡은 장비: 기본보다 약하다. 적이 떨어뜨리거나 상자에서 나온다 ── */
+  sword_w1: { name: '녹슨 검', grade: 'worn', slot: 'weapon', type: 'sword', price: 30, patk: 7 },
+  spear_w1: { name: '금 간 창', grade: 'worn', slot: 'weapon', type: 'spear', price: 30, patk: 7 },
+  dagger_w1:{ name: '무뎌진 단검', grade: 'worn', slot: 'weapon', type: 'dagger', price: 25, patk: 6, spd: 1, crit: 2 },
+  axe_w1:   { name: '이 빠진 손도끼', grade: 'worn', slot: 'weapon', type: 'axe', price: 35, patk: 9, spd: -1 },
+  bow_w1:   { name: '시위 늘어진 활', grade: 'worn', slot: 'weapon', type: 'bow', price: 30, patk: 6, spd: 1 },
+  staff_w1: { name: '갈라진 지팡이', grade: 'worn', slot: 'weapon', type: 'staff', price: 30, patk: 3, matk: 7 },
+  armor_w1: { name: '해진 옷', grade: 'worn', slot: 'armor', price: 20, pdef: 5, mdef: 3 },
+  robe_w1:  { name: '해진 로브', grade: 'worn', slot: 'armor', price: 20, pdef: 3, mdef: 6 },
+  sword_w3: { name: '녹슨 기사검', grade: 'worn', slot: 'weapon', type: 'sword', price: 400, patk: 28 },
+  bow_w3:   { name: '휘어진 사냥꾼 활', grade: 'worn', slot: 'weapon', type: 'bow', price: 380, patk: 26, spd: 1 },
+  armor_w3: { name: '구멍 난 사슬 갑옷', grade: 'worn', slot: 'armor', price: 330, pdef: 20, mdef: 11 },
+  staff_w3: { name: '빛바랜 수정 지팡이', grade: 'worn', slot: 'weapon', type: 'staff', price: 400, patk: 10, matk: 28, sp: 5 },
+  axe_w4:   { name: '녹슨 미스릴 도끼', grade: 'worn', slot: 'weapon', type: 'axe', price: 1100, patk: 46, spd: -3 },
+  armor_w4: { name: '찌그러진 기사 갑옷', grade: 'worn', slot: 'armor', price: 900, pdef: 32, mdef: 19 },
+  /* 낡았지만 무언가 깃든 장비 — awaken 조건을 채우면 유물로 깨어난다(팔 수 없다). grow: 레벨마다 붙는 능력치 */
+  seed_sword: { name: '녹슨 종지기의 검', grade: 'worn', slot: 'weapon', type: 'sword', price: 0, patk: 4, grow: { patk: 1.3 }, awaken: { into: 'relic_bellsword', kind: 'breaks', n: 30 } },
+  seed_bow:   { name: '금 간 사냥꾼의 활', grade: 'worn', slot: 'weapon', type: 'bow', price: 0, patk: 3, spd: 1, grow: { patk: 1.2 }, awaken: { into: 'relic_windbow', kind: 'kills', n: 50 } },
+  seed_axe:   { name: '이 빠진 용병 도끼', grade: 'worn', slot: 'weapon', type: 'axe', price: 0, patk: 6, spd: -2, grow: { patk: 1.5 }, awaken: { into: 'relic_axe', kind: 'maxhit', n: 6000 } },
+  seed_robe:  { name: '해진 순례자 로브', grade: 'worn', slot: 'armor', price: 0, pdef: 4, mdef: 6, grow: { pdef: 0.6, mdef: 1.0 }, awaken: { into: 'relic_saintrobe', kind: 'heal', n: 10000 } },
+  seed_ring:  { name: '빛바랜 은반지', grade: 'worn', slot: 'acc', price: 0, spd: 2, awaken: { into: 'relic_moonring', kind: 'rare', n: 3 } },
+  seed_staff: { name: '갈라진 현자의 지팡이', grade: 'worn', slot: 'weapon', type: 'staff', price: 0, patk: 4, matk: 6, sp: 5, grow: { matk: 1.4 }, awaken: { into: 'relic_timestaff', kind: 'skills', n: 80 } },
+
+  /* ── 쓸만한 장비: 같은 단계의 기본보다 조금 강하고 덤 능력이 붙는다. 던전·들판 상자, 드문 전리품 ── */
+  spear_g2: { name: '사냥꾼의 강철창', grade: 'good', slot: 'weapon', type: 'spear', price: 520, patk: 26, spd: 2 },
+  dagger_g2:{ name: '날렵한 강철 단검', grade: 'good', slot: 'weapon', type: 'dagger', price: 480, patk: 21, spd: 5, crit: 6 },
+  armor_g2: { name: '덧댄 가죽 갑옷', grade: 'good', slot: 'armor', price: 450, pdef: 19, mdef: 11, hp: 40 },
+  ring_g1:  { name: '행운의 동전', grade: 'good', slot: 'acc', price: 400, spd: 2, crit: 6 },
+  sword_g3: { name: '기사단장의 검', grade: 'good', slot: 'weapon', type: 'sword', price: 1600, patk: 43, crit: 3 },
+  axe_g3:   { name: '용병단의 양날 도끼', grade: 'good', slot: 'weapon', type: 'axe', price: 1700, patk: 48, spd: -1, crit: 3 },
+  bow_g3:   { name: '모래바람 활', grade: 'good', slot: 'weapon', type: 'bow', price: 1550, patk: 40, spd: 3, crit: 4 },
+  staff_g3: { name: '사막 현자의 지팡이', grade: 'good', slot: 'weapon', type: 'staff', price: 1600, patk: 15, matk: 42, sp: 15 },
+  armor_g3: { name: '왕실 사슬 갑옷', grade: 'good', slot: 'armor', price: 1400, pdef: 32, mdef: 19, hp: 80 },
+  spear_g4: { name: '빙결 미스릴창', grade: 'good', slot: 'weapon', type: 'spear', price: 4300, patk: 64, spd: 2 },
+  dagger_g4:{ name: '서리 송곳', grade: 'good', slot: 'weapon', type: 'dagger', price: 4100, patk: 56, spd: 8, crit: 8 },
+  sword_g4: { name: '마도 기사의 검', grade: 'good', slot: 'weapon', type: 'sword', price: 4300, patk: 64, crit: 4 },
+  axe_g4:   { name: '거룡 미스릴 도끼', grade: 'good', slot: 'weapon', type: 'axe', price: 4500, patk: 70, spd: -2 },
+  bow_g4:   { name: '정령 미스릴 활', grade: 'good', slot: 'weapon', type: 'bow', price: 4200, patk: 60, spd: 4, crit: 4 },
+  staff_g4: { name: '별빛 현자의 지팡이', grade: 'good', slot: 'weapon', type: 'staff', price: 4300, patk: 22, matk: 64, sp: 25 },
+  robe_g4:  { name: '오로라 로브', grade: 'good', slot: 'armor', price: 3600, pdef: 29, mdef: 52, sp: 15 },
+  armor_g5: { name: '마도 기사의 갑옷', grade: 'good', slot: 'armor', price: 7600, pdef: 68, mdef: 44, hp: 120 },
+  robe_g5:  { name: '달그림자 로브', grade: 'good', slot: 'armor', price: 7600, pdef: 42, mdef: 70, sp: 20 },
+
+  /* ── 유물: 세상에 하나뿐. 맵마다 숨겨진 상자, 또는 낡은 장비가 깨어나서만 얻는다(팔 수 없다).
+     무기·방어구는 주인의 레벨에 맞춰 강해지고(grow), 저마다 고유한 힘(note)이 있다 ── */
+  relic_bell:     { name: '종지기의 손종', grade: 'relic', slot: 'acc', price: 0, partyExp: 0.25, note: '착용자가 살아서 이기면 일행 모두 경험치 +25%' },
+  relic_wreath:   { name: '들꽃 화관', grade: 'relic', slot: 'acc', price: 0, hp: 150, regen: 0.04, note: '라운드가 끝날 때 HP 4% 회복' },
+  relic_forestspear: { name: '숲지기의 창', grade: 'relic', slot: 'weapon', type: 'spear', price: 0, spd: 2, grow: { patk: 2.4 }, alt: ['wind'], note: '일반 공격이 바람 약점도 찌른다' },
+  relic_compass:  { name: '선장의 나침반', grade: 'relic', slot: 'acc', price: 0, spd: 4, goldUp: 0.5, note: '착용자가 살아서 이기면 얻는 골드 +50%' },
+  relic_kingdagger: { name: '모래 왕의 단검', grade: 'relic', slot: 'weapon', type: 'dagger', price: 0, spd: 6, crit: 10, grow: { patk: 2.1 }, drain: 0.08, note: '준 피해의 8%만큼 HP 회복' },
+  relic_mirage:   { name: '신기루 망토', grade: 'relic', slot: 'armor', price: 0, grow: { pdef: 1.5, mdef: 1.5 }, evade: 0.12, note: '물리 공격을 12% 확률로 피한다' },
+  relic_hearth:   { name: '난롯불 부적', grade: 'relic', slot: 'acc', price: 0, mdef: 12, immune: ['poison', 'sleep', 'blind'], note: '독·잠·어둠에 걸리지 않는다' },
+  relic_wyrmmail: { name: '빙룡 비늘 갑옷', grade: 'relic', slot: 'armor', price: 0, hp: 150, grow: { pdef: 2.0, mdef: 1.5 }, resist: ['ice', 'fire'], note: '얼음·불꽃 피해 절반' },
+  relic_snowbow:  { name: '설원의 활', grade: 'relic', slot: 'weapon', type: 'bow', price: 0, spd: 4, crit: 8, grow: { patk: 2.3 }, alt: ['ice'], note: '일반 공격이 얼음 약점도 찌른다' },
+  relic_tiara:    { name: '왕녀의 티아라', grade: 'relic', slot: 'acc', price: 0, matk: 12, sp: 30, spCost: 0.75, note: '기술 SP 소모 25% 감소' },
+  relic_morgastaff: { name: '모르가의 지팡이', grade: 'relic', slot: 'weapon', type: 'staff', price: 0, sp: 20, grow: { patk: 0.6, matk: 2.4 }, magUp: 0.2, note: '마법 피해 +20%' },
+  relic_lantern:  { name: '망자의 등불', grade: 'relic', slot: 'acc', price: 0, hp: 100, autoRevive: 0.3, note: '전투마다 한 번, 쓰러지면 HP 30%로 일어난다' },
+  relic_duskcrown:{ name: '황혼의 왕관', grade: 'relic', slot: 'acc', price: 0, bpUp: 1, note: '라운드마다 BP를 1 더 얻는다(부스트한 뒤에도)' },
+  relic_bellsword:{ name: '새벽종의 검', grade: 'relic', slot: 'weapon', type: 'sword', price: 0, crit: 5, grow: { patk: 2.5 }, alt: ['light'], note: '일반 공격이 빛 약점도 찌른다' },
+  relic_windbow:  { name: '바람길 활', grade: 'relic', slot: 'weapon', type: 'bow', price: 0, spd: 6, grow: { patk: 2.2 }, hitsUp: 1, note: '일반 공격 타수 +1' },
+  relic_axe:      { name: '불굴의 도끼', grade: 'relic', slot: 'weapon', type: 'axe', price: 0, spd: -2, grow: { patk: 2.7 }, breakDmg: 0.3, note: '브레이크된 적에게 주는 피해 +30%' },
+  relic_saintrobe:{ name: '성녀의 옷', grade: 'relic', slot: 'armor', price: 0, sp: 20, grow: { pdef: 1.1, mdef: 1.9 }, regen: 0.05, note: '라운드가 끝날 때 HP 5% 회복' },
+  relic_moonring: { name: '달빛 반지', grade: 'relic', slot: 'acc', price: 0, spd: 8, noFlee: true, note: '전열에 있으면 적이 달아나지 못한다' },
+  relic_timestaff:{ name: '시간의 지팡이', grade: 'relic', slot: 'weapon', type: 'staff', price: 0, sp: 30, grow: { patk: 0.7, matk: 2.5 }, spCost: 0.5, note: '기술 SP 소모 절반' }
+};
+
+/* ── 장비 등급 ──
+   낡은: 기본보다 약하다. 적이 떨어뜨리거나 상자에서 나온다. 몇몇(awaken)은 조건을 채우면 유물로 깨어난다.
+   기본: 상점에서 파는 보통 장비(등급을 적지 않으면 기본).
+   쓸만한: 같은 단계의 기본보다 강하고 덤 능력이 붙는다. 던전·들판 상자와 드문 전리품.
+   유물: 하나뿐인 장비. 맵마다 숨겨진 상자나 낡은 장비가 깨어나서만 얻는다. */
+const GRADES = {
+  worn:  { name: '낡은', order: 0 },
+  basic: { name: '기본', order: 1 },
+  good:  { name: '쓸만한', order: 2 },
+  relic: { name: '유물', order: 3 }
+};
+const gradeOf = (id) => (EQUIP[id] && EQUIP[id].grade) || 'basic';
+/* 깨어남 조건 설명 */
+const AWAKEN_TEXT = {
+  breaks: (n) => `이 장비를 든 사람이 적을 ${n}번 브레이크하면`,
+  kills:  (n) => `이 장비를 든 사람이 적을 ${n}번 쓰러뜨리면`,
+  maxhit: (n) => `이 장비를 든 사람이 한 번에 ${n.toLocaleString()} 이상의 피해를 주면`,
+  heal:   (n) => `이 장비를 입은 사람이 기술로 HP를 모두 ${n.toLocaleString()} 회복시키면`,
+  rare:   (n) => `이 장비를 낀 채 드문 금속빛 적을 ${n}번 쓰러뜨리면`,
+  skills: (n) => `이 장비를 든 사람이 기술을 ${n}번 쓰면`
 };
 
 /* ── 적의 행동 ── */
@@ -329,12 +416,12 @@ const ENEMY_ACTS = {
    pattern: 보스는 정해진 순서로 행동, phases: HP 비율 아래로 떨어질 때 바뀌는 것 */
 const ENEMIES = {
   /* 1장: 고요의 숲 */
-  slime:    { name: '숲 슬라임', spr: 'slime', hp: 530, patk: 44, matk: 34, pdef: 18, mdef: 16, spd: 15, shield: 2, weak: ['sword', 'fire'], exp: 46, gold: 14, drop: ['herb', 0.2], steal: 'herb', ai: [['attack', 3], ['tackle', 1]] },
-  rat:      { name: '들쥐', spr: 'rat_brown', hp: 440, patk: 47, matk: 13, pdef: 15, mdef: 12, spd: 27, shield: 2, weak: ['spear', 'dagger', 'ice'], exp: 41, gold: 12, drop: ['antidote', 0.2], steal: 'antidote', ai: [['bite', 2], ['venom', 1]] },
-  bat:      { name: '숲 박쥐', spr: 'bat1', hp: 460, patk: 43, matk: 26, pdef: 14, mdef: 18, spd: 30, shield: 2, weak: ['bow', 'wind'], evade: 0.15, exp: 43, gold: 13, steal: 'herb', ai: [['attack', 2], ['drain', 1]], fly: true },
-  goblin:   { name: '고블린', spr: 'goblin', hp: 690, patk: 52, matk: 18, pdef: 22, mdef: 14, spd: 21, shield: 3, weak: ['spear', 'axe', 'light'], exp: 62, gold: 26, drop: ['herb', 0.3], steal: 'fire1', ai: [['attack', 3], ['smash', 1]] },
-  spider:   { name: '독거미', spr: 'spider', hp: 600, patk: 48, matk: 31, pdef: 20, mdef: 18, spd: 23, shield: 3, weak: ['axe', 'fire', 'light'], exp: 58, gold: 22, drop: ['antidote', 0.3], steal: 'antidote', ai: [['venom', 2], ['attack', 1]] },
-  wolf:     { name: '회색 늑대', spr: 'wolf', hp: 740, patk: 56, matk: 16, pdef: 20, mdef: 15, spd: 29, shield: 3, weak: ['sword', 'bow', 'fire'], exp: 70, gold: 24, drop: ['herb', 0.25], steal: 'herb', ai: [['bite', 3], ['claw', 2], ['howl', 1, 'once']] },
+  slime:    { name: '숲 슬라임', spr: 'slime', hp: 530, patk: 44, matk: 34, pdef: 18, mdef: 16, spd: 15, shield: 2, weak: ['sword', 'fire'], exp: 46, gold: 14, drop: ['herb', 0.2], steal: 'herb', gearDrop: ['staff_w1', 0.06], ai: [['attack', 3], ['tackle', 1]] },
+  rat:      { name: '들쥐', spr: 'rat_brown', hp: 440, patk: 47, matk: 13, pdef: 15, mdef: 12, spd: 27, shield: 2, weak: ['spear', 'dagger', 'ice'], exp: 41, gold: 12, drop: ['antidote', 0.2], steal: 'antidote', gearDrop: ['dagger_w1', 0.06], ai: [['bite', 2], ['venom', 1]] },
+  bat:      { name: '숲 박쥐', spr: 'bat1', hp: 460, patk: 43, matk: 26, pdef: 14, mdef: 18, spd: 30, shield: 2, weak: ['bow', 'wind'], evade: 0.15, exp: 43, gold: 13, steal: 'herb', gearDrop: ['bow_w1', 0.06], ai: [['attack', 2], ['drain', 1]], fly: true },
+  goblin:   { name: '고블린', spr: 'goblin', hp: 690, patk: 52, matk: 18, pdef: 22, mdef: 14, spd: 21, shield: 3, weak: ['spear', 'axe', 'light'], exp: 62, gold: 26, drop: ['herb', 0.3], steal: 'fire1', gearDrop: ['sword_w1', 0.06], ai: [['attack', 3], ['smash', 1]] },
+  spider:   { name: '독거미', spr: 'spider', hp: 600, patk: 48, matk: 31, pdef: 20, mdef: 18, spd: 23, shield: 3, weak: ['axe', 'fire', 'light'], exp: 58, gold: 22, drop: ['antidote', 0.3], steal: 'antidote', gearDrop: ['robe_w1', 0.06], ai: [['venom', 2], ['attack', 1]] },
+  wolf:     { name: '회색 늑대', spr: 'wolf', hp: 740, patk: 56, matk: 16, pdef: 20, mdef: 15, spd: 29, shield: 3, weak: ['sword', 'bow', 'fire'], exp: 70, gold: 24, drop: ['herb', 0.25], steal: 'herb', gearDrop: ['armor_w1', 0.06], ai: [['bite', 3], ['claw', 2], ['howl', 1, 'once']] },
   treant:   { name: '가시나무 거인', spr: 'treant', big: true, boss: true, hp: 13000, patk: 62, matk: 52, pdef: 30, mdef: 24, spd: 18, shield: 6, weak: ['axe', 'sword', 'fire', 'wind'], exp: 600, gold: 400, acts: 2,
     pattern: ['attack', 'thorns', 'rootbind', 'attack', 'pollen', 'thorns'],
     phases: [{ hp: 0.5, shield: 2, acts: 2, msg: '가시나무 거인의 껍질이 단단해진다! (실드 +2)', pattern: ['thorns', 'charge:quake', 'attack', 'rootbind', 'pollen', 'thorns'] }] },
@@ -343,9 +430,9 @@ const ENEMIES = {
   scorpion: { name: '모래 전갈', spr: 'scorpion', hp: 1170, patk: 103, matk: 36, pdef: 54, mdef: 30, spd: 33, shield: 3, weak: ['axe', 'ice', 'spear'], exp: 228, gold: 66, drop: ['antidote', 0.3], steal: 'herb2', ai: [['sting', 2], ['claw', 2]] },
   bat_fire: { name: '불꽃 박쥐', spr: 'bat_fire1', hp: 1050, patk: 96, matk: 84, pdef: 40, mdef: 46, spd: 41, shield: 3, weak: ['bow', 'ice', 'wind'], evade: 0.15, exp: 216, gold: 60, steal: 'fire1', ai: [['attack', 2], ['fire', 2]], fly: true },
   slime_red:{ name: '붉은 슬라임', spr: 'slime_red', hp: 1230, patk: 91, matk: 86, pdef: 42, mdef: 52, spd: 26, shield: 3, weak: ['sword', 'ice', 'thunder'], exp: 210, gold: 58, drop: ['fire1', 0.2], steal: 'fire1', ai: [['tackle', 2], ['fire', 2]] },
-  skeleton: { name: '해골 병사', spr: 'skeleton', hp: 1350, patk: 108, matk: 24, pdef: 56, mdef: 36, spd: 29, shield: 4, weak: ['axe', 'light', 'staff'], exp: 252, gold: 72, drop: ['herb2', 0.2], steal: 'light1', ai: [['attack', 3], ['smash', 1]] },
-  archer:   { name: '해골 궁수', spr: 'archer', hp: 1170, patk: 110, matk: 24, pdef: 46, mdef: 36, spd: 35, shield: 4, weak: ['sword', 'light', 'thunder'], exp: 246, gold: 72, steal: 'herb2', ai: [['arrow', 3], ['arrows', 1]] },
-  mummy:    { name: '미라', spr: 'mummy', hp: 1580, patk: 106, matk: 48, pdef: 50, mdef: 30, spd: 22, shield: 4, weak: ['fire', 'light', 'dagger'], exp: 276, gold: 79, drop: ['remedy', 0.25], steal: 'remedy', ai: [['attack', 2], ['drain', 2], ['curse', 1]] },
+  skeleton: { name: '해골 병사', spr: 'skeleton', hp: 1350, patk: 108, matk: 24, pdef: 56, mdef: 36, spd: 29, shield: 4, weak: ['axe', 'light', 'staff'], exp: 252, gold: 72, drop: ['herb2', 0.2], steal: 'light1', gearDrop: ['sword_w3', 0.06], ai: [['attack', 3], ['smash', 1]] },
+  archer:   { name: '해골 궁수', spr: 'archer', hp: 1170, patk: 110, matk: 24, pdef: 46, mdef: 36, spd: 35, shield: 4, weak: ['sword', 'light', 'thunder'], exp: 246, gold: 72, steal: 'herb2', gearDrop: ['bow_w3', 0.06], ai: [['arrow', 3], ['arrows', 1]] },
+  mummy:    { name: '미라', spr: 'mummy', hp: 1580, patk: 106, matk: 48, pdef: 50, mdef: 30, spd: 22, shield: 4, weak: ['fire', 'light', 'dagger'], exp: 276, gold: 79, drop: ['remedy', 0.25], steal: 'remedy', gearDrop: ['armor_w3', 0.06], ai: [['attack', 2], ['drain', 2], ['curse', 1]] },
   golem_sand:{ name: '사암 골렘', spr: 'golem_sand', hp: 2100, patk: 120, matk: 24, pdef: 80, mdef: 30, spd: 18, shield: 5, weak: ['axe', 'ice', 'thunder'], exp: 348, gold: 96, drop: ['herb2', 0.3], steal: 'ice1', ai: [['smash', 2], ['harden', 1, 'once'], ['attack', 1]] },
   boneking: { name: '모래 왕의 망령', spr: 'boneking_sand', big: true, boss: true, hp: 15000, patk: 120, matk: 112, pdef: 66, mdef: 56, spd: 30, shield: 8, weak: ['axe', 'light', 'ice', 'spear'], exp: 2600, gold: 1600, acts: 2,
     pattern: ['kingslash', 'sandstorm', 'attack', 'summon:skeleton', 'kingslash', 'curse'],
@@ -357,7 +444,7 @@ const ENEMIES = {
   bat_ice:  { name: '얼음 박쥐', spr: 'bat_ice1', hp: 1760, patk: 139, matk: 125, pdef: 60, mdef: 70, spd: 52, shield: 4, weak: ['bow', 'fire', 'light'], evade: 0.15, exp: 546, gold: 112, steal: 'ether', ai: [['drain', 2], ['iceall', 1]], fly: true },
   ghost:    { name: '원혼', spr: 'ghost_blue', hp: 1840, patk: 108, matk: 149, pdef: 100, mdef: 64, spd: 40, shield: 4, weak: ['light', 'staff', 'fire'], evade: 0.2, exp: 602, gold: 133, drop: ['ether', 0.15], steal: 'ether', ai: [['ice', 2], ['lullaby', 1], ['dark', 1]] },
   golem_ice:{ name: '서리 골렘', spr: 'golem_ice', hp: 3360, patk: 168, matk: 72, pdef: 112, mdef: 60, spd: 24, shield: 6, weak: ['axe', 'fire', 'thunder', 'spear'], exp: 784, gold: 182, drop: ['herb2', 0.4], steal: 'fire1', ai: [['smash', 2], ['iceall', 1], ['harden', 1, 'once']] },
-  yeti:     { name: '빙하 고블린', spr: 'goblin_red', hp: 2400, patk: 158, matk: 48, pdef: 78, mdef: 50, spd: 38, shield: 5, weak: ['spear', 'dagger', 'fire', 'dark'], exp: 658, gold: 154, drop: ['remedy', 0.3], steal: 'herb2', ai: [['attack', 2], ['smash', 2], ['dust', 1]] },
+  yeti:     { name: '빙하 고블린', spr: 'goblin_red', hp: 2400, patk: 158, matk: 48, pdef: 78, mdef: 50, spd: 38, shield: 5, weak: ['spear', 'dagger', 'fire', 'dark'], exp: 658, gold: 154, drop: ['remedy', 0.3], steal: 'herb2', gearDrop: ['axe_w4', 0.06], ai: [['attack', 2], ['smash', 2], ['dust', 1]] },
   wyrm:     { name: '서리 비룡', spr: 'wyrm', big: true, boss: true, hp: 30000, patk: 192, matk: 195, pdef: 96, mdef: 92, spd: 44, shield: 10, weak: ['fire', 'bow', 'thunder', 'spear'], exp: 6400, gold: 3000, acts: 2,
     pattern: ['frostfang', 'iceall', 'wingbeat', 'frostfang', 'charge:absolute', 'wingbeat'],
     phases: [{ hp: 0.55, shield: 2, acts: 3, msg: '서리 비룡의 비늘이 얼음으로 덮인다! (실드 +2, 행동 3회)', pattern: ['wingbeat', 'frostfang', 'iceall', 'charge:absolute', 'frostfang', 'howl'] }] },
@@ -366,7 +453,7 @@ const ENEMIES = {
   slime_purple:{ name: '늪 슬라임', spr: 'slime_purple', hp: 2660, patk: 172, matk: 172, pdef: 96, mdef: 110, spd: 40, shield: 5, weak: ['sword', 'light', 'thunder'], exp: 900, gold: 175, drop: ['remedy', 0.25], steal: 'remedy', ai: [['tackle', 2], ['miasma', 1], ['regen', 1, 'hp<0.5']] },
   imp:      { name: '불꽃 임프', spr: 'imp', hp: 2380, patk: 161, matk: 193, pdef: 88, mdef: 104, spd: 56, shield: 5, weak: ['ice', 'spear', 'bow'], exp: 862, gold: 188, steal: 'fire2', ai: [['fire', 2], ['fireall', 1], ['attack', 1]] },
   imp_green:{ name: '독 임프', spr: 'imp_green', hp: 2380, patk: 175, matk: 172, pdef: 92, mdef: 98, spd: 54, shield: 5, weak: ['fire', 'axe', 'light'], exp: 862, gold: 188, steal: 'antidote', ai: [['sting', 2], ['miasma', 1], ['wind', 1]] },
-  knight:   { name: '마도 기사', spr: 'knight', hp: 3780, patk: 205, matk: 103, pdef: 144, mdef: 92, spd: 42, shield: 6, weak: ['axe', 'thunder', 'dark', 'spear'], exp: 1125, gold: 250, drop: ['herb3', 0.15], steal: 'herb3', ai: [['attack', 2], ['smash', 2], ['harden', 1, 'once']] },
+  knight:   { name: '마도 기사', spr: 'knight', hp: 3780, patk: 205, matk: 103, pdef: 144, mdef: 92, spd: 42, shield: 6, weak: ['axe', 'thunder', 'dark', 'spear'], exp: 1125, gold: 250, drop: ['herb3', 0.15], steal: 'herb3', gearDrop: ['armor_w4', 0.06], ai: [['attack', 2], ['smash', 2], ['harden', 1, 'once']] },
   mage:     { name: '그림자 마법사', spr: 'mage', hp: 2660, patk: 115, matk: 214, pdef: 80, mdef: 138, spd: 48, shield: 5, weak: ['sword', 'dagger', 'light'], exp: 1025, gold: 238, drop: ['ether', 0.3], steal: 'ether2', ai: [['dark', 2], ['boltall', 1], ['curse', 1]] },
   mimic:    { name: '미믹', spr: 'mimic', hp: 3640, patk: 218, matk: 138, pdef: 120, mdef: 120, spd: 50, shield: 6, weak: ['dagger', 'light', 'wind', 'ice'], exp: 1750, gold: 1125, drop: ['bpfruit', 0.5], steal: 'elixir', ai: [['bite', 3], ['drain', 1], ['lullaby', 1]] },
   spider_giant:{ name: '늪 거미', spr: 'spider_giant', hp: 3080, patk: 193, matk: 126, pdef: 104, mdef: 88, spd: 46, shield: 5, weak: ['fire', 'axe', 'sword'], exp: 975, gold: 200, drop: ['antidote', 0.4], steal: 'remedy', ai: [['venom', 2], ['attack', 1], ['dust', 1]] },
@@ -386,7 +473,18 @@ const ENEMIES = {
   avatar:   { name: '황혼의 화신', spr: 'abyss_dusk', big: true, boss: true, hp: 52000, patk: 211, matk: 238, pdef: 170, mdef: 180, spd: 66, shield: 16, weak: ['spear', 'dagger', 'axe', 'fire', 'light', 'wind'], exp: 30000, gold: 0, acts: 3,
     pattern: ['duskblade', 'darkall', 'duskfire', 'hex', 'charge:nightfall', 'miasma'],
     phases: [{ hp: 0.6, shield: 2, acts: 3, msg: '황혼의 화신이 날개를 펼친다! (실드 +2)' },
-             { hp: 0.3, shield: 2, acts: 4, msg: '밤이 몰려온다… 화신이 마지막 힘을 끌어낸다! (실드 +2, 행동 4회)', pattern: ['duskblade', 'charge:nightfall', 'darkall', 'duskfire', 'charge:eclipse', 'miasma'] }] }
+             { hp: 0.3, shield: 2, acts: 4, msg: '밤이 몰려온다… 화신이 마지막 힘을 끌어낸다! (실드 +2, 행동 4회)', pattern: ['duskblade', 'charge:nightfall', 'darkall', 'duskfire', 'charge:eclipse', 'miasma'] }] },
+
+  /* 들판 (잡몹 사냥터) — 드문 금속빛 적은 단단하고 잘 달아나지만 경험치를 많이 준다. 브레이크하면 달아나지 못한다 */
+  golem_moss: { name: '이끼 골렘', spr: 'golem_moss', hp: 1150, patk: 56, matk: 20, pdef: 34, mdef: 16, spd: 12, shield: 4, weak: ['axe', 'spear', 'fire'], exp: 112, gold: 40, drop: ['herb', 0.4], steal: 'herb', gearDrop: ['axe_w1', 0.08], ai: [['attack', 3], ['smash', 1], ['harden', 1, 'once']] },
+  slime_silver: { name: '은빛 슬라임', spr: 'slime_silver', hp: 300, patk: 40, matk: 30, pdef: 250, mdef: 250, spd: 60, shield: 5, weak: ['dagger', 'thunder'], flee: 0.4, exp: 600, gold: 90, drop: ['ether', 0.5], steal: 'ether', gearDrop: ['ring_g1', 0.25], ai: [['attack', 1]] },
+  scorpion_red: { name: '붉은 전갈', spr: 'scorpion_red', hp: 1450, patk: 112, matk: 88, pdef: 58, mdef: 36, spd: 36, shield: 4, weak: ['axe', 'ice', 'bow'], exp: 290, gold: 84, drop: ['herb2', 0.2], steal: 'fire1', ai: [['sting', 2], ['claw', 1], ['fire', 1]] },
+  scorpion_gold: { name: '황금 전갈', spr: 'scorpion_gold', hp: 480, patk: 96, matk: 40, pdef: 330, mdef: 330, spd: 70, shield: 5, weak: ['spear', 'thunder'], flee: 0.4, exp: 2400, gold: 500, drop: ['herb2', 0.6], steal: 'remedy', gearDrop: ['bow_g3', 0.2], ai: [['sting', 1], ['attack', 1]] },
+  ghost_snow: { name: '눈보라 망령', spr: 'ghost', hp: 2050, patk: 110, matk: 156, pdef: 104, mdef: 70, spd: 44, shield: 4, weak: ['light', 'fire', 'sword'], evade: 0.15, exp: 640, gold: 140, drop: ['ether', 0.15], steal: 'ice1', gearDrop: ['staff_w3', 0.05], ai: [['ice', 2], ['iceall', 1], ['lullaby', 1]] },
+  golem_crystal: { name: '수정 골렘', spr: 'golem_crystal', hp: 780, patk: 150, matk: 60, pdef: 520, mdef: 520, spd: 72, shield: 5, weak: ['axe', 'dark'], flee: 0.4, exp: 5600, gold: 900, drop: ['ether2', 0.5], steal: 'ether', gearDrop: ['dagger_g4', 0.2], ai: [['smash', 1], ['attack', 1]] },
+  ghoul:    { name: '늪 구울', spr: 'ghoul', hp: 3200, patk: 190, matk: 80, pdef: 98, mdef: 84, spd: 40, shield: 5, weak: ['fire', 'light', 'spear'], exp: 960, gold: 196, drop: ['remedy', 0.3], steal: 'remedy', gearDrop: ['armor_w4', 0.05], ai: [['drain', 2], ['venom', 2], ['attack', 1]] },
+  mage_teal:{ name: '늪지 주술사', spr: 'mage_teal', hp: 2700, patk: 110, matk: 200, pdef: 82, mdef: 130, spd: 50, shield: 5, weak: ['sword', 'bow', 'thunder'], exp: 1000, gold: 230, drop: ['ether', 0.3], steal: 'ether2', ai: [['ice', 2], ['wind', 1], ['miasma', 1], ['curse', 1]] },
+  imp_gold: { name: '황금 임프', spr: 'imp_gold', hp: 1250, patk: 170, matk: 170, pdef: 700, mdef: 700, spd: 80, shield: 5, weak: ['bow', 'ice'], flee: 0.4, exp: 9600, gold: 1600, drop: ['bpfruit', 0.3], steal: 'elixir', gearDrop: ['staff_g4', 0.2], ai: [['fire', 1], ['attack', 1]] }
 };
 
 /* ── 적 무리 ── */
@@ -410,5 +508,14 @@ const FORMATIONS = {
   /* 황혼의 탑 */
   f5a: ['knight_dusk', 'mage_red'], f5b: ['wolf_shadow', 'wolf_shadow'], f5c: ['golem_bell', 'mage_red'],
   f5d: ['knight_dusk', 'wolf_shadow', 'mage_red'], f5e: ['slime_gold'], f5f: ['golem_bell', 'knight_dusk'],
-  boss5: ['golem_bell', 'nocte', 'golem_bell'], boss6: ['avatar']
+  boss5: ['golem_bell', 'nocte', 'golem_bell'], boss6: ['avatar'],
+  /* 들판 (g1 바람 들판 · g2 붉은 사구 · g3 은빛 설원 · g4 안개 늪, 끝의 r은 드문 적) */
+  g1a: ['slime', 'rat'], g1b: ['rat', 'rat'], g1c: ['goblin', 'slime'], g1d: ['bat', 'rat', 'bat'],
+  g1e: ['golem_moss'], g1f: ['wolf', 'goblin'], g1g: ['spider', 'slime', 'spider'], g1h: ['golem_moss', 'bat'], g1r: ['slime_silver'],
+  g2a: ['scorpion', 'scorpion_red'], g2b: ['bat_fire', 'slime_red', 'bat_fire'], g2c: ['scorpion_red'], g2d: ['slime_red', 'scorpion', 'slime_red'],
+  g2e: ['golem_sand', 'scorpion'], g2f: ['scorpion_red', 'bat_fire', 'scorpion_red'], g2r: ['scorpion_gold'],
+  g3a: ['wolf_white', 'ghost_snow'], g3b: ['slime_blue', 'bat_ice', 'slime_blue'], g3c: ['ghost_snow', 'ghost_snow'], g3d: ['yeti', 'wolf_white', 'yeti'],
+  g3e: ['golem_ice', 'ghost_snow'], g3f: ['wolf_white', 'wolf_white', 'wolf_white'], g3r: ['golem_crystal'],
+  g4a: ['ghoul', 'slime_purple'], g4b: ['mage_teal', 'ghoul'], g4c: ['spider_giant', 'ghoul'], g4d: ['imp_green', 'mage_teal', 'imp_green'],
+  g4e: ['slime_purple', 'slime_purple', 'mage_teal'], g4f: ['ghoul', 'ghoul'], g4r: ['imp_gold']
 };
