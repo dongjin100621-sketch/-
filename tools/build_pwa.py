@@ -1,5 +1,5 @@
 """<앱>/sw.js 의 파일 목록과 버전을 갱신하고 docs/<앱>/ (GitHub Pages 배포용)로 복사한다.
-사용법: python3 tools/build_pwa.py [luminaria|hanja|dungeon]   (앱 파일을 고친 뒤 실행, 기본값 luminaria)"""
+사용법: python3 tools/build_pwa.py [luminaria|hanja|dungeon|dawn]   (앱 파일을 고친 뒤 실행, 기본값 luminaria)"""
 import os, re, shutil, hashlib, sys
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 app = sys.argv[1] if len(sys.argv) > 1 else 'luminaria'
