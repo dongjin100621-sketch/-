@@ -42,17 +42,33 @@ const Party = (() => {
     return s;
   }
 
+  /* 장비 한 벌이 주는 능력치 (grow 는 레벨마다 붙는 값 — 유물·깃든 장비) */
+  function gearStat(e, k, lv) {
+    let v = e[k] || 0;
+    if (e.grow && e.grow[k]) v += Math.round(e.grow[k] * lv);
+    return v;
+  }
+  /* 장비의 고유한 힘 (유물 등). 전투에서 쓴다 */
+  const FX_ADD = ['hitsUp', 'breakDmg', 'regen', 'partyExp', 'goldUp', 'drain', 'evade', 'magUp', 'autoRevive', 'bpUp'];
+
   /* 장비까지 더한 능력치 */
   function stats(h, equip = h.equip) {
     const s = baseStats(h.id, h.lv);
     s.startBp = 0; s.latentUp = 0; s.immune = [];
+    s.fx = { alt: [], resist: [], spCost: 1, noFlee: false };
+    for (const k of FX_ADD) s.fx[k] = 0;
     for (const slot of ['weapon', 'armor', 'acc']) {
       const e = equip[slot] && EQUIP[equip[slot]];
       if (!e) continue;
-      for (const k of [...STATS, 'crit']) if (e[k]) s[k] += e[k];
+      for (const k of [...STATS, 'crit']) s[k] += gearStat(e, k, h.lv);
       if (e.startBp) s.startBp += e.startBp;
       if (e.latentUp) s.latentUp += e.latentUp;
       if (e.immune) s.immune.push(...e.immune);
+      for (const k of FX_ADD) if (e[k]) s.fx[k] += e[k];
+      if (e.alt) s.fx.alt.push(...e.alt);
+      if (e.resist) s.fx.resist.push(...e.resist);
+      if (e.spCost) s.fx.spCost *= e.spCost;
+      if (e.noFlee) s.fx.noFlee = true;
     }
     s.spd = Math.max(1, s.spd);
     return s;
@@ -109,5 +125,5 @@ const Party = (() => {
 
   function healFull(h) { const s = stats(h); h.hp = s.hp; h.sp = s.sp; }
 
-  return { stats, baseStats, create, skills, addExp, setLevel, canEquip, clamp, healFull, STATS };
+  return { stats, baseStats, gearStat, create, skills, addExp, setLevel, canEquip, clamp, healFull, STATS };
 })();

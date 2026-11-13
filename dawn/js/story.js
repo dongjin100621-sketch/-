@@ -6,6 +6,7 @@
    말하는 이는 일행 id(rian…) 또는 SPEAKERS 의 이름. 조건 'a&b'는 둘 다, '!a'는 아님. */
 
 const SPEAKERS = {
+  shepherd: ['양치기 소녀', 'woman2'], sandtrader: ['모래 상인', 'merchant'], snowhunter: ['설원 사냥꾼', 'villager3'], pilgrim: ['길 잃은 순례자', 'nun'],
   elder: ['촌장 오도', 'elder'], guard: ['문지기 한스', 'guard'], kid: ['아이 토비', 'child'], woman: ['빵집 아주머니', 'woman'],
   man: ['나무꾼 벤', 'villager2'], hunter: ['쓰러진 사냥꾼', 'villager3'], voice: ['???', null], nocte: ['노크테', 'nocte'],
   treant: ['가시나무 거인', 'treant'], sailor: ['뱃사람', 'villager2'], merchant: ['떠돌이 상인', 'merchant'], girl: ['물 긷는 아가씨', 'woman3'],
@@ -98,7 +99,8 @@ const SCRIPTS = {
       ['say', 'kyle', '휴, 슬라임 정도야. 약점만 알면 별거 아니지.'],
       ['say', 'mir', '실드를 깎아 브레이크, 그리고 BP를 몰아서 한 방. 이 순서만 기억하게.'],
       ['flag', 'ch1'], ['unlock', 'forest'],
-      ['narr', '세계 지도에 「고요의 숲」이 나타났다. 남쪽 길로 나가면 세계 지도로 간다.']
+      ['narr', '세계 지도에 「고요의 숲」과 「바람 들판」이 나타났다. 남쪽 길로 나가면 세계 지도로 간다.'],
+      ['narr', '들판에는 들짐승이 자주 나온다. 숲이 버거우면 들판에서 몸을 단련하자.']
     ], [
       ['if', 'p_elder', [
         ['say', 'guard', '촌장님 말씀 들었다. 넷은 돼야 숲을 지나갈 수 있어. 종탑 근처랑 여관 앞을 찾아봐라.']
@@ -118,6 +120,28 @@ const SCRIPTS = {
   v_man2: [['say', 'man', '숲이 조용해졌어. 그 걸어 다니던 나무는 다시 잠들었나 봐.']],
 
   /* ───────── 1장: 고요의 숲 ───────── */
+  /* 들판 */
+  g_first: [['tip', 'field']],
+  g_meadow: [
+    ['say', 'shepherd', '여기 들판엔 슬라임이랑 들쥐가 많아요. 몸 풀기엔 딱이죠!'],
+    ['say', 'shepherd', '가끔 반짝반짝한 은빛 슬라임이 나오는데, 금방 도망가 버려요. 단검이나 번개로 실드를 깎아서 브레이크하면 못 도망간대요!'],
+    ['say', 'shepherd', '아, 그리고… 북동쪽 소나무 근처에서 가끔 뭔가 반짝여요. 뭘까요?']
+  ],
+  g_dunes: [
+    ['say', 'sandtrader', '붉은 사구에 온 걸 환영하네. 전갈 떼를 조심하게.'],
+    ['say', 'sandtrader', '황금 전갈을 보면 놓치지 말게! 창이나 번개로 실드를 깨면 도망치지 못하지. 잡으면 한몫 단단히 챙긴다네.'],
+    ['say', 'sandtrader', '내 친구가 사구 어딘가에 낡은 반지를 묻어 뒀다던데… 금속빛 녀석들을 잡으면 그 반지가 빛난다나?']
+  ],
+  g_snow: [
+    ['say', 'snowhunter', '눈보라 망령은 빛과 불을 싫어하지.'],
+    ['say', 'snowhunter', '수정 골렘은 도끼나 어둠으로 실드를 깨게. 몸은 단단하지만 깨지면 꼼짝 못 해.'],
+    ['say', 'snowhunter', '동쪽 끝 얼음 바위에서 가끔 차가운 빛이 새어 나오더군. 난 무서워서 가 보지 않았네.']
+  ],
+  g_marsh: [
+    ['say', 'pilgrim', '안개 속에서 길을 잃고 말았어요… 이곳의 구울은 불과 빛에 약하답니다.'],
+    ['say', 'pilgrim', '황금 임프는 활과 얼음으로 실드를 깨세요. 그러면 달아나지 못해요.'],
+    ['say', 'pilgrim', '마른 나무 구멍에서 푸른 불빛이 깜박이는 걸 봤어요. 망자의 등불일지도 몰라요.']
+  ],
   f_enter: [
     ['chapter', 1, '제1장', '고요의 숲'],
     ['say', 'mir', '숲의 종은 숲 가장 깊은 북쪽 빈터에 있다네.'],
@@ -158,7 +182,7 @@ const SCRIPTS = {
         ['say', 'seira', '모르겠어요. 하지만… 몹시 슬픈 목소리였어요.'],
         ['say', 'mir', '다음 종은 서쪽 사막 「잊힌 왕의 무덤」 깊은 곳에 있다고 하네. 항구 도시 모래항을 거쳐 가세나.'],
         ['flag', 'bell1'], ['unlock', 'sandport'], ['unlock', 'tomb'],
-        ['narr', '세계 지도에 「모래항」과 「잊힌 왕의 무덤」이 나타났다.']
+        ['narr', '세계 지도에 「모래항」과 「잊힌 왕의 무덤」, 그리고 「붉은 사구」가 나타났다.']
       ], [['narr', '종에 가시덤불이 칭칭 감겨 있어 칠 수가 없다.']]]
     ]]
   ],
@@ -228,7 +252,7 @@ const SCRIPTS = {
         ['say', 'voice', '둘…. 서두르는구나, 종지기의 아이야. 하지만 내 딸의 아침은… 오지 않는다.'],
         ['say', 'seira', '딸…?'],
         ['flag', 'bell2'], ['unlock', 'frostvale'], ['unlock', 'icecave'],
-        ['narr', '세계 지도에 「서리골」과 「빙하 동굴」이 나타났다.']
+        ['narr', '세계 지도에 「서리골」과 「빙하 동굴」, 그리고 「은빛 설원」이 나타났다.']
       ], [['narr', '종 앞에 해골의 왕좌가 버티고 있다.']]]
     ]]
   ],
@@ -290,7 +314,7 @@ const SCRIPTS = {
           [['say', 'mir', '세 번째 공명이야! 마지막 종은 동쪽, 안개성 너머 마도의 탑에 있다네.']]],
         ['say', 'voice', '셋. …모르가, 탑을 지켜라. 아침이 오면 모든 것이 끝난다.'],
         ['flag', 'bell3'], ['unlock', 'mistcastle'], ['unlock', 'magetower'],
-        ['narr', '세계 지도에 「안개성」과 「마도의 탑」이 나타났다.']
+        ['narr', '세계 지도에 「안개성」과 「마도의 탑」, 그리고 「안개 늪」이 나타났다.']
       ], [['narr', '얼음이 두껍게 덮여 종을 칠 수 없다.']]]
     ]]
   ],
@@ -412,7 +436,10 @@ const TIPS = {
   battle1: ['약점과 실드', '적 아래의 아이콘이 약점입니다(처음엔 「?」). 약점으로 공격하면 방패의 숫자(실드)가 1씩 줄고, 0이 되면 「브레이크」 — 그 적은 이번과 다음 라운드에 움직이지 못하고 받는 피해가 2배가 됩니다.'],
   battle2: ['부스트', '라운드마다 BP가 1씩 쌓입니다(최대 5). 명령을 고르기 전에 ＋/－(Q·E 키)로 BP를 최대 3까지 쓰면, 일반 공격은 타수가 늘고 기술은 위력이 커집니다. 브레이크된 적에게 BP를 몰아 쓰세요!'],
   battle3: ['브레이크!', '적이 브레이크되었습니다. 지금이 BP를 쓸 때입니다. 위쪽 차례표에서 브레이크된 적의 차례가 사라진 것을 확인하세요.'],
-  battle4: ['잠재력', '맞거나 적을 브레이크하면 이름 옆 게이지가 찹니다. 가득 차면 「잠재력」으로 사람마다 다른 강력한 능력을 쓸 수 있습니다.']
+  battle4: ['잠재력', '맞거나 적을 브레이크하면 이름 옆 게이지가 찹니다. 가득 차면 「잠재력」으로 사람마다 다른 강력한 능력을 쓸 수 있습니다.'],
+  field: ['들판', '들판에서는 잡몹이 자주 나타나 레벨을 올리고 돈을 모으기 좋습니다. 입구의 수정으로 언제든 회복·저장할 수 있고, 수정 근처에서는 적이 나오지 않습니다. 드물게 나타나는 금속빛 적은 경험치를 아주 많이 주지만 곧 달아납니다 — 브레이크하면 달아나지 못합니다!'],
+  gear: ['장비 등급', '장비에는 낡은·기본·쓸만한·유물 네 등급이 있습니다. 낡은 장비는 기본보다 약하지만, 그중 「무언가 깃든」 장비는 조건을 채우면 유물로 깨어납니다(메뉴 → 장비에서 진행을 볼 수 있어요). 유물은 맵마다 하나씩 숨겨진 상자에서도 나옵니다 — 가끔 반짝이는 곳을 조사해 보세요.'],
+  relic: ['유물', '유물은 세상에 하나뿐인 장비입니다. 무기·방어구 유물은 주인의 레벨에 맞춰 강해지고, 저마다 고유한 힘이 있습니다. 팔 수는 없어요.']
 };
 
 /* 세계 지도: 장소 위치(0~1), 지역 번호(종이 울리면 밝아짐) */
@@ -425,11 +452,18 @@ const WORLD = {
   icecave:    { name: '빙하 동굴', map: 'icecave', x: 0.68, y: 0.11, region: 3, kind: 'cave', desc: '서리 비룡이 둥지를 튼 얼음 동굴.', unlock: 'icecave' },
   mistcastle: { name: '안개성', map: 'mistcastle', x: 0.83, y: 0.50, region: 4, kind: 'castle', desc: '늪 위에 세워진 왕국의 성.', unlock: 'mistcastle' },
   magetower:  { name: '마도의 탑', map: 'magetower', x: 0.88, y: 0.25, region: 4, kind: 'tower', desc: '마녀 모르가의 탑. 안개의 종이 있다.', unlock: 'magetower' },
-  dusktower:  { name: '황혼의 탑', map: 'dusktower', x: 0.53, y: 0.50, region: 5, kind: 'dusk', desc: '하늘을 찢고 솟아오른 탑.', unlock: 'dusktower' }
+  dusktower:  { name: '황혼의 탑', map: 'dusktower', x: 0.53, y: 0.50, region: 5, kind: 'dusk', desc: '하늘을 찢고 솟아오른 탑.', unlock: 'dusktower' },
+  /* 들판: 잡몹이 자주 나오는 사냥터. 그 지역이 열릴 때 함께 열린다 */
+  meadow:     { name: '바람 들판', map: 'meadow', x: 0.28, y: 0.52, region: 1, kind: 'field', icon: 'flowers', desc: '여명 마을 북동쪽의 넓은 들판. 들짐승이 자주 나타나 몸을 단련하기 좋다.', unlock: 'forest' },
+  dunes:      { name: '붉은 사구', map: 'dunes', x: 0.27, y: 0.85, region: 2, kind: 'field', icon: 'cactus', desc: '모래항 서쪽의 붉은 모래 언덕. 전갈 떼가 들끓는다.', unlock: 'sandport' },
+  snowfield:  { name: '은빛 설원', map: 'snowfield', x: 0.34, y: 0.12, region: 3, kind: 'field', icon: 'pine_snow', desc: '서리골 서쪽의 끝없는 눈벌판. 눈보라 속에 망령이 떠돈다.', unlock: 'frostvale' },
+  marsh:      { name: '안개 늪', map: 'marsh', x: 0.86, y: 0.66, region: 4, kind: 'field', icon: 'tree_dead', desc: '안개성 남쪽의 늪지대. 잠든 망자가 깨어 걷는다.', unlock: 'mistcastle' }
 };
 const ROADS = [['village', 'forest'], ['village', 'sandport'], ['sandport', 'tomb'], ['sandport', 'frostvale'], ['frostvale', 'icecave'],
-  ['frostvale', 'mistcastle'], ['mistcastle', 'magetower'], ['mistcastle', 'dusktower'], ['sandport', 'dusktower'], ['frostvale', 'dusktower']];
-const REGION_OF_MAP = { village: 1, forest: 1, sandport: 2, tomb: 2, frostvale: 3, icecave: 3, mistcastle: 4, magetower: 4, dusktower: 5 };
+  ['frostvale', 'mistcastle'], ['mistcastle', 'magetower'], ['mistcastle', 'dusktower'], ['sandport', 'dusktower'], ['frostvale', 'dusktower'],
+  ['village', 'meadow'], ['meadow', 'forest'], ['sandport', 'dunes'], ['frostvale', 'snowfield'], ['mistcastle', 'marsh']];
+const REGION_OF_MAP = { village: 1, forest: 1, sandport: 2, tomb: 2, frostvale: 3, icecave: 3, mistcastle: 4, magetower: 4, dusktower: 5,
+  meadow: 1, dunes: 2, snowfield: 3, marsh: 4 };
 
 const SHOPS = {
   v_items: ['herb', 'antidote', 'ether'],

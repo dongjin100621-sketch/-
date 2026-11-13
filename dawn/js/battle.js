@@ -30,8 +30,9 @@ const Battle = (() => {
       return {
         side: 'p', uid: 'h:' + h.id, id: h.id, h, name: HEROES[h.id].name, spr: HEROES[h.id].spr,
         base: s, maxhp: s.hp, maxsp: s.sp, hp: Math.min(h.hp, s.hp), sp: Math.min(h.sp, s.sp),
-        bp: Math.min(MAX_BP, 1 + s.startBp), latent: h.latent || 0, latentUp: s.latentUp, immune: s.immune,
-        buffs: {}, status: {}, defending: false, defendNext: 0, boosted: false, taunt: 0, regen: null, la: null
+        bp: Math.min(MAX_BP, 1 + s.startBp), latent: h.latent || 0, latentUp: s.latentUp, immune: s.immune, fx: s.fx,
+        buffs: {}, status: {}, defending: false, defendNext: 0, boosted: false, taunt: 0, regen: null, la: null,
+        revived: false, tally: { breaks: 0, kills: 0, maxhit: 0, heal: 0, skills: 0 }
       };
     }
     function freeSlot() {
@@ -143,7 +144,8 @@ const Battle = (() => {
         const gains = [];
         for (const u of [...b.front, ...b.back]) {
           if (!alive(u)) continue;
-          if (!u.boosted && u.bp < MAX_BP) { u.bp++; gains.push(u.uid); }
+          const gain = (u.boosted ? 0 : 1) + u.fx.bpUp;
+          if (gain && u.bp < MAX_BP) { u.bp = Math.min(MAX_BP, u.bp + gain); gains.push(u.uid); }
           u.boosted = false;
         }
         if (gains.length) push({ t: 'bpgain', uids: gains });
@@ -183,6 +185,10 @@ const Battle = (() => {
         }
         if (u.taunt) u.taunt--;
       }
+      for (const u of b.front) {
+        if (!alive(u) || !u.fx.regen || u.hp >= u.maxhp) continue;
+        healUnit(u, Math.ceil(u.maxhp * u.fx.regen));
+      }
       for (const u of b.back) {
         if (!alive(u)) continue;
         const hp = Math.min(u.maxhp - u.hp, Math.ceil(u.maxhp * 0.1));
@@ -199,6 +205,7 @@ const Battle = (() => {
       if (o.kind === 'phys' && !o.fixed) {
         if (att.status.blind && b.rng.chance(0.5)) { push({ t: 'miss', uid: t.uid, src: att.uid }); return 0; }
         if (t.side === 'e' && t.d.evade && b.rng.chance(t.d.evade)) { push({ t: 'miss', uid: t.uid, src: att.uid }); return 0; }
+        if (t.side === 'p' && t.fx.evade && b.rng.chance(t.fx.evade)) { push({ t: 'miss', uid: t.uid, src: att.uid }); return 0; }
       }
       let dmg;
       if (o.fixed) dmg = o.fixed;
@@ -207,9 +214,13 @@ const Battle = (() => {
         const D = st(t, o.kind === 'phys' ? 'pdef' : 'mdef');
         dmg = 2 * A * A / (A + D) * o.power / 100;
       }
-      const weak = t.side === 'e' && !!o.type && t.weak.includes(o.type);
+      // 약점: 기술·무기 속성, 그리고 유물이 더해 주는 속성(alt)
+      const weakType = t.side === 'e' ? [o.type, ...(o.alt || [])].find(x => x && t.weak.includes(x)) : null;
+      const weak = !!weakType;
       if (weak) dmg *= 1.3;
-      if (t.side === 'e' && t.broken) dmg *= 2;
+      if (t.side === 'e' && t.broken) dmg *= 2 * (att.side === 'p' ? 1 + att.fx.breakDmg : 1);
+      if (att.side === 'p' && o.kind === 'mag' && !o.fixed && att.fx.magUp) dmg *= 1 + att.fx.magUp;
+      if (t.side === 'p' && o.type && t.fx.resist.includes(o.type)) dmg *= 0.5;
       let crit = false;
       if (att.side === 'p' && o.kind === 'phys' && !o.fixed) crit = att.la === 'valor' || b.rng.chance(st(att, 'crit') / 100);
       if (crit) dmg *= 1.5;
@@ -217,20 +228,21 @@ const Battle = (() => {
       if (t.side === 'p' && t.defending) dmg *= 0.5;
       dmg = Math.max(1, Math.round(dmg * b.rng.range(0.93, 1.07)));
       t.hp = Math.max(0, t.hp - dmg);
-      if (att.side === 'p') b.log.maxDmg = Math.max(b.log.maxDmg, dmg);
+      if (att.side === 'p') { b.log.maxDmg = Math.max(b.log.maxDmg, dmg); att.tally.maxhit = Math.max(att.tally.maxhit, dmg); }
       let shieldHit = 0;
       if (t.side === 'e' && !t.broken && (weak || (att.la === 'valor' && !o.fixed))) {
         shieldHit = Math.min(t.shield, att.la === 'hawk' ? 2 : 1);
         t.shield -= shieldHit;
       }
-      if (weak) reveal(t, o.type);
+      if (weak) reveal(t, weakType);
       push({ t: 'hit', uid: t.uid, src: att.uid, dmg, weak, crit, hp: t.hp, shield: t.shield, shieldHit, type: o.type || null });
       if (t.side === 'p') {
         addLatent(t, dmg / t.maxhp * 90);
         if (t.status.sleep && t.hp > 0) { delete t.status.sleep; push({ t: 'status', uid: t.uid, status: 'sleep', on: false }); }
       }
       if (shieldHit && t.shield <= 0 && !t.broken) doBreak(t, att);
-      if (t.hp <= 0) ko(t);
+      if (t.hp <= 0) { if (t.side === 'e' && att.side === 'p') att.tally.kills++; ko(t); }
+      if (att.side === 'p' && att.fx.drain && alive(att) && t.side === 'e') healUnit(att, dmg * att.fx.drain);
       return dmg;
     }
     function doBreak(e, att) {
@@ -242,17 +254,24 @@ const Battle = (() => {
       push({ t: 'break', uid: e.uid, canceled: wasCharging });
       b.log.breaks++;
       if (b.G.stats) b.G.stats.breaks = (b.G.stats.breaks || 0) + 1;
-      if (att && att.side === 'p') addLatent(att, 30);
+      if (att && att.side === 'p') { addLatent(att, 30); att.tally.breaks++; }
     }
     function ko(u) {
       u.hp = 0;
       if (u.side === 'p') { u.status = {}; u.buffs = {}; u.taunt = 0; u.regen = null; u.bp = 0; u.la = null; u.defending = false; }
       else b.queue = b.queue.filter(en => en.uid !== u.uid);
       push({ t: 'ko', uid: u.uid });
+      if (u.side === 'p' && u.fx.autoRevive && !u.revived) {
+        u.revived = true;
+        u.hp = Math.max(1, Math.round(u.maxhp * u.fx.autoRevive));
+        push({ t: 'msg', text: `등불이 타올라 ${u.name}이(가) 다시 일어선다!`, good: true });
+        push({ t: 'revive', uid: u.uid, hp: u.hp });
+      }
     }
-    function healUnit(t, amount, spAmount = 0) {
+    function healUnit(t, amount, spAmount = 0, src = null) {
       if (!alive(t)) return;
       const hp = Math.min(Math.round(amount), t.maxhp - t.hp);
+      if (src && src.side === 'p') src.tally.heal += hp;
       const sp = Math.min(Math.round(spAmount), (t.maxsp || 0) - (t.sp || 0));
       t.hp += hp; if (t.side === 'p') t.sp += sp;
       push({ t: 'heal', uid: t.uid, amount: hp, sp: sp || 0, hp: t.hp, spNow: t.sp });
@@ -270,6 +289,7 @@ const Battle = (() => {
       return l.length ? b.rng.pick(l) : null;
     }
     const maxBoost = (u) => Math.min(u.bp, u.la === 'berserk' ? 5 : 3);
+    const spCost = (u, sid) => u.la === 'grace' ? 0 : Math.ceil(SKILLS[sid].sp * (u.fx ? u.fx.spCost : 1));
 
     function doAttack(u, cmd) {
       const boost = cmd.boost || 0;
@@ -277,18 +297,19 @@ const Battle = (() => {
       const type = cmd.weapon;
       push({ t: 'act', uid: u.uid, name: '공격', type, kind: 'phys', boost, anim: 'attack' });
       let t = pickEnemy(cmd.target);
-      for (let i = 0; i < 1 + boost; i++) {
+      for (let i = 0; i < 1 + boost + u.fx.hitsUp; i++) {
         if (!alive(t)) t = pickEnemy(null);
         if (!t) break;
-        strike(u, t, { kind: 'phys', type, power: 100 });
+        strike(u, t, { kind: 'phys', type, power: 100, alt: u.fx.alt });
       }
     }
 
     function doSkill(u, cmd) {
       const s = SKILLS[cmd.skill];
       const boost = cmd.boost || 0;
-      if (u.la !== 'grace') u.sp -= s.sp;
+      u.sp -= spCost(u, cmd.skill);
       u.bp -= boost;
+      u.tally.skills++;
       let mult = s.boost === 'power' ? BOOST_POWER[boost] : 1;
       const hits = (s.hits || 1) + (s.boost === 'hits' ? boost : 0);
       const turns = (s.turns || 2) + (s.boost === 'turns' ? boost : 0);
@@ -334,7 +355,7 @@ const Battle = (() => {
           }
           if (!alive(t)) continue;
           const amt = healPower(u, s.power, mult);
-          healUnit(t, amt);
+          healUnit(t, amt, 0, u);
           if (s.cure) cure(t);
           if (s.regen) t.regen = { turns: s.regen, amount: Math.round(amt * 0.3) };
         }
@@ -451,6 +472,10 @@ const Battle = (() => {
         }
       }
       if (d.flee && b.round >= 2 && b.rng.chance(d.flee)) {
+        if (liveFront().some(u => u.fx.noFlee)) {
+          push({ t: 'msg', text: `${e.name}이(가) 달아나려 했지만 달빛에 붙들렸다!`, good: true });
+          return;
+        }
         e.hp = 0; e.fled = true;
         b.queue = b.queue.filter(q => q.uid !== e.uid);
         push({ t: 'runaway', uid: e.uid, name: e.name });
@@ -535,14 +560,23 @@ const Battle = (() => {
     }
     function victory() {
       b.over = 'win'; b.waiting = null;
-      const r = { exp: 0, gold: 0, items: [], levels: [] };
+      const r = { exp: 0, gold: 0, items: [], gear: [], levels: [], rare: 0 };
       for (const e of b.enemies) {
         if (e.fled) continue;
         r.exp += e.d.exp; r.gold += e.d.gold;
+        if (e.d.flee) r.rare++;
         if (e.d.drop && b.rng.chance(e.d.drop[1])) r.items.push(e.d.drop[0]);
+        if (e.d.gearDrop && b.rng.chance(e.d.gearDrop[1])) r.gear.push(e.d.gearDrop[0]);
       }
+      // 살아 있는 사람이 낀 유물의 덤 (가장 큰 것 하나만)
+      const living = [...b.front, ...b.back].filter(alive);
+      const bonus = (k) => Math.max(0, ...living.map(u => u.fx[k] || 0));
+      r.expUp = bonus('partyExp'); r.goldUp = bonus('goldUp');
+      r.exp = Math.round(r.exp * (1 + r.expUp)); r.gold = Math.round(r.gold * (1 + r.goldUp));
       b.G.gold += r.gold;
       for (const it of r.items) b.G.items[it] = (b.G.items[it] || 0) + 1;
+      if (!b.G.gear) b.G.gear = {};
+      for (const g of r.gear) b.G.gear[g] = (b.G.gear[g] || 0) + 1;
       for (const u of [...b.front, ...b.back]) {
         if (!alive(u)) continue;
         const res = Party.addExp(u.h, r.exp);
@@ -600,7 +634,7 @@ const Battle = (() => {
     function canSkill(u, sid) {
       const s = SKILLS[sid];
       if (!s) return false;
-      if (u.la !== 'grace' && u.sp < s.sp) return false;
+      if (u.sp < spCost(u, sid)) return false;
       if (s.target === 'ko' && !b.front.some(x => x && x.hp <= 0)) return false;
       return true;
     }
@@ -689,7 +723,7 @@ const Battle = (() => {
       get enemies() { return b.enemies; },
       get log() { return b.log; },
       actor: () => b.waiting ? b.front[b.waiting.col] : null,
-      advance, act, sync, unit, orderNow, orderNext, canSkill, swapOptions, maxBoost,
+      advance, act, sync, unit, orderNow, orderNext, canSkill, swapOptions, maxBoost, spCost,
       isRevealed, st
     };
   }

@@ -118,16 +118,16 @@ function run(formation, G, seed) {
     else if (!B.over && B.waiting && B.actor() === actor && !B.state.waiting.twice) B.advance();
   }
   const hpLeft = B.front.concat(B.back).filter(Boolean).reduce((a, x) => a + x.hp / x.maxhp, 0) / B.front.concat(B.back).filter(Boolean).length;
-  return { win: B.over === 'win', rounds: B.round, hpLeft, breaks: B.log.breaks };
+  return { win: B.over === 'win', rounds: B.round, hpLeft, breaks: B.log.breaks, exp: B.over === 'win' && B.rewards ? B.rewards.exp : 0 };
 }
 function sim(formation, members, lv, tier, back = [], n = 60) {
-  let wins = 0, rounds = 0, hp = 0, br = 0;
+  let wins = 0, rounds = 0, hp = 0, br = 0, exp = 0;
   for (let i = 0; i < n; i++) {
     const G = makeGame(members, lv, tier, back);
     const r = run(formation, G, 1000 + i * 7919);
-    wins += r.win; rounds += r.rounds; hp += r.hpLeft; br += r.breaks;
+    wins += r.win; rounds += r.rounds; hp += r.hpLeft; br += r.breaks; exp += r.exp;
   }
-  console.log(`${formation.padEnd(6)} Lv${String(lv).padStart(2)} T${tier}  승률 ${(wins / n * 100).toFixed(0).padStart(3)}%  라운드 ${(rounds / n).toFixed(1).padStart(4)}  남은HP ${(hp / n * 100).toFixed(0).padStart(3)}%  브레이크 ${(br / n).toFixed(1)}`);
+  console.log(`${formation.padEnd(6)} Lv${String(lv).padStart(2)} T${tier}  승률 ${(wins / n * 100).toFixed(0).padStart(3)}%  라운드 ${(rounds / n).toFixed(1).padStart(4)}  남은HP ${(hp / n * 100).toFixed(0).padStart(3)}%  브레이크 ${(br / n).toFixed(1)}  경험치 ${Math.round(exp / n)}`);
 }
 
 const P1 = ['rian', 'seira', 'kyle', 'mir'];
@@ -157,4 +157,13 @@ if (arg[0]) {
   for (const f of ['f5a', 'f5b', 'f5c', 'f5d', 'f5e', 'f5f']) sim(f, P1, 35, 5, P3b);
   sim('boss5', P1, 38, 5, P3b); sim('boss5', P1, 40, 5, P3b);
   sim('boss6', P1, 38, 6, P3b); sim('boss6', P1, 40, 6, P3b); sim('boss6', P1, 42, 6, P3b);
+  console.log('── 들판 (잡몹 사냥터, 끝의 r은 드문 적 — 경험치 0은 달아남)');
+  for (const f of ['g1a', 'g1b', 'g1c', 'g1d', 'g1e', 'g1f', 'g1g', 'g1h', 'g1r']) sim(f, P1, 3, 1);
+  for (const f of ['g1f', 'g1h', 'g1r']) sim(f, P1, 7, 2);
+  for (const f of ['g2a', 'g2b', 'g2c', 'g2d', 'g2e', 'g2f', 'g2r']) sim(f, P1, 10, 2, P2b);
+  for (const f of ['g2f', 'g2r']) sim(f, P1, 15, 3, P2b);
+  for (const f of ['g3a', 'g3b', 'g3c', 'g3d', 'g3e', 'g3f', 'g3r']) sim(f, P1, 18, 3, P3b);
+  for (const f of ['g3e', 'g3r']) sim(f, P1, 24, 4, P3b);
+  for (const f of ['g4a', 'g4b', 'g4c', 'g4d', 'g4e', 'g4f', 'g4r']) sim(f, P1, 26, 4, P3b);
+  for (const f of ['g4b', 'g4r']) sim(f, P1, 31, 4, P3b);
 }

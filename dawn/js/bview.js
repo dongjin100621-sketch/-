@@ -723,7 +723,7 @@ const BattleView = (() => {
       items = Party.skills(u.h).map(id => {
         const s = SKILLS[id];
         const ok = B.canSkill(u, id);
-        const cost = u.la === 'grace' ? 0 : s.sp;
+        const cost = B.spCost(u, id);
         return { label: s.name, icon: s.type ? Gfx.icon(s.type, 16) : '', right: `${cost}`, disabled: !ok, act: () => chooseSkill(id), help: s.desc + (s.boost === 'hits' ? ' (부스트: 타수)' : s.boost === 'turns' ? ' (부스트: 지속)' : s.boost === 'power' ? ' (부스트: 위력)' : '') };
       });
     } else if (ui.mode === 'item') {
@@ -911,8 +911,10 @@ const BattleView = (() => {
     }
     const r = B.rewards;
     Sound.play('victory', App.currentMusic());
-    let html = `<h2>승리!</h2><div class="rw"><span>경험치 <b>${r.exp}</b></span><span>골드 <b>${r.gold} G</b></span></div>`;
-    if (r.items.length) html += `<p class="drops">얻은 것: ${r.items.map(i => ITEMS[i].name).join(', ')}</p>`;
+    const up = (v) => v ? ` <small class="rup">유물 +${Math.round(v * 100)}%</small>` : '';
+    let html = `<h2>승리!</h2><div class="rw"><span>경험치 <b>${r.exp}</b>${up(r.expUp)}</span><span>골드 <b>${r.gold} G</b>${up(r.goldUp)}</span></div>`;
+    const got = [...r.items.map(i => esc(ITEMS[i].name)), ...(r.gear || []).map(g => gearTag(g) + gearName(g))];
+    if (got.length) html += `<p class="drops">얻은 것: ${got.join(', ')}</p>`;
     for (const l of r.levels) {
       html += `<p class="lvup"><img src="${Gfx.face(HEROES[l.id].spr, 22, 'f')}" alt=""><b>${HEROES[l.id].name}</b> 레벨 ${l.from} → <b>${l.to}</b>${l.learned.length ? ` · 새 기술 「${l.learned.map(s => SKILLS[s].name).join('」「')}」` : ''}</p>`;
     }

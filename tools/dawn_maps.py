@@ -14,7 +14,7 @@ import json, os, random, sys
 from collections import deque
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WALK = set('.,:*%_+')
+WALK = '.,:*%_+'
 
 
 class M:
@@ -80,6 +80,15 @@ class M:
         s.put(x, y, 'c')
         s.chests.append(dict(id=id, x=x, y=y, **kw))
 
+    def hidden(s, id, x, y, gear, ch=None, find=None):
+        """숨은 상자(유물): 나무·바위 같은 막힌 칸에 숨긴다. 이웃 칸에서 조사하면 열린다."""
+        if ch:
+            s.put(x, y, ch)
+        c = dict(id=id, x=x, y=y, gear=gear, hidden=True)
+        if find:
+            c['find'] = find
+        s.chests.append(c)
+
     def sign(s, x, y, text):
         s.put(x, y, 's')
         s.signs.append(dict(x=x, y=y, text=text))
@@ -130,7 +139,10 @@ def check(name, m, entry):
         if m.g[d['y']][d['x']] != 'o':
             bad.append(('door-not-o', d.get('kind'), d['x'], d['y'], m.g[d['y']][d['x']]))
     for c in m.chests:
-        if m.g[c['y']][c['x']] != 'c':
+        if c.get('hidden'):
+            if m.g[c['y']][c['x']] in WALK + 'c':
+                bad.append(('hidden-on-walkable', c['id'], c['x'], c['y'], m.g[c['y']][c['x']]))
+        elif m.g[c['y']][c['x']] != 'c':
             bad.append(('chest-overwritten', c['id'], c['x'], c['y']))
     for n in m.npcs:
         if m.g[n['y']][n['x']] not in WALK:
@@ -188,6 +200,7 @@ m.npc('mir0', 3, 12, 'mir', '낯선 마도사', 'v_mir0', show='p_elder', hide='
 m.npc('man', 7, 8, 'villager2', '나무꾼 벤', [['bell1', 'v_man2'], [None, 'v_man']], wander=True)
 m.event(13, 17, 'v_gate', unless='ch1')
 m.event(14, 17, 'v_gate', unless='ch1')
+m.hidden('hv', 26, 2, 'relic_bell', find='마을 구석 소나무 뿌리 틈에서… 작은 손종이 든 상자가 나왔다! 종지기 할아범의 것일까?')
 done('village', m, name='여명 마을', theme='village', music='town', entry=dict(x=13, y=17, dir='up'), bg='plains')
 
 # ─────────────────────────────── 고요의 숲 ───────────────────────────────
@@ -220,16 +233,17 @@ m.event(16, 6, 'f_boss', unless='boss1')
 m.event(18, 6, 'f_boss', unless='boss1')
 m.crystal(15, 8)
 m.chest('fc1', 2, 11, item='herb', n=3)
-m.chest('fc2', 32, 19, gear='spear2')
+m.chest('fc2', 32, 19, gear='spear_g2')
 m.chest('fc3', 6, 27, item='ether', n=1)
 m.chest('fc4', 30, 23, gear='ring_pow')
 m.chest('fc5', 25, 3, item='feather', n=1)
-m.chest('fc6', 9, 22, gold=150)
+m.chest('fc6', 9, 22, gear='seed_bow')
 m.sign(18, 29, '고요의 숲 — 숲의 종은 북쪽 빈터에 있다')
 m.npc('hunter', 9, 15, 'villager3', '쓰러진 사냥꾼', 'f_hunter')
 m.rect(16, 31, 18, 31, ':')
 m.exit(16, 31); m.exit(17, 31); m.exit(18, 31)
 m.event(17, 30, 'f_enter', once=True)
+m.hidden('hf', 1, 10, 'relic_forestspear', find='덤불을 헤치자 이끼 낀 상자가 나왔다! 안에는 숲지기의 창이 잠들어 있었다.')
 done('forest', m, name='고요의 숲', theme='forest', music='field', entry=dict(x=17, y=30, dir='up'), bg='forest',
      enc=dict(rate=[16, 30], table=[['f1a', 3], ['f1b', 3], ['f1c', 2], ['f1d', 3], ['f1e', 2], ['f1f', 2], ['f1g', 2], ['f1h', 1]]),
      safe=[[12, 0, 22, 7]])
@@ -261,6 +275,7 @@ m.npc('girl', 8, 15, 'woman3', '물 긷는 아가씨', [['bell2', 's_girl2'], [N
 m.npc('oldman', 25, 16, 'elder', '모래항 노인', 's_oldman')
 m.sign(16, 17, '남쪽 — 잊힌 왕의 무덤')
 m.event(14, 18, 's_enter', once=True); m.event(15, 18, 's_enter', once=True)
+m.hidden('hp', 26, 9, 'relic_compass', find='선인장 뒤 모래를 파 보니… 낡은 선장의 상자가 묻혀 있었다!')
 done('sandport', m, name='모래항', theme='desert', music='town2', entry=dict(x=14, y=18, dir='up'), bg='desert')
 
 # ─────────────────────────────── 잊힌 왕의 무덤 ───────────────────────────────
@@ -291,19 +306,20 @@ m.event(17, 4, 't_bell', check=True)
 m.event(17, 9, 't_boss', unless='boss2'); m.event(18, 9, 't_boss', unless='boss2')
 m.rect(17, 9, 18, 12, '.'); m.rect(17, 12, 18, 13, '.')
 m.crystal(22, 15)
-m.chest('tc1', 3, 4, gear='axe3')
-m.chest('tc2', 32, 13, gear='staff3')
-m.chest('tc3', 32, 4, gear='armor3')
+m.chest('tc1', 3, 4, gear='axe_g3')
+m.chest('tc2', 32, 13, gear='staff_g3')
+m.chest('tc3', 32, 4, gear='armor_g3')
 m.chest('tc4', 6, 17, item='remedy', n=2)
-m.chest('tc5', 33, 30, gear='bow3')
+m.chest('tc5', 33, 30, gear='bow_g3')
 m.chest('tc6', 2, 31, gear='badge_bp')
 m.chest('tc7', 13, 8, item='herb2', n=2)
-m.chest('tc8', 28, 18, gold=800)
+m.chest('tc8', 28, 18, gear='seed_axe')
 m.npc('ghostsoldier', 20, 17, 'skeleton', '용병의 망령', 't_ghost', show='j_born', hide='boss2')
 m.sign(19, 30, '이 아래 모래의 왕이 잠들다 — 깨우는 자에게 저주를')
 m.rect(16, 33, 18, 33, ':')
 m.exit(16, 33); m.exit(17, 33); m.exit(18, 33)
 m.event(17, 32, 't_enter', once=True)
+m.hidden('ht', 28, 13, 'relic_kingdagger', find='기둥에 새겨진 왕의 문장을 누르자 숨은 칸이 열렸다!')
 done('tomb', m, name='잊힌 왕의 무덤', theme='tomb', music='tomb', entry=dict(x=17, y=32, dir='up'), bg='tomb',
      enc=dict(rate=[14, 26], table=[['f2a', 3], ['f2b', 3], ['f2c', 2], ['f2d', 3], ['f2e', 3], ['f2f', 1], ['f2g', 2], ['f2h', 1]]),
      zones=[dict(rect=[0, 22, 35, 33], table=[['f2a', 3], ['f2b', 3], ['f2c', 2]]), dict(rect=[0, 0, 35, 21], table=[['f2d', 3], ['f2e', 3], ['f2f', 1], ['f2g', 2], ['f2h', 1]])],
@@ -333,6 +349,7 @@ m.npc('smith', 20, 6, 'villager3', '대장장이', 'r_smith')
 m.npc('granny', 9, 12, 'elder', '서리골 할머니', [['bell3', 'r_granny2'], [None, 'r_granny']])
 m.sign(10, 15, '북쪽 동굴 — 서리 비룡의 둥지. 들어가지 마시오')
 m.event(12, 16, 'r_enter', once=True); m.event(13, 16, 'r_enter', once=True)
+m.hidden('hr', 24, 7, 'relic_hearth', find='눈 덮인 소나무 아래에서 따뜻한 기운이 새어 나온다… 상자가 묻혀 있었다!')
 done('frostvale', m, name='서리골', theme='snow', music='town3', entry=dict(x=12, y=16, dir='up'), bg='snow')
 
 # ─────────────────────────────── 빙하 동굴 ───────────────────────────────
@@ -356,18 +373,19 @@ m.put(18, 3, 'b'); m.put(19, 3, '|')
 m.event(18, 3, 'i_bell', check=True)
 m.event(17, 8, 'i_boss', unless='boss3'); m.event(18, 8, 'i_boss', unless='boss3'); m.event(19, 8, 'i_boss', unless='boss3')
 m.crystal(21, 20)
-m.chest('ic1', 4, 5, gear='spear4')
-m.chest('ic2', 32, 6, gear='robe4')
+m.chest('ic1', 4, 5, gear='spear_g4')
+m.chest('ic2', 32, 6, gear='robe_g4')
 m.chest('ic3', 4, 21, item='herb2', n=3)
 m.chest('ic4', 33, 32, gear='gem_latent')
 m.chest('ic5', 13, 16, item='ether2', n=1)
-m.chest('ic6', 33, 11, gear='dagger4')
+m.chest('ic6', 33, 11, gear='dagger_g4')
 m.chest('ic7', 2, 32, item='feather', n=2)
 m.chest('ic8', 9, 4, gold=2000)
 m.sign(19, 31, '빙하 동굴 — 얼음이 우는 소리가 들린다')
 m.rect(16, 33, 18, 33, ':')
 m.exit(16, 33); m.exit(17, 33); m.exit(18, 33)
 m.event(17, 32, 'i_enter', once=True)
+m.hidden('hi', 9, 15, 'relic_wyrmmail', find='얼음 바위 속에 푸른 비늘이 비친다… 바위를 깨자 상자가 나왔다!')
 done('icecave', m, name='빙하 동굴', theme='ice', music='cave', entry=dict(x=17, y=32, dir='up'), bg='ice',
      enc=dict(rate=[14, 26], table=[['f3a', 3], ['f3b', 3], ['f3c', 3], ['f3d', 2], ['f3e', 1], ['f3f', 2], ['f3g', 1]]),
      zones=[dict(rect=[0, 24, 35, 33], table=[['f3a', 3], ['f3c', 3], ['f3b', 1]]), dict(rect=[0, 0, 35, 23], table=[['f3b', 3], ['f3d', 3], ['f3e', 1], ['f3f', 2], ['f3g', 2]])],
@@ -399,6 +417,7 @@ m.npc('nun', 19, 16, 'nun', '수녀', [['bell4', 'c_nun2'], [None, 'c_nun']], wa
 m.npc('boy', 11, 17, 'child', '심부름하는 소년', 'c_boy', wander=True)
 m.sign(16, 20, '동쪽 늪 너머 — 마도의 탑')
 m.event(14, 20, 'c_enter', once=True); m.event(15, 20, 'c_enter', once=True)
+m.hidden('hc', 26, 1, 'relic_tiara', find='성 뒤뜰 나무 그늘에… 왕실 문장이 새겨진 작은 상자가 숨겨져 있었다!')
 done('mistcastle', m, name='안개성', theme='swamp', music='town4', entry=dict(x=14, y=20, dir='up'), bg='swamp')
 
 # ─────────────────────────────── 마도의 탑 ───────────────────────────────
@@ -420,17 +439,18 @@ m.event(16, 4, 'm_bell', check=True)
 m.event(15, 9, 'm_boss', unless='boss4'); m.event(16, 9, 'm_boss', unless='boss4'); m.event(17, 9, 'm_boss', unless='boss4')
 m.path([(16, 9), (16, 14)], '.', wide=2)
 m.crystal(19, 16)
-m.chest('mc1', 4, 13, gear='sword4')
-m.chest('mc2', 29, 13, gear='staff4')
-m.chest('mc3', 4, 28, gear='armor5')
-m.chest('mc4', 29, 28, gear='bow4')
+m.chest('mc1', 4, 13, gear='sword_g4')
+m.chest('mc2', 29, 13, gear='staff_g4')
+m.chest('mc3', 4, 28, gear='armor_g5')
+m.chest('mc4', 29, 28, gear='bow_g4')
 m.chest('mc5', 9, 4, gear='ring_crit')
 m.chest('mc6', 24, 4, item='ether2', n=2)
-m.chest('mc7', 14, 15, gear='axe4')
-m.chest('mc8', 29, 23, gear='robe5')
+m.chest('mc7', 14, 15, gear='axe_g4')
+m.chest('mc8', 29, 23, gear='robe_g5')
 m.rect(16, 31, 17, 31, '.')
 m.exit(16, 31); m.exit(17, 31)
 m.event(16, 30, 'm_enter', once=True); m.event(17, 30, 'm_enter', once=True)
+m.hidden('hg', 3, 22, 'relic_morgastaff', find='기둥의 마법진이 빛나더니… 기둥 속에서 상자가 나왔다!')
 done('magetower', m, name='마도의 탑', theme='tower', music='tower', entry=dict(x=16, y=30, dir='up'), bg='tower',
      enc=dict(rate=[13, 24], table=[['f4a', 3], ['f4b', 3], ['f4c', 3], ['f4d', 3], ['f4e', 2], ['f4f', 1], ['f4g', 2]]),
      safe=[[8, 3, 25, 10]])
@@ -466,9 +486,134 @@ m.chest('dc11', 4, 23, item='bpfruit', n=2)
 m.rect(14, 35, 15, 35, '.')
 m.exit(14, 35); m.exit(15, 35)
 m.event(14, 34, 'd_enter', once=True); m.event(15, 34, 'd_enter', once=True)
+m.hidden('hk', 26, 25, 'relic_duskcrown', find='기둥 그림자 속에서… 황혼빛으로 물든 상자가 나왔다!')
 done('dusktower', m, name='황혼의 탑', theme='dusk', music='dusk', entry=dict(x=14, y=34, dir='up'), bg='dusk',
      enc=dict(rate=[13, 24], table=[['f5a', 3], ['f5b', 3], ['f5c', 2], ['f5d', 3], ['f5e', 1], ['f5f', 2]]),
      safe=[[9, 0, 20, 13]])
+
+# ─────────────────────────────── 들판 (잡몹 사냥터) ───────────────────────────────
+# 지역마다 하나. 입구 둘레(수정·표지판·안내하는 사람)는 안전하고, 남쪽은 쉬운 적, 북쪽은 센 적이 나온다.
+# 길(:)과 샛길(.)을 장애물 무리 뒤에 새기므로 모든 상자에 걸어서 닿는다. 물을 지나는 길은 다리(+)가 된다.
+
+def blob(m, cx, cy, rx, ry, ch, r, protect, only=None):
+    for y in range(cy - ry - 1, cy + ry + 2):
+        for x in range(cx - rx - 1, cx + rx + 2):
+            if not (1 <= x < m.w - 1 and 1 <= y < m.h - 1) or (x, y) in protect:
+                continue
+            d = ((x - cx) / (rx + 0.5)) ** 2 + ((y - cy) / (ry + 0.5)) ** 2
+            if d <= 1 - r.random() * 0.35 and (only is None or m.g[y][x] in only):
+                m.g[y][x] = ch
+
+
+def trail(m, pts, ch=':'):
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        dx = (x1 > x0) - (x1 < x0)
+        dy = (y1 > y0) - (y1 < y0)
+        x, y = x0, y0
+        while True:
+            m.g[y][x] = '+' if m.g[y][x] in '~+' else (ch if m.g[y][x] != ':' else ':')
+            if (x, y) == (x1, y1):
+                break
+            x += dx
+            y += dy
+
+
+def make_field(id, name, theme, bg, seed, edge, clumps, ponds, deco, main, branches, chests, hidden, npc, sign_text, south, north):
+    W, H = 40, 30
+    r = random.Random(seed)
+    m = M(W, H, '.')
+    m.frame(edge)
+    for x in range(1, W - 1):              # 들쭉날쭉한 가장자리
+        for y in (1, H - 2):
+            if r.random() < 0.45:
+                m.put(x, y, edge)
+    for y in range(1, H - 1):
+        for x in (1, W - 2):
+            if r.random() < 0.45:
+                m.put(x, y, edge)
+    safe = (14, 23, 25, 29)
+    protect = {(x, y) for x in range(safe[0], safe[2] + 1) for y in range(safe[1], safe[3] + 1)}
+    for (cx, cy, rx, ry) in ponds:
+        blob(m, cx, cy, rx, ry, '~', r, protect)
+    for ch, n, rmax in clumps:
+        for _ in range(n):
+            blob(m, r.randint(3, W - 4), r.randint(3, H - 6), r.randint(0, rmax), r.randint(0, rmax), ch, r, protect, only='.')
+    m.scatter('*', deco[0], 2, 2, W - 3, H - 3, seed + 1)
+    m.scatter(',', deco[1], 2, 2, W - 3, H - 3, seed + 2)
+    # 입구 마당
+    m.rect(15, 24, 24, 28, '.')
+    m.scatter(',', 6, 15, 24, 24, 28, seed + 3)
+    trail(m, [(19, 29), (19, 24)]); trail(m, [(20, 29), (20, 24)])
+    trail(m, main)
+    for b in branches:
+        trail(m, b, '.')
+    m.crystal(16, 26)
+    m.sign(23, 27, sign_text)
+    for c in chests:
+        m.chest(**c)
+    for h in hidden:
+        m.hidden(**h)
+    if npc:
+        m.npc(**npc)
+    m.exit(19, 29); m.exit(20, 29)
+    m.event(19, 28, 'g_first', once=True); m.event(20, 28, 'g_first', once=True)
+    done(id, m, name=name, theme=theme, music='field', entry=dict(x=19, y=28, dir='up'), bg=bg, field=True,
+         enc=dict(rate=[10, 20], table=south + north),
+         zones=[dict(rect=[0, 16, W - 1, H - 1], table=south), dict(rect=[0, 0, W - 1, 15], table=north)],
+         safe=[list(safe)])
+
+
+# 공통 길: 입구 → 서쪽으로 굽어 북쪽 → 동쪽 → 북동
+MAIN = [(19, 24), (19, 21), (11, 21), (11, 13), (21, 13), (21, 7), (30, 7), (30, 3)]
+MAIN2 = [(20, 24), (20, 20), (29, 20), (29, 13), (21, 13)]
+
+make_field('meadow', '바람 들판', 'village', 'plains', 301, 'T',
+    clumps=[('T', 7, 2), ('P', 5, 2), ('B', 9, 1), ('R', 4, 1)], ponds=[(33, 25, 3, 2), (6, 9, 2, 1)], deco=(40, 50),
+    main=MAIN, branches=[MAIN2, [(11, 21), (4, 21), (4, 26)], [(29, 20), (35, 20), (35, 16)], [(11, 13), (4, 13), (4, 4)], [(21, 7), (12, 7), (12, 3)],
+                         [(30, 3), (36, 3), (36, 9)], [(29, 13), (36, 13)]],
+    chests=[dict(id='gm1', x=4, y=4, gear='seed_sword'), dict(id='gm2', x=36, y=9, gear='armor_g2'), dict(id='gm3', x=4, y=27, item='herb', n=3),
+            dict(id='gm4', x=12, y=2, gold=200), dict(id='gm5', x=35, y=15, gear='dagger_g2'), dict(id='gm6', x=37, y=13, item='ether', n=1)],
+    hidden=[dict(id='hm', x=37, y=3, gear='relic_wreath', ch='P', find='소나무 아래 들꽃 사이에서… 시들지 않는 화관이 든 상자를 찾았다!')],
+    npc=dict(id='shepherd', x=22, y=25, spr='woman2', name='양치기 소녀', talk='g_meadow'),
+    sign_text='바람 들판 — 들짐승이 자주 나온다. 수정 곁은 안전하다.',
+    south=[['g1a', 4], ['g1b', 3], ['g1c', 3], ['g1d', 3], ['g1r', 1]],
+    north=[['g1e', 3], ['g1f', 3], ['g1g', 3], ['g1h', 3], ['g1c', 2], ['g1r', 1]])
+
+make_field('dunes', '붉은 사구', 'desert', 'desert', 302, 'R',
+    clumps=[('C', 12, 1), ('R', 8, 1), ('C', 4, 2)], ponds=[(8, 9, 2, 2)], deco=(16, 70),
+    main=MAIN, branches=[MAIN2, [(11, 21), (3, 21), (3, 27)], [(29, 20), (36, 20), (36, 25)], [(11, 13), (6, 13), (6, 3)], [(21, 7), (15, 7), (15, 2)],
+                         [(30, 3), (36, 3), (36, 10)], [(29, 13), (35, 13)]],
+    chests=[dict(id='gd1', x=36, y=26, gear='seed_ring'), dict(id='gd2', x=6, y=2, gear='sword_g3'), dict(id='gd3', x=3, y=28, item='herb2', n=2),
+            dict(id='gd4', x=36, y=11, gold=900), dict(id='gd5', x=15, y=1, item='remedy', n=2)],
+    hidden=[dict(id='hd', x=36, y=13, gear='relic_mirage', ch='C', find='선인장 그늘이 아지랑이처럼 흔들린다… 그 아래 모래 속에 상자가 묻혀 있었다!')],
+    npc=dict(id='sandtrader', x=22, y=25, spr='merchant', name='모래 상인', talk='g_dunes'),
+    sign_text='붉은 사구 — 전갈 떼가 산다. 수정 곁은 안전하다.',
+    south=[['g2a', 3], ['g2b', 3], ['g2d', 3], ['g2c', 2], ['g2r', 1]],
+    north=[['g2c', 3], ['g2e', 3], ['g2f', 3], ['g2a', 2], ['g2r', 1]])
+
+make_field('snowfield', '은빛 설원', 'snow', 'snow', 303, 'P',
+    clumps=[('P', 10, 2), ('B', 6, 1), ('R', 6, 1)], ponds=[(31, 24, 3, 2), (8, 6, 3, 1)], deco=(8, 60),
+    main=MAIN, branches=[MAIN2, [(11, 21), (3, 21), (3, 26)], [(29, 20), (37, 20)], [(11, 13), (3, 13), (3, 3)], [(21, 7), (14, 7), (14, 2)],
+                         [(30, 3), (37, 3), (37, 8)], [(29, 13), (34, 13), (34, 9)]],
+    chests=[dict(id='gs1', x=3, y=2, gear='seed_robe'), dict(id='gs2', x=3, y=27, item='feather', n=2), dict(id='gs3', x=37, y=9, gold=2500),
+            dict(id='gs4', x=14, y=1, item='ether2', n=1), dict(id='gs5', x=34, y=8, gear='ring_crit')],
+    hidden=[dict(id='hs', x=38, y=20, gear='relic_snowbow', ch='R', find='얼음 바위 틈에서 차가운 빛이 새어 나온다… 얼어붙은 상자가 있었다!')],
+    npc=dict(id='snowhunter', x=22, y=25, spr='villager3', name='설원 사냥꾼', talk='g_snow'),
+    sign_text='은빛 설원 — 눈보라 속에 망령이 떠돈다. 수정 곁은 안전하다.',
+    south=[['g3a', 3], ['g3b', 3], ['g3c', 3], ['g3r', 1]],
+    north=[['g3d', 3], ['g3e', 3], ['g3f', 3], ['g3c', 2], ['g3r', 1]])
+
+make_field('marsh', '안개 늪', 'swamp', 'swamp', 304, 'T',
+    clumps=[('T', 8, 2), ('B', 8, 1), ('P', 4, 1)], ponds=[(6, 24, 3, 2), (33, 24, 3, 2), (8, 9, 3, 2), (30, 10, 3, 2), (17, 4, 2, 1), (26, 16, 2, 2)], deco=(30, 50),
+    main=MAIN, branches=[MAIN2, [(11, 21), (3, 21), (3, 27)], [(29, 20), (37, 20), (37, 26)], [(11, 13), (3, 13), (3, 3)], [(21, 7), (13, 7), (13, 2)],
+                         [(30, 3), (37, 3), (37, 9)], [(29, 13), (36, 13)]],
+    chests=[dict(id='gw1', x=37, y=27, gear='seed_staff'), dict(id='gw2', x=3, y=28, item='ether2', n=2), dict(id='gw3', x=3, y=2, gold=5000),
+            dict(id='gw4', x=13, y=1, item='herb3', n=2), dict(id='gw5', x=37, y=10, item='bpfruit', n=1)],
+    hidden=[dict(id='hw', x=37, y=13, gear='relic_lantern', ch='T', find='마른 나무 구멍 속에서 푸른 불빛이 깜박인다… 꺼지지 않는 등불이 든 상자가 있었다!')],
+    npc=dict(id='pilgrim', x=22, y=25, spr='nun', name='길 잃은 순례자', talk='g_marsh'),
+    sign_text='안개 늪 — 잠든 망자가 깨어 걷는다. 수정 곁은 안전하다.',
+    south=[['g4a', 3], ['g4b', 3], ['g4e', 3], ['g4r', 1]],
+    north=[['g4c', 3], ['g4d', 3], ['g4f', 3], ['g4b', 2], ['g4r', 1]])
 
 # ─────────────────────────────── 내보내기 ───────────────────────────────
 ok = True

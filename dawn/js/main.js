@@ -3,7 +3,8 @@
 
 const App = (() => {
   const SAVE_KEY = 'dawn-save-', SET_KEY = 'dawn-settings';
-  const MUSIC = { village: 'town', forest: 'field', sandport: 'town2', tomb: 'tomb', frostvale: 'town3', icecave: 'cave', mistcastle: 'town4', magetower: 'tower', dusktower: 'dusk' };
+  const MUSIC = { village: 'town', forest: 'field', sandport: 'town2', tomb: 'tomb', frostvale: 'town3', icecave: 'cave', mistcastle: 'town4', magetower: 'tower', dusktower: 'dusk',
+    meadow: 'field', dunes: 'field', snowfield: 'field', marsh: 'field' };
   let G = null, screen = 'title', scriptDepth = 0, transitioning = false, lastFrame = performance.now();
   const settings = { battleSpeed: 'normal', textSpeed: 'normal', music: 0.55, sfx: 0.8 };
   const store = {
@@ -36,7 +37,7 @@ const App = (() => {
   function fresh() {
     return {
       v: 1, heroes: { rian: Party.create('rian', 1) }, front: ['rian', null, null, null], back: [null, null, null, null],
-      items: { herb: 4, antidote: 1 }, gear: {}, gold: 150, flags: {}, unlocked: { village: true }, map: 'village', x: 13, y: 6, dir: 'down',
+      items: { herb: 4, antidote: 1 }, gear: {}, awaken: {}, gold: 150, flags: {}, unlocked: { village: true }, map: 'village', x: 13, y: 6, dir: 'down',
       inWorld: false, node: 'village', opened: {}, dex: {}, seen: {}, chapter: 0,
       stats: { battles: 0, wins: 0, breaks: 0, steps: 0, playMs: 0, maxDmg: 0 }
     };
@@ -137,6 +138,7 @@ const App = (() => {
       const map = Field.map || {};
       const result = await BattleView.start(engine, { bg: map.bg || 'plains', dawn: region < 5 && !!G.flags['bell' + region], tutorial: !!o.tutorial, boss: !!o.boss });
       engine.sync();
+      const awoke = result === 'win' ? awakenProgress(engine) : [];
       G.stats.battles++;
       G.stats.maxDmg = Math.max(G.stats.maxDmg || 0, engine.log.maxDmg);
       if (result === 'retry') { G = JSON.parse(snapshot); continue; }
@@ -147,9 +149,46 @@ const App = (() => {
       setScreen(ret === 'battle' ? 'field' : ret);
       Sound.play(MUSIC[Field.mapId] || 'town');
       await fade(false);
+      for (const [hid, from, to] of awoke) await showAwaken(hid, from, to);
+      if (result === 'win' && engine.rewards && engine.rewards.gear.length) await tip('gear');
       if (result === 'win' && scriptDepth === 0) autosave();
       return true;
     }
+  }
+
+  /* ── 깃든 장비의 깨어남: 전투에서 그 장비를 든 사람이 해낸 만큼 쌓인다 ── */
+  function awakenProgress(engine) {
+    const out = [];
+    G.awaken = G.awaken || {};
+    const rare = engine.rewards ? engine.rewards.rare : 0;
+    for (const u of [...engine.front, ...engine.back]) {
+      if (!u) continue;
+      const h = G.heroes[u.id];
+      for (const slot of ['weapon', 'armor', 'acc']) {
+        const id = h.equip[slot], e = id && EQUIP[id];
+        if (!e || !e.awaken) continue;
+        const a = e.awaken;
+        let v = G.awaken[id] || 0;
+        if (a.kind === 'maxhit') v = Math.max(v, u.tally.maxhit);
+        else if (a.kind === 'rare') v += rare;
+        else v += u.tally[a.kind] || 0;
+        G.awaken[id] = v;
+        if (v >= a.n) {
+          h.equip[slot] = a.into;
+          delete G.awaken[id];
+          Party.clamp(h);
+          out.push([h.id, id, a.into]);
+        }
+      }
+    }
+    return out;
+  }
+  async function showAwaken(hid, from, to) {
+    Sound.sfx('bell');
+    await Dialog.say(null, `${HEROES[hid].name}의 「${EQUIP[from].name}」${josa(EQUIP[from].name, '이', '가')} 눈부시게 빛나기 시작한다…!`);
+    Sound.sfx('levelup');
+    await Dialog.say(null, `깃들어 있던 힘이 깨어났다! 유물 「${EQUIP[to].name}」${josa(EQUIP[to].name, '을', '를')} 얻었다. — ${EQUIP[to].note}`);
+    await tip('relic');
   }
   async function encounter(formation) {
     if (busy()) return;
@@ -233,9 +272,27 @@ const App = (() => {
     Sound.sfx('chest');
     let text;
     if (c.item) { G.items[c.item] = (G.items[c.item] || 0) + (c.n || 1); text = `${ITEMS[c.item].name}${c.n > 1 ? ' ×' + c.n : ''}${josa(ITEMS[c.item].name, '을', '를')} 얻었다!`; }
-    else if (c.gear) { G.gear[c.gear] = (G.gear[c.gear] || 0) + 1; text = `${EQUIP[c.gear].name}${josa(EQUIP[c.gear].name, '을', '를')} 얻었다! (메뉴 → 장비)`; }
+    else if (c.gear) {
+      const e = EQUIP[c.gear], g = gradeOf(c.gear);
+      G.gear[c.gear] = (G.gear[c.gear] || 0) + 1;
+      text = `${g === 'basic' ? '' : GRADES[g].name + ' 장비 '}「${e.name}」${josa(e.name, '을', '를')} 얻었다! (메뉴 → 장비)`;
+    }
     else { G.gold += c.gold; text = `${c.gold} G를 얻었다!`; }
-    await say(null, text);
+    if (c.hidden) {
+      scriptDepth++;
+      try {
+        Sound.sfx('bell');
+        await Dialog.say(null, c.find || '반짝이던 곳을 살펴보니… 오래된 상자가 숨겨져 있었다!');
+        await Dialog.say(null, text + (EQUIP[c.gear] && EQUIP[c.gear].note ? ` — ${EQUIP[c.gear].note}` : ''));
+        await tip('relic');
+      } finally { scriptDepth--; }
+      return;
+    }
+    scriptDepth++;
+    try {
+      await Dialog.say(null, text);
+      if (c.gear && gradeOf(c.gear) !== 'basic') await tip('gear');
+    } finally { scriptDepth--; }
   }
   async function crystal() {
     scriptDepth++;
