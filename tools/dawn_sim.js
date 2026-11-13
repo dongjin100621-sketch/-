@@ -11,11 +11,13 @@ vm.createContext(ctx);
 for (const f of ['data.js', 'party.js', 'battle.js']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8') + '\n;this.__x=1;', ctx);
 const { HEROES, SKILLS, ENEMIES, FORMATIONS, EQUIP, ITEMS, Party, Battle, makeRng } = vm.runInContext('({HEROES,SKILLS,ENEMIES,FORMATIONS,EQUIP,ITEMS,Party,Battle,makeRng})', ctx);
 
+/* tier 가 x.5 이면 무기는 한 단계 위, 방어구는 아래(돈이 모자라 무기부터 사는 현실적인 차림) */
 function gearFor(id, tier) {
   const h = HEROES[id];
-  const w = h.weapons.map(t => t + Math.min(5, tier)).find(k => EQUIP[k]);
+  const wt = Math.ceil(tier), at = Math.floor(tier);
+  const w = h.weapons.map(t => t + Math.min(5, wt)).find(k => EQUIP[k]);
   const robe = ['seira', 'mir', 'hazel'].includes(id);
-  const armor = robe ? 'robe' + Math.min(5, tier) : 'armor' + Math.min(6, tier);
+  const armor = robe ? 'robe' + Math.min(5, at) : 'armor' + Math.min(6, at);
   return { weapon: w, armor, acc: null };
 }
 function makeGame(members, lv, tier, backMembers = []) {
@@ -157,6 +159,9 @@ if (arg[0]) {
   for (const f of ['f5a', 'f5b', 'f5c', 'f5d', 'f5e', 'f5f']) sim(f, P1, 35, 5, P3b);
   sim('boss5', P1, 38, 5, P3b); sim('boss5', P1, 40, 5, P3b);
   sim('boss6', P1, 38, 6, P3b); sim('boss6', P1, 40, 6, P3b); sim('boss6', P1, 42, 6, P3b);
+  console.log('── 자연 진행 레벨(던전을 다 돌고 장마다 들판에서 8번쯤 싸운 레벨), 무기만 한 단계 위인 현실적인 차림');
+  sim('boss1', P1, 7, 1.5); sim('boss2', P1, 14, 2.5, P2b); sim('boss3', P1, 22, 3.5, P3b); sim('boss4', P1, 30, 3.5, P3b);
+  sim('boss5', P1, 36, 4.5, P3b); sim('boss6', P1, 36, 5, P3b);
   console.log('── 들판 (잡몹 사냥터, 끝의 r은 드문 적 — 경험치 0은 달아남)');
   for (const f of ['g1a', 'g1b', 'g1c', 'g1d', 'g1e', 'g1f', 'g1g', 'g1h', 'g1r']) sim(f, P1, 3, 1);
   for (const f of ['g1f', 'g1h', 'g1r']) sim(f, P1, 7, 2);

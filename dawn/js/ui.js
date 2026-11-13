@@ -48,7 +48,10 @@ const Dialog = (() => {
       box.classList.toggle('narr', !sp);
       $('dChoices').innerHTML = '';
       const face = $('dFace');
-      if (sp && sp.spr) { face.src = Gfx.face(sp.spr, 64); face.hidden = false; } else face.hidden = true;
+      if (sp && sp.spr) {
+        face.src = Gfx.portrait(sp.spr, 96); face.hidden = false;
+        face.style.setProperty('--pc', sp.color && sp.color !== '#f5f2fb' ? sp.color : '#8a7ab8');
+      } else face.hidden = true;
       $('dName').textContent = sp ? sp.name : '';
       $('dName').style.color = sp ? sp.color : '';
       $('dName').hidden = !sp;

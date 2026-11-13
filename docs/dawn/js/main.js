@@ -112,6 +112,7 @@ const App = (() => {
         case 'push': Field.pushBack(); break;
         case 'shake': document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); Sound.sfx('roar'); await wait(500); break;
         case 'music': Sound.play(a || null); break;
+        case 'memory': document.body.classList.toggle('memory', !!a); await wait(a ? 500 : 200); break;
         case 'ending': await ending(); return 'abort';
       }
     }
@@ -264,6 +265,9 @@ const App = (() => {
       await wait(1300);
       await fade(false);
       await Dialog.say(null, '푹 쉬었다. HP와 SP가 모두 회복되었다!');
+      // 여관의 밤 이야기
+      const cp = CAMPS.find(c => cond(c.need) && !G.flags['camp:' + c.id]);
+      if (cp) { G.flags['camp:' + cp.id] = true; await runSteps(SCRIPTS[cp.id]); }
       autosave();
     } finally { scriptDepth--; }
   }

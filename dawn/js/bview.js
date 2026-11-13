@@ -223,10 +223,13 @@ const BattleView = (() => {
     if (key !== bgKey) { bgKey = key; bg = paintBg(f.W, f.H, opts.bg || 'plains', opts.dawn); placeTags(); }
   }
   const SX = (x) => T.ox + x * T.scale, SY = (y) => T.oy + y * T.scale;
+  /* 일행은 고해상도(32 밀도) 그림, 적은 16 밀도 그림을 EPX 로 부드럽게 키워 같은 밀도로 맞춘다 */
   function drawSprite(name, mode, x, y, alpha = 1, sz = 16) {
-    const s = Gfx.sprite(name, mode);
+    const hd = Gfx.isHD(name);
+    const s = Gfx.sprite(name, hd ? mode : mode + 'x');
     if (!s) return;
-    const w = s.width * T.u, h = s.height * T.u;
+    const k = hd ? Math.max(1, Math.round(T.u * 0.42)) : T.u / 2;
+    const w = Math.round(s.width * k), h = Math.round(s.height * k);
     ctx.globalAlpha = alpha;
     ctx.drawImage(s, Math.round(SX(x) - w / 2), Math.round(SY(y) - h), w, h);
     ctx.globalAlpha = 1;
@@ -469,7 +472,8 @@ const BattleView = (() => {
       g.fillRect(x, y, s * 2, s);
     }
     // 소품 (뒤쪽 줄)
-    const prop = Gfx.sprite(P.prop === 'pillar' ? null : P.prop);
+    const hdProp = P.prop && Gfx.isHD('o_' + P.prop);
+    const prop = Gfx.sprite(P.prop === 'pillar' ? null : (hdProp ? 'o_' + P.prop : P.prop));
     for (let i = 0; i < 9; i++) {
       const x = ox + (i / 8) * SW * sc + r.range(-10, 10) * sc;
       if (Math.abs(x - W / 2) < 50 * sc && !P.inside) continue;
@@ -480,9 +484,10 @@ const BattleView = (() => {
         g.fillStyle = pg; g.fillRect(px - pw / 2, hy - ph + 6 * sc, pw, ph);
         g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(px - pw / 2 - 2 * sc, hy - ph + 6 * sc, pw + 4 * sc, 4 * sc);
       } else if (prop) {
-        const u = Math.max(1, Math.round(sc * 1.4));
-        g.globalAlpha = 0.75;
-        g.drawImage(prop, Math.round(x - 8 * u), Math.round(hy - 14 * u + 3 * sc), 16 * u, 16 * u);
+        const u = hdProp ? Math.max(1, Math.round(sc * 0.8)) : Math.max(1, Math.round(sc * 1.4));
+        g.globalAlpha = 0.8;
+        if (hdProp) g.drawImage(prop, Math.round(x - prop.width * u / 2), Math.round(hy - prop.height * u + 6 * sc), prop.width * u, prop.height * u);
+        else g.drawImage(prop, Math.round(x - 8 * u), Math.round(hy - 14 * u + 3 * sc), 16 * u, 16 * u);
         g.globalAlpha = 1;
       }
     }
