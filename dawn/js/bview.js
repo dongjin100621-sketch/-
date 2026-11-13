@@ -119,7 +119,7 @@ const BattleView = (() => {
         const src = B.unit(ev.src);
         hitFx(ev.type, x, y, ev.uid, ev.src, ev.crit);
         if (v) { v.shake = 1; v.flash = 1; }
-        pop(ev.uid, ev.dmg, ev.crit ? 'crit' : (u.side === 'p' ? 'hurt' : ''), ev.weak ? '약점!' : (ev.crit ? '치명!' : ''));
+        pop(ev.uid, ev.dmg, ev.crit ? 'crit' : (u.side === 'p' ? 'hurt' : ''), ev.weak ? '약점!' : (ev.crit ? '치명!' : (ev.warded ? '반감' : (ev.guarded ? '호위로 반감' : ''))));
         if (ev.weak && ev.shieldHit) { addFx({ k: 'shard', x, y, dur: 500 }); burst(x, y, 6, { col: ['#bfe4ff', '#ffffff'], sp0: 40, sp1: 100, g: 160, shape: 'shard', l0: 0.4, l1: 0.6, add: false }); Sound.sfx('weak'); }
         else Sound.sfx(u.side === 'p' ? 'hurt' : (ev.crit ? 'crit' : 'hit'));
         if (ev.crit) shake(3);
@@ -140,6 +140,12 @@ const BattleView = (() => {
         if (opts.tutorial) { await sleep(500); await App.tip('battle3', true); }
         await sleep(650);
         break;
+      }
+      case 'ward': {
+        const [x, y] = centerOf(ev.uid);
+        if (ev.on) { pop(ev.uid, `${ev.kind === 'phys' ? '물리' : '마법'} 반감`, 'info'); addFx({ k: 'shock', x, y, r: 26, color: ev.kind === 'phys' ? '#bfe4ff' : '#d0a0ff', dur: 600, flat: 1 }); Sound.sfx('defend'); }
+        else { pop(ev.uid, '갑옷이 깨졌다!', 'buff'); burst(x, y, 16, { col: ['#bfe4ff', '#ffffff', '#d0a0ff'], sp0: 60, sp1: 150, g: 180, shape: 'shard', l0: 0.5, l1: 0.8, add: false }); }
+        refreshTag(u); await sleep(ev.on ? 450 : 300); break;
       }
       case 'recover': pop(ev.uid, '실드 회복', 'info'); refreshTag(u, 'recover'); Sound.sfx('recover'); await sleep(300); break;
       case 'heal':
@@ -176,7 +182,15 @@ const BattleView = (() => {
         break;
       case 'charge': v.charge = 1; banner(`${u.name}이(가) 힘을 모으고 있다! 브레이크해서 막아라!`, 'danger'); Sound.sfx('charge'); await sleep(800); break;
       case 'charging': banner(`${u.name}이(가) 힘을 모으고 있다…`, 'enemy'); await sleep(450); break;
-      case 'phase': banner(ev.msg, 'danger'); shake(4); Sound.sfx('roar'); refreshTag(u, 'recover'); await sleep(1100); break;
+      case 'phase': {
+        if (v) { v.flash = 1; }
+        const [x, y] = centerOf(ev.uid);
+        addFx({ k: 'rays', x, y, r: 70, n: 16, color: '#ff8a6a', dur: 900 });
+        banner(ev.msg, 'danger'); shake(5); Sound.sfx('roar'); refreshTag(u, 'recover'); updateOrder();
+        await sleep(1500);
+        if (!App.G.flags['tip:phase']) await App.tip('phase', true);
+        break;
+      }
       case 'summon': {
         vis.set(ev.uid, { a: 0, dx: -30, dy: 0, shake: 0, flash: 1, ko: 0, enter: 1 });
         buildTags(); banner(`${ev.name}이(가) 나타났다!`, 'enemy'); Sound.sfx('summon');
@@ -826,6 +840,10 @@ const BattleView = (() => {
     const st = [];
     for (const [k, b] of Object.entries(e.buffs)) st.push(`<em class="${b.lv > 0 ? 'up' : 'dn'}">${BUFF_NAME[k]}${b.lv > 0 ? '▲' : '▼'}</em>`);
     for (const s of Object.keys(e.status)) st.push(`<em class="dn">${STATUS_NAME[s]}</em>`);
+    if (e.ward) st.unshift(`<em class="wd">${e.ward === 'phys' ? '물리' : '마법'} 반감</em>`);
+    if (e.boss && B.enemies.some(m => m !== e && m.hp > 0 && m.d.guard)) st.unshift('<em class="gd">호위받음</em>');
+    if (e.d.guard) st.unshift('<em class="gd">호위</em>');
+    if (e.d.ai && e.d.ai.some(([a]) => a === 'mend')) st.unshift('<em class="gd">치유</em>');
     let s = d.querySelector('.st');
     if (!s) { s = document.createElement('div'); s.className = 'st'; d.appendChild(s); }
     s.innerHTML = st.join('');

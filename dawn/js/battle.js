@@ -47,7 +47,8 @@ const Battle = (() => {
         base: { patk: d.patk, matk: d.matk, pdef: d.pdef, mdef: d.mdef, spd: d.spd, crit: 0 },
         maxhp: d.hp, hp: d.hp, shield: d.shield, maxShield: d.shield, weak: d.weak,
         buffs: {}, status: {}, broken: false, recoverRound: 0, acts: d.acts || 1, pidx: 0, phase: 0,
-        pattern: d.pattern || null, charging: null, stolen: false, used: {}, slot: freeSlot()
+        pattern: d.pattern || null, charging: null, stolen: false, used: {}, slot: freeSlot(),
+        ward: d.ward || null      // 'phys' 또는 'mag': 그 피해를 절반만 받는다. 브레이크하면 벗겨진다
       };
       b.enemies.push(e);
       return e;
@@ -218,6 +219,12 @@ const Battle = (() => {
       const weakType = t.side === 'e' ? [o.type, ...(o.alt || [])].find(x => x && t.weak.includes(x)) : null;
       const weak = !!weakType;
       if (weak) dmg *= 1.3;
+      // 반감 갑옷(브레이크하면 벗겨짐)과 호위(호위 부하가 살아 있으면 보스가 받는 피해 절반)
+      let warded = false, guarded = false;
+      if (t.side === 'e' && !o.fixed) {
+        if (t.ward && t.ward === o.kind) { dmg *= 0.5; warded = true; }
+        if (t.boss && guardsOf(t).length) { dmg *= 0.5; guarded = true; }
+      }
       if (t.side === 'e' && t.broken) dmg *= 2 * (att.side === 'p' ? 1 + att.fx.breakDmg : 1);
       if (att.side === 'p' && o.kind === 'mag' && !o.fixed && att.fx.magUp) dmg *= 1 + att.fx.magUp;
       if (t.side === 'p' && o.type && t.fx.resist.includes(o.type)) dmg *= 0.5;
@@ -227,6 +234,12 @@ const Battle = (() => {
       if (o.mult) dmg *= o.mult;
       if (t.side === 'p' && t.defending) dmg *= 0.5;
       dmg = Math.max(1, Math.round(dmg * b.rng.range(0.93, 1.07)));
+      // 페이즈 관문: 보스는 다음 페이즈 HP 아래로 한 번에 내려가지 않는다(넘치는 피해는 사라지고 곧 페이즈가 바뀐다)
+      let gate = false;
+      if (t.side === 'e' && t.d.phases && t.phase < t.d.phases.length) {
+        const g = Math.floor(t.d.phases[t.phase].hp * t.maxhp);
+        if (t.hp > g && t.hp - dmg <= g) { dmg = t.hp - g; gate = true; }
+      }
       t.hp = Math.max(0, t.hp - dmg);
       if (att.side === 'p') { b.log.maxDmg = Math.max(b.log.maxDmg, dmg); att.tally.maxhit = Math.max(att.tally.maxhit, dmg); }
       let shieldHit = 0;
@@ -235,18 +248,43 @@ const Battle = (() => {
         t.shield -= shieldHit;
       }
       if (weak) reveal(t, weakType);
-      push({ t: 'hit', uid: t.uid, src: att.uid, dmg, weak, crit, hp: t.hp, shield: t.shield, shieldHit, type: o.type || null });
+      push({ t: 'hit', uid: t.uid, src: att.uid, dmg, weak, crit, hp: t.hp, shield: t.shield, shieldHit, type: o.type || null, warded, guarded });
       if (t.side === 'p') {
         addLatent(t, dmg / t.maxhp * 90);
         if (t.status.sleep && t.hp > 0) { delete t.status.sleep; push({ t: 'status', uid: t.uid, status: 'sleep', on: false }); }
       }
-      if (shieldHit && t.shield <= 0 && !t.broken) doBreak(t, att);
+      if (gate) enterPhase(t);
+      else if (shieldHit && t.shield <= 0 && !t.broken) doBreak(t, att);
       if (t.hp <= 0) { if (t.side === 'e' && att.side === 'p') att.tally.kills++; ko(t); }
       if (att.side === 'p' && att.fx.drain && alive(att) && t.side === 'e') healUnit(att, dmg * att.fx.drain);
       return dmg;
     }
+    /* 다음 페이즈: 브레이크에서 깨어나 실드를 가득 채우고, 행동·약점·갑옷·부하가 바뀐다 */
+    function enterPhase(e) {
+      const ph = e.d.phases[e.phase++];
+      if (ph.shield) e.maxShield += ph.shield;
+      e.shield = e.maxShield;
+      const wasBroken = e.broken;
+      e.broken = false; e.recoverRound = 0; e.charging = null;
+      if (ph.acts) e.acts = ph.acts;
+      if (ph.pattern) { e.pattern = ph.pattern; e.pidx = 0; }
+      if (ph.weak) e.weak = ph.weak;
+      push({ t: 'phase', uid: e.uid, msg: ph.msg, shield: e.shield, maxShield: e.maxShield, weakChanged: !!ph.weak, woke: wasBroken });
+      if (ph.ward !== undefined) setWard(e, ph.ward);
+      for (const id of ph.summon || []) {
+        if (liveEnemies().length >= 4) break;
+        const n = addEnemy(id);
+        push({ t: 'summon', uid: n.uid, src: e.uid, name: n.name });
+      }
+    }
+    const guardsOf = (boss) => b.enemies.filter(m => m !== boss && alive(m) && m.d.guard);
+    function setWard(e, kind) {
+      e.ward = kind;
+      push({ t: 'ward', uid: e.uid, on: !!kind, kind });
+    }
     function doBreak(e, att) {
       e.broken = true; e.shield = 0;
+      if (e.ward) setWard(e, null);
       e.recoverRound = b.round + 2;
       b.queue = b.queue.filter(en => en.uid !== e.uid);
       const wasCharging = !!e.charging;
@@ -462,15 +500,7 @@ const Battle = (() => {
       const e = unit(en.uid);
       if (!alive(e) || e.broken) return;
       const d = e.d;
-      if (d.phases) {
-        while (e.phase < d.phases.length && e.hp / e.maxhp <= d.phases[e.phase].hp) {
-          const ph = d.phases[e.phase++];
-          if (ph.shield) { e.maxShield += ph.shield; e.shield = Math.min(e.maxShield, e.shield + ph.shield); }
-          if (ph.acts) e.acts = ph.acts;
-          if (ph.pattern) { e.pattern = ph.pattern; e.pidx = 0; }
-          push({ t: 'phase', uid: e.uid, msg: ph.msg, shield: e.shield, maxShield: e.maxShield });
-        }
-      }
+      if (d.phases) while (e.phase < d.phases.length && e.hp / e.maxhp <= d.phases[e.phase].hp) enterPhase(e);
       if (d.flee && b.round >= 2 && b.rng.chance(d.flee)) {
         if (liveFront().some(u => u.fx.noFlee)) {
           push({ t: 'msg', text: `${e.name}이(가) 달아나려 했지만 달빛에 붙들렸다!`, good: true });
@@ -487,7 +517,12 @@ const Battle = (() => {
         return execEnemyAct(e, id);
       }
       let id = e.pattern ? e.pattern[e.pidx++ % e.pattern.length] : chooseAi(e);
+      if (id.startsWith('ward:')) {
+        if (e.ward) id = 'attack';
+        else { setWard(e, id.slice(5)); return; }
+      }
       if (id.startsWith('charge:')) {
+        e.used[id] = true;
         e.charging = { act: id.slice(7), round: b.round };
         push({ t: 'charge', uid: e.uid, name: ENEMY_ACTS[e.charging.act].name });
         return;
@@ -532,6 +567,9 @@ const Battle = (() => {
         for (const t of targets) for (const [k, lv] of Object.entries(a.debuffs)) setBuff(t, k, lv, a.turns || 2);
       } else if (a.kind === 'healself') {
         healUnit(e, e.maxhp * a.power);
+      } else if (a.kind === 'healally') {
+        const t = liveEnemies().filter(x => x.hp < x.maxhp).sort((x, y) => (y.boss - x.boss) || (x.hp / x.maxhp - y.hp / y.maxhp))[0];
+        if (t) healUnit(t, t.maxhp * a.power);
       }
     }
 

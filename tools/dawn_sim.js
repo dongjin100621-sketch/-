@@ -48,6 +48,11 @@ function decide(B, u) {
     if (low[0].hp / low[0].maxhp < 0.3 && B.state.G.items.herb2) return { type: 'item', item: 'herb2', target: low[0].uid };
     if (low[0].hp / low[0].maxhp < 0.3 && B.state.G.items.herb) return { type: 'item', item: 'herb', target: low[0].uid };
   }
+  // NAIVE=1: 약점·교대·부스트 시점을 생각하지 않고 첫 무기로 아무 적이나 때리는 플레이어(비교용)
+  if (process.env.NAIVE) {
+    const e = enemies[Math.floor(Math.random() * enemies.length)];
+    return { type: 'attack', weapon: HEROES[u.id].weapons[0], target: e.uid, boost: u.bp >= 3 ? maxB : 0 };
+  }
   if (u.latent >= 100 && !u.la && HEROES[u.id].latent !== 'encore') return { type: 'latent' };
   // 목표: 브레이크된 적 우선, 아니면 실드가 가장 적은 적
   const broken = enemies.filter(e => e.broken).sort((a, b) => b.hp - a.hp);
@@ -64,7 +69,7 @@ function decide(B, u) {
     const weak = e.weak.includes(o.t);
     let hits = o.hits + (o.boostMode === 'hits' ? boost : 0);
     let pw = o.power * (o.boostMode === 'power' ? Battle.BOOST_POWER[boost] : 1);
-    let dmg = statA(o) * pw / 100 * hits * (weak ? 1.3 : 1) * (e.broken ? 2 : 1);
+    let dmg = statA(o) * pw / 100 * hits * (weak ? 1.3 : 1) * (e.broken ? 2 : 1) * (e.ward === o.kind ? 0.5 : 1);
     if (o.all) dmg *= enemies.length * 0.8;
     if (o.rnd) dmg *= 0.8;
     const shieldDmg = weak && !e.broken ? (o.all ? hits * enemies.filter(x => x.weak.includes(o.t) && !x.broken).length : hits) : 0;
@@ -99,6 +104,12 @@ function decide(B, u) {
   for (const o of opts) { const sc = score(o, e, 0); if (!best || sc.dmg - o.sp * 2 > best.v) best = { o, v: sc.dmg - o.sp * 2 }; }
   return toCmd(best.o, e, u.bp >= 5 ? 1 : 0);
 }
+/* 이 사람이 지금 약점을 찌를 수 있는 적의 수(브레이크되지 않은 적, 보스는 2배로 셈) */
+function coverage(B, u) {
+  const types = new Set(HEROES[u.id].weapons);
+  for (const s of Party.skills(u.h)) if (SKILLS[s].type && (SKILLS[s].kind === 'phys' || SKILLS[s].kind === 'mag') && u.sp >= SKILLS[s].sp) types.add(SKILLS[s].type);
+  return B.enemies.filter(e => e.hp > 0 && !e.broken && e.weak.some(w => types.has(w))).reduce((a, e) => a + (e.boss ? 2 : 1), 0);
+}
 function toCmd(o, e, boost) {
   if (o.type === 'attack') return { type: 'attack', weapon: o.weapon, target: e.uid, boost };
   return { type: 'skill', skill: o.skill, target: e.uid, boost };
@@ -108,18 +119,31 @@ function run(formation, G, seed) {
   const B = Battle.create(G, FORMATIONS[formation], { rng: makeRng(seed), noEscape: true });
   let guard = 0;
   B.advance();
+  let lastR = -1;
+  const trace = process.env.TRACE && seed === 1000;
   while (!B.over && guard++ < 400) {
+    if (trace && B.round !== lastR) {
+      lastR = B.round;
+      console.log(`R${B.round} ` + B.enemies.filter(e => e.hp > 0).map(e => `${e.name} ${e.hp}/${e.maxhp} S${e.shield}${e.broken ? ' BRK' : ''}${e.ward ? ' W:' + e.ward : ''}`).join(' | ') + '  || ' + B.front.filter(Boolean).map(x => `${x.name}${Math.round(x.hp / x.maxhp * 100)}% bp${x.bp}`).join(' '));
+    }
     const u = B.actor();
     if (!u) { B.advance(); continue; }
-    // HP가 매우 낮으면 후열과 교대
+    // HP가 매우 낮거나, 같은 줄 후열이 약점을 더 많이 찌를 수 있으면 교대
     const sw = B.swapOptions().find(o => o.self);
-    if (sw && u.hp / u.maxhp < 0.25 && B.back[sw.col].hp / B.back[sw.col].maxhp > 0.6) B.act({ type: 'swap', col: sw.col });
+    if (sw && !process.env.NAIVE && !process.env.NOSWAP) {
+      const pb = B.back[sw.col];
+      const hurt = u.hp / u.maxhp < 0.25 && pb.hp / pb.maxhp > 0.6;
+      const better = pb.hp / pb.maxhp > 0.5 && coverage(B, pb) > coverage(B, u) + 0.5;
+      if (hurt || better) B.act({ type: 'swap', col: sw.col });
+    }
     const actor = B.actor();
     B.act(decide(B, actor));
     if (!B.over && !B.waiting) B.advance();
     else if (!B.over && B.waiting && B.actor() === actor && !B.state.waiting.twice) B.advance();
   }
-  const hpLeft = B.front.concat(B.back).filter(Boolean).reduce((a, x) => a + x.hp / x.maxhp, 0) / B.front.concat(B.back).filter(Boolean).length;
+  // 남은 HP: 끝났을 때 전열(실제로 싸운 줄) 평균
+  const fr = B.front.filter(Boolean);
+  const hpLeft = fr.reduce((a, x) => a + x.hp / x.maxhp, 0) / Math.max(1, fr.length);
   return { win: B.over === 'win', rounds: B.round, hpLeft, breaks: B.log.breaks, exp: B.over === 'win' && B.rewards ? B.rewards.exp : 0 };
 }
 function sim(formation, members, lv, tier, back = [], n = 60) {
@@ -129,7 +153,7 @@ function sim(formation, members, lv, tier, back = [], n = 60) {
     const r = run(formation, G, 1000 + i * 7919);
     wins += r.win; rounds += r.rounds; hp += r.hpLeft; br += r.breaks; exp += r.exp;
   }
-  console.log(`${formation.padEnd(6)} Lv${String(lv).padStart(2)} T${tier}  승률 ${(wins / n * 100).toFixed(0).padStart(3)}%  라운드 ${(rounds / n).toFixed(1).padStart(4)}  남은HP ${(hp / n * 100).toFixed(0).padStart(3)}%  브레이크 ${(br / n).toFixed(1)}  경험치 ${Math.round(exp / n)}`);
+  console.log(`${formation.padEnd(6)} Lv${String(lv).padStart(2)} T${tier}  승률 ${(wins / n * 100).toFixed(0).padStart(3)}%  라운드 ${(rounds / n).toFixed(1).padStart(4)}  전열HP ${(hp / n * 100).toFixed(0).padStart(3)}%  브레이크 ${(br / n).toFixed(1)}  경험치 ${Math.round(exp / n)}`);
 }
 
 const P1 = ['rian', 'seira', 'kyle', 'mir'];
