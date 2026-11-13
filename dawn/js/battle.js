@@ -566,7 +566,12 @@ const Battle = (() => {
         r.exp += e.d.exp; r.gold += e.d.gold;
         if (e.d.flee) r.rare++;
         if (e.d.drop && b.rng.chance(e.d.drop[1])) r.items.push(e.d.drop[0]);
-        if (e.d.gearDrop && b.rng.chance(e.d.gearDrop[1])) r.gear.push(e.d.gearDrop[0]);
+        // 장비 전리품: [id, 확률] 하나 또는 그 목록(목록이면 하나만 떨어뜨린다)
+        if (e.d.gearDrop) {
+          const list = Array.isArray(e.d.gearDrop[0]) ? e.d.gearDrop : [e.d.gearDrop];
+          const hit = list.find(([, p]) => b.rng.chance(p));
+          if (hit) r.gear.push(hit[0]);
+        }
       }
       // 살아 있는 사람이 낀 유물의 덤 (가장 큰 것 하나만)
       const living = [...b.front, ...b.back].filter(alive);

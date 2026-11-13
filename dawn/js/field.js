@@ -1,7 +1,7 @@
 'use strict';
 /* 필드: 마을·던전을 걷고, 사람과 이야기하고, 상자를 열고, 적과 마주친다.
-   맵은 16×16 칸 좌표, 그림은 칸마다 32×32(2배 밀도). 정적인 바닥·사물은 미리 그려 두고(물결 2장),
-   사람·키 큰 사물(나무·등불·수정)·빛은 매 프레임 y 순서로 그린다. */
+   맵은 16×16 칸 좌표, 바닥·사물 그림은 칸마다 32×32(2배 밀도), 사람은 16×16 도트를 칸 크기로.
+   정적인 바닥·사물은 미리 그려 두고(물결 2장), 사람·키 큰 사물(나무·등불·수정)·빛은 매 프레임 y 순서로 그린다. */
 
 const Field = (() => {
   const DIRV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -500,32 +500,28 @@ const Field = (() => {
   function drawPlayer(TS, cx, cy, S) {
     const x = Math.round(player.fx * TS - cx), y = Math.round(player.fy * TS - cy);
     shadow(x, y, TS, S);
+    const walkF = player.moving ? (player.step % 2) : 0;
     const bob = player.moving && player.t > 0.25 && player.t < 0.75 ? -S : 0;
-    const fr = player.moving ? (player.step % 2 ? 1 : 2) : 0;
     let name, mode = '';
-    if (player.dir === 'down') name = 'rian_d' + fr;
-    else if (player.dir === 'up') name = 'rian_u' + fr;
-    else { name = 'rian_s' + fr; if (player.dir === 'left') mode = 'f'; }
-    drawHD(Gfx.sprite(name, mode), x, y, TS, bob);
+    if (player.dir === 'down') name = walkF ? 'rian_d2' : 'rian_d1';
+    else if (player.dir === 'up') name = walkF ? 'rian_u2' : 'rian_u1';
+    else { name = walkF ? 'rian_s2' : 'rian_s1'; if (player.dir === 'left') mode = 'f'; }
+    ctx.drawImage(Gfx.sprite(name, mode), x, y + bob, TS, TS);
   }
   function drawNpc(n, TS, cx, cy, S) {
     const x = Math.round(n.fx * TS - cx), y = Math.round(n.fy * TS - cy);
     shadow(x, y, TS, S);
     const bob = Math.floor((time + n.hx * 300) / 700) % 2 ? 0 : -S * 0.5;
-    const id = n.def.spr;
-    // 사람은 정면 고해상도 그림(일행이 될 사람은 _f), 그 밖(망령 등)은 16 그림을 부드럽게 키워서
-    const hdName = Gfx.isHD(id + '_f') ? id + '_f' : (Gfx.isHD(id) ? id : null);
-    let s;
-    if (hdName) s = Gfx.sprite(hdName, n.dir === 'left' ? 'f' : '');
-    else s = Gfx.sprite(id, 'x' + ((n.dir === 'left' || (n.dir === 'down' && n.fx > player.fx)) ? 'f' : ''));
-    if (s) drawHD(s, x, y, TS, Math.round(bob));
+    const side = HEROES[n.def.spr] || ['merchant', 'skeleton'].includes(n.def.spr);
+    const mode = side && (n.dir === 'left' || (n.dir === 'down' && n.fx > player.fx)) ? 'f' : '';
+    const s = Gfx.sprite(n.def.spr, mode);
+    if (s) ctx.drawImage(s, x, Math.round(y + bob), TS, TS);
     // 할 말이 있는 사람 위의 말풍선 표시 (일행이 될 사람)
-    if (HEROES[id] && !G().flags['j_' + id]) {
+    if (HEROES[n.def.spr] && !G().flags['j_' + n.def.spr]) {
       const k = Math.floor(time / 400) % 2;
-      const top = y - TS * 0.55;
       ctx.fillStyle = '#ffd447';
-      ctx.fillRect(x + TS / 2 - S, top - S * (5 + k), S * 2, S * 3);
-      ctx.fillRect(x + TS / 2 - S, top - S * (1 + k), S * 2, S);
+      ctx.fillRect(x + TS / 2 - S, y - S * (5 + k), S * 2, S * 3);
+      ctx.fillRect(x + TS / 2 - S, y - S * (1 + k), S * 2, S);
     }
   }
 

@@ -12,8 +12,8 @@ const SPEAKERS = {
   treant: ['가시나무 거인', 'treant'], sailor: ['뱃사람', 'villager2'], merchant: ['떠돌이 상인', 'merchant'], girl: ['물 긷는 아가씨', 'woman3'],
   oldman: ['모래항 노인', 'elder'], harbor: ['항구 관리인', 'villager3'], king: ['모래 왕의 망령', 'boneking_sand'], ghost: ['용병의 망령', 'skeleton'],
   snowkid: ['눈사람 만드는 아이', 'child2'], smith: ['대장장이', 'villager3'], granny: ['서리골 할머니', 'elder'], wyrm: ['서리 비룡', 'wyrm'],
-  knight: ['안개성 기사', 'guard'], scholar: ['왕실 학자', 'scholar'], nun: ['수녀', 'nun'], boy: ['심부름하는 소년', 'child'],
-  queen: ['여왕 리시아', 'queen'], morga: ['마녀 모르가', 'morga'], lumi: ['루미', 'lumi'], master: ['종지기 할아범', 'elder']
+  knight: ['안개성 기사', 'guard'], scholar: ['왕실 학자', 'villager2'], nun: ['수녀', 'nun'], boy: ['심부름하는 소년', 'child'],
+  queen: ['여왕 리시아', 'woman2'], morga: ['마녀 모르가', 'abyss_fog'], lumi: ['루미', 'child2'], master: ['종지기 할아범', 'elder']
 };
 
 const SCRIPTS = {
@@ -577,13 +577,13 @@ const REGION_OF_MAP = { village: 1, forest: 1, sandport: 2, tomb: 2, frostvale: 
 
 const SHOPS = {
   v_items: ['herb', 'antidote', 'ether'],
-  v_gear: ['sword1', 'spear1', 'dagger1', 'axe1', 'bow1', 'staff1', 'armor1', 'robe1', 'sword2', 'spear2', 'dagger2', 'staff2', 'armor2', 'robe2'],
+  v_gear: ['sword1', 'spear1', 'dagger1', 'axe1', 'bow1', 'staff1', 'armor1', 'robe1', 'sword2', 'spear2', 'dagger2', 'staff2', 'armor2', 'robe2', 'garb2', 'charm_sleep', 'charm_blind'],
   s_items: ['herb', 'herb2', 'antidote', 'remedy', 'ether', 'feather', 'fire1', 'ice1', 'thunder1', 'wind1', 'light1', 'dark1'],
-  s_gear: ['sword2', 'spear2', 'dagger2', 'axe2', 'bow2', 'staff2', 'armor2', 'robe2', 'sword3', 'spear3', 'dagger3', 'axe3', 'bow3', 'staff3', 'armor3', 'robe3', 'ring_pow', 'ring_mag', 'charm_def', 'charm_mdef', 'charm_poison'],
+  s_gear: ['sword2', 'spear2', 'dagger2', 'axe2', 'bow2', 'staff2', 'armor2', 'robe2', 'sword3', 'spear3', 'dagger3', 'axe3', 'bow3', 'staff3', 'armor3', 'robe3', 'ring_pow', 'ring_mag', 'charm_def', 'charm_mdef', 'charm_poison', 'garb2', 'garb3', 'ring_fire', 'ring_ice', 'ring_bolt', 'band_sprout', 'coin_merchant'],
   f_items: ['herb', 'herb2', 'remedy', 'ether', 'feather', 'fire1', 'ice1', 'thunder1', 'wind1', 'light1', 'dark1'],
-  f_gear: ['sword3', 'spear3', 'dagger3', 'axe3', 'bow3', 'staff3', 'armor3', 'robe3', 'armor4', 'robe4', 'sword4', 'spear4', 'feather_spd', 'neck_life', 'badge_bp'],
+  f_gear: ['sword3', 'spear3', 'dagger3', 'axe3', 'bow3', 'staff3', 'armor3', 'robe3', 'armor4', 'robe4', 'sword4', 'spear4', 'feather_spd', 'neck_life', 'badge_bp', 'garb3', 'garb4', 'ring_fire', 'ring_ice', 'ring_bolt', 'earring_mana', 'glove_crush', 'scarf_wind', 'note_apprentice'],
   c_items: ['herb2', 'herb3', 'remedy', 'ether', 'ether2', 'feather', 'fire2', 'ice2', 'thunder2', 'wind2', 'light2', 'dark2'],
-  c_gear: ['sword4', 'spear4', 'dagger4', 'axe4', 'bow4', 'staff4', 'armor4', 'robe4', 'armor5', 'robe5', 'ring_crit', 'feather_spd', 'neck_life', 'badge_bp']
+  c_gear: ['sword4', 'spear4', 'dagger4', 'axe4', 'bow4', 'staff4', 'armor4', 'robe4', 'armor5', 'robe5', 'ring_crit', 'feather_spd', 'neck_life', 'badge_bp', 'garb4', 'garb5', 'charm_dark', 'earring_mana', 'glove_crush', 'fang_drain', 'lens_focus', 'scarf_wind']
 };
 
 /* 엔딩 뒤 일행의 이야기 */

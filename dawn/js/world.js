@@ -164,8 +164,7 @@ const World = (() => {
     if (WORLD[at]) {
       const [x, y] = P(at);
       const bob = Math.floor(time / 300) % 2 ? 0 : -S;
-      const pl = Gfx.sprite('rian_d0'), k2 = S / 2;
-      ctx.drawImage(pl, Math.round(x + S), Math.round(y + 2 * S - pl.height * k2 + bob), Math.round(pl.width * k2), Math.round(pl.height * k2));
+      ctx.drawImage(Gfx.sprite('rian_d1'), Math.round(x - 8 * S + 9 * S), Math.round(y - 15 * S + bob), 16 * S, 16 * S);
     }
     // 이름표 (DOM)
     const lab = $('wLabels');

@@ -6,7 +6,7 @@ const Gfx = (() => {
   const PALRGB = Object.fromEntries(Object.entries(PAL).map(([k, v]) => [k, hexRgb(v)]));
   const cache = new Map();
 
-  /* 고해상도 캐릭터(chars.js): 그림마다 제 색표를 가진다 */
+  /* 맵 사물(props.js, 32 밀도): 그림마다 제 색표를 가진다 */
   const HDA = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&()*+,-/:;<=>?@[]^_{|}~';
   const hdPal = new Map();
   const isHD = (name) => typeof HD !== 'undefined' && !!HD[name];
@@ -103,19 +103,9 @@ const Gfx = (() => {
     iconCache.set(key, url);
     return url;
   }
-  /* 초상(48×48 흉상) — 일행 목록·대화창 */
-  function portrait(name, px = 96, mode = '') {
-    const key = 'pt:' + name + '@' + px + mode;
-    if (iconCache.has(key)) return iconCache.get(key);
-    const id = isHD('pt_' + name) ? 'pt_' + name : null;
-    if (!id) return face(name, px, mode);
-    const s = sprite(id, mode);
-    return hiRes(s, 0, 0, s.width, s.height, px, mode, key);
-  }
   function icon(name, px = 32, mode = '') {
     const key = name + '@' + px + mode;
     if (iconCache.has(key)) return iconCache.get(key);
-    if (isHD('pt_' + name)) return portrait(name, px, mode);
     if (isHD(name)) { const s = sprite(name, mode); return hiRes(s, 0, 0, s.width, s.height, px, mode, key); }
     const s = sprite(name, mode);
     if (!s) return '';
@@ -133,11 +123,6 @@ const Gfx = (() => {
   function face(name, px = 30, mode = '') {
     const key = 'face:' + name + '@' + px + mode;
     if (iconCache.has(key)) return iconCache.get(key);
-    if (isHD('pt_' + name)) {
-      // 초상에서 얼굴 둘레(32×32)만
-      const s = sprite('pt_' + name, mode);
-      return hiRes(s, 8, 4, 32, 32, px, mode, key);
-    }
     const s = sprite(name, mode);
     if (!s) return '';
     const c = document.createElement('canvas');
@@ -399,5 +384,5 @@ const Gfx = (() => {
     return c;
   }
 
-  return { sprite, icon, face, portrait, isHD, fit, tiles, edge, size, rowsOf, THEMES, hexRgb, shade, tone, TP };
+  return { sprite, icon, face, isHD, fit, tiles, edge, size, rowsOf, THEMES, hexRgb, shade, tone, TP };
 })();
