@@ -29,7 +29,7 @@ const BattleView = (() => {
     B = engine; opts = o || {};
     cv = $('bcv'); ctx = cv.getContext('2d');
     speed = App.settings.battleSpeed === 'fast' ? 0.55 : 1;
-    vis = new Map(); fx = []; ui = null; tutorialShown = {};
+    vis = new Map(); fx = []; pt = []; ui = null; tutorialShown = {};
     bgKey = '';
     $('bFx').innerHTML = ''; $('bTags').innerHTML = ''; $('bBanner').className = ''; $('bResult').hidden = true;
     for (const u of [...B.front, ...B.back]) if (u) vis.set(u.uid, { a: 1, dx: 0, dy: 0, shake: 0, flash: 0, ko: u.hp <= 0 ? 1 : 0 });
@@ -99,15 +99,16 @@ const BattleView = (() => {
       case 'act': {
         const name = ev.name;
         if (u.side === 'p') {
-          if (ev.anim === 'attack' || ev.kind === 'phys') { v.dx = -18; Sound.sfx('swing'); }
+          if (ev.anim === 'attack' || ev.kind === 'phys') { v.dx = -18; Sound.sfx('swing'); if (ev.anim !== 'attack') castFx(ev.uid, 'phys', ev.type); }
           else if (ev.kind === 'item') { v.dx = -8; Sound.sfx('pickup'); }
-          else { v.dx = -8; v.glow = 1; addFx({ k: 'cast', uid: ev.uid, dur: 500, color: typeColor(ev.type) }); Sound.sfx('cast'); }
+          else { v.dx = -8; v.glow = 1; castFx(ev.uid, ev.kind, ev.type, ev.kind === 'heal' || ev.kind === 'revive'); Sound.sfx('cast'); }
           if (name !== '공격') banner(name + (ev.boost ? `  BP×${ev.boost}` : ''), ev.boost ? 'boost' : '');
-          if (ev.boost) addFx({ k: 'boost', uid: ev.uid, dur: 600, n: ev.boost });
+          if (ev.boost) boostFx(ev.uid, ev.boost);
         } else {
           v.dx = 16; v.flash = 0.6;
           banner(`${u.name} — ${name}`, ev.big ? 'danger' : 'enemy');
-          if (ev.big) { Sound.sfx('roar'); shake(6); }
+          if (ev.kind === 'mag' || ev.big) castFx(ev.uid, 'mag', ev.big ? 'dark' : ev.type);
+          if (ev.big) { Sound.sfx('roar'); shake(6); flash('#ff3a3a'); flashT = 0.5; }
           else Sound.sfx(ev.kind === 'mag' ? 'cast' : 'swing');
         }
         await sleep(ev.big ? 600 : 300);
@@ -116,10 +117,10 @@ const BattleView = (() => {
       case 'hit': {
         const [x, y] = centerOf(ev.uid);
         const src = B.unit(ev.src);
-        addFx({ k: hitKind(ev.type), x, y, dur: 340, color: typeColor(ev.type) });
+        hitFx(ev.type, x, y, ev.uid, ev.src, ev.crit);
         if (v) { v.shake = 1; v.flash = 1; }
-        pop(ev.uid, ev.dmg, ev.crit ? 'crit' : (u.side === 'p' ? 'hurt' : ''), ev.weak ? '약점!' : (ev.crit ? '치명!' : ''));
-        if (ev.weak && ev.shieldHit) { addFx({ k: 'shard', x, y, dur: 500 }); Sound.sfx('weak'); }
+        pop(ev.uid, ev.dmg, ev.crit ? 'crit' : (u.side === 'p' ? 'hurt' : ''), ev.weak ? '약점!' : (ev.crit ? '치명!' : (ev.warded ? '반감' : (ev.guarded ? '호위로 반감' : ''))));
+        if (ev.weak && ev.shieldHit) { addFx({ k: 'shard', x, y, dur: 500 }); burst(x, y, 6, { col: ['#bfe4ff', '#ffffff'], sp0: 40, sp1: 100, g: 160, shape: 'shard', l0: 0.4, l1: 0.6, add: false }); Sound.sfx('weak'); }
         else Sound.sfx(u.side === 'p' ? 'hurt' : (ev.crit ? 'crit' : 'hit'));
         if (ev.crit) shake(3);
         if (u.side === 'e') refreshTag(u, ev.shieldHit ? 'crack' : '');
@@ -130,8 +131,7 @@ const BattleView = (() => {
       case 'miss': pop(ev.uid, 'MISS', 'miss'); Sound.sfx('miss'); await sleep(160); break;
       case 'break': {
         const [x, y] = centerOf(ev.uid);
-        addFx({ k: 'break', x, y, dur: 900 });
-        for (let i = 0; i < 14; i++) addFx({ k: 'piece', x, y, dur: 700 + Math.random() * 300, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 90 - 20 });
+        breakFx(x, y, sizeOf(ev.uid)); flash('#ffffff'); flashT = 0.4;
         bigText(ev.uid, 'BREAK!');
         Sound.sfx('break'); shake(5);
         refreshTag(u, 'break');
@@ -141,17 +141,23 @@ const BattleView = (() => {
         await sleep(650);
         break;
       }
+      case 'ward': {
+        const [x, y] = centerOf(ev.uid);
+        if (ev.on) { pop(ev.uid, `${ev.kind === 'phys' ? '물리' : '마법'} 반감`, 'info'); addFx({ k: 'shock', x, y, r: 26, color: ev.kind === 'phys' ? '#bfe4ff' : '#d0a0ff', dur: 600, flat: 1 }); Sound.sfx('defend'); }
+        else { pop(ev.uid, '갑옷이 깨졌다!', 'buff'); burst(x, y, 16, { col: ['#bfe4ff', '#ffffff', '#d0a0ff'], sp0: 60, sp1: 150, g: 180, shape: 'shard', l0: 0.5, l1: 0.8, add: false }); }
+        refreshTag(u); await sleep(ev.on ? 450 : 300); break;
+      }
       case 'recover': pop(ev.uid, '실드 회복', 'info'); refreshTag(u, 'recover'); Sound.sfx('recover'); await sleep(300); break;
       case 'heal':
-        if (ev.amount || ev.sp) { pop(ev.uid, ev.amount ? ev.amount : `SP ${ev.sp}`, 'heal'); addFx({ k: 'heal', uid: ev.uid, dur: 500 }); Sound.sfx('heal'); }
+        if (ev.amount || ev.sp) { pop(ev.uid, ev.amount ? ev.amount : `SP ${ev.sp}`, 'heal'); healFx(ev.uid); Sound.sfx('heal'); }
         updateParty(); refreshTags(); await sleep(200); break;
       case 'rest': updateParty(); break;
-      case 'dot': pop(ev.uid, ev.dmg, 'poison'); updateParty(); refreshTags(); await sleep(220); break;
-      case 'revive': pop(ev.uid, '부활', 'heal'); if (v) v.ko = 0; addFx({ k: 'heal', uid: ev.uid, dur: 700 }); Sound.sfx('revive'); updateParty(); await sleep(350); break;
-      case 'buff': if (ev.lv) { pop(ev.uid, `${BUFF_NAME[ev.stat]} ${ev.lv > 0 ? '▲' : '▼'}`, ev.lv > 0 ? 'buff' : 'debuff'); Sound.sfx(ev.lv > 0 ? 'buff' : 'debuff'); await sleep(150); } updateParty(); refreshTags(); break;
-      case 'status': if (ev.on) { pop(ev.uid, STATUS_NAME[ev.status] + '!', 'debuff'); await sleep(200); } updateParty(); refreshTags(); break;
+      case 'dot': pop(ev.uid, ev.dmg, 'poison'); statusFx(ev.uid, 'poison'); updateParty(); refreshTags(); await sleep(220); break;
+      case 'revive': pop(ev.uid, '부활', 'heal'); if (v) v.ko = 0; healFx(ev.uid, true); Sound.sfx('revive'); updateParty(); await sleep(350); break;
+      case 'buff': if (ev.lv) { buffFx(ev.uid, ev.lv > 0); pop(ev.uid, `${BUFF_NAME[ev.stat]} ${ev.lv > 0 ? '▲' : '▼'}`, ev.lv > 0 ? 'buff' : 'debuff'); Sound.sfx(ev.lv > 0 ? 'buff' : 'debuff'); await sleep(150); } updateParty(); refreshTags(); break;
+      case 'status': if (ev.on) { statusFx(ev.uid, ev.status); pop(ev.uid, STATUS_NAME[ev.status] + '!', 'debuff'); await sleep(200); } updateParty(); refreshTags(); break;
       case 'ko':
-        if (u.side === 'e') { v.dying = 1; Sound.sfx('kill'); addFx({ k: 'burst', x: centerOf(ev.uid)[0], y: centerOf(ev.uid)[1], dur: 500, color: '#ffffff' }); await sleep(380); }
+        if (u.side === 'e') { v.dying = 1; Sound.sfx('kill'); dissolveFx(ev.uid); await sleep(380); }
         else { v.ko = 1; Sound.sfx('down'); banner(`${u.name}이(가) 쓰러졌다!`, 'danger'); updateParty(); await sleep(400); }
         refreshTags(); updateOrder();
         break;
@@ -166,7 +172,7 @@ const BattleView = (() => {
       case 'latent':
         Sound.sfx('latent'); flash(HEROES[u.id].color);
         banner(`잠재력 — ${ev.name}`, 'latent');
-        addFx({ k: 'aura', uid: ev.uid, dur: 1200, color: HEROES[u.id].color });
+        latentFx(ev.uid, HEROES[u.id].color);
         updateParty(); refreshTags();
         await sleep(700);
         break;
@@ -176,7 +182,15 @@ const BattleView = (() => {
         break;
       case 'charge': v.charge = 1; banner(`${u.name}이(가) 힘을 모으고 있다! 브레이크해서 막아라!`, 'danger'); Sound.sfx('charge'); await sleep(800); break;
       case 'charging': banner(`${u.name}이(가) 힘을 모으고 있다…`, 'enemy'); await sleep(450); break;
-      case 'phase': banner(ev.msg, 'danger'); shake(4); Sound.sfx('roar'); refreshTag(u, 'recover'); await sleep(1100); break;
+      case 'phase': {
+        if (v) { v.flash = 1; }
+        const [x, y] = centerOf(ev.uid);
+        addFx({ k: 'rays', x, y, r: 70, n: 16, color: '#ff8a6a', dur: 900 });
+        banner(ev.msg, 'danger'); shake(5); Sound.sfx('roar'); refreshTag(u, 'recover'); updateOrder();
+        await sleep(1500);
+        if (!App.G.flags['tip:phase']) await App.tip('phase', true);
+        break;
+      }
       case 'summon': {
         vis.set(ev.uid, { a: 0, dx: -30, dy: 0, shake: 0, flash: 1, ko: 0, enter: 1 });
         buildTags(); banner(`${ev.name}이(가) 나타났다!`, 'enemy'); Sound.sfx('summon');
@@ -198,7 +212,6 @@ const BattleView = (() => {
 
   const TYPE_COLOR = { sword: '#e8eef8', spear: '#d8e0f0', dagger: '#f0f0ff', axe: '#ffd0a0', bow: '#e0f0c0', staff: '#d0c0ff', fire: '#ff7a3a', ice: '#9ce0ff', thunder: '#ffe24a', wind: '#9ef08a', light: '#fff4b0', dark: '#b07aff' };
   const typeColor = (t) => TYPE_COLOR[t] || '#ffffff';
-  const hitKind = (t) => ({ fire: 'fire', ice: 'ice', thunder: 'bolt', wind: 'wind', light: 'light', dark: 'dark' }[t] || 'slash');
 
   /* ── 화면 흔들림·번쩍임 ── */
   let shakeAmt = 0, flashCol = null, flashT = 0;
@@ -282,7 +295,10 @@ const BattleView = (() => {
       if (u.status.sleep && !ko) txt('z', x + 8, y - 34 - (time / 300 % 6), '#ffffff');
     } else {
       const name = u.spr;
-      if (v.charge && u.charging) aura(x, y - (big ? 16 : 0), '#ff4040', 3, big);
+      if (v.charge && u.charging) {
+        aura(x, y - (big ? 16 : 0), '#ff4040', 3, big);
+        if (Math.random() < dt / 60) { const [cx, cy] = centerOf(u.uid), a = Math.random() * 6.28, r0 = big ? 50 : 30; spark(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0, { vx: -Math.cos(a) * r0 / 0.4, vy: -Math.sin(a) * r0 / 0.4, life: 0.4, col: ['#ff4040', '#ffa080'], shape: 'line', s: 1 }); }
+      }
       else v.charge = 0;
       const mode = u.broken ? 'g' : '';
       drawSprite(name, mode, x, y, v.a);
@@ -311,93 +327,370 @@ const BattleView = (() => {
     ctx.fillStyle = '#000'; ctx.fillText(s, SX(x) + T.u / 2, SY(y) + T.u / 2);
     ctx.fillStyle = col; ctx.fillText(s, SX(x), SY(y));
   }
+  /* ── 이펙트 ──
+     fx: 시간에 따라 모양이 바뀌는 것(베기 궤적·번개·빛기둥·마법진·충격파…), pt: 입자(불꽃·얼음 조각·불티·잎…).
+     좌표는 무대 좌표(400×200 / 280×300), 크기는 T.u(도트 한 칸) 단위로 그려 도트 느낌을 살린다. */
+  let pt = [];
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pick = (a) => Array.isArray(a) ? a[(Math.random() * a.length) | 0] : a;
+  function spark(x, y, o) {
+    if (pt.length > 650) return;
+    pt.push(Object.assign({ x, y, vx: 0, vy: 0, g: 0, drag: 0, swirl: 0, life: 0.6, t: -(o.delay || 0), s: 1, s2: null, col: '#fff', shape: 'sq', add: true, fade: 1 }, o, { col: o.pal ? null : pick(o.col || '#fff') }));
+  }
+  function burst(x, y, n, o) {
+    for (let i = 0; i < n; i++) {
+      const a = o.ang !== undefined ? o.ang + rnd(-(o.spread || 0.5), o.spread || 0.5) : rnd(0, Math.PI * 2);
+      const sp = rnd(o.sp0 ?? 20, o.sp1 ?? 80);
+      spark(x + rnd(-(o.jx || 0), o.jx || 0), y + rnd(-(o.jy || 0), o.jy || 0), Object.assign({}, o, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * (o.flat || 1) + (o.up || 0), life: rnd(o.l0 ?? 0.35, o.l1 ?? 0.7) }));
+    }
+  }
+  const FIRE = ['#fff6c0', '#ffd447', '#ff9a3a', '#ff5a2a', '#c8301a', '#5a2018'];
+  const sizeOf = (uid) => { const u = B.unit(uid); return u && u.big ? 1.8 : 1; };
+  const feetOf = (uid) => posOf(uid)[1];
+
+  /* 공격이 닿았을 때: 무기·속성마다 다른 연출 */
+  function hitFx(type, x, y, uid, src, crit) {
+    const k = sizeOf(uid), gy = feetOf(uid);
+    const [sx, sy] = src ? centerOf(src) : [x + 40, y];
+    const dir = Math.atan2(y - sy, x - sx);
+    switch (type) {
+      case 'sword':
+        addFx({ k: 'arc', x, y, r: 15 * k, a0: -2.5, a1: 0.5, w: 4, color: '#dfe8ff', dur: 300 });
+        burst(x, y, 10, { col: ['#ffffff', '#cfe0ff'], sp0: 40, sp1: 130, ang: -0.6, spread: 0.7, drag: 4, shape: 'line', l0: 0.15, l1: 0.3 });
+        break;
+      case 'spear':
+        addFx({ k: 'thrust', x0: x - Math.cos(dir) * 40 * k, y0: y - Math.sin(dir) * 40 * k, x1: x + Math.cos(dir) * 20 * k, y1: y + Math.sin(dir) * 20 * k, color: '#e6ecff', dur: 300 });
+        addFx({ k: 'thrust', x0: x - Math.cos(dir) * 30 * k, y0: y - Math.sin(dir) * 30 * k + 5, x1: x + Math.cos(dir) * 12 * k, y1: y + Math.sin(dir) * 12 * k + 5, color: '#b8c8f0', dur: 260, delay: 50 });
+        burst(x, y, 9, { col: ['#ffffff', '#d8e0f0'], sp0: 60, sp1: 160, ang: dir, spread: 0.35, drag: 5, shape: 'line', l0: 0.12, l1: 0.25 });
+        addFx({ k: 'shock', x, y, r: 10 * k, color: '#ffffff', dur: 260, flat: 1 });
+        break;
+      case 'dagger':
+        addFx({ k: 'arc', x: x - 3, y: y - 2, r: 11 * k, a0: -2.2, a1: 0.2, w: 2, color: '#f4f4ff', dur: 200 });
+        addFx({ k: 'arc', x: x + 3, y: y + 2, r: 11 * k, a0: -0.9, a1: 1.6, w: 2, color: '#f4f4ff', dur: 220, delay: 70 });
+        burst(x, y, 7, { col: ['#ffffff', '#e0e0ff'], sp0: 50, sp1: 120, drag: 5, shape: 'line', l0: 0.1, l1: 0.22 });
+        break;
+      case 'axe':
+        addFx({ k: 'arc', x, y: y - 4, r: 20 * k, a0: -2.0, a1: 1.3, w: 6, color: '#ffd8a8', dur: 340 });
+        addFx({ k: 'shock', x, y: gy, r: 18 * k, color: '#ffcf90', dur: 380 });
+        burst(x, gy - 2, 12, { col: ['#8a6a4a', '#c8a070', '#5a4a3a', '#d8d0c0'], sp0: 40, sp1: 110, ang: -Math.PI / 2, spread: 1.1, g: 260, l0: 0.4, l1: 0.7, s: 1.5, add: false });
+        shake(2);
+        break;
+      case 'bow':
+        addFx({ k: 'arrow', x0: sx, y0: sy, x1: x, y1: y, dur: 150 });
+        burst(x, y, 8, { col: ['#ffffff', '#e8f4c8'], sp0: 40, sp1: 110, ang: dir, spread: 0.6, drag: 4, shape: 'line', l0: 0.12, l1: 0.25, delay: 0.12 });
+        burst(x, y, 3, { col: ['#e8e0c8', '#c8b890'], sp0: 15, sp1: 40, g: 90, l0: 0.5, l1: 0.8, delay: 0.12, add: false });
+        break;
+      case 'staff':
+        addFx({ k: 'star', x, y, r: 12 * k, color: '#e8dcff', dur: 260 });
+        addFx({ k: 'shock', x, y, r: 12 * k, color: '#d0c0ff', dur: 300 });
+        burst(x, y, 8, { col: ['#ffffff', '#d0c0ff'], sp0: 30, sp1: 90, drag: 3, shape: 'star', l0: 0.25, l1: 0.45 });
+        break;
+      case 'fire':
+        addFx({ k: 'glow', x, y: y + 4, r: 30 * k, color: '#ff7a3a', dur: 700 });
+        addFx({ k: 'glow', x, y: y + 6, r: 14 * k, color: '#fff0a0', dur: 380 });
+        for (let i = 0; i < 44; i++) spark(x + rnd(-12, 12) * k, gy - rnd(0, 8), { vx: rnd(-14, 14), vy: rnd(-170, -70) * Math.sqrt(k), drag: 1.4, life: rnd(0.45, 0.85), pal: FIRE, s: rnd(2, 3.4) * k, s2: 0.7, delay: rnd(0, 0.22) });
+        burst(x, y, 10, { col: ['#ffe24a', '#fff6c0'], sp0: 20, sp1: 70, up: -40, g: -30, l0: 0.5, l1: 0.9, s: 0.8 });
+        for (let i = 0; i < 5; i++) spark(x + rnd(-8, 8), y - rnd(0, 10), { vx: rnd(-6, 6), vy: rnd(-30, -16), life: rnd(0.8, 1.2), col: '#3a2a2a', s: rnd(2.5, 3.5) * k, s2: 4 * k, add: false, fade: 0.45, delay: 0.15 });
+        addFx({ k: 'shock', x, y: gy, r: 16 * k, color: '#ff7a3a', dur: 420 });
+        break;
+      case 'ice':
+        addFx({ k: 'spikes', x, y: gy, r: 13 * k, n: 6, color: '#bfe8ff', dur: 520 });
+        addFx({ k: 'glow', x, y, r: 22 * k, color: '#8ad0ff', dur: 500 });
+        burst(x, y, 18, { col: ['#ffffff', '#cfefff', '#8ad0ff'], sp0: 50, sp1: 140, g: 220, l0: 0.4, l1: 0.7, shape: 'shard', delay: 0.26 });
+        for (let i = 0; i < 6; i++) spark(x + rnd(-14, 14) * k, gy - rnd(0, 8), { vx: rnd(-10, 10), vy: rnd(-12, -4), life: rnd(0.7, 1.1), col: '#e8f6ff', s: 3 * k, s2: 5 * k, fade: 0.35, delay: 0.25 });
+        break;
+      case 'thunder':
+        addFx({ k: 'bolt', x, y, top: y - 80 * k, color: '#fff6a0', dur: 300 });
+        addFx({ k: 'glow', x, y, r: 26 * k, color: '#ffe24a', dur: 300 });
+        burst(x, y, 16, { col: ['#ffffff', '#fff6a0', '#ffe24a'], sp0: 100, sp1: 230, drag: 7, shape: 'line', l0: 0.12, l1: 0.3 });
+        addFx({ k: 'shock', x, y: gy, r: 14 * k, color: '#fff6a0', dur: 300 });
+        flash('#fff6c0'); flashT = 0.35;
+        break;
+      case 'wind':
+        for (let i = 0; i < 3; i++) addFx({ k: 'arc', x, y, r: (10 + i * 5) * k, a0: i * 2.1, a1: i * 2.1 + 2.6, w: 2, color: i % 2 ? '#c8ffb8' : '#ffffff', dur: 380, spin: 9, delay: i * 50 });
+        for (let i = 0; i < 14; i++) { const a = rnd(0, 6.28), r0 = rnd(4, 10); spark(x + Math.cos(a) * r0, y + Math.sin(a) * r0, { vx: Math.cos(a) * 60, vy: Math.sin(a) * 60, swirl: 9, drag: 1.5, life: rnd(0.45, 0.8), col: ['#9ef08a', '#56b048', '#e8ffd8'], s: 1.4, add: false }); }
+        break;
+      case 'light':
+        addFx({ k: 'beam', x, y: gy, w: 9 * k, color: '#fff4b0', dur: 560 });
+        addFx({ k: 'rays', x, y, r: 26 * k, n: 8, color: '#fff8d0', dur: 520 });
+        for (let i = 0; i < 16; i++) spark(x + rnd(-10, 10) * k, gy - rnd(0, 26) * k, { vx: rnd(-6, 6), vy: rnd(-40, -15), life: rnd(0.5, 0.9), col: ['#ffffff', '#fff4b0', '#ffe24a'], shape: 'star', s: rnd(1, 1.8), delay: rnd(0, 0.2) });
+        break;
+      case 'dark':
+        addFx({ k: 'orb', x, y, r: 14 * k, dur: 560 });
+        for (let i = 0; i < 22; i++) { const a = rnd(0, 6.28), r0 = rnd(20, 30) * k; spark(x + Math.cos(a) * r0, y + Math.sin(a) * r0 * 0.8, { vx: -Math.cos(a) * r0 / 0.28, vy: -Math.sin(a) * r0 * 0.8 / 0.28, life: 0.28, col: ['#b07aff', '#6a3ab0', '#ff7ae0'], s: 1.4, shape: 'line' }); }
+        burst(x, y, 18, { col: ['#d0a0ff', '#8a4ae0', '#2a1040'], sp0: 50, sp1: 140, drag: 3, l0: 0.35, l1: 0.6, s: 1.6, delay: 0.27 });
+        break;
+      default:
+        addFx({ k: 'arc', x, y, r: 14 * k, a0: -2.4, a1: 0.6, w: 3, color: '#ffffff', dur: 260 });
+        burst(x, y, 8, { col: ['#ffffff', '#ffe8c0'], sp0: 40, sp1: 110, drag: 4, shape: 'line', l0: 0.15, l1: 0.3 });
+    }
+    if (crit) {
+      addFx({ k: 'rays', x, y, r: 30 * k, n: 10, color: '#ffffff', dur: 300 });
+      burst(x, y, 10, { col: ['#ffe24a', '#ffffff'], sp0: 90, sp1: 200, drag: 5, shape: 'star', l0: 0.2, l1: 0.4 });
+    }
+  }
+  /* 시전: 발밑의 마법진(속성 색) + 떠오르는 빛 알갱이. 물리 기술은 무기의 번쩍임과 잔상 */
+  function castFx(uid, kind, type, healing) {
+    const [x, y] = centerOf(uid), gy = feetOf(uid), k = sizeOf(uid);
+    const col = healing ? '#a6ff9a' : typeColor(type || (kind === 'mag' ? 'staff' : 'sword'));
+    if (kind === 'phys') {
+      addFx({ k: 'star', x: x - 8, y: y - 6, r: 9 * k, color: '#ffffff', dur: 320 });
+      for (let i = 0; i < 6; i++) spark(x + rnd(-6, 6), y + rnd(-10, 10), { vx: -rnd(80, 160), vy: 0, life: 0.22, col: '#ffffff', shape: 'line', s: 1, drag: 2 });
+      return;
+    }
+    addFx({ k: 'circle', x, y: gy, r: 15 * k, color: col, dur: 700 });
+    for (let i = 0; i < 12; i++) { const a = rnd(0, 6.28); spark(x + Math.cos(a) * 14 * k, gy + Math.sin(a) * 4, { vx: 0, vy: rnd(-50, -25), life: rnd(0.4, 0.7), col: [col, '#ffffff'], s: 1, delay: rnd(0, 0.25) }); }
+  }
+  function healFx(uid, revive) {
+    const [x, y] = centerOf(uid), gy = feetOf(uid);
+    addFx({ k: 'glow', x, y, r: 20, color: '#a6ff9a', dur: 500 });
+    if (revive) { addFx({ k: 'beam', x, y: gy, w: 10, color: '#fff4b0', dur: 700 }); for (let i = 0; i < 8; i++) spark(x + rnd(-12, 12), y - rnd(10, 30), { vx: rnd(-8, 8), vy: rnd(10, 25), swirl: rnd(-2, 2), life: rnd(0.8, 1.2), col: '#ffffff', s: 1.3, add: false }); }
+    for (let i = 0; i < 14; i++) spark(x + rnd(-10, 10), gy - rnd(0, 6), { vx: rnd(-5, 5), vy: rnd(-55, -25), life: rnd(0.5, 0.9), col: ['#a6ff9a', '#ffffff', '#fff4b0'], s: rnd(0.9, 1.5), shape: i % 4 ? 'sq' : 'plus', delay: rnd(0, 0.2) });
+  }
+  function buffFx(uid, up) {
+    const [x, y] = centerOf(uid);
+    for (let i = 0; i < 3; i++) spark(x + (i - 1) * 7, up ? y + 8 : y - 12, { vx: 0, vy: up ? -40 : 40, life: 0.55, col: up ? '#7af0e0' : '#ff7ab0', shape: up ? 'up' : 'down', s: 1.4, delay: i * 0.06 });
+    addFx({ k: 'shock', x, y: feetOf(uid), r: 12, color: up ? '#7af0e0' : '#ff7ab0', dur: 400 });
+  }
+  function statusFx(uid, st) {
+    const [x, y] = centerOf(uid);
+    if (st === 'poison') for (let i = 0; i < 8; i++) spark(x + rnd(-8, 8), y + rnd(-2, 8), { vx: rnd(-4, 4), vy: rnd(-30, -12), life: rnd(0.5, 0.9), col: ['#7ae05a', '#b0ff8a', '#3a8a3a'], shape: 'ring', s: rnd(1, 1.8), add: false, delay: rnd(0, 0.2) });
+    else if (st === 'blind') for (let i = 0; i < 7; i++) spark(x + rnd(-8, 8), y - rnd(0, 8), { vx: rnd(-10, 10), vy: rnd(-8, 4), life: rnd(0.6, 1), col: '#2a2236', s: 3, s2: 5, add: false, fade: 0.6 });
+    else for (let i = 0; i < 6; i++) spark(x + rnd(-8, 8), y - rnd(0, 8), { vx: rnd(-6, 6), vy: rnd(-16, -6), life: rnd(0.6, 1), col: '#9cc8ff', s: 1.2 });
+  }
+  function breakFx(x, y, k) {
+    addFx({ k: 'break', x, y, dur: 900 });
+    addFx({ k: 'rays', x, y, r: 60 * k, n: 14, color: '#ffe8a0', dur: 650 });
+    burst(x, y, 22, { col: ['#bfe4ff', '#7ab8f0', '#ffffff', '#4a7ac0'], sp0: 60, sp1: 170, g: 200, l0: 0.6, l1: 1.0, shape: 'shard', s: 1.6, add: false });
+    burst(x, y, 14, { col: ['#ffe24a', '#ffffff'], sp0: 120, sp1: 260, drag: 6, shape: 'line', l0: 0.2, l1: 0.4 });
+  }
+  function dissolveFx(uid) {
+    const [x, y] = centerOf(uid), k = sizeOf(uid);
+    for (let i = 0; i < 34 * k; i++) spark(x + rnd(-10, 10) * k, y + rnd(-14, 14) * k, { vx: rnd(-14, 14), vy: rnd(-60, -20), drag: 1, life: rnd(0.5, 1), col: ['#ffffff', '#e8dcff', '#c8b8f0'], s: rnd(0.8, 1.6), delay: rnd(0, 0.25) });
+    addFx({ k: 'glow', x, y, r: 26 * k, color: '#ffffff', dur: 420 });
+  }
+  function latentFx(uid, col) {
+    const [x, y] = centerOf(uid), gy = feetOf(uid);
+    addFx({ k: 'beam', x, y: gy, w: 12, color: col, dur: 900 });
+    addFx({ k: 'circle', x, y: gy, r: 20, color: col, dur: 1000 });
+    addFx({ k: 'rays', x, y, r: 34, n: 12, color: col, dur: 800 });
+    for (let i = 0; i < 24; i++) spark(x + rnd(-14, 14), gy - rnd(0, 4), { vx: rnd(-8, 8), vy: rnd(-90, -40), life: rnd(0.6, 1), col: [col, '#ffffff'], shape: i % 3 ? 'sq' : 'star', s: rnd(1, 1.6), delay: rnd(0, 0.35) });
+  }
+  function boostFx(uid, n) {
+    const [x, y] = centerOf(uid), gy = feetOf(uid);
+    for (let i = 0; i < 8 + n * 8; i++) spark(x + rnd(-10, 10), gy - rnd(0, 4), { vx: rnd(-6, 6), vy: rnd(-110, -50), drag: 1, life: rnd(0.35, 0.6), pal: ['#fff6c0', '#ffe24a', '#ff9a3a', '#c8501a'], s: rnd(1.2, 2), s2: 0.5 });
+    for (let i = 0; i < n; i++) spark(x, y - 6 - i * 5, { vy: -40, life: 0.5, col: '#ffe24a', shape: 'up', s: 1.6, delay: i * 0.08 });
+  }
+
   function drawFx(dt) {
-    fx = fx.filter(f => (f.t += dt) < f.dur);
+    const u = T.u, sec = dt / 1000;
+    // 모양
+    fx = fx.filter(f => (f.t += dt) < f.dur + (f.delay || 0));
     for (const f of fx) {
-      const k = f.t / f.dur;
+      const tt = f.t - (f.delay || 0);
+      if (tt < 0) continue;
+      const k = tt / f.dur;
       let [x, y] = f.uid ? centerOf(f.uid) : [f.x, f.y];
       ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
       switch (f.k) {
-        case 'slash': {
-          ctx.strokeStyle = f.color; ctx.lineWidth = Math.max(2, T.u * 1.5); ctx.globalAlpha = 1 - k;
-          const r = 14 * T.scale;
-          ctx.beginPath(); ctx.moveTo(SX(x) - r, SY(y) - r + k * r * 0.4); ctx.lineTo(SX(x) + r, SY(y) + r - k * r * 0.4); ctx.stroke();
-          ctx.lineWidth = Math.max(1, T.u * 0.6); ctx.strokeStyle = '#fff';
-          ctx.beginPath(); ctx.moveTo(SX(x) - r * 0.8, SY(y) - r * 0.6); ctx.lineTo(SX(x) + r * 0.8, SY(y) + r * 0.9); ctx.stroke();
+        case 'arc': {   // 초승달 궤적: 앞쪽 40% 동안 휘두르고 사라진다
+          const sweep = Math.min(1, k / 0.4), fade = k < 0.4 ? 1 : 1 - (k - 0.4) / 0.6;
+          const rot = (f.spin || 0) * tt / 1000;
+          const a0 = f.a0 + rot, a1 = f.a0 + (f.a1 - f.a0) * sweep + rot;
+          const R = f.r * T.scale;
+          for (let i = 0; i < 4; i++) {
+            ctx.globalAlpha = fade * (1 - i * 0.22);
+            ctx.strokeStyle = i === 0 ? '#ffffff' : f.color;
+            ctx.lineWidth = Math.max(1, u * f.w * (1 - i * 0.22) * 0.5);
+            const lag = i * 0.18;
+            ctx.beginPath(); ctx.arc(SX(x), SY(y), R * (1 - i * 0.05), Math.max(a0, a1 - (a1 - a0) * (0.55 + lag)), a1); ctx.stroke();
+          }
           break;
         }
-        case 'fire': case 'ice': case 'bolt': case 'wind': case 'light': case 'dark': case 'burst': {
-          ctx.globalCompositeOperation = 'lighter';
-          const n = 10;
-          for (let i = 0; i < n; i++) {
-            const a = i / n * Math.PI * 2 + (f.k === 'wind' ? k * 6 : 0);
-            const rr = (6 + k * 20) * T.scale;
-            const px = SX(x) + Math.cos(a) * rr, py = SY(y) + Math.sin(a) * rr * (f.k === 'fire' ? 0.6 : 1) - (f.k === 'fire' ? k * 14 * T.scale : 0);
-            ctx.fillStyle = f.color; ctx.globalAlpha = (1 - k);
-            const s = T.u * (f.k === 'bolt' ? 1.5 : 2);
-            ctx.fillRect(px - s / 2, py - s / 2, s, s);
-          }
-          if (f.k === 'bolt' && k < 0.5) {
-            ctx.strokeStyle = '#fff6a0'; ctx.lineWidth = T.u * 1.2; ctx.globalAlpha = 1 - k * 2;
-            ctx.beginPath(); let yy = SY(y) - 40 * T.scale, xx = SX(x);
-            ctx.moveTo(xx, yy);
-            while (yy < SY(y)) { yy += 6 * T.scale; xx += (Math.random() - 0.5) * 8 * T.scale; ctx.lineTo(xx, yy); }
-            ctx.stroke();
-          }
-          const g = ctx.createRadialGradient(SX(x), SY(y), 0, SX(x), SY(y), 22 * T.scale);
+        case 'thrust': {
+          const e = Math.min(1, k / 0.35), fade = k < 0.35 ? 1 : 1 - (k - 0.35) / 0.65;
+          const xe = f.x0 + (f.x1 - f.x0) * e, ye = f.y0 + (f.y1 - f.y0) * e;
+          ctx.globalAlpha = fade; ctx.strokeStyle = f.color; ctx.lineWidth = u * 3;
+          ctx.beginPath(); ctx.moveTo(SX(f.x0), SY(f.y0)); ctx.lineTo(SX(xe), SY(ye)); ctx.stroke();
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = u;
+          ctx.beginPath(); ctx.moveTo(SX(f.x0 + (xe - f.x0) * 0.4), SY(f.y0 + (ye - f.y0) * 0.4)); ctx.lineTo(SX(xe), SY(ye)); ctx.stroke();
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(SX(xe) - u * 2, SY(ye) - u / 2, u * 4, u); ctx.fillRect(SX(xe) - u / 2, SY(ye) - u * 2, u, u * 4);
+          break;
+        }
+        case 'arrow': {
+          const e = Math.min(1, k * 1.15), xe = f.x0 + (f.x1 - f.x0) * e, ye = f.y0 + (f.y1 - f.y0) * e;
+          const a = Math.atan2(f.y1 - f.y0, f.x1 - f.x0), L = 12;
+          ctx.globalAlpha = 1 - Math.max(0, k - 0.85) / 0.15;
+          ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = u;
+          ctx.beginPath(); ctx.moveTo(SX(xe - Math.cos(a) * L * 2.4), SY(ye - Math.sin(a) * L * 2.4)); ctx.lineTo(SX(xe), SY(ye)); ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = '#c8a070'; ctx.lineWidth = u;
+          ctx.beginPath(); ctx.moveTo(SX(xe - Math.cos(a) * L), SY(ye - Math.sin(a) * L)); ctx.lineTo(SX(xe), SY(ye)); ctx.stroke();
+          ctx.fillStyle = '#e8eef8'; ctx.fillRect(SX(xe) - u, SY(ye) - u, u * 2, u * 2);
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(SX(xe - Math.cos(a) * L) - u, SY(ye - Math.sin(a) * L) - u, u * 2, u * 2);
+          break;
+        }
+        case 'star': {
+          const R = f.r * T.scale * (0.4 + k * 0.8);
+          ctx.globalAlpha = 1 - k; ctx.fillStyle = f.color;
+          ctx.fillRect(SX(x) - R, SY(y) - u / 2, R * 2, u); ctx.fillRect(SX(x) - u / 2, SY(y) - R, u, R * 2);
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(SX(x) - R * 0.4, SY(y) - u, R * 0.8, u * 2); ctx.fillRect(SX(x) - u, SY(y) - R * 0.4, u * 2, R * 0.8);
+          break;
+        }
+        case 'shock': {
+          ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = f.color; ctx.lineWidth = u * (1.5 - k);
+          ctx.beginPath(); ctx.ellipse(SX(x), SY(y), (4 + k * f.r) * T.scale, (4 + k * f.r) * T.scale * (f.flat ? 1 : 0.32), 0, 0, Math.PI * 2); ctx.stroke();
+          break;
+        }
+        case 'glow': {
+          const R = f.r * T.scale * (0.6 + k * 0.6);
+          const g = ctx.createRadialGradient(SX(x), SY(y), 0, SX(x), SY(y), R);
           g.addColorStop(0, f.color); g.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.globalAlpha = (1 - k) * 0.6; ctx.fillStyle = g;
-          ctx.fillRect(SX(x) - 22 * T.scale, SY(y) - 22 * T.scale, 44 * T.scale, 44 * T.scale);
+          ctx.globalAlpha = (1 - k) * 0.75; ctx.fillStyle = g;
+          ctx.fillRect(SX(x) - R, SY(y) - R, R * 2, R * 2);
+          break;
+        }
+        case 'bolt': {   // 번개: 하늘에서 내리꽂히는 갈래 번개(조금씩 모양이 바뀜)
+          if (!f.pts || tt - (f.at || 0) > 60) {
+            f.at = tt; f.pts = []; f.br = [];
+            let xx = x + rnd(-10, 10), yy = f.top;
+            while (yy < y) { f.pts.push([xx, yy]); yy += rnd(5, 9); xx += rnd(-6, 6); if (Math.random() < 0.18) f.br.push([xx, yy, xx + rnd(-16, 16), yy + rnd(8, 18)]); }
+            f.pts.push([x, y]);
+          }
+          ctx.globalAlpha = k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4;
+          for (const [col, w] of [[f.color, 3.2], ['#ffffff', 1.2]]) {
+            ctx.strokeStyle = col; ctx.lineWidth = u * w;
+            ctx.beginPath(); f.pts.forEach(([a, b], i) => i ? ctx.lineTo(SX(a), SY(b)) : ctx.moveTo(SX(a), SY(b))); ctx.stroke();
+            ctx.lineWidth = u * w * 0.5;
+            for (const [a, b, c, d] of f.br) { ctx.beginPath(); ctx.moveTo(SX(a), SY(b)); ctx.lineTo(SX(c), SY(d)); ctx.stroke(); }
+          }
+          break;
+        }
+        case 'beam': {   // 하늘에서 내려오는 빛기둥
+          const w = f.w * T.scale * (k < 0.2 ? k / 0.2 : 1 - (k - 0.2) * 0.6);
+          const top = T.oy - 20 * T.scale;
+          const g = ctx.createLinearGradient(SX(x) - w, 0, SX(x) + w, 0);
+          g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, f.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = (k < 0.2 ? 1 : 1 - (k - 0.2) / 0.8) * 0.8; ctx.fillStyle = g;
+          ctx.fillRect(SX(x) - w, top, w * 2, SY(y) - top);
+          ctx.fillStyle = '#ffffff'; ctx.globalAlpha *= 0.8;
+          ctx.fillRect(SX(x) - w * 0.15, top, w * 0.3, SY(y) - top);
+          break;
+        }
+        case 'rays': {   // 사방으로 뻗는 빛살
+          ctx.globalAlpha = (1 - k) * 0.85; ctx.fillStyle = f.color;
+          const R = f.r * T.scale * (0.5 + k * 0.7);
+          for (let i = 0; i < f.n; i++) {
+            const a = i / f.n * Math.PI * 2 + k * 0.6;
+            ctx.beginPath(); ctx.moveTo(SX(x), SY(y));
+            ctx.lineTo(SX(x) + Math.cos(a - 0.06) * R, SY(y) + Math.sin(a - 0.06) * R);
+            ctx.lineTo(SX(x) + Math.cos(a + 0.06) * R, SY(y) + Math.sin(a + 0.06) * R); ctx.fill();
+          }
+          break;
+        }
+        case 'circle': {   // 마법진: 두 겹 고리 + 눈금 + 도는 별 모양
+          const R = f.r * T.scale * (k < 0.2 ? 0.6 + k * 2 : 1), fy = 0.34;
+          ctx.globalAlpha = k < 0.75 ? 1 : 1 - (k - 0.75) / 0.25;
+          ctx.strokeStyle = f.color; ctx.lineWidth = u;
+          ctx.beginPath(); ctx.ellipse(SX(x), SY(y), R, R * fy, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(SX(x), SY(y), R * 0.72, R * 0.72 * fy, 0, 0, Math.PI * 2); ctx.stroke();
+          const rot = tt / 300;
+          ctx.fillStyle = f.color;
+          for (let i = 0; i < 12; i++) { const a = rot + i / 12 * Math.PI * 2; ctx.fillRect(SX(x) + Math.cos(a) * R * 0.86 - u / 2, SY(y) + Math.sin(a) * R * 0.86 * fy - u / 2, u, u); }
+          ctx.beginPath();
+          for (let i = 0; i <= 5; i++) { const a = -rot * 0.7 + i * 4 * Math.PI / 5; const px = SX(x) + Math.cos(a) * R * 0.7, py = SY(y) + Math.sin(a) * R * 0.7 * fy; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+          ctx.stroke();
+          const g = ctx.createRadialGradient(SX(x), SY(y), 0, SX(x), SY(y), R);
+          g.addColorStop(0, f.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha *= 0.35; ctx.fillStyle = g; ctx.fillRect(SX(x) - R, SY(y) - R * fy, R * 2, R * 2 * fy);
+          break;
+        }
+        case 'spikes': {   // 얼음 가시가 솟았다가 깨진다
+          const grow = Math.min(1, k / 0.25), fade = k < 0.5 ? 1 : 1 - (k - 0.5) / 0.5;
+          ctx.globalCompositeOperation = 'source-over';
+          for (let i = 0; i < f.n; i++) {
+            const a = i / f.n * Math.PI * 2 + 0.3, ox = Math.cos(a) * f.r * 0.8, oy = Math.sin(a) * f.r * 0.25;
+            const hgt = (14 + (i % 3) * 6) * grow * (f.r / 13), w = 3 + (i % 2);
+            const bx = SX(x + ox), by = SY(y + oy);
+            ctx.globalAlpha = fade;
+            ctx.fillStyle = '#7ac0f0'; ctx.beginPath(); ctx.moveTo(bx - w * T.scale, by); ctx.lineTo(bx + Math.cos(a) * 2 * T.scale, by - hgt * T.scale); ctx.lineTo(bx + w * T.scale, by); ctx.fill();
+            ctx.fillStyle = '#e8f8ff'; ctx.beginPath(); ctx.moveTo(bx - w * 0.6 * T.scale, by); ctx.lineTo(bx + Math.cos(a) * 2 * T.scale, by - hgt * T.scale); ctx.lineTo(bx, by); ctx.fill();
+          }
+          break;
+        }
+        case 'orb': {   // 어둠의 구슬: 안으로 빨려 들었다가 터진다
+          const R = f.r * T.scale * (k < 0.5 ? 1 - k : (k - 0.5) * 3);
+          const g = ctx.createRadialGradient(SX(x), SY(y), 0, SX(x), SY(y), Math.max(1, R));
+          g.addColorStop(0, 'rgba(20,0,40,.95)'); g.addColorStop(0.6, 'rgba(120,60,220,.7)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1 - Math.max(0, k - 0.6) / 0.4; ctx.fillStyle = g;
+          ctx.fillRect(SX(x) - R, SY(y) - R, R * 2, R * 2);
           break;
         }
         case 'cast': case 'aura': {
-          ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - k;
-          ctx.strokeStyle = f.color; ctx.lineWidth = T.u;
+          ctx.globalAlpha = 1 - k;
+          ctx.strokeStyle = f.color; ctx.lineWidth = u;
           ctx.beginPath(); ctx.ellipse(SX(x), SY(y + 14), (8 + k * 16) * T.scale, (3 + k * 5) * T.scale, 0, 0, Math.PI * 2); ctx.stroke();
-          for (let i = 0; i < 6; i++) { ctx.fillStyle = f.color; ctx.fillRect(SX(x + Math.sin(i * 2 + time / 200) * 10), SY(y + 12 - k * 30 - i * 3), T.u, T.u); }
-          break;
-        }
-        case 'boost': {
-          ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - k;
-          for (let i = 0; i < 4 + f.n * 4; i++) {
-            const a = i * 1.7 + time / 300;
-            ctx.fillStyle = i % 2 ? '#ffe24a' : '#ff9a3a';
-            ctx.fillRect(SX(x + Math.cos(a) * (8 + k * 10)), SY(y + 10 - k * 30 + Math.sin(a) * 4), T.u, T.u * 2);
-          }
-          break;
-        }
-        case 'heal': {
-          ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - k;
-          for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#a6ff9a' : '#ffffff'; ctx.fillRect(SX(x - 10 + i * 3), SY(y + 12 - k * 26 - (i % 3) * 4), T.u, T.u * 2); }
+          for (let i = 0; i < 6; i++) { ctx.fillStyle = f.color; ctx.fillRect(SX(x + Math.sin(i * 2 + time / 200) * 10), SY(y + 12 - k * 30 - i * 3), u, u); }
           break;
         }
         case 'ring': {
-          ctx.strokeStyle = f.color; ctx.lineWidth = T.u; ctx.globalAlpha = 1 - k;
+          ctx.strokeStyle = f.color; ctx.lineWidth = u; ctx.globalAlpha = 1 - k;
           ctx.beginPath(); ctx.arc(SX(x), SY(y), (4 + k * 18) * T.scale, 0, Math.PI * 2); ctx.stroke();
           break;
         }
         case 'shard': {
           ctx.globalAlpha = 1 - k; ctx.fillStyle = '#bfe4ff';
-          for (let i = 0; i < 6; i++) { const a = i; ctx.fillRect(SX(x + Math.cos(a) * k * 22), SY(y + Math.sin(a) * k * 16), T.u * 1.5, T.u * 1.5); }
+          for (let i = 0; i < 6; i++) { const a = i; ctx.fillRect(SX(x + Math.cos(a) * k * 22), SY(y + Math.sin(a) * k * 16), u * 1.5, u * 1.5); }
           break;
         }
         case 'break': {
-          ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - k) * 0.9;
-          ctx.strokeStyle = '#ffe24a'; ctx.lineWidth = T.u * 2;
+          ctx.globalAlpha = (1 - k) * 0.9;
+          ctx.strokeStyle = '#ffe24a'; ctx.lineWidth = u * 2;
           ctx.beginPath(); ctx.arc(SX(x), SY(y), (6 + k * 50) * T.scale, 0, Math.PI * 2); ctx.stroke();
-          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = T.u;
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = u;
           ctx.beginPath(); ctx.arc(SX(x), SY(y), (3 + k * 34) * T.scale, 0, Math.PI * 2); ctx.stroke();
-          break;
-        }
-        case 'piece': {
-          const t = f.t / 1000;
-          ctx.globalAlpha = 1 - k; ctx.fillStyle = Math.floor(f.vx) % 2 ? '#bfe4ff' : '#7ab8f0';
-          ctx.fillRect(SX(x + f.vx * t), SY(y + f.vy * t + 160 * t * t), T.u * 2, T.u * 2);
           break;
         }
       }
       ctx.restore();
     }
+    // 입자
+    pt = pt.filter(p => (p.t += sec) < p.life);
+    for (const p of pt) {
+      if (p.t < 0) continue;
+      if (p.drag) { const d = Math.max(0, 1 - p.drag * sec); p.vx *= d; p.vy *= d; }
+      if (p.swirl) { const c = Math.cos(p.swirl * sec), s = Math.sin(p.swirl * sec), vx = p.vx; p.vx = vx * c - p.vy * s; p.vy = vx * s + p.vy * c; }
+      p.vy += p.g * sec;
+      p.x += p.vx * sec; p.y += p.vy * sec;
+      const k = p.t / p.life;
+      const col = p.pal ? p.pal[Math.min(p.pal.length - 1, (k * p.pal.length) | 0)] : p.col;
+      const sz = Math.max(1, Math.round(u * (p.s2 == null ? p.s : p.s + (p.s2 - p.s) * k)));
+      ctx.globalCompositeOperation = p.add ? 'lighter' : 'source-over';
+      ctx.globalAlpha = Math.max(0, (1 - k) * p.fade);
+      ctx.fillStyle = col;
+      const X = Math.round(SX(p.x)), Y = Math.round(SY(p.y));
+      switch (p.shape) {
+        case 'line': {
+          const L = Math.min(18, Math.hypot(p.vx, p.vy) * 0.05) * T.scale, a = Math.atan2(p.vy, p.vx);
+          ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, sz * 0.8);
+          ctx.beginPath(); ctx.moveTo(X - Math.cos(a) * L, Y - Math.sin(a) * L); ctx.lineTo(X, Y); ctx.stroke();
+          break;
+        }
+        case 'star': ctx.fillRect(X - sz * 1.5, Y - sz / 2, sz * 3, sz); ctx.fillRect(X - sz / 2, Y - sz * 1.5, sz, sz * 3); break;
+        case 'plus': ctx.fillRect(X - sz * 2, Y - sz / 2, sz * 4, sz); ctx.fillRect(X - sz / 2, Y - sz * 2, sz, sz * 4); break;
+        case 'shard': ctx.beginPath(); ctx.moveTo(X, Y - sz * 1.5); ctx.lineTo(X + sz, Y + sz); ctx.lineTo(X - sz, Y + sz * 0.5); ctx.fill(); break;
+        case 'ring': ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, u * 0.6); ctx.strokeRect(X - sz, Y - sz, sz * 2, sz * 2); break;
+        case 'up': case 'down': {
+          const d = p.shape === 'up' ? -1 : 1;
+          ctx.fillRect(X - sz / 2, Y - sz * 1.5, sz, sz * 3);
+          ctx.fillRect(X - sz * 1.5, Y + d * sz * 0.5, sz * 3, sz); ctx.fillRect(X - sz, Y + d * sz * 1.5 - (d < 0 ? 0 : 0), sz * 2, sz);
+          break;
+        }
+        default: ctx.fillRect(X - sz / 2, Y - sz / 2, sz, sz);
+      }
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
 
   /* ── 배경 (화면 크기에 맞춰 한 번 그려 둠) ── */
@@ -469,7 +762,8 @@ const BattleView = (() => {
       g.fillRect(x, y, s * 2, s);
     }
     // 소품 (뒤쪽 줄)
-    const prop = Gfx.sprite(P.prop === 'pillar' ? null : P.prop);
+    const hdProp = P.prop && Gfx.isHD('o_' + P.prop);
+    const prop = Gfx.sprite(P.prop === 'pillar' ? null : (hdProp ? 'o_' + P.prop : P.prop));
     for (let i = 0; i < 9; i++) {
       const x = ox + (i / 8) * SW * sc + r.range(-10, 10) * sc;
       if (Math.abs(x - W / 2) < 50 * sc && !P.inside) continue;
@@ -480,9 +774,10 @@ const BattleView = (() => {
         g.fillStyle = pg; g.fillRect(px - pw / 2, hy - ph + 6 * sc, pw, ph);
         g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(px - pw / 2 - 2 * sc, hy - ph + 6 * sc, pw + 4 * sc, 4 * sc);
       } else if (prop) {
-        const u = Math.max(1, Math.round(sc * 1.4));
-        g.globalAlpha = 0.75;
-        g.drawImage(prop, Math.round(x - 8 * u), Math.round(hy - 14 * u + 3 * sc), 16 * u, 16 * u);
+        const u = hdProp ? Math.max(1, Math.round(sc * 0.8)) : Math.max(1, Math.round(sc * 1.4));
+        g.globalAlpha = 0.8;
+        if (hdProp) g.drawImage(prop, Math.round(x - prop.width * u / 2), Math.round(hy - prop.height * u + 6 * sc), prop.width * u, prop.height * u);
+        else g.drawImage(prop, Math.round(x - 8 * u), Math.round(hy - 14 * u + 3 * sc), 16 * u, 16 * u);
         g.globalAlpha = 1;
       }
     }
@@ -545,6 +840,10 @@ const BattleView = (() => {
     const st = [];
     for (const [k, b] of Object.entries(e.buffs)) st.push(`<em class="${b.lv > 0 ? 'up' : 'dn'}">${BUFF_NAME[k]}${b.lv > 0 ? '▲' : '▼'}</em>`);
     for (const s of Object.keys(e.status)) st.push(`<em class="dn">${STATUS_NAME[s]}</em>`);
+    if (e.ward) st.unshift(`<em class="wd">${e.ward === 'phys' ? '물리' : '마법'} 반감</em>`);
+    if (e.boss && B.enemies.some(m => m !== e && m.hp > 0 && m.d.guard)) st.unshift('<em class="gd">호위받음</em>');
+    if (e.d.guard) st.unshift('<em class="gd">호위</em>');
+    if (e.d.ai && e.d.ai.some(([a]) => a === 'mend')) st.unshift('<em class="gd">치유</em>');
     let s = d.querySelector('.st');
     if (!s) { s = document.createElement('div'); s.className = 'st'; d.appendChild(s); }
     s.innerHTML = st.join('');

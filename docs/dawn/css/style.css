@@ -442,3 +442,12 @@ body.shake .screen { animation: shake .45s; }
 .awk { display: block; margin-top: 2px; color: var(--cyan); font-size: 11px; }
 .awk b { color: var(--gold); }
 .rup { color: #ffb84a; font-size: 10px; }
+
+/* ── 기억(노크테의 과거) 장면: 빛바랜 색 ── */
+body.memory #fcv, body.memory #wcv { filter: sepia(.85) brightness(.7) contrast(.95); transition: filter .5s; }
+body.memory .dbox { background: rgba(52,38,22,.96); box-shadow: 0 0 0 2px #1a1208, 0 0 0 4px #a8844a; }
+body.memory #dText { color: #f4e4c4; font-style: italic; }
+
+/* 적 표시줄: 반감 갑옷·호위·치유 */
+.etag .st em.wd { color: #bfe4ff; }
+.etag .st em.gd { color: #ffd08a; }

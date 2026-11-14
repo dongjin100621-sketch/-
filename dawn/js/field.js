@@ -1,6 +1,7 @@
 'use strict';
 /* 필드: 마을·던전을 걷고, 사람과 이야기하고, 상자를 열고, 적과 마주친다.
-   맵은 16×16 타일. 정적인 바닥·사물은 미리 그려 두고(물결 2장), 사람과 빛만 매 프레임 그린다. */
+   맵은 16×16 칸 좌표, 바닥·사물 그림은 칸마다 32×32(2배 밀도), 사람은 16×16 도트를 칸 크기로.
+   정적인 바닥·사물은 미리 그려 두고(물결 2장), 사람·키 큰 사물(나무·등불·수정)·빛은 매 프레임 y 순서로 그린다. */
 
 const Field = (() => {
   const DIRV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -52,90 +53,155 @@ const Field = (() => {
     encSteps = e ? e.rate[0] + Math.floor(Math.random() * (e.rate[1] - e.rate[0])) : 999;
   }
 
-  /* ── 정적 층 그리기 ── */
+  /* ── 정적 층 그리기 (칸마다 32×32, 사람 그림과 같은 밀도) ── */
+  const TP = 32;
+  let props = [];   // 키 큰 사물(나무·등불·수정): 사람과 함께 y 순서로 그린다
   function buildLayers() {
+    props = [];
     for (let f = 0; f < 2; f++) {
-      const c = layers[f] && layers[f].width === map.w * 16 && layers[f].height === map.h * 16 ? layers[f] : document.createElement('canvas');
-      c.width = map.w * 16; c.height = map.h * 16;
+      const c = layers[f] && layers[f].width === map.w * TP && layers[f].height === map.h * TP ? layers[f] : document.createElement('canvas');
+      c.width = map.w * TP; c.height = map.h * TP;
       const g = c.getContext('2d');
       g.imageSmoothingEnabled = false;
       g.clearRect(0, 0, c.width, c.height);
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawTile(g, x, y, f);
+      for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawEdges(g, x, y, f);
+      for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawThing(g, x, y, f);
+      if (f === 0) props = props.slice(); else props.length = props.length / 2;
       // 두 칸에 걸친 종은 이웃 칸을 다 그린 뒤 가운데에 얹는다
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w - 1; x++) {
-        if (map.tiles[y][x] === 'b' && map.tiles[y][x + 1] === 'b' && tileAt(x - 1, y) !== 'b') spr(g, 'bell', x, y, 8, 0);
+        if (map.tiles[y][x] === 'b' && map.tiles[y][x + 1] === 'b' && tileAt(x - 1, y) !== 'b') spr(g, 'bell', x, y, 16, 0);
       }
       layers[f] = c;
     }
   }
   const hash = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;
+  // 바닥으로 덮인 칸(풀·흙 위에 사물이 놓인 칸 포함)
+  const GROUNDY = new Set(['.', ',', '*', '%', 'T', 'P', 'C', 'B', 'R', 'l', 's', 'x', '=', 'c']);
   function ground(g, x, y) {
     const below = tileAt(x, y + 1), up = tileAt(x, y - 1);
     const near = [tileAt(x - 1, y), tileAt(x + 1, y), up, below];
-    if (near.includes('_') && !near.includes('.') ) g.drawImage(T.carpet, x * 16, y * 16);
-    else g.drawImage(T.ground[hash(x, y) % 4], x * 16, y * 16);
+    if (near.includes('_') && !near.includes('.')) g.drawImage(T.carpet, x * TP, y * TP);
+    else g.drawImage(T.ground[hash(x, y) % 4], x * TP, y * TP);
   }
-  function spr(g, name, x, y, ox = 0, oy = 0) { const s = Gfx.sprite(name); if (s) g.drawImage(s, x * 16 + ox, y * 16 + oy); }
+  // 16 밀도 그림은 EPX 로 키워서 얹는다
+  function spr(g, name, x, y, ox = 0, oy = 0) { const s = Gfx.sprite(name, 'x'); if (s) g.drawImage(s, x * TP + ox, y * TP + oy); }
+  // 고해상도 사물: 그림 아래 가운데를 칸 아래 가운데에
+  function hd(g, name, x, y, oy = 0) {
+    const s = Gfx.sprite(name);
+    if (s) g.drawImage(s, Math.round(x * TP + (TP - s.width) / 2), (y + 1) * TP - s.height + oy);
+  }
+  function blob(g, x, y, rx, ry, a = 0.26) {
+    g.fillStyle = `rgba(10,8,20,${a})`;
+    g.beginPath(); g.ellipse(x * TP + TP / 2 + 2, y * TP + TP - 4, rx, ry, 0, 0, Math.PI * 2); g.fill();
+  }
+  const propName = (n) => Gfx.isHD('o_' + n) ? 'o_' + n : null;
   function drawTile(g, x, y, f) {
     const ch = map.tiles[y][x];
-    const th = Gfx.THEMES[theme];
-    const X = x * 16, Y = y * 16;
+    const X = x * TP, Y = y * TP;
     switch (ch) {
       case '.': g.drawImage(T.ground[hash(x, y) % 4], X, Y); break;
       case ',': g.drawImage(T.ground2, X, Y); break;
       case ':': g.drawImage(T.path, X, Y); break;
       case '_': g.drawImage(T.carpet, X, Y); break;
-      case '*': g.drawImage(T.ground[hash(x, y) % 4], X, Y); spr(g, th.deco, x, y); break;
-      case '%': g.drawImage(T.ground[hash(x, y) % 4], X, Y); spr(g, th.rubble, x, y); break;
       case '~': g.drawImage(T.water[f], X, Y); break;
       case '+': g.drawImage(T.water[f], X, Y); g.drawImage(T.bridge, X, Y); break;
-      case 'T': ground(g, x, y); spr(g, th.tree, x, y); break;
-      case 'P': ground(g, x, y); spr(g, th.tree2, x, y); break;
-      case 'C': ground(g, x, y); spr(g, th.cactus, x, y); break;
-      case 'B': ground(g, x, y); spr(g, theme === 'snow' || theme === 'ice' ? 'bush_snow' : 'bush', x, y); break;
-      case 'R': ground(g, x, y); spr(g, theme === 'desert' || theme === 'tomb' ? 'rock_sand' : (theme === 'snow' || theme === 'ice' ? 'rock_ice' : 'rock'), x, y); break;
       case '#': {
         const below = tileAt(x, y + 1);
         if (below === '#' || below === '^' || y === map.h - 1) g.drawImage(T.wallTop, X, Y);
-        else { g.drawImage(T.wall[hash(x, y) % 3], X, Y); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(X, Y + 14, 16, 2); }
+        else { g.drawImage(T.wall[hash(x, y) % 3], X, Y); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(X, Y + 29, TP, 3); }
         break;
       }
-      case '|': g.drawImage(T.ground[hash(x, y) % 4], X, Y); g.drawImage(T.pillar, X, Y); break;
-      case '=': ground(g, x, y); spr(g, 'fence', x, y); break;
+      case '|': g.drawImage(T.ground[hash(x, y) % 4], X, Y); break;
       case '^': g.drawImage(T.roof, X, Y); break;
-      case 'H': g.drawImage(T.house, X, Y); break;
-      case 'n': g.drawImage(T.house, X, Y); spr(g, 'window', x, y); break;
-      case 'o': {
+      case 'H': case 'n': g.drawImage(T.house, X, Y); break;
+      case 'o': case 'b': {
         const l = tileAt(x - 1, y), r = tileAt(x + 1, y);
-        if (l === '#' || r === '#') g.drawImage(T.wall[0], X, Y); else g.drawImage(T.house, X, Y);
+        if (l === '#' || r === '#') g.drawImage(T.wall[ch === 'b' ? 1 : 0], X, Y);
+        else if (ch === 'o') g.drawImage(T.house, X, Y);
+        else ground(g, x, y);
+        break;
+      }
+      default:
+        if (GROUNDY.has(ch)) ground(g, x, y); else g.drawImage(T.ground[0], X, Y);
+    }
+  }
+  /* 경계: 풀이 길로 번지고, 물가에는 둑과 물거품, 벽 아래에는 그늘 */
+  function drawEdges(g, x, y) {
+    const ch = map.tiles[y][x];
+    const X = x * TP, Y = y * TP;
+    const dark = Gfx.THEMES[theme].dark;
+    const maskOf = (test) => { let m = 0; [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]].forEach(([dx, dy], k) => { const t = tileAt(x + dx, y + dy); if (t !== '#' && test(t)) m |= 1 << k; }); return m; };
+    if (ch === ',' && !dark) {
+      const m = maskOf(t => GROUNDY.has(t) && t !== ',');
+      if (m) g.drawImage(Gfx.edge(theme, 'soft', m, T.ground[hash(x, y) % 4]), X, Y);
+    } else if (ch === ':' && !dark) {
+      const m = maskOf(t => GROUNDY.has(t));
+      if (m) g.drawImage(Gfx.edge(theme, 'path', m, T.ground[hash(x, y) % 4]), X, Y);
+    } else if (ch === '~') {
+      const m = maskOf(t => t !== '~' && t !== '+');
+      if (m) g.drawImage(Gfx.edge(theme, 'water', m, tileAt(x, y - 1) === ':' ? T.path : T.ground[hash(x, y) % 4]), X, Y);
+    }
+    // 벽·지붕 아래 칸에 드리운 그늘
+    const up = tileAt(x, y - 1);
+    if (ch !== '#' && ch !== '^' && (up === '#' || up === 'H' || up === 'n' || up === 'o') && y > 0) {
+      const gr = g.createLinearGradient(0, Y, 0, Y + 12);
+      gr.addColorStop(0, 'rgba(10,6,20,.38)'); gr.addColorStop(1, 'rgba(10,6,20,0)');
+      g.fillStyle = gr; g.fillRect(X, Y, TP, 12);
+    }
+  }
+  function drawThing(g, x, y) {
+    const ch = map.tiles[y][x];
+    const th = Gfx.THEMES[theme];
+    const X = x * TP, Y = y * TP;
+    const snowy = theme === 'snow' || theme === 'ice', sandy = theme === 'desert' || theme === 'tomb';
+    const tall = (n) => {
+      const p = propName(n);
+      if (p) { blob(g, x, y, 13, 4.5); props.push({ x, y, name: p }); } else spr(g, n, x, y);
+    };
+    switch (ch) {
+      case '*': spr(g, th.deco, x, y); break;
+      case '%': spr(g, th.rubble, x, y); break;
+      case 'T': tall(th.tree); break;
+      case 'P': tall(th.tree2); break;
+      case 'C': tall(th.cactus); break;
+      case 'B': blob(g, x, y, 12, 4); hd(g, snowy ? 'o_bush_snow' : sandy ? 'o_bush_dry' : 'o_bush', x, y, -2); break;
+      case 'R': blob(g, x, y, 12, 4); hd(g, sandy ? 'o_rock_sand' : snowy ? 'o_rock_ice' : 'o_rock', x, y, -2); break;
+      case '|': g.drawImage(T.pillar, X, Y); break;
+      case '=': hd(g, 'o_fence', x, y, -2); break;
+      case 'n': spr(g, 'window', x, y); break;
+      case 'o': {
         const door = map.doors.find(d => d.x === x && d.y === y);
         spr(g, 'door', x, y);
         if (door && (door.kind === 'shop' || door.kind === 'inn')) {
           const ic = door.kind === 'inn' ? 'potion_gold' : (door.shop || '').endsWith('gear') ? 'sword' : 'potion';
           const s = Gfx.sprite(ic);
-          g.fillStyle = '#3e2418'; g.fillRect(X + 3, Y - 7, 10, 9);
-          g.fillStyle = '#d9a866'; g.fillRect(X + 4, Y - 6, 8, 7);
-          if (s) g.drawImage(s, X + 4, Y - 6, 8, 8);
+          g.fillStyle = '#3e2418'; g.fillRect(X + 6, Y - 14, 20, 18);
+          g.fillStyle = '#d9a866'; g.fillRect(X + 8, Y - 12, 16, 14);
+          g.fillStyle = '#f3d2a2'; g.fillRect(X + 8, Y - 12, 16, 1);
+          if (s) g.drawImage(s, X + 8, Y - 12, 16, 16);
         }
         break;
       }
       case 'b': {
         const l = tileAt(x - 1, y), r = tileAt(x + 1, y);
-        if (l === '#' || r === '#') g.drawImage(T.wall[1], X, Y); else ground(g, x, y);
         if (l === 'b' || r === 'b') break;
         spr(g, 'bell', x, y);
         break;
       }
-      case 'l': ground(g, x, y); spr(g, 'lamp', x, y); break;
+      case 'l': blob(g, x, y, 7, 3); props.push({ x, y, name: 'o_lamp' }); break;
       case 'c': {
-        ground(g, x, y);
         const c = map.chests.find(o => o.x === x && o.y === y);
-        spr(g, c && G().opened[c.id] ? 'chest_open' : 'chest', x, y);
+        blob(g, x, y, 12, 3.5);
+        hd(g, c && G().opened[c.id] ? 'o_chest_open' : 'o_chest', x, y, -2);
         break;
       }
-      case 'x': ground(g, x, y); g.drawImage(T.crystal, X, Y); break;
-      case 's': ground(g, x, y); spr(g, 'sign', x, y); break;
-      default: g.drawImage(T.ground[0], X, Y);
+      case 'x': {
+        g.fillStyle = 'rgba(160,120,255,.25)'; g.beginPath(); g.ellipse(X + TP / 2, Y + TP - 5, 11, 4, 0, 0, Math.PI * 2); g.fill();
+        props.push({ x, y, name: theme === 'tower' ? 'o_save_gold' : 'o_save', bob: true });
+        break;
+      }
+      case 's': blob(g, x, y, 9, 3); hd(g, 'o_sign', x, y, -1); break;
     }
   }
 
@@ -359,7 +425,7 @@ const Field = (() => {
     if (!map) return;
     const f = Gfx.fit(cv);
     view.W = f.W; view.H = f.H;
-    const S = view.S = Math.max(2, Math.round(Math.min(f.W, f.H) / (16 * 11)));
+    const S = view.S = Math.max(2, 2 * Math.round(Math.min(f.W, f.H) / (32 * 11)));
     const TS = 16 * S;
     const mw = map.w * TS, mh = map.h * TS;
     let cx = (player.fx + 0.5) * TS - f.W / 2, cy = (player.fy + 0.5) * TS - f.H / 2;
@@ -389,8 +455,13 @@ const Field = (() => {
       ctx.fillRect(Math.round(x - a), Math.round(y - w / 2), a * 2, w);
       ctx.fillRect(Math.round(x - w / 2), Math.round(y - a), w, a * 2);
     }
-    // 사람들 (y 순서)
+    // 사람들과 키 큰 사물 (y 순서)
     const actors = npcs.filter(n => n.vis).map(n => ({ y: n.fy, draw: () => drawNpc(n, TS, cx, cy, S) }));
+    for (const p of props) {
+      const x = p.x * TS - cx, y = p.y * TS - cy;
+      if (x < -TS * 2 || y < -TS * 2 || x > f.W + TS || y > f.H + TS * 2) continue;
+      actors.push({ y: p.y - 0.01, draw: () => drawProp(p, x, y, TS) });
+    }
     actors.push({ y: player.fy, draw: () => drawPlayer(TS, cx, cy, S) });
     actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
 
@@ -403,6 +474,24 @@ const Field = (() => {
       ctx.fillStyle = { fly: `rgba(230,255,150,${a * 0.8})`, snow: 'rgba(255,255,255,.85)', sand: `rgba(250,225,170,${0.5 * a})`, spore: `rgba(190,240,170,${0.6 * a})`, mote: `rgba(200,170,255,${a})`, ember: `rgba(255,${150 + 80 * a | 0},90,${a})` }[p.kind];
       ctx.fillRect(Math.round(x), Math.round(y), sz, sz);
     }
+  }
+  // 고해상도 그림을 칸 아래 가운데에 맞춰 그린다(밀도 32 → 화면 TS)
+  function drawHD(s, x, y, TS, oy = 0) {
+    const k = TS / TP, w = s.width * k, h = s.height * k;
+    ctx.drawImage(s, Math.round(x + (TS - w) / 2), Math.round(y + TS - h + oy), Math.round(w), Math.round(h));
+  }
+  function drawProp(p, x, y, TS) {
+    const s = Gfx.sprite(p.name);
+    if (!s) return;
+    if (p.bob) {
+      const b = Math.sin(time / 500 + p.x) * TS / 16;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const rg = ctx.createRadialGradient(x + TS / 2, y + TS * 0.2, 0, x + TS / 2, y + TS * 0.2, TS * 0.9);
+      rg.addColorStop(0, `rgba(170,130,255,${0.32 + 0.1 * Math.sin(time / 300)})`); rg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = rg; ctx.fillRect(x - TS, y - TS, TS * 3, TS * 3);
+      ctx.restore();
+      drawHD(s, x, y, TS, -TS * 0.18 + b);
+    } else drawHD(s, x, y, TS);
   }
   function shadow(x, y, TS, S) {
     ctx.fillStyle = 'rgba(0,0,0,.28)';
