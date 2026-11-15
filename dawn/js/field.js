@@ -38,6 +38,8 @@ const Field = (() => {
       else if (ch === 'n') lights.push({ x: xx + 0.5, y: yy + 0.6, r: 1.8, c: [255, 190, 100], a: 0.45 });
       else if (ch === 'b') lights.push({ x: xx + 0.5, y: yy + 0.5, r: 3, c: [255, 220, 120], a: 0.5, bell: true });
     }
+    lights.push(...torches);
+    smoke = [];
     parts = [];
     resetEnc();
     encGrace = 4;
@@ -55,9 +57,29 @@ const Field = (() => {
 
   /* ── 정적 층 그리기 (칸마다 32×32, 사람 그림과 같은 밀도) ── */
   const TP = 32;
-  let props = [];   // 키 큰 사물(나무·등불·수정): 사람과 함께 y 순서로 그린다
+  let props = [];   // 키 큰 사물(나무·등불·수정·건물): 사람과 함께 y 순서로 그린다
+  let bcells = new Set(), torches = [], waters = [], chimneys = [], smoke = [];
+  /* 지붕 줄(^) 바로 아래가 벽·창·문(H n o)인 덩어리를 건물 한 채로 본다 */
+  function findBuildings() {
+    const out = [];
+    bcells = new Set();
+    for (let y = 0; y < map.h - 1; y++) for (let x = 0; x < map.w; x++) {
+      if (map.tiles[y][x] !== '^' || (x > 0 && map.tiles[y][x - 1] === '^')) continue;
+      let w = 0; while (x + w < map.w && map.tiles[y][x + w] === '^') w++;
+      const cells = [];
+      for (let i = 0; i < w; i++) cells.push(map.tiles[y + 1][x + i]);
+      if (!cells.every(c => c === 'H' || c === 'n' || c === 'o')) continue;
+      const doors = cells.map((c, i) => c === 'o' ? map.doors.find(d => d.x === x + i && d.y === y + 1) || null : null);
+      const h = Scenery.hsh(x, y);
+      const chimney = w >= 3 && h % 3 !== 0 ? (h % 2 ? w - 1 : 0) : null;
+      out.push({ x, y, w, cells, doors, chimney });
+      for (let i = 0; i < w; i++) { bcells.add((x + i) + ',' + y); bcells.add((x + i) + ',' + (y + 1)); }
+    }
+    return out;
+  }
   function buildLayers() {
-    props = [];
+    props = []; torches = []; waters = []; chimneys = [];
+    const blds = findBuildings();
     for (let f = 0; f < 2; f++) {
       const c = layers[f] && layers[f].width === map.w * TP && layers[f].height === map.h * TP ? layers[f] : document.createElement('canvas');
       c.width = map.w * TP; c.height = map.h * TP;
@@ -66,8 +88,21 @@ const Field = (() => {
       g.clearRect(0, 0, c.width, c.height);
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawTile(g, x, y, f);
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawEdges(g, x, y, f);
+      // 넓은 색 얼룩(부드럽게 키워 덮는다)
+      g.save(); g.imageSmoothingEnabled = true; g.globalAlpha = Gfx.THEMES[theme].dark ? 0.07 : 0.11;
+      g.drawImage(Scenery.patches(map.w, map.h, mapId.length * 97 + map.w), -TP * 1.5, -TP * 1.5, (Math.ceil(map.w / 3) + 2) * TP * 3, (Math.ceil(map.h / 3) + 2) * TP * 3);
+      g.restore();
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) drawThing(g, x, y, f);
-      if (f === 0) props = props.slice(); else props.length = props.length / 2;
+      // 건물: 오른쪽 아래로 드리운 그림자 + 한 장 그림(사람과 앞뒤 순서로)
+      for (const b of blds) {
+        g.fillStyle = 'rgba(10,6,20,.22)';
+        g.beginPath(); g.moveTo((b.x + b.w) * TP + 6, b.y * TP - 8); g.lineTo((b.x + b.w) * TP + 16, b.y * TP); g.lineTo((b.x + b.w) * TP + 16, (b.y + 2) * TP + 6); g.lineTo(b.x * TP + 10, (b.y + 2) * TP + 6); g.lineTo(b.x * TP, (b.y + 2) * TP); g.lineTo((b.x + b.w) * TP + 6, (b.y + 2) * TP); g.closePath(); g.fill();
+        if (f === 0) {
+          const im = Scenery.building(theme, b);
+          props.push({ x: b.x, y: b.y + 1, w: b.w, img: im });
+          if (b.chimney !== null) chimneys.push({ x: (b.x + b.chimney) * TP + Scenery.EAVE + 10 - Scenery.EAVE + 6, y: b.y * TP - Scenery.RISE });
+        }
+      }
       // 두 칸에 걸친 종은 이웃 칸을 다 그린 뒤 가운데에 얹는다
       for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w - 1; x++) {
         if (map.tiles[y][x] === 'b' && map.tiles[y][x + 1] === 'b' && tileAt(x - 1, y) !== 'b') spr(g, 'bell', x, y, 16, 0);
@@ -95,25 +130,63 @@ const Field = (() => {
     g.fillStyle = `rgba(10,8,20,${a})`;
     g.beginPath(); g.ellipse(x * TP + TP / 2 + 2, y * TP + TP - 4, rx, ry, 0, 0, Math.PI * 2); g.fill();
   }
-  const propName = (n) => Gfx.isHD('o_' + n) ? 'o_' + n : null;
+  // 같은 종류라도 칸마다 모양 변형(_2, _3)을 골라 숲이 한 그림의 반복으로 보이지 않게
+  const variant = (base, x, y) => {
+    const list = [base, base + '_2', base + '_3'].filter(n => Gfx.isHD(n));
+    return list[Scenery.hsh(x * 11 + 7, y * 17 + 3) % list.length];
+  };
+  const propName = (n, x = 0, y = 0) => Gfx.isHD('o_' + n) ? variant('o_' + n, x, y) : null;
+  const isWallish = (t) => t === '#' || t === '^';
   function drawTile(g, x, y, f) {
     const ch = map.tiles[y][x];
     const X = x * TP, Y = y * TP;
+    if (bcells.has(x + ',' + y)) { ground(g, x, y); return; }
     switch (ch) {
-      case '.': g.drawImage(T.ground[hash(x, y) % 4], X, Y); break;
+      case '.': {
+        g.drawImage(T.ground[hash(x, y) % 4], X, Y);
+        const h2 = Scenery.hsh(x * 7 + 3, y * 13 + 5);
+        if (h2 % 6 === 0) Scenery.decal(g, X, Y, theme, h2 >> 3);
+        break;
+      }
       case ',': g.drawImage(T.ground2, X, Y); break;
       case ':': g.drawImage(T.path, X, Y); break;
       case '_': g.drawImage(T.carpet, X, Y); break;
-      case '~': g.drawImage(T.water[f], X, Y); break;
+      case '~': g.drawImage(T.water[f], X, Y); if (f === 0) waters.push([x, y]); break;
       case '+': g.drawImage(T.water[f], X, Y); g.drawImage(T.bridge, X, Y); break;
       case '#': {
         const below = tileAt(x, y + 1);
-        if (below === '#' || below === '^' || y === map.h - 1) g.drawImage(T.wallTop, X, Y);
-        else { g.drawImage(T.wall[hash(x, y) % 3], X, Y); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(X, Y + 29, TP, 3); }
+        const th = Gfx.THEMES[theme];
+        if (!th.dark && isWallish(below) && below !== '^') {
+          // 바깥 건물(종탑·성)의 벽은 위아래 모두 벽돌 정면으로, 맨 윗줄에는 갓돌
+          g.drawImage(T.wall[hash(x, y) % 3], X, Y);
+          if (!isWallish(tileAt(x, y - 1))) { g.fillStyle = '#1a1020'; g.fillRect(X, Y, TP, 1); g.fillStyle = Gfx.tone(th.wall[0], 1.25); g.fillRect(X, Y + 1, TP, 4); g.fillStyle = Gfx.tone(th.wall[0], 0.7); g.fillRect(X, Y + 5, TP, 1); }
+          if (!isWallish(tileAt(x - 1, y))) { g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(X, Y, 2, TP); }
+          if (!isWallish(tileAt(x + 1, y))) { g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(X + TP - 3, Y, 3, TP); }
+        } else if (below === '#' || below === '^' || y === map.h - 1) {
+          // 벽 윗면: 바닥과 닿은 쪽에 테두리, 사방이 벽이면 더 깊게
+          const open = (dx, dy) => { const t = tileAt(x + dx, y + dy); return !(isWallish(t) || (x + dx < 0 || y + dy < 0 || x + dx >= map.w || y + dy >= map.h)); };
+          const m = (open(0, -1) ? 1 : 0) | (open(1, 0) ? 2 : 0) | (open(0, 1) ? 4 : 0) | (open(-1, 0) ? 8 : 0);
+          let deep = true;
+          for (let dy = -1; dy <= 1 && deep; dy++) for (let dx = -1; dx <= 1; dx++) if (open(dx, dy)) { deep = false; break; }
+          Scenery.wallTop(g, X, Y, th, m, deep, hash(x, y));
+        } else {
+          g.drawImage(T.wall[hash(x, y) % 3], X, Y); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(X, Y + 29, TP, 3);
+          const h2 = Scenery.hsh(x * 5 + 1, y * 3 + 7);
+          const torch = th.dark && x % 3 === 1 && h2 % 3 === 0 && WALK.has(below);
+          if (Scenery.wallDeco(g, X, Y, theme, h2 >> 2, torch) && f === 0) torches.push({ x: x + 0.5, y: y + 0.3, r: 2.6, c: [255, 170, 80], a: 0.5 });
+        }
         break;
       }
       case '|': g.drawImage(T.ground[hash(x, y) % 4], X, Y); break;
-      case '^': g.drawImage(T.roof, X, Y); break;
+      case '^': {
+        g.drawImage(T.roof, X, Y);
+        const up = tileAt(x, y - 1), dn = tileAt(x, y + 1), l = tileAt(x - 1, y), r = tileAt(x + 1, y);
+        if (up !== '^') { g.fillStyle = '#1a1020'; g.fillRect(X, Y, TP, 1); g.fillStyle = Gfx.tone(Gfx.THEMES[theme].roof[0], 1.15); g.fillRect(X, Y + 1, TP, 3); }
+        if (l !== '^') { g.fillStyle = '#1a1020'; g.fillRect(X, Y, 1, TP); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(X + 1, Y, 2, TP); }
+        if (r !== '^') { g.fillStyle = '#1a1020'; g.fillRect(X + TP - 1, Y, 1, TP); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(X + TP - 3, Y, 2, TP); }
+        if (dn !== '^') { g.fillStyle = '#4a2c1a'; g.fillRect(X, Y + TP - 4, TP, 4); g.fillStyle = '#6e4228'; g.fillRect(X, Y + TP - 4, TP, 1); }
+        break;
+      }
       case 'H': case 'n': g.drawImage(T.house, X, Y); break;
       case 'o': case 'b': {
         const l = tileAt(x - 1, y), r = tileAt(x + 1, y);
@@ -150,14 +223,15 @@ const Field = (() => {
       g.fillStyle = gr; g.fillRect(X, Y, TP, 12);
     }
   }
-  function drawThing(g, x, y) {
+  function drawThing(g, x, y, f) {
+    const keep = (p) => { if (f === 0) props.push(p); };
     const ch = map.tiles[y][x];
     const th = Gfx.THEMES[theme];
     const X = x * TP, Y = y * TP;
     const snowy = theme === 'snow' || theme === 'ice', sandy = theme === 'desert' || theme === 'tomb';
     const tall = (n) => {
-      const p = propName(n);
-      if (p) { blob(g, x, y, 13, 4.5); props.push({ x, y, name: p }); } else spr(g, n, x, y);
+      const p = propName(n, x, y);
+      if (p) { blob(g, x, y, 13, 4.5); keep({ x, y, name: p }); } else spr(g, n, x, y);
     };
     switch (ch) {
       case '*': spr(g, th.deco, x, y); break;
@@ -165,14 +239,15 @@ const Field = (() => {
       case 'T': tall(th.tree); break;
       case 'P': tall(th.tree2); break;
       case 'C': tall(th.cactus); break;
-      case 'B': blob(g, x, y, 12, 4); hd(g, snowy ? 'o_bush_snow' : sandy ? 'o_bush_dry' : 'o_bush', x, y, -2); break;
-      case 'R': blob(g, x, y, 12, 4); hd(g, sandy ? 'o_rock_sand' : snowy ? 'o_rock_ice' : 'o_rock', x, y, -2); break;
+      case 'B': blob(g, x, y, 12, 4); hd(g, variant(snowy ? 'o_bush_snow' : sandy ? 'o_bush_dry' : 'o_bush', x, y), x, y, -2); break;
+      case 'R': blob(g, x, y, 12, 4); hd(g, variant(sandy ? 'o_rock_sand' : snowy ? 'o_rock_ice' : 'o_rock', x, y), x, y, -2); break;
       case '|': g.drawImage(T.pillar, X, Y); break;
       case '=': hd(g, 'o_fence', x, y, -2); break;
-      case 'n': spr(g, 'window', x, y); break;
+      case 'n': if (!bcells.has(x + ',' + y)) spr(g, 'window', x, y); break;
       case 'o': {
+        if (bcells.has(x + ',' + y)) break;
         const door = map.doors.find(d => d.x === x && d.y === y);
-        spr(g, 'door', x, y);
+        Scenery.doorAt(g, X + 7, Y + 6, theme === 'desert' || theme === 'tomb', null);
         if (door && (door.kind === 'shop' || door.kind === 'inn')) {
           const ic = door.kind === 'inn' ? 'potion_gold' : (door.shop || '').endsWith('gear') ? 'sword' : 'potion';
           const s = Gfx.sprite(ic);
@@ -189,7 +264,7 @@ const Field = (() => {
         spr(g, 'bell', x, y);
         break;
       }
-      case 'l': blob(g, x, y, 7, 3); props.push({ x, y, name: 'o_lamp' }); break;
+      case 'l': blob(g, x, y, 7, 3); keep({ x, y, name: 'o_lamp' }); break;
       case 'c': {
         const c = map.chests.find(o => o.x === x && o.y === y);
         blob(g, x, y, 12, 3.5);
@@ -198,7 +273,7 @@ const Field = (() => {
       }
       case 'x': {
         g.fillStyle = 'rgba(160,120,255,.25)'; g.beginPath(); g.ellipse(X + TP / 2, Y + TP - 5, 11, 4, 0, 0, Math.PI * 2); g.fill();
-        props.push({ x, y, name: theme === 'tower' ? 'o_save_gold' : 'o_save', bob: true });
+        keep({ x, y, name: theme === 'tower' ? 'o_save_gold' : 'o_save', bob: true });
         break;
       }
       case 's': blob(g, x, y, 9, 3); hd(g, 'o_sign', x, y, -1); break;
@@ -455,16 +530,49 @@ const Field = (() => {
       ctx.fillRect(Math.round(x - a), Math.round(y - w / 2), a * 2, w);
       ctx.fillRect(Math.round(x - w / 2), Math.round(y - a), w, a * 2);
     }
+    // 물 반짝임
+    const k = TS / TP;
+    for (const [wx, wy] of waters) {
+      const sx = wx * TS - cx, sy = wy * TS - cy;
+      if (sx < -TS || sy < -TS || sx > f.W || sy > f.H) continue;
+      const ph = (time / 90 + ((wx * 37 + wy * 61) % 97)) % 60;
+      if (ph < 6) {
+        const a = Math.sin(ph / 6 * Math.PI), ox = ((wx * 13 + wy * 7) % 20) + 6, oy = ((wx * 5 + wy * 11) % 18) + 7, u = Math.max(1, Math.round(k));
+        ctx.fillStyle = `rgba(255,255,255,${0.85 * a})`;
+        ctx.fillRect(Math.round(sx + ox * k - u * 2), Math.round(sy + oy * k), u * 5, u); ctx.fillRect(Math.round(sx + ox * k), Math.round(sy + oy * k - u * 2), u, u * 5);
+      }
+    }
     // 사람들과 키 큰 사물 (y 순서)
     const actors = npcs.filter(n => n.vis).map(n => ({ y: n.fy, draw: () => drawNpc(n, TS, cx, cy, S) }));
     for (const p of props) {
       const x = p.x * TS - cx, y = p.y * TS - cy;
-      if (x < -TS * 2 || y < -TS * 2 || x > f.W + TS || y > f.H + TS * 2) continue;
+      if (x < -TS * ((p.w || 1) + 2) || y < -TS * 2 || x > f.W + TS || y > f.H + TS * 3) continue;
       actors.push({ y: p.y - 0.01, draw: () => drawProp(p, x, y, TS) });
     }
     actors.push({ y: player.fy, draw: () => drawPlayer(TS, cx, cy, S) });
     actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
 
+    // 굴뚝 연기
+    if (chimneys.length && Math.random() < 0.06) for (const c of chimneys) smoke.push({ x: c.x + Math.random() * 4, y: c.y, t: 0, life: 2.4 + Math.random(), vx: 4 + Math.random() * 4 });
+    smoke = smoke.filter(s => (s.t += 1 / 60) < s.life);
+    for (const s of smoke) {
+      const a = (1 - s.t / s.life) * 0.4, r = (3 + s.t * 5) * k;
+      ctx.fillStyle = `rgba(200,196,210,${a})`;
+      ctx.beginPath(); ctx.arc(Math.round((s.x + s.vx * s.t) * k - cx), Math.round((s.y - s.t * 14) * k - cy), r, 0, Math.PI * 2); ctx.fill();
+    }
+    // 구름 그림자: 바깥 맵에서 천천히 흘러간다
+    if (!Gfx.THEMES[theme].dark) {
+      const cl = Scenery.cloudTex(), mw2 = map.w * TS, mh2 = map.h * TS;
+      ctx.save(); ctx.globalAlpha = 0.16;
+      for (let i = 0; i < 3; i++) {
+        const w = TS * (9 + i * 3), h = w * 0.62;
+        const px = ((time / 1000 * TS * 0.18 + i * mw2 * 0.41) % (mw2 + w)) - w - cx;
+        const py = ((i * 0.37 + 0.15) * (mh2 + h)) % (mh2 + h) - h * 0.5 - cy + Math.sin(time / 9000 + i) * TS;
+        if (px > f.W || py > f.H || px + w < 0 || py + h < 0) continue;
+        ctx.drawImage(cl, px, py, w, h);
+      }
+      ctx.restore();
+    }
     lighting(f, TS, cx, cy);
     // 날리는 것
     for (const p of parts) {
@@ -481,6 +589,11 @@ const Field = (() => {
     ctx.drawImage(s, Math.round(x + (TS - w) / 2), Math.round(y + TS - h + oy), Math.round(w), Math.round(h));
   }
   function drawProp(p, x, y, TS) {
+    if (p.img) {   // 건물: 지붕 줄 왼쪽 위 기준
+      const k = TS / TP, im = p.img;
+      ctx.drawImage(im.canvas, Math.round(x + im.ox * k), Math.round(y - TS + im.oy * k), Math.round(im.canvas.width * k), Math.round(im.canvas.height * k));
+      return;
+    }
     const s = Gfx.sprite(p.name);
     if (!s) return;
     if (p.bob) {

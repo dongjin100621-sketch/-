@@ -234,22 +234,38 @@ def speck(c, mat, n, seed, region, level):
             c.shadeat(x, y, level)
 
 
-def prop_tree(leaf, bark='#7a4e30', snow=False, w=40, h=52):
+TREE_SHAPES = {
+    1: [(0, 21, 15, 13), (-9.5, 28, 8.5, 7.5), (9.5, 28, 8.5, 7.5), (-1, 11, 10, 8), (-6, 36, 7, 5), (6.5, 36, 7, 5), (7, 15, 7, 6), (-8, 17, 7, 6)],
+    2: [(0, 22, 11, 12), (-6, 30, 7, 7), (6, 30, 7, 7), (0, 10, 8, 8), (1, 2, 5, 5), (-5, 16, 6, 6), (5, 17, 6, 6), (0, 36, 8, 5)],
+    3: [(-7, 20, 10, 10), (8, 23, 10, 10), (-10, 30, 8, 6), (11, 32, 8, 6), (0, 13, 9, 8), (-3, 33, 7, 5), (4, 34, 7, 5)],
+}
+
+
+def prop_tree(leaf, bark='#7a4e30', snow=False, w=40, h=52, v=1, fruit=None):
     c = Canvas(w, h)
     for k in ('l1', 'l2', 'l3'):
         c.material(k, leaf)
     c.material('bark', bark)
     cx = w / 2
     c.fill(poly([(cx - 3, 34), (cx + 3, 34), (cx + 3.5, 48), (cx + 6, 51), (cx - 6, 51), (cx - 3.5, 48)]), 'bark')
-    leaves(c, [(cx, 21, 15, 13), (cx - 9.5, 28, 8.5, 7.5), (cx + 9.5, 28, 8.5, 7.5), (cx - 1, 11, 10, 8), (cx - 6, 36, 7, 5), (cx + 6.5, 36, 7, 5), (cx + 7, 15, 7, 6), (cx - 8, 17, 7, 6)], ['l1', 'l2', 'l3'])
-    speck(c, 'l', 18, 7, (4, 4, w - 12, 30), 4)
-    speck(c, 'l', 14, 9, (6, 26, w - 4, 44), 1)
+    if v == 3:
+        c.fill(union(seg(cx - 1, 38, cx - 6, 26, 1.6), seg(cx + 1, 38, cx + 7, 28, 1.6)), 'bark')
+    leaves(c, [(cx + a, b, rx, ry) for a, b, rx, ry in TREE_SHAPES[v]], ['l1', 'l2', 'l3'])
+    speck(c, 'l', 18, 7 + v, (4, 2, w - 12, 30), 4)
+    speck(c, 'l', 14, 9 + v, (6, 24, w - 4, 44), 1)
+    if fruit:
+        import random
+        rr = random.Random(v * 31)
+        for _ in range(6):
+            x, y = rr.randint(6, w - 7), rr.randint(8, 34)
+            if c.mat[y][x] and c.mat[y][x].startswith('l'):
+                c.dot(x, y, fruit); c.dot(x + 1, y, fruit); c.dot(x, y - 1, '#ffffff')
     for x in range(int(cx) - 1, int(cx) + 2):
         c.shadeat(x, 41, 1)
     return c.render()
 
 
-def prop_pine(leaf, snow=False, w=36, h=56):
+def prop_pine(leaf, snow=False, w=36, h=56, v=1):
     c = Canvas(w, h)
     for k in ('l1', 'l2', 'l3'):
         c.material(k, leaf)
@@ -257,7 +273,8 @@ def prop_pine(leaf, snow=False, w=36, h=56):
     c.material('snow', '#f4f8ff')
     cx = w / 2
     c.fill(rect(int(cx) - 2, 44, int(cx) + 1, 54), 'bark')
-    tiers = [(cx, 3, 6, 16), (cx, 12, 10, 28), (cx, 22, 14, 40), (cx, 31, 16.5, 49)]
+    tiers = [(cx, 3, 6, 16), (cx, 12, 10, 28), (cx, 22, 14, 40), (cx, 31, 16.5, 49)] if v == 1 else \
+        [(cx, 1, 4.5, 11), (cx, 7, 7, 19), (cx, 14, 9.5, 28), (cx, 22, 11.5, 38), (cx, 30, 13.5, 48)]
     for i, (x, top, half, bot) in enumerate(tiers):
         c.fill(poly([(x, top), (x + half, bot), (x + half * 0.4, bot - 1.5), (x, bot + 0.5), (x - half * 0.45, bot - 1.5), (x - half, bot)]), ['l1', 'l2', 'l3'][i % 3])
         if snow:
@@ -266,43 +283,68 @@ def prop_pine(leaf, snow=False, w=36, h=56):
     return c.render()
 
 
-def prop_dead(bark, w=40, h=52):
+def prop_dead(bark, w=40, h=52, v=1):
     c = Canvas(w, h)
     c.material('bark', bark)
     c.material('bark2', bark)
     cx = w / 2
-    c.fill(poly([(cx - 3, 22), (cx + 3, 22), (cx + 3.5, 48), (cx + 6, 51), (cx - 6, 51), (cx - 3.5, 48)]), 'bark')
-    for a in [(cx, 24, cx - 11, 12, 1.4), (cx, 22, cx + 10, 8, 1.4), (cx - 6, 17, cx - 14, 14, 0.9), (cx + 5, 15, cx + 14, 15, 0.9), (cx, 23, cx + 2, 4, 1.2), (cx - 1, 30, cx - 13, 26, 1.0), (cx + 1, 32, cx + 12, 27, 1.0)]:
+    if v == 1:
+        c.fill(poly([(cx - 3, 22), (cx + 3, 22), (cx + 3.5, 48), (cx + 6, 51), (cx - 6, 51), (cx - 3.5, 48)]), 'bark')
+        br = [(cx, 24, cx - 11, 12, 1.4), (cx, 22, cx + 10, 8, 1.4), (cx - 6, 17, cx - 14, 14, 0.9), (cx + 5, 15, cx + 14, 15, 0.9), (cx, 23, cx + 2, 4, 1.2), (cx - 1, 30, cx - 13, 26, 1.0), (cx + 1, 32, cx + 12, 27, 1.0)]
+    else:
+        c.fill(poly([(cx + 2, 18), (cx + 7, 19), (cx + 3.5, 48), (cx + 6, 51), (cx - 6, 51), (cx - 3, 48)]), 'bark')
+        br = [(cx + 4, 20, cx + 13, 6, 1.3), (cx + 3, 26, cx - 9, 16, 1.2), (cx - 5, 19, cx - 8, 10, 0.8), (cx + 2, 34, cx + 13, 30, 1.0)]
+    for a in br:
         c.fill(seg(*a), 'bark2')
     return c.render()
 
 
-def prop_cactus(w=32, h=48):
+def prop_cactus(w=32, h=48, v=1):
     c = Canvas(w, h)
     c.material('cac', '#4f9a4a'); c.material('cac2', '#4f9a4a')
-    c.fill(seg(16, 10, 16, 45, 4.2), 'cac')
-    c.fill(union(seg(8, 18, 8, 28, 2.6), seg(8, 28, 13, 29, 2.6)), 'cac2')
-    c.fill(union(seg(24.5, 22, 24.5, 32, 2.6), seg(24.5, 32, 19, 33, 2.6)), 'cac2')
+    if v == 1:
+        c.fill(seg(16, 10, 16, 45, 4.2), 'cac')
+        c.fill(union(seg(8, 18, 8, 28, 2.6), seg(8, 28, 13, 29, 2.6)), 'cac2')
+        c.fill(union(seg(24.5, 22, 24.5, 32, 2.6), seg(24.5, 32, 19, 33, 2.6)), 'cac2')
+    else:
+        c.fill(seg(14, 20, 14, 45, 4.4), 'cac')
+        c.fill(union(seg(23, 24, 23, 33, 2.6), seg(23, 33, 17, 35, 2.6)), 'cac2')
+        c.fill(ell(25, 44, 4, 3), 'cac2')
     for x in (14, 18):
         for y in range(9, 44):
             if c.mat[y][x] == 'cac':
                 c.shadeat(x, y, 1 if x == 18 else 3)
-    c.dot(16, 6, '#ff7a9a'); c.dot(15, 7, '#ff7a9a'); c.dot(17, 7, '#ffb0c0')
+    if v == 1:
+        c.dot(16, 6, '#ff7a9a'); c.dot(15, 7, '#ff7a9a'); c.dot(17, 7, '#ffb0c0')
+    else:
+        c.dot(14, 16, '#ffd447'); c.dot(13, 17, '#ffd447'); c.dot(15, 17, '#fff4b0')
     return c.render()
 
 
-def prop_bush(leaf, w=32, h=26):
+def prop_bush(leaf, w=32, h=26, v=1, berry=None):
     c = Canvas(w, h)
     for k in ('l1', 'l2'):
         c.material(k, leaf)
-    leaves(c, [(16, 12, 9, 7.5), (8, 17, 7, 6), (24, 17, 7, 6), (16, 19, 8, 5.5)], ['l1', 'l2'])
+    if v == 1:
+        leaves(c, [(16, 12, 9, 7.5), (8, 17, 7, 6), (24, 17, 7, 6), (16, 19, 8, 5.5)], ['l1', 'l2'])
+    else:
+        leaves(c, [(11, 15, 8, 7), (21, 13, 8, 7.5), (16, 20, 10, 5)], ['l1', 'l2'])
+    if berry:
+        for x, y in ((9, 13), (14, 9), (20, 11), (24, 16), (12, 19), (18, 17)):
+            if c.mat[y][x]:
+                c.dot(x, y, berry); c.dot(x, y - 1, '#ffffff')
     speck(c, 'l', 10, 5, (3, 3, 26, 14), 4)
     return c.render()
 
 
-def prop_rock(col, w=32, h=26):
+def prop_rock(col, w=32, h=26, v=1):
     c = Canvas(w, h)
     c.material('r1', col); c.material('r2', col)
+    if v == 2:
+        c.fill(poly([(2, 24), (4, 16), (10, 11), (15, 13), (17, 24)]), 'r1')
+        c.fill(poly([(14, 24), (16, 10), (22, 6), (28, 10), (30, 24)]), 'r2')
+        c.fill(poly([(16, 10), (22, 6), (24, 9), (18, 13)]), 'r1')
+        return c.render()
     c.fill(poly([(3, 24), (5, 14), (11, 6), (20, 4), (27, 9), (30, 18), (29, 24)]), 'r1')
     c.fill(poly([(17, 24), (20, 13), (27, 9), (30, 18), (29, 24)]), 'r2')
     c.fill(poly([(5, 14), (11, 6), (20, 4), (21, 9), (12, 12)]), 'r1')
@@ -384,6 +426,13 @@ def prop_fence(w=32, h=28):
 
 
 PROPS = {
+    'o_tree_2': lambda: prop_tree('#56a046', v=2), 'o_tree_3': lambda: prop_tree('#428e3a', v=3, fruit='#e0503f'),
+    'o_tree_dusk_2': lambda: prop_tree('#e0884a', '#5a3028', v=2), 'o_tree_swamp_2': lambda: prop_tree('#4e6e3a', '#4a3a30', v=3),
+    'o_tree_dead_2': lambda: prop_dead('#6a5a5a', v=2),
+    'o_pine_2': lambda: prop_pine('#2a6e44', v=2), 'o_pine_snow_2': lambda: prop_pine('#356254', snow=True, v=2),
+    'o_cactus_2': lambda: prop_cactus(v=2),
+    'o_bush_2': lambda: prop_bush('#4a9440', v=2, berry='#e0503f'), 'o_bush_snow_2': lambda: prop_bush('#dfe8f2', v=2), 'o_bush_dry_2': lambda: prop_bush('#a89a4a', v=2),
+    'o_rock_2': lambda: prop_rock('#8a8698', v=2), 'o_rock_sand_2': lambda: prop_rock('#c8a068', v=2), 'o_rock_ice_2': lambda: prop_rock('#9ccae8', v=2),
     'o_tree': lambda: prop_tree('#4a9a40'), 'o_tree_dead': lambda: prop_dead('#6a5a5a'), 'o_tree_dusk': lambda: prop_tree('#d8683a', '#5a3028'),
     'o_tree_swamp': lambda: prop_tree('#5a7a40', '#4a3a30'),
     'o_pine': lambda: prop_pine('#2f7a48'), 'o_pine_snow': lambda: prop_pine('#3a6a5a', snow=True),
