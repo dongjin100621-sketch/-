@@ -1,0 +1,17 @@
+{
+  "name": "별을 삼킨 탑",
+  "short_name": "별을 삼킨 탑",
+  "description": "10층마다 모습이 바뀌는 50층 탑을 오르는 고화질 도트 액션 로그라이크",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#07040f",
+  "theme_color": "#07040f",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

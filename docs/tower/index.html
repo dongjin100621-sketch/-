@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07040f">
+<meta name="description" content="10층마다 모습이 바뀌는 50층 탑을 오르는 고화질 도트 액션 로그라이크">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="별을 삼킨 탑">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>별을 삼킨 탑</title>
+<link rel="preload" href="fonts/galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1066" height="600"></canvas>
+  <div id="ui"></div>
+</div>
+<div id="touch">
+  <div id="stickZone"><div id="stickBase"><div id="stickKnob"></div></div><span class="lbl">이동</span></div>
+  <div id="tBtns">
+    <button id="tSkill" aria-label="스킬">스킬</button>
+    <button id="tDash" aria-label="구르기">구르기</button>
+    <button id="tAtk" aria-label="공격">공격</button>
+  </div>
+  <button id="tPause" aria-label="멈춤">❚❚</button>
+</div>
+<p id="rotHint">↻ 휴대폰을 가로로 돌리면 화면이 더 크게 보여요</p>
+<noscript>자바스크립트를 켜야 플레이할 수 있습니다.</noscript>
+<script src="js/util.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/art.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/tiles.js"></script>
+<script src="js/level.js"></script>
+<script src="js/data.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/bosses.js"></script>
+<script src="js/input.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script>
+  (document.fonts && document.fonts.load ? document.fonts.load('22px Galmuri11') : Promise.resolve()).catch(() => {}).then(() => G.boot());
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
