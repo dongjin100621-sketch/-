@@ -35,7 +35,7 @@ window.App = (function () {
 
   const clone = v => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const DEFAULTS = {
-    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime' },
+    prefs: { name: '', theme: 'dark', city: null, seeded: false, sound: 'chime', earOnly: false, earSink: null, keepAwake: false },
     notes: [],
     todoLists: [{ id: 'inbox', name: '할 일' }],
     todos: [],
@@ -52,6 +52,14 @@ window.App = (function () {
     pomoLog: {},
     player: null,
     ambient: null,
+    eq: null,
+    routines: [],
+    routineLog: {},
+    journal: {},
+    health: {},
+    healthCfg: { waterGoal: 8, cupMl: 250, meds: [], bedtime: '23:30', bedRemind: false },
+    sleepLog: [],
+    sleepMode: null,
     ui: {},
     weather: null
   };
@@ -59,6 +67,7 @@ window.App = (function () {
   const data = {};
   for (const k of KEYS) data[k] = load(k, clone(DEFAULTS[k]));
   data.prefs = Object.assign(clone(DEFAULTS.prefs), data.prefs || {});
+  data.healthCfg = Object.assign(clone(DEFAULTS.healthCfg), data.healthCfg || {});
   if (!Array.isArray(data.todoLists) || !data.todoLists.length) data.todoLists = clone(DEFAULTS.todoLists);
 
   function save(key) { return persist(key, data[key]); }
@@ -209,7 +218,24 @@ window.App = (function () {
     swap: '<path d="M7 4 4 7l3 3M4 7h12M17 14l3 3-3 3M20 17H8"/>',
     flag: '<path d="M5 21V4M5 4.5h11l-2 4 2 4H5"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-    sparkle: '<path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6.5 6.5l2.3 2.3M15.2 15.2l2.3 2.3M6.5 17.5l2.3-2.3M15.2 8.8l2.3-2.3"/>'
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 16.8v.2"/>',
+    sparkle: '<path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6.5 6.5l2.3 2.3M15.2 15.2l2.3 2.3M6.5 17.5l2.3-2.3M15.2 8.8l2.3-2.3"/>',
+    moon: '<path d="M19.5 14.6A7.8 7.8 0 1 1 9.4 4.5a6.3 6.3 0 0 0 10.1 10.1z"/>',
+    sunrise: '<path d="M3 17.5h18M6.8 14a5.2 5.2 0 0 1 10.4 0M12 3.5v4M5.3 7.3l1.6 1.6M18.7 7.3l-1.6 1.6M8 21h8"/>',
+    book: '<path d="M6.5 3.5h11a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-11A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5z"/><path d="M8.5 3.5v17M11.5 8h4M11.5 11.5h4"/>',
+    heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/>',
+    drop: '<path d="M12 3.5s6 6.3 6 10.7a6 6 0 0 1-12 0C6 9.8 12 3.5 12 3.5z"/>',
+    pill: '<path d="M10.3 4.9a4.6 4.6 0 0 1 6.5 6.5l-5.4 5.4a4.6 4.6 0 0 1-6.5-6.5z"/><path d="m7.6 7.6 6.5 6.5"/>',
+    meal: '<path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M17.5 21V3c-2 0-3.5 2.5-3.5 6.5 0 2.6 1.2 3.5 3.5 3.5"/>',
+    dumbbell: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+    scale: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 10.5a4 4 0 0 1 7 0M12 10.5l1.6-2"/>',
+    bed: '<path d="M3 19V6M3 14h18v5M21 14v-1.5a3 3 0 0 0-3-3h-7.5V14"/><circle cx="6.8" cy="11" r="1.7"/>',
+    breath: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5" stroke-dasharray="2 3"/><circle cx="12" cy="12" r="9.5"/>',
+    mood1: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.3 16.6c1.1-1.5 2.3-2.1 3.7-2.1s2.6.6 3.7 2.1"/>',
+    mood2: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 16c1-.6 2-.9 3.2-.9s2.2.3 3.2.9"/>',
+    mood3: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 15.3h6.4"/>',
+    mood4: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 14.4c.9.9 2 1.4 3.2 1.4s2.3-.5 3.2-1.4"/>',
+    mood5: '<circle cx="12" cy="12" r="9"/><path d="M8.6 9.6c.4-.6.9-.9 1.4-.9M15.4 9.6c-.4-.6-.9-.9-1.4-.9"/><path d="M8 13.5h8c-.6 2-2.1 3.2-4 3.2s-3.4-1.2-4-3.2z"/>'
   };
   function icon(name, size = 20, cls = '') {
     return `<svg class="ico ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name] || ''}</svg>`;
@@ -325,30 +351,104 @@ window.App = (function () {
       bell: { label: '맑은 종', period: 2.8, play: (c, t, d) => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(c, f, t + i * 0.16, 1.8, { type: 'triangle', gain: 0.2, dest: d })) },
       marimba: { label: '마림바', period: 1.8, play: (c, t, d) => [784, 988, 1175, 988, 1568].forEach((f, i) => tone(c, f, t + i * 0.14, 0.35, { gain: 0.28, dest: d })) }
     };
-    function ring(kind) {
+    /* 이어폰 전용: 고른 출력 장치가 연결돼 있을 때만 소리를 내요. 확인할 수 없으면 false */
+    const sinkOk = () => typeof AudioContext !== 'undefined' && 'setSinkId' in AudioContext.prototype;
+    async function listOutputs() {
+      try { return (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput'); } catch (e) { return []; }
+    }
+    async function earReady() {
+      const sink = data.prefs.earSink;
+      if (!sink || !sinkOk()) return false;
+      const list = await listOutputs();
+      return list.some(d => d.deviceId === sink.id);
+    }
+    async function setSink(c, id) { try { if (c.setSinkId) await c.setSinkId(id || ''); return true; } catch (e) { return false; } }
+    function earMode() { return !!data.prefs.earOnly; }
+    function ring(kind, { onState, force } = {}) {
       const c = get();
       if (!c) return () => {};
       const p = PATTERNS[kind] || PATTERNS.chime;
-      const master = c.createGain();
-      master.gain.value = 0.9;
-      master.connect(c.destination);
-      let next = c.currentTime + 0.05;
-      const pump = () => { while (next < c.currentTime + 2.5) { p.play(c, next, master); next += p.period; } };
-      pump();
-      const timer = setInterval(pump, 400);
+      let master = null, timer = null, stopped = false, watch = null;
+      function begin() {
+        if (stopped || master) return;
+        master = c.createGain();
+        master.gain.value = 0.9;
+        master.connect(c.destination);
+        let next = c.currentTime + 0.05;
+        const pump = () => { while (next < c.currentTime + 2.5) { p.play(c, next, master); next += p.period; } };
+        pump();
+        timer = setInterval(pump, 400);
+      }
+      async function route() {
+        if (force || !earMode()) {
+          if (sinkOk() && data.prefs.earSink) await setSink(c, '');
+          begin(); onState && onState('speaker'); return;
+        }
+        if (await earReady()) {
+          await setSink(c, data.prefs.earSink.id);
+          begin(); onState && onState('ear'); return;
+        }
+        onState && onState('blocked');
+        // 이어폰이 나중에 연결되면 그때부터 울려요
+        if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+          watch = async () => {
+            if (stopped || master || !(await earReady())) return;
+            await setSink(c, data.prefs.earSink.id);
+            begin(); onState && onState('ear');
+          };
+          navigator.mediaDevices.addEventListener('devicechange', watch);
+        }
+      }
+      route();
       return () => {
+        stopped = true;
         clearInterval(timer);
-        try { master.gain.setTargetAtTime(0, c.currentTime, 0.04); } catch (e) { /* noop */ }
-        setTimeout(() => { try { master.disconnect(); } catch (e) { /* noop */ } }, 500);
+        if (watch) navigator.mediaDevices.removeEventListener('devicechange', watch);
+        if (!master) return;
+        const m = master;
+        try { m.gain.setTargetAtTime(0, c.currentTime, 0.04); } catch (e) { /* noop */ }
+        setTimeout(() => { try { m.disconnect(); } catch (e) { /* noop */ } }, 500);
       };
     }
-    function preview(kind) {
+    async function preview(kind) {
       const c = get();
-      if (!c) return;
+      if (!c) return 'none';
+      let state = 'speaker';
+      if (earMode()) {
+        if (await earReady()) { await setSink(c, data.prefs.earSink.id); state = 'ear'; }
+        else { toast('이어폰이 연결되지 않아 소리를 내지 않았어요'); return 'blocked'; }
+      } else if (sinkOk() && data.prefs.earSink) await setSink(c, '');
       const p = PATTERNS[kind] || PATTERNS.chime;
       p.play(c, c.currentTime + 0.03, c.destination);
+      return state;
     }
-    return { get, ring, preview, PATTERNS, state: () => (ctx ? ctx.state : 'none') };
+    async function pickOutput() {
+      if (!sinkOk()) return null;
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.selectAudioOutput) {
+          const d = await navigator.mediaDevices.selectAudioOutput();
+          return { id: d.deviceId, label: d.label || '선택한 이어폰' };
+        }
+        const list = await listOutputs();
+        if (!list.length) { toast('연결된 출력 장치를 찾지 못했어요'); return null; }
+        return await new Promise(res => {
+          let done = false;
+          modal({
+            title: '이어폰·헤드셋 고르기',
+            body: `<div class="sink-list">${list.map((d, n) => `<button type="button" class="btn sink-item" data-sink="${esc(d.deviceId)}" data-label="${esc(d.label || '출력 장치 ' + (n + 1))}">${esc(d.label || '출력 장치 ' + (n + 1))}</button>`).join('')}</div>`,
+            onMount(box, api) {
+              box.addEventListener('click', ev => {
+                const b = ev.target.closest('[data-sink]');
+                if (!b) return;
+                done = true; res({ id: b.dataset.sink, label: b.dataset.label }); api.close();
+              });
+            }
+          });
+          setTimeout(function w() { if (!done && document.querySelector('.modal-wrap')) setTimeout(w, 500); else if (!done) res(null); }, 500);
+        });
+      } catch (e) { return null; }
+    }
+    return { get, ring, preview, pickOutput, sinkOk, earMode, PATTERNS, state: () => (ctx ? ctx.state : 'none') };
   })();
 
   /* ---------- 알림 ---------- */
@@ -362,10 +462,10 @@ window.App = (function () {
 
   /* ---------- 알람이 울릴 때 띄우는 창 ---------- */
   const Ringer = (function () {
-    let el = null, stopSound = null, items = [], autoStop = null, titleTimer = null, savedTitle = null;
+    let el = null, stopSound = null, ringKind = null, ringState = null, items = [], autoStop = null, titleTimer = null, savedTitle = null;
     function start({ title, sub = '', sound, snooze }) {
       items.push({ title, sub, snooze });
-      if (!stopSound) stopSound = Sound.ring(sound || data.prefs.sound);
+      if (!stopSound) { ringKind = sound || data.prefs.sound; startSound(false); }
       try { navigator.vibrate && navigator.vibrate([400, 200, 400, 200, 400]); } catch (e) { /* noop */ }
       notify(title, sub);
       clearTimeout(autoStop);
@@ -377,8 +477,12 @@ window.App = (function () {
       }
       render();
     }
+    function startSound(force) {
+      if (stopSound) stopSound();
+      stopSound = Sound.ring(ringKind, { force, onState: st => { ringState = st; if (el) render(); } });
+    }
     function silence() { if (stopSound) { stopSound(); stopSound = null; } }
-    function dismiss() {
+    function dismiss(snoozed) {
       silence();
       clearTimeout(autoStop);
       clearInterval(titleTimer);
@@ -386,8 +490,9 @@ window.App = (function () {
       if (savedTitle != null) document.title = savedTitle;
       savedTitle = null;
       items = [];
+      ringState = null;
       if (el) { el.remove(); el = null; }
-      emit('ringer:done');
+      emit('ringer:done', { snoozed: snoozed === true });
     }
     function render() {
       if (!el) {
@@ -401,19 +506,74 @@ window.App = (function () {
         <div class="ringer-card" role="alertdialog" aria-modal="true" aria-label="${esc(items[0].title)}">
           <div class="ringer-pulse">${icon('alarm', 36)}</div>
           <p class="ringer-time"><small>${c.ampm}</small> ${c.hm}</p>
+          ${ringState === 'blocked' ? '<p class="ringer-note">이어폰이 연결되지 않아 소리를 내지 않고 있어요. 연결하면 바로 울려요.<br><button type="button" class="btn sm" data-speaker>스피커로 듣기</button></p>' : ''}
           <ul class="ringer-list">${items.map(i => `<li><strong>${esc(i.title)}</strong>${i.sub ? `<span>${esc(i.sub)}</span>` : ''}</li>`).join('')}</ul>
           <div class="ringer-actions">
             ${canSnooze ? '<button type="button" class="btn" data-snooze>5분 뒤 다시</button>' : ''}
             <button type="button" class="btn primary" data-stop>끄기</button>
           </div>
         </div>`;
-      el.querySelector('[data-stop]').addEventListener('click', dismiss);
+      el.querySelector('[data-stop]').addEventListener('click', () => dismiss(false));
+      const sp = el.querySelector('[data-speaker]');
+      if (sp) sp.addEventListener('click', () => startSound(true));
       const sn = el.querySelector('[data-snooze]');
-      if (sn) sn.addEventListener('click', () => { items.forEach(i => i.snooze && i.snooze()); dismiss(); toast('5분 뒤에 다시 울려요'); });
+      if (sn) sn.addEventListener('click', () => { items.forEach(i => i.snooze && i.snooze()); dismiss(true); toast('5분 뒤에 다시 울려요'); });
       el.querySelector('[data-stop]').focus();
     }
     return { start, dismiss, active: () => !!el };
   })();
+
+  /* ---------- 화면 꺼짐 방지 (Screen Wake Lock) ---------- */
+  const Wake = (function () {
+    const holders = new Set();
+    let lock = null, busy = false;
+    const supported = 'wakeLock' in navigator;
+    async function sync() {
+      if (!supported || busy) return;
+      const want = holders.size > 0 && document.visibilityState === 'visible';
+      busy = true;
+      try {
+        if (want && !lock) {
+          lock = await navigator.wakeLock.request('screen');
+          lock.addEventListener('release', () => { lock = null; emit('wake:change'); });
+        } else if (!want && lock) {
+          const l = lock; lock = null; await l.release();
+        }
+      } catch (e) { lock = null; }
+      busy = false;
+      emit('wake:change');
+    }
+    document.addEventListener('visibilitychange', sync);
+    // 일부 브라우저는 사용자가 화면을 누른 뒤에만 허용해요
+    window.addEventListener('pointerdown', () => { if (holders.size && !lock) sync(); }, { passive: true, capture: true });
+    return {
+      supported,
+      hold(k) { holders.add(k); sync(); },
+      release(k) { holders.delete(k); sync(); },
+      active: () => !!lock
+    };
+  })();
+
+  /* ---------- 작은 막대 차트 (한 계열) ---------- */
+  function miniBars(items, { goal = null, label = '', max = null } = {}) {
+    const m = max || Math.max(goal || 0, ...items.map(i => i.value || 0)) || 1;
+    return `
+      <figure class="mbars" style="--n:${items.length}">
+        <div class="mbars-plot">
+          ${items.every(i => !i.value) ? '<p class="mbars-empty">기록이 쌓이면 그래프가 보여요</p>' : ''}
+          ${goal ? `<i class="mbars-goal" style="bottom:${Math.min(100, goal / m * 100)}%" aria-hidden="true"></i>` : ''}
+          ${items.map(i => `<div class="mbar ${i.now ? 'now' : ''}" tabindex="0" data-tip="${esc(i.tip)}" aria-label="${esc(i.tip)}"><i style="height:${i.value ? Math.max(3, Math.min(100, i.value / m * 100)) : 0}%"></i></div>`).join('')}
+        </div>
+        <div class="mbars-x" aria-hidden="true">${items.map(i => `<span class="${i.now ? 'now' : ''}">${esc(i.label)}</span>`).join('')}</div>
+        <table class="sr-only"><caption>${esc(label)}</caption><tbody>${items.map(i => `<tr><th>${esc(i.label)}</th><td>${esc(i.tip)}</td></tr>`).join('')}</tbody></table>
+      </figure>`;
+  }
+  /* 최근 n일 (오래된 날 → 오늘) */
+  function lastDays(n, end = new Date()) {
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) out.push(addDays(end, -i));
+    return out;
+  }
 
   /* ---------- 라우터 ---------- */
   const views = new Map();
@@ -472,7 +632,7 @@ window.App = (function () {
     fmtDate, fmtClock, fmtHM, fmtDur, untilText, relDay, relTime, won, num, debounce,
     lunar, lunarParts,
     icon, toast, modal, confirm: confirmBox,
-    Sound, Ringer, notify,
+    Sound, Ringer, notify, Wake, miniBars, lastDays,
     register, route, go, views, order, current: () => current,
     applyTheme
   };
