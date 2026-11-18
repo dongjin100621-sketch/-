@@ -1,13 +1,13 @@
 /* 루미나리아: Eight Fates — 고백과 연애
- * 호감도 70 이상 + 이야기 2편을 본 히로인에게 「고백하기」로 마음을 전할 수 있다 (하루 행동).
- * 연인이 되면 「연애」를 하루 행동으로 고른다. 연인을 오래 내버려 두거나 다른 사람과 데이트하면 호감도가 깎이고,
- * 호감도가 45 아래로 떨어지면 헤어진다.
+ * 호감도 50 이상 + 이야기 2편을 본 히로인에게 「고백하기」로 마음을 전할 수 있다 (행동치 1).
+ * 연인이 되면 「연애」를 행동치 1로 고른다. 연인을 오래 내버려 두거나 다른 사람과 데이트하면 호감도가 깎이고,
+ * 호감도가 35 아래로 떨어지면 헤어진다.
  */
-const CONFESS_AT = 70;        // 고백할 수 있는 호감도
+const CONFESS_AT = 50;        // 고백할 수 있는 호감도
 const CONFESS_EV = 2;         // 이야기를 몇 편 본 뒤부터
-const CONFESS_SURE = 80;      // 돌려 말해도 마음이 통하는 호감도
-const BREAK_AT = 45;          // 연인의 호감도가 이 아래로 떨어지면 이별
-const NEGLECT_GAP = 14;       // 연애를 2주 넘게 쉬면 서운해한다 (-2)
+const CONFESS_SURE = 60;      // 돌려 말해도 마음이 통하는 호감도
+const BREAK_AT = 35;          // 연인의 호감도가 이 아래로 떨어지면 이별
+const NEGLECT_GAP = 14;       // 연애를 2주 넘게 쉬면 서운해한다 (호감도 -0.6)
 const LOVE_MILES = [2, 5, 9]; // n번째 연애 뒤 특별한 장면
 const LOVE_MILE_TITLES = ['처음 잡은 손', '둘만의 비밀', '미래의 약속'];
 
@@ -118,7 +118,7 @@ const CONFESS = {
 const CONFESS_SOFT = '「요즘 자꾸 네 생각만 나. …이게 무슨 감정일까?」';
 const CONFESS_PUSH = '「나 정도면 괜찮잖아? 사귀자.」';
 
-/* 연애 행동: 학기 중 평일(school) / 주말·방학(free) */
+/* 연애 행동: 방과 후(school, 학기 중만) / 주말·방학(free) */
 const LOVE_ACTS = {
   walk:   { name: '방과 후 산책', icon: 'footprints', when: 'school', stat: 'str', bg: 'chapel', outdoor: true,
     intro: '수업이 끝난 뒤, {N} 학원 정원을 천천히 걸었다.',

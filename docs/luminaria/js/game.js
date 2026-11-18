@@ -6,20 +6,33 @@ const SAVE_KEY = 'luminaria_save_v1';
 const META_KEY = 'luminaria_meta_v1';
 const slotKey = (i) => `luminaria_slot_${i}`;
 const WEEK = ['월', '화', '수', '목', '금', '토', '일'];
-const EV_AT = [20, 45, 70];
-const END_AT = 80;
-const TRUE_AT = 35;
+const AP_MAX = 4; // 한 턴 = 일주일. 한 주에 행동치 4 (행동 하나에 1씩)
+/* 호감도 기준 (0~100). 호감도가 한 번에 0.1~1씩만 오르므로 기준도 낮게 잡았다 */
+const EV_AT = [15, 30, 45];
+const END_AT = 60;
+const TRUE_AT = 25;
 const SPEEDS = { 느리게: 45, 보통: 24, 빠르게: 10, 즉시: 0 };
 const AUTOS = { 느리게: 1.6, 보통: 1, 빠르게: .6 };
 const EV_BGM = ['calm', 'sad', 'romance'];
 const WEATHER = { 맑음: '☀', 흐림: '☁', 비: '🌧', 눈: '❄' };
 const EVENT_RATE = .18; // 장소 돌발 사건이 일어날 확률 (별의 탑은 .6)
-const AFF_CAP = 3; // 호감도는 한 번에 최대 ±3
-const REL = [[80, '운명의 상대'], [65, '두근두근'], [45, '특별한 친구'], [25, '친구'], [10, '아는 사이'], [0, '낯선 사이']];
+const AFF_CAP = 1;   // 호감도는 한 번에 최대 ±1
+const AFF_MIN = 0.1; // …최소 0.1 (소수 첫째 자리까지)
+const round1 = (v) => Math.round(v * 10) / 10;
+/* 시나리오에 적힌 호감도 값(예전 단위 ±1~5)을 지금 단위로: 1 → 0.3, 2 → 0.7, 3 이상 → 1 */
+const affScale = (n) => Math.sign(n) * Math.min(AFF_CAP, Math.max(AFF_MIN, round1(Math.abs(n) / 3)));
+const REL = [[60, '운명의 상대'], [45, '두근두근'], [30, '특별한 친구'], [15, '친구'], [5, '아는 사이'], [0, '낯선 사이']];
 
 const EXT = { chibi: 'webp', stand: 'webp' }; // 투명 배경 그림은 WebP
-const img = (id, kind) => `img/${id}_${kind}.${EXT[kind] || 'jpg'}`;
+/* 의상: 장면 지시어 { wear: 'summer' } 로 바꾼다. 여름 의상이 있는 히로인(SUMMER_LOOK)은
+ * 스탠딩·일러스트(CG)·표정·꼬마 캐릭터가 {id}_s… 파일로 바뀐다 (summer.js · tools/luminaria_summer.py) */
+let COSTUME = null;
+const LOOK_KINDS = /^(stand|key|chibi|e\d)$/;
+const look = (id, kind, wear) => (wear === 'summer' && SUMMER_LOOK.includes(id) && LOOK_KINDS.test(kind) ? 's' : '');
+const img = (id, kind, wear = COSTUME) => `img/${id}_${look(id, kind, wear)}${kind}.${EXT[kind] || 'jpg'}`;
 const face = (id, ex) => img(id, 'e' + (CHARS[id].ex[ex] ?? 0));
+const sideReady = (id) => SIDE_STORIES.find((x) => x.ready(S, id));
+const season = () => (S && termOf(S.day).key === 'summer' ? 'summer' : null); // 허브 꼬마 캐릭터의 옷
 const softFace = (id) => img(id, 'e' + (CHARS[id].ex.soft ?? CHARS[id].ex.smile ?? 0));
 const fmt = (t) => t.replaceAll('{P}', S ? S.name : '');
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -30,7 +43,17 @@ const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const md = (d) => { const [m, dd] = mdOf(d); return `${m}월 ${dd}일`; };
 const wdOf = (d) => (d - 1) % 7;
 const dateStr = (d) => `${md(d)} (${WEEK[wdOf(d)]})`;
-const daysLabel = (ds) => (!ds ? '' : ds.length === 7 ? '매일' : ds.length === 6 && !ds.includes(6) ? '월~토' : ds.map((i) => WEEK[i]).join('·'));
+const gradeDate = (d) => `${gradeOf(d)}학년 · ${dateStr(d)}`;
+/* 주 단위 턴: 행동치를 하나 쓸 때마다 주 안의 시간이 흐른다 (행동 k번째 = 그 주의 SLOT_OFF[k]일째, 4회면 월·화·목·토) */
+const weekStart = (d) => d - wdOf(d);
+const SLOT_OFF = Array.from({ length: AP_MAX }, (_, k) => Math.floor((k * 7) / AP_MAX));
+const weekDays = (d) => { const w = weekStart(d), out = []; for (let x = w; x < Math.min(w + 7, LAST_DAY); x++) out.push(x); return out; };
+const weekMid = (d) => weekStart(d) + 3; // 그 주가 어느 달·학년에 속하는지는 목요일로 정한다
+const weekLabel = (d) => { const [m, dd] = mdOf(weekMid(d)); return `${m}월 ${Math.floor((dd - 1) / 7) + 1}주차`; };
+const gradeWeek = (d) => `${gradeOf(weekMid(d))}학년 · ${weekLabel(d)}`;
+const apFix = (d) => Math.max(1, SLOT_OFF.filter((o) => o > wdOf(d)).length + 1); // 주 중간에 저장된 예전 데이터
+/* 다음 축제: 1학년 입춘 별빛 축제 → 2학년 칠석 백 년의 별빛 축제 → 이듬해 입춘 마지막 별빛 축제(별등 완성) → 3학년 졸업식(엔딩) */
+const festTo = (d) => (d <= SPRING_FEST ? ['별빛 축제', SPRING_FEST - d] : d <= TANABATA ? ['백 년의 별빛 축제', TANABATA - d] : d <= LAST_FEST ? ['마지막 별빛 축제', LAST_FEST - d] : ['졸업식', LAST_DAY - d]);
 const total = (st) => Object.values(st).reduce((a, b) => a + b, 0);
 const rankOf = (t) => RANKS.reduce((r, [v], i) => (t >= v ? i : r), 0);
 
@@ -52,7 +75,7 @@ function newState(name) {
     stats: { int: 5, str: 5, brave: 5, charm: 5 }, gold: 100,
     aff: o(0), met: o(false), intro: o(false), ev: o(0), talk: o(0), gifted: {}, dated: {}, letters: {}, inv: {},
     growth: 0, skills: {}, club: null, creed: null, rank: 0, rev: {}, flags: {}, tower: 0,
-    lover: null, love: null, confess: {}, foe: null,
+    lover: null, love: null, confess: {}, foe: null, ap: AP_MAX, seenAt: {}, mail: [],
   };
 }
 function fixState(s) { // 예전 저장 데이터 보정
@@ -67,6 +90,9 @@ function fixState(s) { // 예전 저장 데이터 보정
   if (s.tower == null) s.tower = Object.keys(s.skills).filter((k) => SKILLS[k] && SKILLS[k].ch).length;
   delete s.slot; delete s.fat; delete s.presence;
   s.lover = s.lover || null; s.love = s.lover ? s.love : null; s.confess = s.confess || {}; s.foe = s.foe || null;
+  s.seenAt = s.seenAt || {}; s.mail = s.mail || [];
+  if (!(s.ap > 0)) s.ap = apFix(s.day); // 하루 턴 시절 저장 데이터: 그 주에 남은 행동치
+  s.ap = Math.min(AP_MAX, s.ap);
   return s;
 }
 
@@ -135,7 +161,7 @@ const sceneEl = $('#scene');
 sceneEl.addEventListener('click', (e) => { if (!e.target.closest('#sChoices, #sCtl')) step(); });
 document.addEventListener('keydown', (e) => {
   if (!$('#modal').classList.contains('hidden')) { if (e.key === 'Escape') closeModal(); return; }
-  if (sceneEl.classList.contains('hidden')) return;
+  if (sceneEl.classList.contains('hidden') || e.target.closest('input, textarea')) return;
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); step(); }
   else if (e.key === 'a') toggleAuto();
   else if (e.key === 'h') toggleHide();
@@ -234,9 +260,30 @@ function choose(opts) {
   });
 }
 
+/* 직접 입력: 선택지 자리에 입력칸을 띄우고, 쓴 말을 돌려준다 */
+function ask(ph) {
+  skipOn = false; ctlUi(); clearTimeout(autoT);
+  if (boxHidden) toggleHide();
+  return new Promise((res) => {
+    const box = $('#sChoices'); box.innerHTML = ''; box.classList.remove('many');
+    const f = document.createElement('form'); f.className = 'ask';
+    f.innerHTML = `<input type="text" maxlength="40" placeholder="${esc(ph)}" autocomplete="off" enterkeyhint="send" aria-label="직접 할 말"><button class="btn" type="submit">말한다</button>`;
+    const inp = f.querySelector('input');
+    f.addEventListener('click', (e) => e.stopPropagation());
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      const v = inp.value.trim();
+      if (!v) { inp.focus(); return; }
+      AUDIO.sfx('select'); inp.blur(); box.innerHTML = ''; res(v);
+    };
+    box.append(f);
+    setTimeout(() => inp.focus(), 60);
+  });
+}
+
 /* 장면 연출 도우미 — 시나리오의 {run} 에서 쓸 수 있다 */
 const G = {
-  get S() { return S; }, say, choose, play, addAff, addStats, charShow, charHide, setBg, toast, josa, sleep, learn, passes, total, giveItem,
+  get S() { return S; }, say, choose, ask, meet, play, addAff, addStats, charShow, charHide, setBg, toast, josa, sleep, learn, passes, total, giveItem, seen, banner,
   get replay() { return REPLAY; },
 };
 
@@ -249,6 +296,7 @@ async function play(steps) {
     }
     if (s.if) { await play(s.if(S) ? (s.go || []) : (s.else || [])); continue; }
     if (s.run) { await s.run(G); continue; }
+    if ('wear' in s) { COSTUME = s.wear; if (spriteId) charShow(spriteId, spriteCg); }
     if ('bgm' in s) AUDIO.bgm(s.bgm);
     if ('tint' in s) setTint(s.tint);
     if (s.bg) { if (s.fade) await fadeBg(s.bg); else setBg(s.bg); }
@@ -279,11 +327,11 @@ async function play(steps) {
   }
 }
 
-/* 능력치 판정: 「색 읽기」를 익히면 +5 보정 */
-const judgeBonus = () => (S && S.skills.insight ? 5 : 0);
+/* 능력치 판정: 「색 읽기」·「별의 맹세」·「별자리 잇기」를 익히면 각각 내부 +5 (화면 +1) 보정 */
+const judgeBonus = () => (S && S.skills.insight ? 5 : 0) + (S && S.skills.oath ? 5 : 0) + (S && S.skills.constel ? 5 : 0);
 function passes(need) { return Object.entries(need).every(([k, v]) => (k === 'total' ? total(S.stats) : S.stats[k]) + judgeBonus() >= v); }
 function needLabel(need) {
-  return Object.entries(need).map(([k, v]) => `${k === 'total' ? '총 능력치' : STATS[k]} ${v}`).join(' · ') + (passes(need) ? ' ✓' : '');
+  return Object.entries(need).map(([k, v]) => `${k === 'total' ? '총 능력치' : STATS[k]} ${statTxt(v)}`).join(' · ') + (passes(need) ? ' ✓' : '');
 }
 function learn(k) {
   if (REPLAY || S.skills[k]) return;
@@ -310,53 +358,58 @@ function checkGrowth() {
 }
 
 function meet(id) { if (REPLAY) return; S.met[id] = true; META.met[id] = true; saveMeta(); }
-function addAff(id, n) {
+/* exact: 이미 지금 단위(0.1~1)로 계산한 값. 아니면 예전 단위로 보고 affScale 로 바꾼다 */
+function addAff(id, n, exact) {
   if (!n || REPLAY) return;
-  n = Math.max(-AFF_CAP, Math.min(AFF_CAP, n));
-  S.aff[id] = Math.max(0, Math.min(100, S.aff[id] + n));
-  pop(n > 0 ? `♥ +${n}` : `♡ ${n}`, n < 0);
+  n = exact ? Math.sign(n) * Math.min(AFF_CAP, Math.max(AFF_MIN, round1(Math.abs(n)))) : affScale(n);
+  S.aff[id] = Math.max(0, Math.min(100, round1(S.aff[id] + n)));
+  pop(n > 0 ? `♥ +${num1(n)}` : `♡ ${num1(n)}`, n < 0);
   AUDIO.sfx(n > 0 ? 'heart' : 'down');
   if (n > 0) { const r = $('#sBox').getBoundingClientRect(); FX.burst(r.left + 60, r.top - 10, 'heart', CHARS[id].color); }
 }
-/* 보상: 능력치는 한 번에 하나만 +1 (적힌 값 중 가장 큰 능력치), 골드는 적힌 그대로 */
+/* 보상: 능력치는 한 번에 하나만 +0.2~0.4 (내부 +1~2, 적힌 값 중 가장 큰 능력치), 골드는 적힌 그대로 */
+const statGain = () => rand(1, 2);
 function addStats(g, show) {
   if (REPLAY) return;
   const parts = [];
   if (g.gold) { S.gold = Math.max(0, S.gold + g.gold); parts.push(`골드 ${g.gold > 0 ? '+' : ''}${g.gold}`); }
   const k = Object.keys(STATS).filter((x) => g[x] > 0).sort((a, b) => g[b] - g[a])[0];
-  if (k) { S.stats[k] += 1; parts.push(`${STATS[k]} +1`); }
+  if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${statTxt(n)}`); }
   if (show && parts.length) toast(parts.join(' · '));
 }
 
 async function runScene(steps, bg, opt = {}) {
+  const wore = COSTUME; // 장면 안에서 갈아입은 옷은 장면이 끝나면 되돌린다
   screen('scene');
   $('#sChoices').innerHTML = ''; charHide();
   if (boxHidden) toggleHide();
   if (!opt.keepTint) setTint(null);
   if (bg) setBg(bg);
-  await play(steps);
+  try { await play(steps); } finally { COSTUME = wore; }
   charHide(); skipOn = false; ctlUi();
 }
 
 /* ───── 하루 진행 ───── */
-const isWeekend = () => wdOf(S.day) >= 5;
 const isVac = () => !!termOf(S.day).vac;
 function rollWeather() {
   const r = Math.random(), [m] = mdOf(S.day);
   const wet = m === 6 || m === 7 ? .32 : .18; // 장마철엔 비가 잦다
-  S.weather = S.day >= LAST_DAY - 1 ? '맑음' : r < 1 - wet - .18 ? '맑음' : r < 1 - wet ? '흐림' : (m === 12 || m <= 2 ? '눈' : '비');
+  S.weather = S.day >= LAST_DAY - 1 || S.day === SPRING_FEST || S.day === TANABATA || S.day === LAST_FEST ? '맑음' : r < 1 - wet - .18 ? '맑음' : r < 1 - wet ? '흐림' : (m === 12 || m <= 2 ? '눈' : '비');
 }
-/* 오늘 그 장소에 갈 수 있는지: { ok, why } */
+/* 이번 주에 그 장소에 갈 수 있는지: { ok, why } — 한 턴이 일주일이라, 그 주에 하루라도 열리면 갈 수 있다 */
 const locked = (l) => LOCS[l].lock && !S.skills[LOCS[l].lock];
+/* only: 그 학기(방학)에만 여는 곳 — 'summer' 또는 ['winter', 'spring', …] */
+const onlyIn = (L, key) => !L.only || [].concat(L.only).includes(key);
+const ONLY_NAMES = { summer: '여름방학', winter: '겨울방학', spring: '봄방학', y2winter: '겨울방학', y3winter: '겨울방학' };
+const onlyName = (L) => [...new Set([].concat(L.only).map((k) => ONLY_NAMES[k] || k))].join('·');
+function openOn(L, d) { const t = termOf(d), ds = t.vac ? L.vdays : L.days; return onlyIn(L, t.key) && !!ds && ds.includes(wdOf(d)); }
 function locState(l) {
-  const L = LOCS[l], vac = isVac(), t = termOf(S.day), wd = wdOf(S.day);
+  const L = LOCS[l], t = termOf(S.day), days = weekDays(S.day);
   if (locked(l)) return { hide: true };
-  if (L.only && t.key !== L.only) return { hide: true };
+  if (L.only && !days.some((d) => onlyIn(L, termOf(d).key))) return { hide: true };
   if (L.club && !S.club) return { hide: true };
-  if (L.ticket) return S.tower > 0 ? { ok: true } : { ok: false, why: '다음 마법을 각성하면' };
-  const ds = vac ? L.vdays : L.days;
-  if (!ds) return { ok: false, why: vac ? `${t.name} 중 휴강` : '' };
-  return ds.includes(wd) ? { ok: true } : { ok: false, why: daysLabel(ds) };
+  if (L.ticket) return S.tower > 0 || resLessonNow(S) >= 0 ? { ok: true } : { ok: false, why: '다음 마법을 각성하면' };
+  return days.some((d) => openOn(L, d)) ? { ok: true } : { ok: false, why: t.vac ? `${t.name} 중 휴강` : '이번 주는 쉰다' };
 }
 const locStat = (l) => (LOCS[l].club ? (S.club ? CLUBS[S.club].stat : null) : LOCS[l].stat);
 const locName = (l) => (LOCS[l].club && S.club ? `${CLUBS[S.club].name}` : isVac() && LOCS[l].vname ? LOCS[l].vname : LOCS[l].name);
@@ -372,7 +425,8 @@ function encounterOdds(locId) {
     if (!p) continue;
     if (rain && L.outdoor) p /= 2; else if (rain && locId === 'library') p += 5;
     if (S.skills.breath) p += 5;
-    out.push([id, Math.max(10, Math.min(hid ? HIDDEN_CAP : 30, Math.round(p)))]);
+    if (S.skills.trace) p += 5;
+    out.push([id, Math.max(10, Math.min((hid ? HIDDEN_CAP : 30) + (S.skills.trace ? 5 : 0), Math.round(p)))]);
   }
   return out;
 }
@@ -395,14 +449,18 @@ async function visit(locId) {
   const L = LOCS[locId], club = L.club ? CLUBS[S.club] : null;
   const bg = club ? club.bg : L.bg;
   S.bg = bg;
+  S.at = locId; // 여름 해변 이야기(summer.js)는 해변에서만 열린다
+  hiddenTally(S, locId); // 훈련장 땀 · 길드 거리 단골 (히든 해금 조건)
+  COSTUME = SUMMER_SPOTS.includes(locId) && termOf(S.day).key === 'summer' ? 'summer' : null;
   AUDIO.bgm(L.bgm || 'daily');
   const parts = [];
-  if (L.ticket) {
+  const lesson = L.ticket ? resLessonNow(S) : -1; // 공명 이론 강의 (detail.js) — 수련 횟수를 쓰지 않는다
+  if (L.ticket && lesson < 0) {
     for (const k of Object.keys(STATS)) S.stats[k] += 2;
-    S.tower--; parts.push('모든 능력치 +2');
+    S.tower--; parts.push(`모든 능력치 +${statTxt(2)}`);
   } else {
-    const k = locStat(locId);
-    if (k) { S.stats[k] += 1; parts.push(`${STATS[k]} +1`); }
+    const k = lesson >= 0 ? 'int' : locStat(locId);
+    if (k) { const n = statGain(); S.stats[k] += n; parts.push(`${STATS[k]} +${statTxt(n)}`); }
   }
   if (L.gold) {
     let g = rand(...L.gold);
@@ -411,13 +469,26 @@ async function visit(locId) {
     if (isVac() && locId === 'market') g += 10; // 방학 성수기
     S.gold += g; parts.push(`골드 +${g}`);
   }
-  const pool = club ? CLUB_LINES[S.club] : VISIT_LINES[locId] || [L.desc];
+  const pool = lesson >= 0 ? ['나선 계단 꼭대기. 별등 아래에 등잔 하나와 의자 두 개가 놓여 있었다. 학원장이 먼저 와 기다리고 있었다.'] : club ? CLUB_LINES[S.club] : VISIT_LINES[locId] || [L.desc];
   const [m] = mdOf(S.day);
   const lines = [{ pt: ambient(L.outdoor) || L.pt || null }, ['', `${locName(locId)}. ${pool[rand(0, pool.length - 1)]}${L.outdoor || locId === 'dorm' ? ` ${SEASON_LINES[m]}` : ''}`]];
   setTint(dayTint());
   if (parts.length) toast(parts.join(' · '));
   await runScene(lines, bg, { keepTint: true });
-  const rev = Math.random() < (L.ticket ? .6 : EVENT_RATE) && pickEvent(locId);
+  const sub = L.sub && await playSub(L.sub);
+  if (sub) setBg(bg);
+  if (lesson >= 0) {
+    await runScene(RES_LESSONS[lesson], null, { keepTint: true });
+    S.flags[`res${lesson}`] = 1; seen(`res${lesson}`);
+    toast(`🎐 공명 이론 ${lesson + 1}/3 을(를) 들었다`);
+  }
+  const study = locId === 'class' ? studyNow(S) : 0; // 시험 3주 전: 시험 범위 강의 (detail.js)
+  if (study) {
+    await runScene([{ sfx: 'page' }, ['', `── 📖 시험 범위 강의 「${EXAM_STUDY[study].topic}」 ──`], ...EXAM_STUDY[study].steps], null, { keepTint: true });
+    S.flags[`study${study}`] = 1;
+    toast('📖 시험 범위를 들었다');
+  }
+  const rev = !sub && lesson < 0 && !study && Math.random() < (L.ticket ? .6 : EVENT_RATE) && pickEvent(locId);
   if (rev) {
     S.rev[rev.id] = 1; META.found[rev.id] = 1; saveMeta();
     await runScene([{ sfx: 'page' }, ['', `── ✧ ${rev.title} ✧ ──`], ...rev.steps], null, { keepTint: true });
@@ -426,12 +497,15 @@ async function visit(locId) {
   if (locId === 'dorm') await dormMenu();
   if (L.shop) await shop();
 
-  const here = rollEncounter(locId);
-  if (here.length) {
+  const sit = !L.club && ENCOUNTER_SIT[locId] ? await ENCOUNTER_SIT[locId](G) : null; // detail.js
+  let here = rollEncounter(locId);
+  if (sit) here = [...sit.with, ...here.filter((id) => !sit.skip.includes(id) && !sit.with.includes(id))].slice(0, 2);
+  if (here.length && sit && sit.with.length && here.length === 1) await talkTo(here[0]); // 상황이 이어 준 만남은 바로 이야기한다
+  else if (here.length) {
     const opts = here.map((id) => {
       const c = CHARS[id];
       const ev = pendingEvent(id);
-      return { t: S.met[id] ? `${c.name}에게 말을 건다  ${'♥'.repeat(Math.ceil(S.aff[id] / 20))}${ev >= 0 ? '  💌' : ''}` : `낯선 학생에게 말을 건다 (${c.name})` };
+      return { t: S.met[id] ? `${c.name}에게 말을 건다  ${'♥'.repeat(Math.ceil(S.aff[id] / 20))}${ev >= 0 ? '  💌' : sideReady(id) ? `  ${sideReady(id).icon}` : ''}` : `낯선 학생에게 말을 건다 (${c.name})` };
     });
     opts.push({ t: '오늘은 혼자 보낸다' });
     await say('', null, here.length > 1 ? '마침 아는 얼굴이 여럿 보인다. 누구와 이야기할까?' : `마침 ${S.met[here[0]] ? CHARS[here[0]].name + josa(CHARS[here[0]].name, '이', '가') : '누군가'} 이곳에 와 있다.`);
@@ -439,7 +513,24 @@ async function visit(locId) {
     if (i < here.length) await talkTo(here[i]);
   }
   charHide();
-  await endDay();
+  S.at = null; COSTUME = null;
+  await endAction();
+}
+
+/* 방학 서브 스토리 (summer.js 의 VAC_SUB): 그곳에 갈 때마다 다음 장, 한 주에 한 장까지 */
+function subNext(key) {
+  const n = S.flags[`sub_${key}`] || 0;
+  return n < VAC_SUB[key].ch.length && S.flags[`subwk_${key}`] !== weekStart(S.day) ? n : -1;
+}
+async function playSub(key) {
+  const x = VAC_SUB[key], n = subNext(key);
+  if (n < 0) return false;
+  const c = x.ch[n];
+  S.flags[`sub_${key}`] = n + 1; S.flags[`subwk_${key}`] = weekStart(S.day);
+  await runScene([{ sfx: 'page' }, ['', `── ${x.icon} ${x.title} · ${n + 1}장 「${c.title}」 ──`], ...c.steps], null, { keepTint: true });
+  seen(`sub_${key}${n}`);
+  toast(`${x.icon} ${x.title} ${n + 1}/${x.ch.length}장${n + 1 === x.ch.length ? ' 완결' : ''}`);
+  return true;
 }
 
 function pickEvent(locId) {
@@ -457,7 +548,7 @@ function eventMinDay(e) {
   return e.minDay;
 }
 
-/* 기숙사: 편지 쓰기 (한 사람에게 일주일에 한 번, 호감도 +1) */
+/* 기숙사: 편지 쓰기 (한 사람에게 일주일에 한 번, 호감도 +0.3) */
 async function dormMenu() {
   const week = Math.floor((S.day - 1) / 7);
   const ids = ALL.filter((id) => S.intro[id] && S.letters[id] !== week);
@@ -467,13 +558,16 @@ async function dormMenu() {
   if (i >= ids.length) return;
   const id = ids[i];
   S.letters[id] = week;
-  await say('', null, `${CHARS[id].name}에게 짧은 편지를 썼다. 요즘 있었던 일, 그리고 고마웠던 일을 적었다.`);
-  addAff(id, 1);
+  await say('', null, `${CHARS[id].name}에게 무엇을 적을까?`);
+  await letterRun(G, id); // 내용 · 호감도 · 답장은 detail.js
 }
 
 async function talkTo(id) {
   const st = STORY[id], c = CHARS[id];
+  const hello = S.intro[id] && pendingEvent(id) < 0 && !sideReady(id) ? talkGreeting(S, id) : null;
+  if (!REPLAY) S.seenAt[id] = S.day;
   charShow(id);
+  if (hello) await say(id, hello[0], hello[1]);
   if (!S.intro[id]) {
     meet(id); S.intro[id] = true; await play(st.meet); addAff(id, 2);
   } else {
@@ -484,19 +578,30 @@ async function talkTo(id) {
       AUDIO.sfx('event');
       toast(`💌 ${c.name}의 이야기 ${S.ev[id]}/3 을(를) 보았다`);
       charShow(id);
+    } else if (sideReady(id)) {
+      // 2학년 곁이야기: 봄(🌸) · 가을(🍂) (year2.js · year2b.js)
+      const x = sideReady(id);
+      await play([{ bgm: 'romance' }, ...x.story[id]]); S.flags[`${x.key}_${id}`] = 1; addAff(id, 3);
+      seen(`${id}_${x.key}`);
+      AUDIO.sfx('event');
+      toast(`${x.icon} ${c.name}의 ${x.title}을(를) 보았다`);
+      charShow(id);
     } else {
       S.talk[id] = S.talk[id] || 0;
-      const t = st.talks[S.talk[id] % st.talks.length];
+      const ti = S.talk[id] % st.talks.length, t0 = st.talks[ti];
+      const t = (t0.vary && t0.vary(S)) || t0; // 방학 · 장소에 따라 다른 판 (detail.js)
       const repeat = S.talk[id] >= st.talks.length;
       S.talk[id]++;
       await play(t.q);
       const i = await choose(t.c.map((x) => ({ t: x[0] })));
       const [, d, reply] = t.c[i];
-      addAff(id, talkGain(d, repeat));
+      addAff(id, talkGain(d, repeat), true);
       await play(reply.map((r) => (r.length === 3 ? r : [id, ...r])));
+      const more = d >= 3 && (t.more || (TALK_MORE[id] && TALK_MORE[id][ti])); // 좋은 대답 뒤엔 한 번 더 주고받는다
+      if (more) await play([['me', more[0]], [id, more[1], more[2]]]);
       if (k === -2) {
         const r = c.req;
-        await say('', null, `(${c.name}${josa(c.name, '은', '는')} 무언가 털어놓고 싶은 눈치다. …${STATS[r.stat]}${josa(STATS[r.stat], '이', '가')} ${r.v} 이상이라면 마음을 열어줄지도 모른다.)`);
+        await say('', null, `(${c.name}${josa(c.name, '은', '는')} 무언가 털어놓고 싶은 눈치다. …${STATS[r.stat]}${josa(STATS[r.stat], '이', '가')} ${statTxt(r.v)} 이상이라면 마음을 열어줄지도 모른다.)`);
       } else if (k === -3) {
         await say('', null, `(${c.name}${josa(c.name, '과', '와')} 한층 가까워진 것 같다. …${md(EV_DAY[S.ev[id]])} 무렵이면, 더 깊은 이야기를 들을 수 있을지도.)`);
       }
@@ -505,19 +610,19 @@ async function talkTo(id) {
   await afterTalk(id);
   charHide();
 }
-/* 대화 선택지의 호감 변화: 마음을 울린 답 +3 · 좋은 답 +2 · 보통 +1 · 무심한 답 -1 · 무례한 답 -3
- * 한 번 들은 이야기를 다시 할 땐 좋은 답도 +1 */
+/* 대화 선택지의 호감 변화: 마음을 울린 답 +1 · 좋은 답 +0.5 · 보통 +0.2 · 무심한 답 -0.3 · 무례한 답 -1
+ * 한 번 들은 이야기를 다시 할 땐 마음을 울린 답 +0.3, 나머지 +0.1. 「공명」을 익히면 +0.1 */
 function talkGain(d, repeat) {
-  let g = d >= 5 ? 3 : d >= 3 ? 2 : d >= 1 ? 1 : d === 0 ? -1 : -3;
-  if (g > 0 && repeat) g = 1;
-  if (g > 0 && S.skills.echo) g += 1;
-  return Math.min(AFF_CAP, g);
+  let g = d >= 5 ? 1 : d >= 3 ? 0.5 : d >= 1 ? 0.2 : d === 0 ? -0.3 : -1;
+  if (g > 0 && repeat) g = d >= 5 ? 0.3 : AFF_MIN;
+  if (g > 0 && S.skills.echo) g += 0.1;
+  return Math.min(AFF_CAP, round1(g));
 }
 
 const DATE_GAP = 21; // 같은 사람과의 데이트는 3주에 한 번
 const GIFT_GAP = 7; // 같은 사람에게 선물은 일주일에 한 번
 const canGiftNow = (id) => typeof S.gifted[id] !== 'number' || S.day - S.gifted[id] >= GIFT_GAP;
-const canDateNow = (id) => isWeekend() && S.ev[id] >= 1 && DATES[id] && (!S.dated[id] || S.day - S.dated[id] >= DATE_GAP);
+const canDateNow = (id) => S.ev[id] >= 1 && DATES[id] && (!S.dated[id] || S.day - S.dated[id] >= DATE_GAP);
 async function afterTalk(id) {
   for (;;) {
     const items = Object.entries(S.inv).filter(([, n]) => n > 0);
@@ -542,16 +647,12 @@ async function giftMenu(id) {
   if (i >= items.length) return;
   const key = items[i][0];
   S.inv[key]--; S.gifted[id] = S.day;
-  let line, gain;
-  if (c.likes.includes(key)) { line = GIFT_LINES.like[id]; gain = 3; }
-  else if (c.dislikes.includes(key)) { line = GIFT_LINES.dislike; gain = -2; }
-  else { line = GIFT_LINES.normal; gain = S.skills.grace ? 2 : 1; }
-  await say(id, line[0], line[1]);
-  addAff(id, gain);
+  await giftRun(G, id, key); // 반응 · 대답 · 상황에 따른 효과는 detail.js
 }
 async function dateScene(id) {
   const back = $('#sChar').classList.contains('on');
   const first = !S.dated[id];
+  if (!REPLAY) S.seenAt[id] = S.day;
   await play([{ bgm: 'romance' }, ...(first ? DATES[id] : shortDate(id, S.day))]);
   if (first) addAff(id, 3);
   S.dated[id] = S.day;
@@ -560,7 +661,7 @@ async function dateScene(id) {
   if (S.lover && S.lover !== id && !REPLAY) { // 연인이 있는데 다른 사람과 데이트
     const lv = CHARS[S.lover];
     addAff(S.lover, -3);
-    toast(`💔 소문이 ${lv.name}의 귀에 들어간 것 같다… (${lv.name} 호감도 -3)`);
+    toast(`💔 소문이 ${lv.name}의 귀에 들어간 것 같다… (${lv.name} 호감도 -1)`);
   }
   if (back) charShow(id);
 }
@@ -568,18 +669,18 @@ async function dateScene(id) {
 /* ───── 고백과 연애 ───── */
 const canConfess = (id) => !S.lover && S.intro[id] && S.aff[id] >= CONFESS_AT && S.ev[id] >= CONFESS_EV && S.day >= (S.confess[id] || 0);
 const confessCands = () => ALL.filter(canConfess);
-const freeDay = () => isWeekend() || isVac();
-const loveActs = () => Object.entries(LOVE_ACTS).filter(([, a]) => a.when === (freeDay() ? 'free' : 'school'));
+/* 학기 중엔 방과 후(school)와 주말(free) 데이트 모두, 방학엔 주말·방학 데이트(free)만 */
+const loveActs = () => Object.entries(LOVE_ACTS).filter(([, a]) => !isVac() || a.when === 'free');
 function loveCard() {
   if (S.lover) {
     const c = CHARS[S.lover];
-    return `<button class="btn loc love" data-love style="--c:${c.color}"><span class="ic">${icon('heart')}</span><span class="nm"><b>${c.name}${josa(c.name, '과', '와')} 연애</b><small>연인 ${S.day - S.love.since + 1}일째 · ${freeDay() ? '데이트' : '방과 후'} · 호감도 최대 +3</small></span><span class="who"><img src="${img(S.lover, 'chibi')}" alt=""></span></button>`;
+    return `<button class="btn loc love" data-love style="--c:${c.color}"><span class="ic">${icon('heart')}</span><span class="nm"><b>${c.name}${josa(c.name, '과', '와')} 연애</b><small>연인 ${S.day - S.love.since + 1}일째 · 행동치 1 · 호감도 최대 +1</small></span><span class="who"><img src="${img(S.lover, 'chibi', season())}" alt=""></span></button>`;
   }
   const cs = confessCands();
   if (!cs.length) return '';
-  return `<button class="btn loc love" data-love><span class="ic">${icon('message-circle-heart')}</span><span class="nm"><b>고백하기</b><small>${cs.map((id) => CHARS[id].name).join('·')}에게 마음을 전한다</small></span><span class="who">${cs.map((id) => `<img src="${img(id, 'chibi')}" alt="">`).join('')}</span></button>`;
+  return `<button class="btn loc love" data-love><span class="ic">${icon('message-circle-heart')}</span><span class="nm"><b>고백하기</b><small>${cs.length > 3 ? `${cs.slice(0, 2).map((id) => CHARS[id].name).join('·')} 외 ${cs.length - 2}명` : cs.map((id) => CHARS[id].name).join('·')}에게 마음을 전한다</small></span><span class="who">${cs.slice(0, 3).map((id) => `<img src="${img(id, 'chibi')}" alt="">`).join('')}${cs.length > 3 ? `<span class="more" title="${cs.slice(3).map((id) => CHARS[id].name).join(', ')}">+${cs.length - 3}</span>` : ''}</span></button>`;
 }
-/* 연애/고백 메뉴: 고르면 하루를 쓴다. 닫으면 아무 일도 없다. */
+/* 연애/고백 메뉴: 고르면 행동치 1을 쓴다. 닫으면 아무 일도 없다. */
 function loveMenu() {
   return new Promise((res) => {
     let pick = null;
@@ -587,16 +688,16 @@ function loveMenu() {
       const id = S.lover, c = CHARS[id], nx = LOVE_MILES.find((n) => n > S.love.n);
       modal(`<h2>${icon('heart')} ${c.name}${josa(c.name, '과', '와')}의 연애</h2>
         <div class="love-head" style="--c:${c.color}"><img src="${img(id, 'e1')}" alt=""><div><b>${c.name} · 연인 ${S.day - S.love.since + 1}일째</b>
-          <small>${md(S.love.since)}부터 · 연애 ${S.love.n}회 · 호감도 ${S.aff[id]}</small>
+          <small>${md(S.love.since)}부터 · 연애 ${S.love.n}회 · 호감도 ${num1(S.aff[id])}</small>
           <small>${nx ? `다음 특별한 순간 「${LOVE_MILE_TITLES[LOVE_MILES.indexOf(nx)]}」까지 ${nx - S.love.n}회` : '세 가지 특별한 순간을 모두 함께했다'}</small></div></div>
-        <p class="sub">오늘 ${freeDay() ? '(주말·방학) 하루를 함께 보낸다' : '(학기 중 평일) 수업이 끝나고 함께한다'}. 하루 행동을 씁니다.</p>
-        <div class="love-acts">${loveActs().map(([k, a]) => `<button class="btn" data-act="${k}">${icon(a.icon)}<b>${a.name}</b><small>${STATS[a.stat]} +1 · 호감도 최대 +3</small></button>`).join('')}</div>
+        <p class="sub">이번 주에 ${isVac() ? '(방학) 함께 보낼 하루를 고른다' : '방과 후, 또는 주말에 함께할 일을 고른다'}. 행동치 1을 씁니다 (남은 행동치 ${S.ap}/${AP_MAX}).</p>
+        <div class="love-acts">${loveActs().map(([k, a]) => `<button class="btn" data-act="${k}">${icon(a.icon)}<b>${a.name}</b><small>${a.when === 'free' ? '주말 · ' : '방과 후 · '}${STATS[a.stat]} +${statTxt(1)}~${statTxt(2)} · 호감도 최대 +1</small></button>`).join('')}</div>
         <p class="sub">연애를 2주 넘게 쉬거나 다른 사람과 데이트하면 호감도가 깎이고, ${BREAK_AT} 아래로 떨어지면 헤어집니다.</p>`, true, () => res(pick));
     } else {
       const cs = confessCands();
       modal(`<h2>${icon('message-circle-heart')} 고백하기</h2>
-        <p class="sub">마음을 전할 사람을 고르세요. 그녀를 불러내 고백하는 데 하루를 씁니다. 어떤 말로 전하느냐에 따라 대답이 달라져요.</p>
-        <div class="love-acts">${cs.map((id) => `<button class="btn" data-who="${id}" style="--c:${CHARS[id].color}"><img src="${softFace(id)}" alt=""><b>${CHARS[id].name}</b><small>호감도 ${S.aff[id]} · ${rel(S.aff[id])}</small></button>`).join('')}</div>`, true, () => res(pick));
+        <p class="sub">마음을 전할 사람을 고르세요. 그녀를 불러내 고백하는 데 행동치 1을 씁니다. 어떤 말로 전하느냐에 따라 대답이 달라져요.</p>
+        <div class="love-acts">${cs.map((id) => `<button class="btn" data-who="${id}" style="--c:${CHARS[id].color}"><img src="${softFace(id)}" alt=""><b>${CHARS[id].name}</b><small>호감도 ${num1(S.aff[id])} · ${rel(S.aff[id])}</small></button>`).join('')}</div>`, true, () => res(pick));
     }
     $('#modalInner').onclick = (e) => {
       const b = e.target.closest('[data-act],[data-who]'); if (!b) return;
@@ -607,7 +708,7 @@ function loveMenu() {
     if (!pick) return;
     if (pick[0] === 'who') await confessTo(pick[1]); else await loverDay(pick[1]);
     charHide();
-    await endDay();
+    await endAction();
   });
 }
 async function confessTo(id) {
@@ -649,7 +750,7 @@ async function loverDay(k) {
   const spot = k === 'season' ? LOVE_SEASON(m) : [A.bg, ''];
   const N = c.name + josa(c.name, '과', '와');
   let got = 'mid';
-  S.bg = spot[0];
+  S.bg = spot[0]; S.seenAt[id] = S.day;
   await runScene([{ bgm: 'romance' }, { tint: A.tint || dayTint() }, { pt: A.pt || ambient(A.outdoor) || null }, { show: id },
     ['', A.intro.replace('{N}', N).replace('{S}', spot[1])],
     [id, ...LOVE_LINES[id][k]],
@@ -659,10 +760,11 @@ async function loverDay(k) {
       { t: A.bad, aff: { [id]: -3 }, go: [[id, ...R.bad], { run: () => { got = 'bad'; } }] },
     ] },
   ], spot[0], { keepTint: true });
-  S.stats[A.stat] += 1;
+  const sg = statGain();
+  S.stats[A.stat] += sg;
   S.love.last = S.day;
   if (got !== 'bad') S.love.n++;
-  toast(`💕 ${A.name} · ${STATS[A.stat]} +1`);
+  toast(`💕 ${A.name} · ${STATS[A.stat]} +${statTxt(sg)}`);
   const mi = LOVE_MILES.indexOf(S.love.n);
   if (got !== 'bad' && mi >= 0) {
     await banner(LOVE_MILE_TITLES[mi], `${c.name}${josa(c.name, '과', '와')}의 특별한 순간`, '💕');
@@ -670,7 +772,7 @@ async function loverDay(k) {
     seen(`${id}_love${mi}`);
   }
 }
-/* 아침마다: 연인을 오래 내버려 두면 서운해하고, 호감도가 너무 낮으면 헤어진다 */
+/* 날이 밝을 때마다 (행동 사이에 흐르는 날 포함): 연인을 오래 내버려 두면 서운해하고, 호감도가 너무 낮으면 헤어진다 */
 async function loveCheck() {
   if (!S.lover) return;
   const id = S.lover, c = CHARS[id];
@@ -680,19 +782,19 @@ async function loveCheck() {
     toast(`💔 ${c.name}${josa(c.name, '과', '와')} 헤어졌다`);
     return;
   }
-  if (S.day - Math.max(S.love.last, S.love.warn || 0) >= NEGLECT_GAP) {
+  if (S.day - Math.max(S.love.last, S.love.warn || 0) >= NEGLECT_GAP + (S.skills.share ? 7 : 0)) { // 「등불 나누기」: 일주일 더
     S.love.warn = S.day;
-    S.aff[id] = Math.max(0, S.aff[id] - 2);
-    toast(`💔 ${c.name}: “${LOVE_NEGLECT[id]}” (호감도 -2)`);
+    S.aff[id] = Math.max(0, round1(S.aff[id] - 0.6));
+    toast(`💔 ${c.name}: “${LOVE_NEGLECT[id]}” (호감도 -0.6)`);
   }
 }
 
 /* ───── 히든 히로인: 조건을 채우면 찾아온다 ───── */
-function hiddenRumors() {
+function hiddenRumors() { // 조건에 가까워지면 흐릿한 소문만 (정확한 조건은 앨범 엔딩 목록의 힌트)
   const r = [];
-  if (!S.met.sia && S.stats.str >= HIDDEN_RULE.sia - 12) r.push('⚔️ 성 밖에 유랑 무인단이 들어왔다는 소문. 강한 상대를 찾고 있다나…');
-  if (!S.met.elise && S.growth >= 4) r.push('🔭 북쪽 왕국 노르하임에서 교환 연구원이 온다는 소문…');
-  if (!S.flags.bm && S.gold >= HIDDEN_RULE.gold - 200) r.push('🎭 길드 거리 지하에 밤에만 열리는 시장이 있다는 소문…');
+  if (!S.met.sia && S.day >= SIA_FROM - 30 && S.day < SIA_UNTIL && S.stats.str >= HIDDEN_RULE.sia - 20) r.push('⚔️ 성 밖에 유랑 무인단이 들어왔다는 소문. 학과 대항전에서 이름을 떨친, 단단한 주먹을 찾고 있다나…');
+  if (!S.met.elise && S.growth >= 4) r.push('🔭 북쪽 왕국 노르하임에서 교환 연구원이 온다는 소문. 시험마다 수석을 다투는 학생의 성적표를 모으고 있다나…');
+  if (!S.flags.bm && S.day >= BM_FROM && S.gold >= HIDDEN_RULE.gold - 500 && (S.flags.mkt || 0) >= HIDDEN_RULE.market / 2) r.push('🎭 길드 거리 지하에 밤에만 열리는 시장이 있다는 소문. 거리의 단골에게만 초대장이 온다나…');
   return r;
 }
 function meetHidden(id) {
@@ -702,8 +804,7 @@ function meetHidden(id) {
   toast(`✦ 히든 히로인 ${CHARS[id].name}${josa(CHARS[id].name, '을', '를')} 만났다!`);
 }
 async function hiddenMorning() {
-  const id = !S.met.elise && S.skills.bind && S.stats.int >= HIDDEN_RULE.elise ? 'elise'
-    : !S.met.sia && S.stats.str >= HIDDEN_RULE.sia ? 'sia' : null;
+  const id = !S.met.elise && HIDDEN_READY.elise(S) ? 'elise' : !S.met.sia && HIDDEN_READY.sia(S) ? 'sia' : null;
   if (!id) return;
   await banner('운명 밖의 빛', '누군가 찾아왔다', '✦');
   await runScene(ARRIVE[id]);
@@ -718,38 +819,63 @@ async function blackMarket() {
   meetHidden(who); seen('blackmarket');
 }
 
-/* 하루를 마친다: 밤 이벤트 → 날짜 넘김 → 다음 날 시작 */
-async function endDay() {
-  const nightEv = CALENDAR[S.day];
-  if (nightEv && NIGHT_EVENTS.has(nightEv)) { await runScene(COMMON[nightEv]); seen(nightEv); }
-  else if (!S.flags.bm && S.gold >= HIDDEN_RULE.gold && S.day < LAST_DAY - 1) await blackMarket();
-  S.day++;
-  if (S.day >= LAST_DAY) { await festival(); return; }
-  rollWeather();
-  await startDay();
+/* 행동 하나를 마친다: 행동치 -1 → 다음 행동이 있는 날까지 하루씩 시간이 흐른다.
+ * 그 사이 지나가는 날의 밤 이벤트 · 아침 이벤트 · 하루 종일 이벤트가 차례로 열린다 (이벤트는 행동치를 쓰지 않는다).
+ * 행동치를 다 쓰면 다음 주 월요일로 넘어가 행동치가 다시 AP_MAX 가 된다. */
+async function endAction() {
+  const ws = weekStart(S.day);
+  S.ap = Math.max(0, (S.ap || 1) - 1);
+  let to = S.ap > 0 ? Math.max(S.day + 1, ws + SLOT_OFF[AP_MAX - S.ap]) : ws + 7;
+  if (to >= ws + 7) { to = ws + 7; S.ap = 0; }
+  while (S.day < to) {
+    await nightOf();
+    S.day++;
+    if (S.day >= LAST_DAY) { await graduation(); return; }
+    const kind = S.day < to ? 'pass' : S.ap ? 'slot' : 'week';
+    if (kind === 'week') S.ap = AP_MAX;
+    rollWeather();
+    await morningOf(kind);
+  }
+  saveGame(); hub();
 }
-async function startDay() {
+/* 그날 밤: 밤 이벤트, 또는 (골드가 넉넉하면) 암시장 */
+async function nightOf() {
+  const nightEv = CALENDAR[S.day];
+  if (nightEv === 'lastFest') { await starFestival(); seen(nightEv); saveGame(); }
+  else if (nightEv && NIGHT_EVENTS.has(nightEv)) { await runScene(COMMON[nightEv]); seen(nightEv); }
+  else if (!S.flags.bm && HIDDEN_READY.bm(S) && S.day < LAST_DAY - 1) await blackMarket();
+}
+/* 날이 밝는다. kind: 'week' 새 주의 첫 행동 / 'slot' 이번 주 다음 행동 / 'pass' 행동 없이 지나가는 날 */
+async function morningOf(kind) {
+  const t = termOf(S.day), ev = CALENDAR[S.day];
+  const morning = ev && !NIGHT_EVENTS.has(ev) ? ev : null;
+  const termStart = t.from === S.day;
+  if (kind === 'pass' && !morning && !termStart) { await dawn(); return; }
   screen('hub'); setBg('dorm'); S.bg = 'dorm'; setTint(dayTint()); FX.set(null);
   hub();
-  const t = termOf(S.day), [, d] = mdOf(S.day), ev = CALENDAR[S.day];
-  const morning = ev && !NIGHT_EVENTS.has(ev) ? ev : null;
-  const sub = `${WEATHER[S.weather]} ${S.weather} · 별빛 축제까지 D-${LAST_DAY - S.day}`;
-  if (t.from === S.day) await banner(dateStr(S.day), `${t.name} 시작 · ${sub}`, '✦');
+  const [fn, fd] = festTo(S.day), sub = `${WEATHER[S.weather]} ${S.weather} · ${fn}까지 D-${fd}`;
+  if (kind === 'week') {
+    const range = S.day + 6 >= LAST_DAY ? `${md(LAST_DAY)} 졸업식` : `${md(S.day)}~${md(S.day + 6)}`;
+    await banner(gradeWeek(S.day), `${termStart ? `${t.name} 시작 · ` : ''}${range} · 행동치 ${AP_MAX} · ${sub}`, termStart ? '✦' : '📅');
+    if (morning) await banner(dateStr(S.day), EVENT_TITLES[morning], '📜');
+  } else if (termStart) await banner(gradeDate(S.day), `${t.name} 시작 · ${sub}`, '✦');
   else if (morning) await banner(dateStr(S.day), `${EVENT_TITLES[morning]} · ${sub}`, '📜');
-  else if (d === 1) await banner(dateStr(S.day), sub, WEATHER[S.weather]);
-  else await flip(dateStr(S.day), `${WEATHER[S.weather]} ${S.weather}`);
-  if (morning) {
-    await runScene(COMMON[morning]); seen(morning);
-    if (FULLDAY_EVENTS.has(morning)) { saveGame(); toast('🌙 하루가 저물었다'); await endDay(); return; }
-  }
+  else await flip(dateStr(S.day), `${WEATHER[S.weather]} ${S.weather} · 행동치 ${S.ap}/${AP_MAX}`);
+  if (morning) { await runScene(COMMON[morning]); seen(morning); }
+  await dawn();
+}
+/* 매일 아침의 성장·히든·연애 확인 */
+async function dawn() {
   const g = GROWTH[S.growth];
-  if (g && S.day >= g.day && total(S.stats) >= g.need) {
+  if (g && S.day >= g.day && total(S.stats) >= g.need && !(g.term && isVac())) {
+    screen('hub'); hub();
     await banner(`무색의 빛 · ${S.growth + 1}장`, g.title, '✦');
     await runScene(g.steps);
     S.growth++; seen(g.key);
   } else await hiddenMorning();
+  const mail = mailScene(S); // 지난주에 보낸 편지의 답장 (detail.js)
+  if (mail) { screen('hub'); hub(); await runScene(mail, 'dorm'); }
   await loveCheck();
-  saveGame(); hub();
 }
 function flip(big, small) {
   AUDIO.sfx('page');
@@ -760,38 +886,75 @@ function flip(big, small) {
   });
 }
 
-async function festival() {
-  const best = S.lover || ALL.filter((id) => S.intro[id]).sort((a, b) => S.aff[b] - S.aff[a])[0];
-  if (best && S.aff[best] >= 30 && EVE[best]) { await runScene([{ bgm: 'calm' }, ...EVE[best]]); seen(`${best}_eve`); }
-  else await runScene([{ bgm: 'calm' }, ...COMMON.eveAlone]);
+/* 2학년 입춘 전야, 마지막 별빛 축제 (밤 이벤트): 예전엔 엔딩이었다. 이제는 별등이 완성되는 밤이고, 이야기는 졸업식까지 이어진다.
+ * 그날 밤 곁에 선 사람의 장면(STORY[id].end)을 보고, 아직 연인이 없었다면 그 사람과 연인이 된다. 엔딩 표시(── … END)는 뺀다 */
+const noEndTag = (st) => st.filter((x) => !(Array.isArray(x) && /^── /.test(x[x.length - 1])));
+const FEST_CH = 9; // 이 축제에서 「여덟 모두」·「혼자 탑으로」를 고르려면 무색의 빛 9장(별의 맹세)까지
+async function starFestival() {
   S.weather = '맑음';
-  await banner(dateStr(LAST_DAY), '별빛 축제의 밤', '✦');
+  await banner(dateStr(S.day), '마지막 별빛 축제의 밤', '✦');
   await runScene([{ bgm: 'festival' }, ...COMMON.festivalOpen]);
-  const cand = ALL.filter((id) => S.ev[id] >= 3 && S.aff[id] >= END_AT).sort((a, b) => (b === S.lover) - (a === S.lover) || S.aff[b] - S.aff[a]);
-  const trueOK = S.growth >= GROWTH.length && ORDER.every((id) => S.intro[id] && S.aff[id] >= TRUE_AT);
+  const cand = S.lover ? [S.lover] : ALL.filter((id) => S.ev[id] >= 3 && S.aff[id] >= END_AT).sort((a, b) => S.aff[b] - S.aff[a]);
+  const full = S.growth >= FEST_CH;
+  const trueOK = full && ORDER.every((id) => S.intro[id] && S.aff[id] >= TRUE_AT);
   const opts = cand.map((id) => ({ t: `${id === S.lover ? '💕 ' : ''}${CHARS[id].name}에게 간다${id === S.lover ? ' (연인)' : ''}`, k: id }));
   if (trueOK) opts.push({ t: '✦ 여덟 사람 모두와 함께 별등 앞에 선다', k: 'true' });
-  if (S.growth >= GROWTH.length) opts.push({ t: '🕯️ 혼자 탑 꼭대기, 별등 곁으로 간다', k: 'solo' });
+  if (full) opts.push({ t: '🕯️ 혼자 탑 꼭대기, 별등 곁으로 간다', k: 'solo' });
   let who = opts[0]?.k;
   if (opts.length > 1) {
     await say('', null, '별등 앞에서 기다리고 있을 사람이 떠오른다. 누구에게 갈까?');
     who = opts[await choose(opts)].k;
   }
   let key;
-  if (who === 'true') { await play([{ bgm: 'ending' }, ...COMMON.trueEnd]); key = 'true'; }
-  else if (who === 'solo') { await play([{ bgm: 'ending' }, ...COMMON.soloEnd]); key = 'solo'; }
+  if (who === 'true') { await runScene([{ bgm: 'ending' }, ...noEndTag(COMMON.trueEnd)]); key = 'true'; }
+  else if (who === 'solo') { await runScene([{ bgm: 'ending' }, ...noEndTag(COMMON.soloEnd)]); key = 'solo'; }
   else if (who) {
-    const lov = who === S.lover ? [['', `${md(S.love.since)}, 연인이 된 그날로부터 ${S.day - S.love.since}일. 둘이 함께 맞는 첫 별빛 축제의 밤이다.`]] : [];
-    await play([{ bgm: 'romance' }, ...lov, ...STORY[who].end]); key = who;
-  }
-  else {
-    const fr = ALL.filter((id) => S.intro[id] && S.aff[id] >= 35).sort((a, b) => S.aff[b] - S.aff[a])[0];
-    const ne = [...COMMON.normalEnd];
+    const lov = who === S.lover ? [['', `${md(S.love.since)}, 연인이 된 그날로부터 ${S.day - S.love.since}일. 둘이 함께 맞는 마지막 별빛 축제의 밤이다.`]] : [];
+    await runScene([{ bgm: 'romance' }, ...lov, ...noEndTag(STORY[who].end)]);
+    addAff(who, 1, true);
+    if (!S.lover) { S.lover = who; S.love = { since: S.day, n: 0, last: S.day, warn: 0 }; toast(`💞 ${CHARS[who].name}${josa(CHARS[who].name, '과', '와')} 연인이 되었다!`); }
+    key = who;
+  } else {
+    const fr = ALL.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
+    const ne = noEndTag(COMMON.normalEnd);
     if (fr) ne.splice(ne.length - 1, 0, { show: fr }, [fr, Object.keys(CHARS[fr].ex)[1], FRIEND_LINES[fr]], { hide: 1 });
+    await runScene([{ bgm: 'calm' }, ...ne]); key = 'normal';
+  }
+  charHide();
+  S.flags.fest3 = key; seen(CHARS[key] ? `${key}_end` : key === 'normal' ? 'fest_normal' : key);
+  await runScene(COMMON.lanternDone); // 별등 완성 → 3학년으로 (year3.js)
+}
+
+/* 3학년 3월 1일 졸업식: 엔딩 */
+async function graduation() {
+  S.weather = '맑음';
+  await banner(gradeDate(LAST_DAY), '졸업식', '🎓');
+  await runScene([{ bgm: 'calm' }, ...COMMON.gradDay]); seen('gradDay');
+  const cand = ALL.filter((id) => S.ev[id] >= 3 && S.aff[id] >= END_AT).sort((a, b) => (b === S.lover) - (a === S.lover) || S.aff[b] - S.aff[a]);
+  const trueOK = S.growth >= GROWTH.length && ORDER.every((id) => S.intro[id] && S.aff[id] >= TRUE_AT);
+  const opts = cand.map((id) => ({ t: `${id === S.lover ? '💕 ' : ''}${CHARS[id].name}에게 간다${id === S.lover ? ' (연인)' : ''}`, k: id }));
+  if (trueOK) opts.push({ t: '✦ 여덟 사람이 기다리는 별의 탑으로 간다', k: 'true' });
+  if (S.growth >= GROWTH.length) opts.push({ t: '🕯️ 혼자 탑 꼭대기, 등불지기의 자리로 간다', k: 'solo' });
+  let who = opts[0]?.k;
+  if (opts.length > 1) {
+    setBg('plum');
+    await say('', null, '졸업장을 품에 안고 대성당을 나섰다. 매화나무 아래에서, 기다리고 있을 사람이 떠오른다. 누구에게 갈까?');
+    who = opts[await choose(opts)].k;
+  }
+  let key;
+  if (who === 'true') { await play([{ bgm: 'ending' }, ...COMMON.gradTrue]); key = 'true'; }
+  else if (who === 'solo') { await play([{ bgm: 'ending' }, ...COMMON.gradSolo]); key = 'solo'; }
+  else if (who) {
+    const lov = who === S.lover ? [['', `${md(S.love.since)}, 연인이 된 그날로부터 ${S.day - S.love.since}일. 오늘, 우리는 함께 졸업한다.`]] : [];
+    await play([{ bgm: 'romance' }, { bg: 'plum', tint: 'pm', pt: 'petals' }, ...lov, ...GRAD_END[who]]); key = who;
+  } else {
+    const fr = ALL.filter((id) => S.intro[id] && S.aff[id] >= 25).sort((a, b) => S.aff[b] - S.aff[a])[0];
+    const ne = [...COMMON.gradNormal];
+    if (fr) ne.splice(ne.length - 1, 0, { show: fr }, [fr, Object.keys(CHARS[fr].ex)[1], GRAD_FRIEND[fr]], { hide: 1 });
     await play([{ bgm: 'calm' }, ...ne]); key = 'normal';
   }
   charHide();
-  META.endings[key] = true; seen(CHARS[key] ? `${key}_end` : key);
+  META.endings[key] = true; seen(`${key}_grad`);
   saveMeta();
   try { localStorage.removeItem(SAVE_KEY); } catch { /* 무시 */ }
   const result = { key, name: S.name, aff: { ...S.aff }, stats: { ...S.stats }, rank: rankOf(total(S.stats)), growth: S.growth, skills: Object.keys(S.skills).length };
@@ -828,9 +991,9 @@ function results(r) {
   modal(`<div class="credits">
     <div class="logo">LUMINARIA<small>Eight Fates</small></div>
     <div class="end-name">${esc(END_TITLES[r.key] || '')}</div>
-    <p class="quote">${CHARS[r.key] ? `「${CHARS[r.key].quote}」` : r.key === 'true' ? '「여덟 개의 빛, 그리고 색이 없는 단 하나의 빛.」' : r.key === 'solo' ? '「색이 없다는 건, 무엇이든 이을 수 있다는 뜻이었다.」' : '「…다음 축제에는, 조금 더 용기를 내볼까.」'}</p>
-    <div class="res-grid">${top.map((id) => `<div><img src="${img(id, 'e1')}" alt=""><b>${CHARS[id].name}</b><span>♥ ${r.aff[id]}</span></div>`).join('')}</div>
-    <p>${Object.entries(STATS).map(([k, n]) => `${n} ${r.stats[k]}`).join(' · ')}</p>
+    <p class="quote">${CHARS[r.key] ? `「${CHARS[r.key].quote}」` : r.key === 'true' ? '「여덟 개의 빛, 그리고 색이 없는 단 하나의 빛.」' : r.key === 'solo' ? '「색이 없다는 건, 무엇이든 이을 수 있다는 뜻이었다.」' : '「…졸업해도, 이 빛은 모두를 비출 거야.」'}</p>
+    <div class="res-grid">${top.map((id) => `<div><img src="${img(id, 'e1')}" alt=""><b>${CHARS[id].name}</b><span>♥ ${num1(r.aff[id])}</span></div>`).join('')}</div>
+    <p>${Object.entries(STATS).map(([k, n]) => `${n} ${statTxt(r.stats[k])}`).join(' · ')}</p>
     <p>학원 평가 <b>${RANKS[r.rank][1]}</b> · 무색의 빛 ${r.growth}/${GROWTH.length}장 · 무색 마법 ${r.skills}/${Object.keys(SKILLS).length}</p>
     <p>히로인 엔딩 ${cleared} / 8${hidCleared ? ` · 히든 ${hidCleared} / 4` : ''}${META.endings.solo ? ' · 🕯️ 성장 엔딩' : ''}${META.endings.true ? ' · ✦ 트루 엔딩' : ''}</p>
     <p style="color:var(--dim);font-size:13px">플레이해주셔서 감사합니다.</p>
@@ -844,20 +1007,26 @@ function hub() {
   const wet = S.weather === '비' || S.weather === '눈', [m] = mdOf(S.day);
   AUDIO.bgm(wet ? 'calm' : 'daily');
   FX.set(S.weather === '비' ? 'rain' : S.weather === '눈' ? 'snow' : m === 4 ? 'petals' : null);
-  const t = termOf(S.day), wd = wdOf(S.day);
-  $('#hDate').textContent = dateStr(S.day);
-  $('#hSlot').innerHTML = iconize(`${t.name}${t.vac ? '' : ` ${Math.floor((S.day - t.from) / 7) + 1}주차`} · ${WEATHER[S.weather]} ${S.weather}`);
+  const t = termOf(S.day), ds = weekDays(S.day);
+  $('#hDate').textContent = gradeWeek(S.day);
+  $('#hSlot').innerHTML = iconize(`${t.name}${t.vac ? '' : ` ${Math.floor((S.day - t.from) / 7) + 1}주차`} · ${dateStr(S.day)} · ${WEATHER[S.weather]} ${S.weather}`);
+  // 이번 주 달력: 지난 날은 흐리게, 오늘은 강조, 행사가 있는 날엔 점
+  const ws = weekStart(S.day), nextAct = S.ap > 1 ? ws + SLOT_OFF[AP_MAX - S.ap + 1] : ws + 7;
+  $('#hWeek').innerHTML = `<div class="wk">${Array.from({ length: 7 }, (_, i) => ws + i).map((d) => {
+    const e = d === LAST_DAY ? 'fest' : CALENDAR[d], title = d === LAST_DAY ? '졸업식' : e ? EVENT_TITLES[e] : '';
+    return `<span class="${d > LAST_DAY ? 'off' : d < S.day ? 'past' : d === S.day ? 'now' : ''} ${e ? (e === 'fest' || NIGHT_EVENTS.has(e) ? 'ev night' : 'ev') : ''} ${wdOf(d) >= 5 ? 'we' : ''}" title="${esc(title)}">${WEEK[wdOf(d)]}<b>${mdOf(d)[1]}</b></span>`;
+  }).join('')}</div>
+    <div class="ap"><em>행동치</em>${Array.from({ length: AP_MAX }, (_, i) => `<i class="${i < S.ap ? 'on' : ''}"></i>`).join('')}${nextAct >= LAST_DAY ? '<small>졸업 전 마지막 행동</small>' : S.ap === 1 ? '<small>이번 주 마지막 행동</small>' : ''}<b>${S.ap}/${AP_MAX}</b></div>`;
 
-  const news = [`🌟 별빛 축제까지 D-${LAST_DAY - S.day}`];
-  const today = CALENDAR[S.day];
-  if (today && NIGHT_EVENTS.has(today)) news.push(`🌙 오늘 밤에는 「${EVENT_TITLES[today]}」`);
-  const nextD = Object.keys(CALENDAR).map(Number).sort((a, b) => a - b).find((d) => d > S.day);
-  if (nextD && nextD - S.day <= 7) news.push(`📜 ${md(nextD)} — ${DAY_NEWS[CALENDAR[nextD]]} (D-${nextD - S.day})`);
-  if (t.vac) news.push(`🏖 ${t.name}! 수업이 없다. 탐험·상점가가 매일 열린다`);
-  else if (isWeekend()) news.push('📅 주말. 외출 허가가 나왔다. 데이트 신청의 기회!');
-  else news.push(`📅 ${WEEK[wd]}요일 · ${wd === 1 || wd === 3 ? '검술 수업이 있는 날' : wd === 2 && S.club ? '마법 이론 · 동아리 활동의 날' : wd === 4 ? '마법 이론 · 방과 후 상점가' : '마법 이론 수업이 있는 날'}`);
+  const news = [`🌟 ${festTo(S.day)[0]}까지 D-${festTo(S.day)[1]}`];
+  const evs = ds.filter((d) => CALENDAR[d] && (d > S.day || (d === S.day && NIGHT_EVENTS.has(CALENDAR[d])))); // 오늘 아침 행사는 이미 지나갔다
+  for (const d of evs) news.push(`${NIGHT_EVENTS.has(CALENDAR[d]) ? '🌙' : '📜'} ${d === S.day ? '오늘' : `${WEEK[wdOf(d)]}요일`}${NIGHT_EVENTS.has(CALENDAR[d]) ? ' 밤' : ''} — ${DAY_NEWS[CALENDAR[d]] || `「${EVENT_TITLES[CALENDAR[d]]}」`}`);
+  const nextD = Object.keys(CALENDAR).map(Number).sort((a, b) => a - b).find((d) => d > ds[ds.length - 1]);
+  if (!evs.length && nextD && nextD - S.day <= 14) news.push(`📜 다음 주 ${md(nextD)} — ${DAY_NEWS[CALENDAR[nextD]]} (D-${nextD - S.day})`);
+  if (t.vac) news.push(`🏖 ${t.name}! 수업이 없다. 탐험·상점가가 매일 열리고, ${t.key === 'summer' ? '「해변」·「해변 구조대」' : '「눈꽃 마을 봉사」'}에도 갈 수 있다`);
   if (S.weather === '비' || S.weather === '눈') news.push(`${WEATHER[S.weather]} ${S.weather}${josa(S.weather, '이', '가')} 온다. 밖에서 사람을 만나기는 어려울 것 같다`);
-  if (S.tower > 0 && !locked('tower')) news.push(`🕯️ 별의 탑에서 수련할 수 있다 (${S.tower}회 · 모든 능력치 +2)`);
+  if (S.tower > 0 && !locked('tower')) news.push(`🕯️ 별의 탑에서 수련할 수 있다 (${S.tower}회 · 모든 능력치 +${statTxt(2)})`);
+  news.push(...detailNews(S)); // 공명 이론 강의 · 시험 범위 · 생일 (detail.js)
   for (const id of ALL) {
     const k = pendingEvent(id);
     if (k >= 0) news.push(`💌 ${CHARS[id].name}${josa(CHARS[id].name, '과', '와')}의 이야기가 기다리고 있다. 만나러 가 보자`);
@@ -873,19 +1042,19 @@ function hub() {
   const g = GROWTH[S.growth];
   if (g) {
     const tt = total(S.stats);
-    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 내일 아침, 무색의 빛에 변화가 찾아올 것 같다` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${g.need} (지금 ${tt})`);
+    news.push(tt >= g.need && S.day + 1 >= g.day ? `✦ 곧, 무색의 빛에 변화가 찾아올 것 같다${g.term && isVac() ? ' (방학이 끝나고 수업이 시작되면)' : ''}` : `✦ 무색의 빛 ${S.growth + 1}장 「${g.title}」: ${S.day < g.day ? `${md(g.day)}부터 · ` : ''}총 능력치 ${statTxt(g.need)} (지금 ${statTxt(tt)})`);
   }
   $('#hNews').innerHTML = news.map((n) => `<li>${iconize(n)}</li>`).join('');
 
-  const st = Object.entries(STATS).map(([k, n]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, S.stats[k])}%"></i></div><b>${S.stats[k]}</b></div>`).join('');
+  const st = Object.entries(STATS).map(([k, n]) => `<div class="stat"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, S.stats[k])}%"></i></div><b>${(S.stats[k] / STAT_UNIT).toFixed(1)}</b></div>`).join(''); // 막대는 20.0에서 가득
   const tt = total(S.stats), nx = RANKS[S.rank + 1];
-  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${tt} · 다음 등급 ${nx[0]}` : `총 ${tt} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">${iconize('💰')} ${S.gold} G</div>`;
+  $('#hStats').innerHTML = `<div class="rank-line"><span class="rank r${S.rank}">${RANKS[S.rank][1]}</span><span>학원 평가<small>${nx ? `총 ${statTxt(tt)} · 다음 등급 ${statTxt(nx[0])}` : `총 ${statTxt(tt)} · 최고 등급`}</small></span></div>` + st + `<div class="gold-line">${iconize('💰')} ${S.gold} G</div>`;
 
   $('#hLocs').innerHTML = loveCard() + Object.keys(LOCS).map((k) => [k, locState(k)]).filter(([, s]) => !s.hide).map(([k, s]) => {
     const L = LOCS[k], stat = locStat(k);
     const ws = encounterOdds(k).filter(([id]) => S.met[id]); // 얼굴은 세 명까지, 나머지는 +n
     const who = ws.slice(0, 3).map(([id]) => `<img src="${img(id, 'e0')}" title="${CHARS[id].name} (자주 온다)" alt="">`).join('') + (ws.length > 3 ? `<span class="more" title="${ws.slice(3).map(([id]) => CHARS[id].name).join(', ')}">+${ws.length - 3}</span>` : '');
-    const gain = [L.ticket ? `모든 능력치 +2 · ${S.tower}회` : stat ? `${STATS[stat]} +1` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
+    const gain = [L.ticket ? (resLessonNow(S) >= 0 ? `🎐 공명 이론 강의 · 지력 +${statTxt(1)}~${statTxt(2)}` : `모든 능력치 +${statTxt(2)} · ${S.tower}회`) : stat ? `${STATS[stat]} +${statTxt(1)}~${statTxt(2)}` : L.club ? '' : '편지 · 휴식', L.gold ? '골드' : ''].filter(Boolean).join(' · ');
     return `<button class="btn loc ${s.ok ? '' : 'shut'}" data-loc="${k}" ${s.ok ? '' : 'disabled'}><span class="ic">${iconize(L.club && S.club ? CLUBS[S.club].icon : L.icon)}</span><span class="nm"><b>${locName(k)}</b><small>${s.ok ? gain : iconize(`🔒 ${s.why}`)}</small></span><span class="who">${s.ok ? who : ''}</span></button>`;
   }).join('');
 
@@ -894,14 +1063,14 @@ function hub() {
     const id = known[rand(0, known.length - 1)], c = CHARS[id];
     const haunt = Object.entries(HAUNTS[id]).filter(([l]) => !locState(l).hide).sort((a, b) => b[1] - a[1])[0];
     const where = haunt ? `요즘 ${LOCS[haunt[0]].place}에서 자주 보인다${locState(haunt[0]).ok ? ' · 오늘 열려 있다' : ''}` : '';
-    $('#hIdle').innerHTML = `<div class="idle"><div class="bubble"><b style="color:${c.color}">${c.name}</b> “${IDLE_LINES[id][rand(0, IDLE_LINES[id].length - 1)]}”<br><small>— ${where}</small></div><img src="${img(id, 'chibi')}" alt=""></div>`;
+    $('#hIdle').innerHTML = `<div class="idle"><div class="bubble"><b style="color:${c.color}">${c.name}</b> “${IDLE_LINES[id][rand(0, IDLE_LINES[id].length - 1)]}”<br><small>— ${where}</small></div><img src="${img(id, 'chibi', season())}" alt=""></div>`;
   } else $('#hIdle').innerHTML = `<div class="idle"><div class="bubble">${S.weather === '비' ? '빗소리가 들린다. 오늘은 어떤 하루를 보낼까…' : '오늘은 어떤 일을 해볼까…?'}</div></div>`;
 
   const card = (id) => {
     const met = S.met[id], c = CHARS[id];
     if (c.hidden && !met) { // 히든: 만나기 전엔 실루엣과 ???
       const foe = S.foe === id;
-      return `<button class="btn girl secret ${foe ? 'foe' : ''}" disabled style="--c:${c.color}"><img src="${img(id, 'chibi')}" alt=""><div class="gn">${foe ? c.name : '???'}</div><div class="rl">${foe ? '등을 돌렸다' : HIDDEN_HINT[id]}</div><div class="hb"></div></button>`;
+      return `<button class="btn girl secret ${foe ? 'foe' : ''}" disabled style="--c:${c.color}"><img src="${img(id, 'chibi')}" alt=""><div class="gn">${foe ? c.name : '???'}</div><div class="rl">${foe ? '등을 돌렸다' : hiddenHint(S, id)}</div><div class="hb"></div></button>`;
     }
     const ev = S.lover === id ? `<span class="badge love">${icon('heart')}</span>` : pendingEvent(id) >= 0 ? `<span class="badge">${icon('mail')}</span>` : '';
     return `<button class="btn girl ${met ? '' : 'locked'} ${S.lover === id ? 'lover' : ''} ${c.hidden ? 'hid' : ''}" data-girl="${id}" style="--c:${c.color}">${ev}<img src="${img(id, 'e0')}" alt=""><div class="gn">${met ? c.name : '???'}</div><div class="rl">${!met ? '' : S.lover === id ? '연인' : rel(S.aff[id])}</div><div class="hb"><i style="width:${S.aff[id]}%"></i></div></button>`;
@@ -973,30 +1142,30 @@ function growthMenu() {
   const t = total(S.stats), nx = RANKS[S.rank + 1];
   const chap = GROWTH.map((g, i) => {
     const done = i < S.growth, next = i === S.growth;
-    return `<li class="${done ? 'done' : next ? 'next' : ''}"><b>${i + 1}장 ${done || next ? g.title : '？？？'}</b><small>${done ? '완료' : next ? `${md(g.day)} 이후 · 총 능력치 ${g.need}${t >= g.need ? ' ✓' : ` (지금 ${t})`}` : '앞 장을 마치면 열린다'}</small></li>`;
+    return `<li class="${done ? 'done' : next ? 'next' : ''}"><b>${i + 1}장 ${done || next ? g.title : '？？？'}</b><small>${done ? '완료' : next ? `${md(g.day)} 이후 · 총 능력치 ${statTxt(g.need)}${t >= g.need ? ' ✓' : ` (지금 ${statTxt(t)})`}` : '앞 장을 마치면 열린다'}</small></li>`;
   }).join('');
   const sk = Object.entries(SKILLS).map(([k, x]) => {
     const has = S.skills[k];
-    const how = x.stat ? `${STATS[x.stat[0]]} ${x.stat[1]} 달성 (지금 ${S.stats[x.stat[0]]})` : `무색의 빛 ${x.ch}장`;
+    const how = x.stat ? `${STATS[x.stat[0]]} ${statTxt(x.stat[1])} 달성 (지금 ${statTxt(S.stats[x.stat[0]])})` : `무색의 빛 ${x.ch}장`;
     return `<div class="skill ${has ? 'on' : ''}"><span class="ic">${has ? x.icon : '🔒'}</span><div><b>${x.ch ? '' : '[특기] '}${x.name}</b><small>${x.desc}</small>${has ? '' : `<em>${how}</em>`}</div></div>`;
   }).join('');
   const found = Object.keys(META.found).length;
   const tt = Object.entries(LOCS).filter(([, L]) => !L.ticket).map(([k, L]) => {
     const who = ALL.filter((id) => S.met[id] && (HAUNTS[id][k] || (L.club && S.club && CLUBS[S.club].members.includes(id)))).map((id) => CHARS[id].name).join('·');
-    return `<tr><th>${L.icon} ${L.club ? '동아리 활동' : L.name}</th><td>${L.club ? (S.club ? '수' : '박람회 후 · 수') : daysLabel(L.days) || '—'}</td><td>${L.only ? '여름방학 · 매일' : (L.vname ? `${L.vname} ` : '') + (L.club ? '—' : daysLabel(L.vdays) || '휴강')}</td><td>${L.club ? (S.club ? STATS[CLUBS[S.club].stat] : '부 능력치') : L.stat ? STATS[L.stat] : '편지·휴식'}${L.gold ? ' · 골드' : ''}</td><td>${who || '<span class="dim">—</span>'}</td></tr>`;
+    return `<tr><th>${L.icon} ${L.club ? '동아리 활동' : L.name}</th><td>${L.club ? (S.club ? '매주' : '박람회 후 · 매주') : L.days ? '매주' : '—'}</td><td>${L.only ? `${onlyName(L)} · 매주` : (L.vname ? `${L.vname} ` : '') + (L.club ? '—' : L.vdays ? '매주' : '휴강')}</td><td>${L.club ? (S.club ? STATS[CLUBS[S.club].stat] : '부 능력치') : L.stat ? STATS[L.stat] : '편지·휴식'}${L.gold ? ' · 골드' : ''}</td><td>${who || '<span class="dim">—</span>'}</td></tr>`;
   }).join('');
-  const nextEv = Object.keys(CALENDAR).map(Number).sort((a, b) => a - b).filter((d) => d >= S.day).slice(0, 4).map((d) => `<li><b>${md(d)}</b> ${EVENT_TITLES[CALENDAR[d]]}</li>`).join('');
+  const nextEv = [...Object.keys(CALENDAR).map(Number), LAST_DAY].sort((a, b) => a - b).filter((d) => d >= S.day).slice(0, 4).map((d) => `<li><b>${md(d)}</b> ${d === LAST_DAY ? '🎓 졸업식' : EVENT_TITLES[CALENDAR[d]]}</li>`).join('');
   modal(`<h2>성장 기록</h2>
     <div class="grow-head"><span class="rank big r${S.rank}">${RANKS[S.rank][1]}</span><div><b>학원 평가 ${RANKS[S.rank][1]} 등급</b><small>총 능력치 ${t}${nx ? ` · 다음 ${nx[1]} 등급까지 ${nx[0] - t}` : ' · 최고 등급'}</small>
       <small>${S.club ? `${CLUBS[S.club].icon} ${CLUBS[S.club].name} — ${CLUBS[S.club].desc}` : '동아리: 아직 없음 (4월 6일 박람회)'}</small>
       ${S.creed ? `<small>신념: ${CREEDS[S.creed]}</small>` : ''}</div></div>
-    <h3>📅 주간 시간표 <small>(지금: ${termOf(S.day).name})</small></h3>
+    <h3>📅 시간표 <small>(지금: ${termOf(S.day).name} · 한 주에 행동치 ${AP_MAX})</small></h3>
     <div class="tt-wrap"><table class="tt"><tr><th>행동</th><td>학기 중</td><td>방학</td><td>오르는 것</td><td>자주 오는 사람</td></tr>${tt}</table></div>
-    <p class="sub">🕯️ 별의 탑: 무색 마법을 각성할 때마다 한 번 (모든 능력치 +2) · 남은 수련 ${S.tower}회 · 히로인은 자주 오는 곳에서도 10~30% 확률로만 만난다</p>
+    <p class="sub">🕯️ 별의 탑: 무색 마법을 각성할 때마다 한 번 (모든 능력치 +${statTxt(2)}) · 남은 수련 ${S.tower}회 · 히로인은 자주 오는 곳에서도 10~30% 확률로만 만난다</p>
     ${nextEv ? `<h3>다가오는 학원 행사</h3><ul class="chap">${nextEv}</ul>` : ''}
     <h3>무색의 빛 — 주인공 이야기</h3><ul class="chap">${chap}</ul>
     <h3>무색 마법 · 특기 ${Object.keys(S.skills).length}/${Object.keys(SKILLS).length}</h3><div class="skills">${sk}</div>
-    <p class="sub">학원 곳곳의 돌발 사건 ${found}/${RANDOM_EVENTS.length}개 발견 · 능력치 판정 선택지 〔 〕는 조건을 넘으면 ✓가 붙어요${S.skills.insight ? ' (「색 읽기」 보정 +10 적용 중)' : ''}</p>`);
+    <p class="sub">학원 곳곳의 돌발 사건 ${found}/${RANDOM_EVENTS.length}개 발견 · 능력치 판정 선택지 〔 〕는 조건을 넘으면 ✓가 붙어요${judgeBonus() ? ` (판정 보정 +${statTxt(judgeBonus())} 적용 중)` : ''}</p>`);
 }
 
 function profile(id, fromAlbum) {
@@ -1011,8 +1180,9 @@ function profile(id, fromAlbum) {
       <div class="pname">${c.name}<small>${c.en}</small></div>
       <div class="ptitle">${c.title}</div>
       <table class="info">${c.info.map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('')}
-        ${inGame ? `<tr><th>관계</th><td>${rel(aff)}</td></tr><tr><th>호감도</th><td><span class="hearts">${'♥'.repeat(Math.floor(aff / 20))}${'♡'.repeat(5 - Math.floor(aff / 20))}</span> ${aff}</td></tr>
-        <tr><th>이야기</th><td>${'●'.repeat(ev)}${'○'.repeat(3 - ev)} ${ev < 3 ? `(다음: 호감도 ${EV_AT[ev]}${EV_DAY[ev] > 1 ? ` · ${md(EV_DAY[ev])} 이후` : ''}${ev === 2 ? ` · ${STATS[c.req.stat]} ${c.req.v}` : ''})` : '완료'}</td></tr>
+        ${inGame ? `<tr><th>관계</th><td>${rel(aff)}</td></tr><tr><th>호감도</th><td><span class="hearts">${'♥'.repeat(Math.floor(aff / 20))}${'♡'.repeat(5 - Math.floor(aff / 20))}</span> ${num1(aff)}</td></tr>
+        <tr><th>이야기</th><td>${'●'.repeat(ev)}${'○'.repeat(3 - ev)} ${ev < 3 ? `(다음: 호감도 ${EV_AT[ev]}${EV_DAY[ev] > 1 ? ` · ${md(EV_DAY[ev])} 이후` : ''}${ev === 2 ? ` · ${STATS[c.req.stat]} ${statTxt(c.req.v)}` : ''})` : '완료'}</td></tr>
+        <tr><th>곁이야기</th><td>${SIDE_STORIES.filter((x) => x.story[id]).map((x) => (S.flags[`${x.key}_${id}`] ? `${x.icon} ${x.title} 완료` : `${x.icon} ${x.title} (${x.hint})`)).join('<br>')}</td></tr>
         <tr><th>자주 가는 곳</th><td>${Object.entries(HAUNTS[id]).map(([l, p]) => `${LOCS[l].place} ${p}%`).join(', ')}</td></tr>
         <tr><th>좋아하는 선물</th><td>${likes}</td></tr>
         <tr><th>연애</th><td>${S.lover === id ? `${icon('heart')} 연인 (${md(S.love.since)}부터 · 연애 ${S.love.n}회)` : S.lover ? `${CHARS[S.lover].name}${josa(CHARS[S.lover].name, '과', '와')} 사귀는 중` : canConfess(id) ? '지금 고백할 수 있다 (고백하기)' : `호감도 ${CONFESS_AT} · 이야기 ${CONFESS_EV}편 이후 고백${(S.confess[id] || 0) > S.day ? ` · ${md(S.confess[id])}부터 다시` : ''}`}</td></tr>
@@ -1020,8 +1190,15 @@ function profile(id, fromAlbum) {
         ${META.endings[id] ? '<tr><th>엔딩</th><td>✦ 달성</td></tr>' : ''}
       </table>
       <p class="quote">“${c.quote}”</p>
-      <button class="btn" id="btnSheet">설정 자료 보기</button>
+      <button class="btn" id="btnSheet">설정 자료 보기</button>${SUMMER_LOOK.includes(id) && META.seen[`${id}_sum`] ? ' <button class="btn" id="btnWear">☀️ 여름 의상</button>' : ''}
     </div></div>`);
+  const bw = $('#btnWear');
+  if (bw) bw.onclick = () => { // 여름 해변 이야기를 본 뒤엔 프로필에서 여름 옷을 볼 수 있다
+    const w = bw.classList.toggle('on') ? 'summer' : null;
+    $('.profile .kart').src = img(id, 'key', w);
+    document.querySelectorAll('.profile .faces img').forEach((el, i) => { el.src = img(id, 'e' + i, w); });
+    bw.textContent = w ? '평상복' : '☀️ 여름 의상';
+  };
   $('#btnSheet').onclick = () => modal(`<h2>${c.name} 설정 자료</h2><img class="sheet-img" src="${img(id, 'sheet')}" alt="${c.name} 캐릭터 시트">`, true, () => profile(id, fromAlbum));
 }
 
@@ -1032,18 +1209,33 @@ function replayList() {
     { g: '1학기', items: ['welcome', 'club', 'ghost', 'exam', 'field', 'flicker', 'finals', 'term1End'].map(ev) },
     { g: '여름방학', items: ['camp', 'summerFest'].map(ev) },
     { g: '2학기', items: ['term2Start', 'contest', 'exam2', 'schoolFest', 'finals2', 'term2End'].map(ev) },
-    { g: '겨울방학 · 축제', items: [...['xmas', 'newYear', 'prep'].map(ev), ['solo', '나만의 색', [{ bgm: 'ending' }, ...COMMON.soloEnd]], ['true', '아홉 번째 빛', [{ bg: 'festival' }, { bgm: 'ending' }, ...COMMON.trueEnd]]] },
-    { g: '무색의 빛', c: '#e8d9a8', items: GROWTH.map((g, i) => [g.key, `${i + 1}장 ${g.title}`, g.steps]) }];
+    { g: '겨울방학', items: ['xmas', 'newYear', 'prep', 'springFest', 'assembly'].map(ev) },
+    { g: '학년말 · 봄방학', items: ['candy', 'graduation', 'promo', 'whiteDay', 'term3End'].map(ev) },
+    { g: '2학년 1학기', items: ['promotion', 'blossom', 'recruit', 'trip1', 'trip2', 'exam3', 'sports', 'rainy', 'finals3', 'prep2'].map(ev) },
+    { g: '2학년 여름방학', items: ['tanabata', 'afterglow', 'term1End2', 'farewell', 'beach2', 'delve', 'lantern', 'dare'].map(ev) },
+    { g: '2학년 2학기', items: ['term2Start2', 'career', 'contest2', 'exam4', 'schoolFest2', 'firstSnow', 'finals4', 'term2End2'].map(ev) },
+    { g: '2학년 겨울방학 · 마지막 축제', items: [...['xmas2', 'newYear2', 'raid', 'prep3', 'eve3', 'lastFest'].map(ev),
+      ['fest_normal', '마지막 축제 · 모두를 비추는 빛', [{ bgm: 'calm' }, ...noEndTag(COMMON.normalEnd)]],
+      ['solo', '마지막 축제 · 혼자 탑으로', [{ bgm: 'ending' }, ...noEndTag(COMMON.soloEnd)]],
+      ['true', '마지막 축제 · 여덟 사람과', [{ bg: 'festival' }, { bgm: 'ending' }, ...noEndTag(COMMON.trueEnd)]]] },
+    ...Y3_REPLAY.map((x) => ({ g: x.g, items: x.keys.map(ev) })),
+    { g: '졸업 엔딩', c: '#e8d9a8', items: [['normal_grad', 'NORMAL 「모두를 비추는 빛」', [{ bgm: 'calm' }, ...COMMON.gradNormal]],
+      ['solo_grad', 'GROWTH 「나만의 색」', [{ bgm: 'ending' }, ...COMMON.gradSolo]], ['true_grad', 'TRUE 「아홉 번째 빛」', [{ bgm: 'ending' }, ...COMMON.gradTrue]]] },
+    { g: '무색의 빛', c: '#e8d9a8', items: [...GROWTH.map((g, i) => [g.key, `${i + 1}장 ${g.title}`, g.steps]),
+      ...RES_LESSONS.map((st, i) => [`res${i}`, `공명 이론 ${i + 1} 「${['듣기', '겹치기', '이끌기'][i]}」`, [{ bgm: 'calm', bg: 'tower', tint: 'night', pt: 'stars' }, ...st]])] },
+    ...Object.entries(VAC_SUB).map(([k, x]) => ({ g: `${x.icon} ${x.title}`, c: '#9fc9d8', items: x.ch.map((c, i) => [`sub_${k}${i}`, `${i + 1}장 ${c.title}`, c.steps]) }))];
   for (const id of ALL) {
     const st = STORY[id], hid = CHARS[id].hidden;
     L.push({ g: hid && !META.met[id] ? '???' : CHARS[id].name, c: CHARS[id].color, items: [
       ...(!hid ? [] : ARRIVE[id] ? [[`${id}_arrive`, '만남', ARRIVE[id]]] : [['blackmarket', '암시장의 밤', BLACK_MARKET]]),
       ...st.ev.map((e, k) => [`${id}_ev${k}`, `이야기 ${k + 1}`, [{ bgm: EV_BGM[k] }, ...e]]),
+      ...SIDE_STORIES.filter((x) => x.story[id]).map((x) => [`${id}_${x.key}`, x.title, [{ bgm: 'romance' }, ...x.story[id]]]),
       [`${id}_date`, '주말 데이트', [{ bgm: 'romance' }, ...DATES[id]]],
       [`${id}_confess`, '고백', confessReplay(id)],
       ...LOVE_MILE_TITLES.map((t, k) => [`${id}_love${k}`, `연인 · ${t}`, mileReplay(id, k)]),
       [`${id}_eve`, '축제 전야', [{ bgm: 'calm' }, ...EVE[id]]],
-      [`${id}_end`, '엔딩', [{ bg: 'festival' }, { bgm: 'romance' }, ...st.end]],
+      [`${id}_end`, '마지막 별빛 축제', [{ bg: 'festival' }, { bgm: 'romance' }, ...noEndTag(st.end)]],
+      [`${id}_grad`, '졸업 엔딩', [{ bgm: 'romance' }, { bg: 'plum', tint: 'pm', pt: 'petals' }, ...GRAD_END[id]]],
     ] });
   }
   return L;
@@ -1095,7 +1287,7 @@ function summary(s) {
   if (!s) return '<span class="empty">비어 있음</span>';
   const best = ALL.filter((id) => s.intro && s.intro[id]).sort((a, b) => s.aff[b] - s.aff[a])[0];
   const when = s.ts ? new Date(s.ts).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-  return `<b>${dateStr(s.day)}</b> · ${esc(s.name)}${best ? ` · <span style="color:${CHARS[best].color}">${CHARS[best].name} ♥${s.aff[best]}</span>` : ''}<small>${when}</small>`;
+  return `<b>${gradeWeek(s.day)}</b> · ${esc(s.name)}${best ? ` · <span style="color:${CHARS[best].color}">${CHARS[best].name} ♥${num1(s.aff[best])}</span>` : ''}<small>${when}</small>`;
 }
 function saveMenu(mode) {
   const rows = [];

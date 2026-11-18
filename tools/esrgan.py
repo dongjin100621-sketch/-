@@ -123,3 +123,30 @@ class Upscaler:
         out = out[:, :, :H0 * k, :W0 * k]
         a = (out[0].clamp(0, 1).permute(1, 2, 0).numpy() * 255 + .5).astype(np.uint8)
         return Image.fromarray(a)
+
+    def tta(self, im):
+        """회전 4 × 좌우반전 2 = 8방향으로 키워 평균 낸다. 한 방향에서만 생기는
+        엉뚱한 모양(눈동자가 쐐기꼴로 뭉개지는 것 등)이 사라진다. 8배 느리다."""
+        acc = None
+        for r in range(4):
+            for fl in (False, True):
+                x = im.rotate(90 * r, expand=True)
+                if fl:
+                    x = x.transpose(Image.FLIP_LEFT_RIGHT)
+                y = self(x)
+                if fl:
+                    y = y.transpose(Image.FLIP_LEFT_RIGHT)
+                a = np.asarray(y.rotate(-90 * r, expand=True), np.float32)
+                acc = a if acc is None else acc + a
+        return Image.fromarray((acc / 8 + .5).astype(np.uint8))
+
+
+def backproject(src, up, iters=2, strength=.6):
+    """키운 그림을 다시 줄였을 때 원본과 같아지도록 차이만큼 되돌려 더한다 (역투영).
+    업스케일러가 지워 버린 눈동자 무늬·머리카락 결 같은 잔 디테일이 돌아온다."""
+    T = lambda im: torch.from_numpy(np.asarray(im.convert('RGB'), np.float32) / 255).permute(2, 0, 1)[None]
+    S, X = T(src), T(up)
+    for _ in range(iters):
+        D = F.interpolate(X, size=S.shape[2:], mode='bicubic', antialias=True, align_corners=False)
+        X = X + strength * F.interpolate(S - D, size=X.shape[2:], mode='bicubic', align_corners=False)
+    return Image.fromarray((X[0].clamp(0, 1).permute(1, 2, 0).numpy() * 255 + .5).astype(np.uint8))
