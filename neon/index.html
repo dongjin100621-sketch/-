@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07040f">
+<meta name="description" content="2089년 네오 서울, 비 오는 하층에서 시작되는 사랑 이야기. 고해상도 도트 횡스크롤 사이버펑크 RPG">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="네온 하트">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>네온 하트</title>
+<link rel="preload" href="fonts/galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1280" height="800"></canvas>
+  <div id="ui"></div>
+  <div id="loading">불러오는 중…</div>
+</div>
+<p id="rotHint">↻ 휴대폰을 가로로 돌리면 화면이 더 크게 보여요</p>
+<noscript>자바스크립트를 켜야 플레이할 수 있습니다.</noscript>
+<script src="js/util.js"></script>
+<script src="js/atlas.js"></script>
+<script src="js/data_items.js"></script>
+<script src="js/data_char.js"></script>
+<script src="js/data_world.js"></script>
+<script src="js/data_story.js"></script>
+<script src="js/bg.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/input.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
