@@ -46,4 +46,4 @@
 | 아이템 | 168종(무기 48·의상 36·사이버웨어 48·소모품 24·선물 12), 초급·중급·고급·기밀 4등급 |
 | 성장 | 능력치 5종(신체·반사·기술·지능·침착), 레벨마다 능력치·특성 포인트 → 특성 30종·스킬 15종 해금 |
 
-캐릭터 그림은 `tools/neon_src/`의 시트에서 `tools/neon_sprites.py`로 잘라 `neon/img/sprites.png`를 만듭니다. 글을 고친 뒤에는 `tools/neon_font.py`로 글꼴을 다시 줄이세요.
+캐릭터 그림은 `tools/neon_src/`의 시트에서 `tools/neon_sprites.py`로 잘라 `neon/img/sprites.png`를 만듭니다. 걷는 캐릭터는 이때 두 다리 사이 틈을 찾아 하체·양다리 조각으로 나누고, `neon/js/anim.js`가 이 조각을 움직여 숨쉬기·걷기·찌그러짐·쓰러짐 같은 도트 모션을 만듭니다. 글을 고친 뒤에는 `tools/neon_font.py`로 글꼴을 다시 줄이세요.

@@ -352,8 +352,12 @@ const UI = {
     const cam = 300 + Math.sin(this.tt * 0.08) * 260;
     BG.draw(ctx, cam, this.tt, dt);
     ctx.fillStyle = 'rgba(4,2,10,0.35)'; ctx.fillRect(0, 0, VW, VH);
-    SPR.draw(ctx, 'kai_idle', 470, GROUND + 10, { sc: 1.3, f: 1 });
-    SPR.draw(ctx, 'sera_idle', 800, GROUND + 10, { sc: 1.2, f: -1, sy: 1 + Math.sin(this.tt * 2) * 0.01 });
+    const k = this.tk || (this.tk = new Animator(0)), s = this.ts || (this.ts = new Animator(2));
+    k.tick(this.tt); s.tick(this.tt);
+    const P1 = k.begin(); k.breathe(P1, 1.2); P1.waveFrom = 0.62; P1.wave = 2; P1.waveT = this.tt * 2.6;
+    SPR.pose(ctx, 'kai_idle', 470, GROUND + 10, { sc: 1.3, f: 1 }, P1);
+    const P2 = s.begin(); s.breathe(P2, 1.2); P2.waveFrom = 0.35; P2.wave = 4; P2.waveT = this.tt * 2.2;
+    SPR.pose(ctx, 'sera_idle', 800, GROUND + 10, { sc: 1.2, f: -1 }, P2);
     ctx.font = FONT(40, true); ctx.fillStyle = hexA('#ff8ad8', 0.6 + Math.sin(this.tt * 3) * 0.3); ctx.textAlign = 'center'; ctx.fillText('♥', 640, 430 + Math.sin(this.tt * 2) * 8);
     BG.drawFront(ctx, cam, this.tt, dt);
   },

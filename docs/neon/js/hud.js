@@ -42,8 +42,19 @@ const HUD = {
     for (const n of G.npcs) {
       const D = n.D, f = P.x > n.x ? 1 : -1;
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(n.x, GROUND + 2, 36, 7, 0, 0, 7); ctx.fill();
-      SPR.draw(ctx, D.spr, n.x, GROUND, { sc: D.sc, f, sy: 1 + Math.sin(n.t * 2.2) * 0.012 });
-      if (n.id === 'toto') SPR.draw(ctx, 'bolt', n.x + 110, GROUND, { sc: 0.9, f: -1, sy: 1 + Math.abs(Math.sin(n.t * 4)) * 0.03 });
+      const A = n.anim || (n.anim = new Animator());
+      A.tick(G.time);
+      const NP = A.begin();
+      A.breathe(NP, 1.2, 2 + (n.x % 7) * 0.05);
+      const hair = { sera: 4, lyla: 3, nova: 2.5, momo: 3.5 }[n.id];
+      if (hair) { NP.waveFrom = 0.4; NP.wave = hair; NP.waveT = A.t * 2.2; }
+      const [ff, tsx] = A.face(f); NP.sx *= tsx;
+      SPR.pose(ctx, D.spr, n.x, GROUND, { sc: D.sc, f: ff }, NP);
+      if (n.id === 'toto') { // 로봇 볼트: 통통 튄다
+        const hop = Math.abs(Math.sin(A.t * 4)), up = Math.round(hop * 10);
+        const B = { ...POSE0, sy: 1 + (hop < 0.25 ? -0.08 : hop * 0.05), sx: 1 + (hop < 0.25 ? 0.06 : 0) };
+        SPR.pose(ctx, 'bolt', n.x + 110, GROUND - up, { sc: 0.9, f: -1 }, B);
+      }
       const [, sh] = SPR.size(D.spr, D.sc);
       const top = GROUND - sh - 14;
       ctx.font = FONT(15); ctx.textAlign = 'center';

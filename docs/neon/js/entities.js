@@ -284,19 +284,49 @@ class Player {
     }
   }
   draw(ctx) {
-    let name = 'kai_idle', sy = 1 + Math.sin(this.animT * 2.6) * 0.012, rot = 0;
-    if (this.poseT > 0) { this.poseT -= 1 / 60; name = this.pose; }
+    const A = this.anim || (this.anim = new Animator(0));
+    const dt = A.tick(G.time, this.x, this.y);
+    let name = 'kai_idle2';
+    if (this.poseT > 0) { this.poseT -= dt; name = this.pose; }
     else if (this.dashT > 0) name = 'kai_dash';
-    else if (!this.ground) { name = 'kai_jump'; rot = clamp(this.vy / 4000, -0.12, 0.12) * this.f; }
-    else if (Math.abs(this.vx) > 40) { const fr = ['kai_walk1', 'kai_idle', 'kai_walk2', 'kai_idle2']; name = fr[Math.floor(this.animT * 9) % 4]; sy = 1 + Math.abs(Math.sin(this.animT * 18)) * 0.025; }
-    else name = Math.floor(this.animT / 1.4) % 2 ? 'kai_idle2' : 'kai_idle';
+    else if (!this.ground) name = 'kai_jump';
+    // 자세가 바뀌는 순간: 이전 자세의 잔상 + 튀어나가는 찌그러짐
+    if (name !== A.prev) {
+      const atk = name === 'kai_blade' || name === 'kai_slash' || name === 'kai_dash' || name === 'kai_skill';
+      if (A.prev && atk) { A.ghostName = A.prev; A.ghost = 0.09; A.bump(-2.6); A.lunge = 1; }
+      else if (name === 'kai_jump' && this.vy < 0) A.bump(3.2);
+      else if (A.prev && A.prev !== 'kai_jump') A.bump(-1.2);
+      A.prev = name;
+    }
+    if (this.ground && A.air) A.bump(-3.4 * clamp(A.airVy / 1100, 0.4, 1.3)); // 착지
+    A.air = !this.ground; if (!this.ground) A.airVy = Math.max(0, this.vy);
+    if (this.atkT > 0 && this.poseT > 0 && this.pose === 'kai_idle2' && A.recoil !== this.atkCD) { A.recoil = this.atkCD; A.kick = 0.7; A.bump(-0.8); } // 사격 반동
+    const P = A.begin();
+    const fwd = this.vx * this.f;
+    let rot = 0;
+    if (name === 'kai_idle2') {
+      A.breathe(P, 1);
+      const sp = Math.abs(this.vx);
+      const amp = A.walk(P, sp, { len: 140, full: 330 }, 0.36);
+      P.lean = clamp(fwd / 330, -0.6, 1) * 0.09 + amp * 0.02;
+    } else if (name === 'kai_jump') {
+      rot = clamp(this.vy / 4000, -0.12, 0.12) * this.f;
+      const st = clamp(-this.vy / JUMP_V, -0.6, 1); P.sy *= 1 + st * 0.07; P.sx *= 1 - st * 0.04;
+    } else {
+      P.lean = 0.04;
+    }
+    if (this.hurtT > 0) { P.lean -= 0.16; P.ox -= 6; }
+    P.lean -= A.kick * 0.05; P.ox += A.lunge * 10 - A.kick * 5;
+    const [ff, tsx] = A.face(this.f); P.sx *= tsx;
     const alpha = this.cloakT > 0 ? 0.3 : (this.inv > 0 && Math.floor(this.inv * 20) % 2 ? 0.55 : 1);
     // 그림자와 뒤쪽 빛(어두운 배경에서도 보이게)
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(this.x, Math.min(this.y, GROUND) + 2, 40, 8, 0, 0, 7); ctx.fill();
+    const air = clamp((GROUND - this.y) / 300, 0, 0.6);
+    ctx.fillStyle = `rgba(0,0,0,${0.35 * (1 - air)})`; ctx.beginPath(); ctx.ellipse(this.x, Math.min(this.y, GROUND) + 2, 40 * (1 - air * 0.5) * P.sx, 8, 0, 0, 7); ctx.fill();
     backGlow(ctx, this.x, this.y - 85, 120, '#3ee8ff', 0.16);
-    if (this.dashT > 0) for (let i = 1; i <= 3; i++) SPR.draw(ctx, name, this.x - this.vx * 0.012 * i, this.y, { sc: KAI_SC, f: this.f, alpha: 0.25 / i, tint: '#3ee8ff', tintA: 0.8 });
-    if (this.berserkT > 0) SPR.draw(ctx, name, this.x + rand(-3, 3), this.y, { sc: KAI_SC * 1.04, f: this.f, alpha: 0.35, tint: '#ff2a4a', tintA: 1 });
-    SPR.draw(ctx, name, this.x, this.y, { sc: KAI_SC, f: this.f, alpha, flash: this.flash > 0 ? 0.8 : 0, sy, rot });
+    if (this.dashT > 0) for (let i = 1; i <= 3; i++) SPR.pose(ctx, name, this.x - this.vx * 0.012 * i, this.y, { sc: KAI_SC, f: ff, alpha: 0.25 / i, tint: '#3ee8ff', tintA: 0.8 }, P);
+    if (A.ghost > 0 && A.ghostName) SPR.pose(ctx, A.ghostName, this.x, this.y, { sc: KAI_SC, f: ff, alpha: A.ghost / 0.09 * 0.35, tint: '#3ee8ff', tintA: 0.6 }, POSE0);
+    if (this.berserkT > 0) SPR.pose(ctx, name, this.x + rand(-3, 3), this.y, { sc: KAI_SC * 1.04, f: ff, alpha: 0.35, tint: '#ff2a4a', tintA: 1, rot }, P);
+    SPR.pose(ctx, name, this.x, this.y, { sc: KAI_SC, f: ff, alpha, flash: this.flash > 0 ? 0.8 : 0, rot }, P);
     if (this.shield > 0) { ctx.strokeStyle = 'rgba(255,210,62,0.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(this.x, this.y - 85, 70, 100, 0, 0, 7); ctx.stroke(); }
     // 무기 표시(원거리일 때 총구 빛)
   }
@@ -411,11 +441,37 @@ class Enemy {
     const a = this.dead ? Math.max(0, this.deadT / 0.6) : 1;
     const atkPose = this.state === 'attack' || (this.state === 'wind' && this.t2 < 0.15);
     const name = atkPose ? D.atk : D.idle;
-    const bob = this.state === 'chase' && !D.fly ? Math.abs(Math.sin(G.time * 10 + this.x)) * 4 : 0;
+    const A = this.anim || (this.anim = new Animator());
+    A.tick(G.time, this.x, this.y);
+    if (this.flash > (A.fl || 0) + 0.02 && !this.dead) { A.kick = 1; A.bump(-1.6); } A.fl = this.flash; // 맞으면 뒤로 젖혀진다
+    if (this.state !== A.st) { if (this.state === 'attack') { A.bump(D.ai === 'brute' ? 3 : -2.6); A.lunge = 1; } if (A.st === 'attack') A.bump(-1); A.st = this.state; }
+    if (!D.fly && !this.air && A.air) A.bump(-3); A.air = this.y < GROUND - 2;
+    const P = A.begin();
+    let rot = 0, yo = 0;
+    const sp = Math.abs(A.vx);
+    if (D.fly) {
+      rot = clamp(A.vx * 0.0007, -0.25, 0.25); P.sy *= 1 + Math.sin(A.t * 9) * 0.03;
+    } else if (!atkPose) {
+      A.breathe(P, 1.1);
+      if (RIG[name]) { const amp = A.walk(P, sp, { len: 120 * this.sc / 0.8, full: 220 }, D.ai === 'brute' ? 0.28 : 0.34); P.lean = clamp(A.vx * this.f / 260, -0.6, 1) * 0.07 + amp * 0.02; }
+      else yo = -Math.round(Math.abs(Math.sin(A.t * 9)) * 4 * Math.min(1, sp / 120));
+    }
+    if (this.state === 'wind') { // 예비 동작: 몸을 웅크리며 뒤로 젖힌다
+      const k = clamp(1 - this.t2 / (D.wind || 0.5), 0, 1);
+      P.sy *= 1 - 0.06 * k; P.sx *= 1 + 0.04 * k; P.lean -= 0.07 * k; P.ox += Math.round(Math.sin(G.time * 60) * 1.5 * k);
+    }
+    if (atkPose) P.lean += 0.05;
+    P.lean -= A.kick * 0.12; P.ox += A.lunge * 12 - A.kick * 6;
+    if (this.stun > 0) P.sway = Math.sin(G.time * 7) * 0.02;
+    if (this.dead) { // 쓰러진다
+      const k = 1 - this.deadT / 0.6, e = k * k;
+      if (D.fly) { rot = e * 2.4 * this.f; yo = e * 120; } else { rot = -this.f * e * 1.35; P.sy *= 1 - e * 0.1; }
+    }
+    const [ff, tsx] = A.face(this.f); P.sx *= tsx;
     ctx.fillStyle = `rgba(0,0,0,${0.3 * a})`; ctx.beginPath(); ctx.ellipse(this.x, GROUND + 2, this.w * 0.7, 7, 0, 0, 7); ctx.fill();
     backGlow(ctx, this.x, this.y - this.h * 0.5, this.h * 0.7, this.elite ? '#ffd23e' : '#ff3b5c', 0.12 * a);
     const wind = this.state === 'wind';
-    SPR.draw(ctx, name, this.x, this.y - bob, { sc: this.sc, f: this.f, alpha: a, flash: this.flash > 0 ? 0.85 : (wind ? 0.25 + 0.25 * Math.sin(G.time * 40) : 0), tint: this.elite ? '#ff2a4a' : (this.hackT > 0 ? '#7c6bff' : null), tintA: this.elite ? 0.22 : 0.3 });
+    SPR.pose(ctx, name, this.x, this.y + yo, { sc: this.sc, f: ff, rot, alpha: a, flash: this.flash > 0 ? 0.85 : (wind ? 0.25 + 0.25 * Math.sin(G.time * 40) : 0), tint: this.elite ? '#ff2a4a' : (this.hackT > 0 ? '#7c6bff' : null), tintA: this.elite ? 0.22 : 0.3 }, P);
     if (this.dead) return;
     // 공격 예고
     if (wind) {
@@ -616,11 +672,28 @@ class Boss extends Enemy {
   draw(ctx) {
     for (const t of this.tele) if (!t.fired) t.draw(ctx, Math.max(0, t.t / t.max));
     const a = this.dead ? Math.max(0, this.deadT / 2.5) : this.alpha;
-    const yy = this.y - (this.yOff || 0);
+    let yy = this.y - (this.yOff || 0);
     ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(this.x, GROUND + 3, this.w * 1.1, 14, 0, 0, 7); ctx.fill();
     const name = this.pose === 'atk' && this.state === 'act' ? this.B.atk : this.B.idle;
-    if (this.phase > 1) SPR.draw(ctx, name, this.x + rand(-2, 2), yy, { sc: this.sc * 1.03, f: this.f, alpha: a * 0.35, tint: this.B.c, tintA: 1 });
-    SPR.draw(ctx, name, this.x, yy, { sc: this.sc, f: this.f, alpha: a, flash: this.flash > 0 ? 0.6 : 0, sy: 1 + Math.sin(G.time * 2) * 0.01 });
+    const A = this.anim || (this.anim = new Animator());
+    A.tick(G.time, this.x, this.y);
+    if (name !== A.prev) { if (A.prev) { A.bump(name === this.B.atk ? -2.4 : 1.4); if (name === this.B.atk) A.lunge = 1; } A.prev = name; }
+    const P = A.begin();
+    const cape = this.id !== 'red';
+    P.waveFrom = cape ? 0.42 : 0.55;
+    A.breathe(P, this.phase > 1 ? 1.6 : 1.2, this.phase > 1 ? 3.2 : 2);
+    if (cape) { P.wave = this.phase > 1 ? 5 : 3.5; P.waveT = A.t * (this.phase > 1 ? 5 : 3.4); P.lean = clamp(A.vx / 900, -0.08, 0.08) * this.f; }
+    else { // 레드 조: 무겁게 쿵쿵 걷는다
+      const sp = Math.abs(A.vx), st = Math.floor(A.t * 7) % 2;
+      if (sp > 20) { yy -= st * 4; P.sway += (st ? 0.012 : -0.008); P.lean = 0.04; }
+    }
+    if (this.state === 'act' && this.t2 > 0 && name === this.B.atk) P.lean += 0.03;
+    P.ox += A.lunge * 16;
+    let rot = 0;
+    if (this.dead) { const k = 1 - this.deadT / 2.5; P.ox += rand(-4, 4) * (1 - k); yy += k * k * 60; P.sy *= 1 - k * 0.15; rot = -this.f * k * 0.2; }
+    const [ff, tsx] = A.face(this.f); P.sx *= tsx;
+    if (this.phase > 1) SPR.pose(ctx, name, this.x + rand(-2, 2), yy, { sc: this.sc * 1.03, f: ff, rot, alpha: a * 0.35, tint: this.B.c, tintA: 1 }, P);
+    SPR.pose(ctx, name, this.x, yy, { sc: this.sc, f: ff, rot, alpha: a, flash: this.flash > 0 ? 0.6 : 0 }, P);
     for (const o of this.orbs) { ctx.fillStyle = '#ffd36a'; ctx.shadowColor = '#ffd36a'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.arc(o.x, o.y, 14, 0, 7); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.fillRect(o.x - 4, o.y - 4, 8, 8); }
   }
 }
@@ -642,6 +715,14 @@ class Companion {
   }
   draw(ctx) {
     ctx.fillStyle = 'rgba(255,106,184,0.18)'; ctx.beginPath(); ctx.ellipse(this.x, GROUND + 2, 34, 6, 0, 0, 7); ctx.fill();
-    SPR.draw(ctx, this.cast > 0 ? 'sera_cast' : 'sera_idle', this.x, this.y, { sc: this.cast > 0 ? 0.85 : 0.72, f: this.f, alpha: 0.95 });
+    const A = this.anim || (this.anim = new Animator());
+    A.tick(G.time, this.x, this.y);
+    const name = this.cast > 0 ? 'sera_cast' : 'sera_idle';
+    if (name !== A.prev) { if (A.prev) A.bump(name === 'sera_cast' ? -2 : 1.5); A.prev = name; }
+    const P = A.begin();
+    A.breathe(P, 1); P.waveFrom = 0.3; P.wave = 3 + Math.min(4, Math.abs(A.vx) / 80); P.waveT = A.t * 3;
+    P.lean = clamp(A.vx / 1200, -0.12, 0.12) * this.f;
+    const [ff, tsx] = A.face(this.f); P.sx *= tsx;
+    SPR.pose(ctx, name, this.x, this.y, { sc: this.cast > 0 ? 0.85 : 0.72, f: ff, alpha: 0.95 }, P);
   }
 }

@@ -1,8 +1,8 @@
 'use strict';
 /* 한 번 열어 두면 오프라인에서도 플레이할 수 있게 파일을 보관한다.
    목록과 VERSION 은 tools/build_pwa.py 가 갱신한다. */
-const VERSION = 'neon-e544d563';
-const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/atlas.js", "js/bg.js", "js/data_char.js", "js/data_items.js", "js/data_story.js", "js/data_world.js", "js/entities.js", "js/fx.js", "js/game.js", "js/hud.js", "js/input.js", "js/main.js", "js/sound.js", "js/ui.js", "js/util.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "fonts/galmuri11-bold.woff2", "fonts/galmuri11.woff2", "img/sprites.png"];
+const VERSION = 'neon-a73150ff';
+const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/anim.js", "js/atlas.js", "js/bg.js", "js/data_char.js", "js/data_items.js", "js/data_story.js", "js/data_world.js", "js/entities.js", "js/fx.js", "js/game.js", "js/hud.js", "js/input.js", "js/main.js", "js/sound.js", "js/ui.js", "js/util.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "fonts/galmuri11-bold.woff2", "fonts/galmuri11.woff2", "img/sprites.png"];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

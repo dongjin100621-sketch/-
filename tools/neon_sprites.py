@@ -3,7 +3,11 @@
 사용법: python3 tools/neon_sprites.py   (scipy, pillow 필요)
 
 각 항목: 이름: (시트, x0, y0, x1, y1, 바라보는 방향(1=오른쪽, -1=왼쪽))
-잘라낸 사각형 안에 이웃 포즈의 조각이 끼어들면, 그 조각(연결 요소)의 대부분이 사각형 밖에 있을 때 지운다."""
+잘라낸 사각형 안에 이웃 포즈의 조각이 끼어들면, 그 조각(연결 요소)의 대부분이 사각형 밖에 있을 때 지운다.
+
+걷는 캐릭터(RIG)는 가랑이(두 다리 사이 틈)를 자동으로 찾아 네 조각으로 나눈다.
+  @u 허리 아래 고정부(다리 범위 밖 + 가랑이 위 받침), @a·@b 왼·오른 다리
+게임(neon/js/anim.js)은 상체를 숨쉬게 하고 두 다리를 엉덩이 축으로 기울여 걷기·달리기를 만든다."""
 import os, json
 import numpy as np
 from PIL import Image
@@ -73,6 +77,14 @@ S = {
     'toto_face':  ('sheet2', 1320, 620, 1450, 730, 1),
 }
 
+# 이웃 포즈 조각이 붙어 들어오는 것: 가장 큰 덩어리(의 20% 이상인 것)만 남긴다
+MAIN_ONLY = {'kai_walk1', 'kai_walk2', 'gun_idle', 'gun_atk', 'sec_atk', 'sin_atk', 'nova'}
+# 다리를 움직일 스프라이트. lx: 다리가 있는 가로 범위(비율, 생략하면 발 위치로 자동)
+RIG = {
+    'kai_idle2': {}, 'thug_idle': {}, 'gun_idle': {}, 'sin_idle': {}, 'sec_idle': {},
+    'psy_idle': {'lx': (0.44, 1.0)},
+}
+
 sheets = {}
 labels = {}
 for name in ('sheet1', 'sheet2'):
@@ -98,11 +110,86 @@ for key, (sh, x0, y0, x1, y1, face) in S.items():
         if inside[l] >= 0.55 * total[l] or inside[l] >= 0.25 * opaque:
             keep[l] = True
     a[~keep[sub]] = 0
+    if key in MAIN_ONLY:
+        m = a[:, :, 3] > 0
+        ids, n = ndimage.label(ndimage.binary_dilation(m, iterations=1), structure=np.ones((3, 3)))
+        ids[~m] = 0
+        cnt = np.bincount(ids.ravel(), minlength=n + 1); cnt[0] = 0
+        a[cnt[ids] < 0.2 * cnt.max()] = 0
     ys, xs = np.nonzero(a[:, :, 3])
     if len(xs) == 0:
         raise SystemExit('empty: ' + key)
     a = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
     crops[key] = (Image.fromarray(a), face)
+
+def find_crotch(al):
+    """두 다리 사이의 투명한 틈을 발끝에서 위로 따라가며 가장 높은 지점을 찾는다.
+    돌려주는 값: (가랑이 행, {행: 틈의 가운데 열})"""
+    h, w = al.shape
+    best = None
+    for start in range(h - 1, int(h * 0.82), -1):
+        row = al[start]; t = ~row
+        lo, hi = int(w * 0.22), int(w * 0.78)
+        i = lo
+        while i < hi:
+            if t[i] and row[:i].any() and row[i:].any():
+                j = i
+                while j < w and t[j]: j += 1
+                c = (i + j) / 2; path = {start: c}; top = start; miss = 0; yy = start - 1
+                while yy > h * 0.35:
+                    r2 = al[yy]; cand = None
+                    for dc in range(4):
+                        for sc in (c - dc, c + dc):
+                            si = int(round(sc))
+                            if 0 < si < w - 1 and not r2[si] and r2[:si].any() and r2[si:].any(): cand = si; break
+                        if cand is not None: break
+                    if cand is None:
+                        miss += 1
+                        if miss > 1: break
+                    else:
+                        l = r = cand
+                        while l > 0 and not r2[l - 1]: l -= 1
+                        while r < w - 1 and not r2[r + 1]: r += 1
+                        if r - l > w * 0.5: break
+                        c = (l + r) / 2; path[yy] = c; top = yy; miss = 0
+                    yy -= 1
+                if best is None or start - top > best[0]: best = (start - top, top, path)
+                i = j
+            else:
+                i += 1
+    return best[1], best[2]
+
+rigmeta = {}
+for key, cfg in RIG.items():
+    im, face = crops[key]
+    a = np.array(im); al = a[:, :, 3] > 40
+    h, w = al.shape
+    cy, path = find_crotch(al)
+    hy = int(round(max(h * 0.5, cy - h * 0.16)))
+    # 행마다 다리를 가를 열 (가랑이 위는 가랑이 열 그대로, 틈이 끊긴 행은 앞 행 값)
+    split = np.zeros(h); last = path[cy]
+    for yy in range(h):
+        if yy >= cy and yy in path: last = path[yy]
+        split[yy] = path[cy] if yy < cy else last
+    if 'lx' in cfg:
+        lx0, lx1 = int(cfg['lx'][0] * w), int(round(cfg['lx'][1] * w))
+    else:
+        cols = np.nonzero(al[int(h * 0.88):].any(0))[0]
+        lx0, lx1 = max(0, cols.min() - 4), min(w, cols.max() + 5)
+    X = np.arange(w)[None, :].repeat(h, 0); Y = np.arange(h)[:, None].repeat(w, 1)
+    inleg = (Y >= hy) & (X >= lx0) & (X < lx1)
+    left = X < split[:, None]
+    parts = {
+        'u': (Y >= hy) & ~(inleg & (Y >= cy)),
+        'a': inleg & left,
+        'b': inleg & ~left,
+    }
+    for pk, m in parts.items():
+        b = a.copy(); b[~m] = 0
+        ys, xs = np.nonzero(b[:, :, 3])
+        if len(xs) == 0: continue
+        crops[key + '@' + pk] = (Image.fromarray(b[ys.min():ys.max() + 1, xs.min():xs.max() + 1]), face, int(xs.min()), int(ys.min()))
+    rigmeta[key] = [hy, int(cy), int(round(path[cy]))]
 
 # 선반(shelf) 방식으로 아틀라스에 배치
 W = 2048
@@ -120,11 +207,13 @@ H = y + rowh
 atlas = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 meta = {}
 for k, (x, y) in pos.items():
-    im, face = crops[k]
+    im, face = crops[k][:2]
     atlas.paste(im, (x, y))
-    meta[k] = [x, y, im.width, im.height, face]
+    meta[k] = [x, y, im.width, im.height, face] + list(crops[k][2:])
 atlas.save(OUT_IMG, optimize=True)
 with open(OUT_JS, 'w', encoding='utf8') as f:
     f.write("'use strict';\n/* tools/neon_sprites.py 가 만든다. 이름: [x, y, 너비, 높이, 바라보는 방향] */\n")
     f.write('const ATLAS = ' + json.dumps(meta, separators=(',', ':')).replace('],"', '],\n"') + ';\n')
+    f.write("/* 걷기 리그: 이름: [엉덩이 축 행, 가랑이 행, 가랑이 열]. 조각 '이름@u/@a/@b' 의 [5],[6] 은 원본 안에서의 위치 */\n")
+    f.write('const RIG = ' + json.dumps(rigmeta, separators=(',', ':')) + ';\n')
 print(len(meta), 'sprites', W, 'x', H, '->', OUT_IMG, os.path.getsize(OUT_IMG) // 1024, 'KB')
