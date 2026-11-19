@@ -42,7 +42,9 @@ const UI = {
       case 'opt': G.opt[v] = !G.opt[v]; SND.setOpts(G.opt.sfx, G.opt.bgm); try { localStorage.setItem('neonheart-opt', JSON.stringify(G.opt)); } catch (e) {} this.opts(); break;
       case 'save': G.save(); this.close(); break;
       case 'title': G.save(true); location.reload(); break;
-      case 'reset': if (confirm('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.')) { localStorage.removeItem(SAVE_KEY); location.reload(); } break;
+      case 'reset':
+        if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = '한 번 더 누르면 진행이 지워집니다'; break; }
+        try { localStorage.removeItem(SAVE_KEY); } catch (e) {} G.started = false; location.reload(); break;
       case 'talk': this.talkAct(v); break;
       case 'gift': this.close(); G.giveGift(v); break;
       case 'topic': { const tp = SERA_TALK.find((x) => x.id === v); this.close(); const first = !S.talked[v]; S.talked[v] = 1; G.say(tp.lines, () => first && G.addAff(2)); break; }
@@ -334,9 +336,13 @@ const UI = {
     this.html(`<div class="title"><div class="logo"><small>CYBERPUNK ROMANCE RPG</small><h1>NEON HEART</h1><h2>네온 하트</h2></div>
       <div class="tbtn">${has ? '<button class="big pri" id="cont">이어하기</button>' : ''}<button class="big ${has ? '' : 'pri'}" id="new">새 게임</button></div>
       <p class="tnote">2089년 네오 서울 · 비 오는 하층에서 시작되는 사랑 이야기<br>가로 화면을 권장합니다 · 키보드와 터치 모두 지원</p></div>`);
-    const go = (fresh) => { if (fresh && has && !confirm('새 게임을 시작하면 저장된 진행이 지워집니다. 계속할까요?')) return; if (fresh) localStorage.removeItem(SAVE_KEY); SND.init(); G.start(fresh); };
+    const go = (fresh, btn) => {
+      if (fresh && has && btn && !btn.dataset.sure) { btn.dataset.sure = '1'; btn.textContent = '저장이 지워집니다 · 한 번 더 누르기'; return; }
+      if (fresh) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+      SND.init(); G.start(fresh);
+    };
     if (has) this.el.querySelector('#cont').addEventListener('click', () => go(false));
-    this.el.querySelector('#new').addEventListener('click', () => go(true));
+    const nb = this.el.querySelector('#new'); nb.addEventListener('click', () => go(true, nb));
   },
   titleKey() { const b = this.el.querySelector('#cont') || this.el.querySelector('#new'); if (b) b.click(); },
   hideTitle() { this.el.innerHTML = ''; },
