@@ -61,16 +61,19 @@
 
   /* 불러오기 */
   function gmToInst(prog) {
+    const exact = { 9: 'glock', 10: 'musicbox', 24: 'agtr', 25: 'agtr', 26: 'egtr_clean', 27: 'egtr_clean', 33: 'fbass', 34: 'fbass', 36: 'slap', 37: 'slap',
+      40: 'violin', 45: 'pizz', 46: 'harp', 52: 'choir', 53: 'choir', 54: 'choir', 62: 'synbrass', 63: 'synbrass', 77: 'shakuhachi', 80: 'chip',
+      104: 'shamisen', 105: 'agtr', 106: 'shamisen', 107: 'koto' };
+    if (exact[prog]) return exact[prog];
     if (prog <= 3) return 'piano';
     if (prog <= 7) return 'epiano';
     if (prog <= 15) return 'bell';
     if (prog <= 23) return 'organ';
-    if (prog <= 31) return 'pluck';
-    if (prog <= 39) return 'bass';
-    if (prog === 45 || prog === 46) return 'pluck';
+    if (prog <= 31) return 'egtr_drive';
+    if (prog <= 39) return prog === 32 ? 'fbass' : 'bass';
     if (prog <= 55) return 'strings';
     if (prog <= 63) return 'brass';
-    if (prog <= 71) return 'lead';
+    if (prog <= 71) return 'sax';
     if (prog <= 79) return 'flute';
     if (prog <= 87) return 'lead';
     if (prog <= 103) return 'pad';
@@ -84,7 +87,10 @@
     if (k === 46) return 4;
     if (k === 47 || k === 48 || k === 50) return 5;
     if (k === 41 || k === 43 || k === 45) return 6;
-    if (k === 49 || k === 51 || k === 52 || k === 53 || k === 55 || k === 57 || k === 59) return 7;
+    if (k === 49 || k === 52 || k === 55 || k === 57) return 7;
+    if (k === 51 || k === 53 || k === 59) return 8;
+    if (k === 54) return 9;
+    if (k === 69 || k === 70 || k === 82) return 10;
     return -1;
   }
 

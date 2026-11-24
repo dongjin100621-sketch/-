@@ -43,7 +43,8 @@
   // 컴퓨터 키보드 → 반음 (e.code 를 써서 한글 자판에서도 같은 자리)
   const TYPE_KEYS = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9, KeyU: 10, KeyJ: 11, KeyK: 12, KeyO: 13, KeyL: 14, KeyP: 15, Semicolon: 16, Quote: 17 };
   const KEY_LABEL = Object.fromEntries(Object.entries(TYPE_KEYS).map(([k, v]) => [v, k === 'Semicolon' ? ';' : k === 'Quote' ? "'" : k.slice(3)]));
-  const DRUM_KEYS = ['KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK'];
+  const DRUM_KEYS = ['KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK', 'KeyL', 'Semicolon', 'Quote'];
+  const keyCap = (c) => (c === 'Semicolon' ? ';' : c === 'Quote' ? "'" : c.slice(3));
 
   const prefs = SG.store.get('studio.prefs', {});
   const app = {
@@ -306,10 +307,10 @@
     const drum = tr && tr.type === 'drums';
     $('octLabel').textContent = drum ? '드럼' : 'C' + app.octave;
     $('octDown').disabled = drum; $('octUp').disabled = drum;
-    $('kbdHint').textContent = app.ui.typing ? (drum ? 'A S D F G H J K 로 드럼' : 'A~; 흰건반 · W E T Y U O P 검은건반 · Z/X 옥타브') : '';
+    $('kbdHint').textContent = app.ui.typing ? (drum ? "A S D F G H J K L ; ' 로 드럼" : 'A~; 흰건반 · W E T Y U O P 검은건반 · Z/X 옥타브') : '';
     if (!app.ui.kbd) { kb.innerHTML = ''; return; }
     if (drum) {
-      kb.innerHTML = '<div class="pads">' + SG.DRUMS.map((d, i) => `<div class="pad" data-p="${i}">${d.name}${app.ui.typing ? `<small>${DRUM_KEYS[i].slice(3)}</small>` : ''}</div>`).join('') + '</div>';
+      kb.innerHTML = `<div class="pads" style="grid-template-columns:repeat(${SG.DRUMS.length},minmax(0,1fr))">` + SG.DRUMS.map((d, i) => `<div class="pad" data-p="${i}">${d.name}${app.ui.typing && DRUM_KEYS[i] ? `<small>${keyCap(DRUM_KEYS[i])}</small>` : ''}</div>`).join('') + '</div>';
     } else {
       const width = kb.clientWidth || window.innerWidth - 20;
       const whites = Math.max(8, Math.min(36, Math.floor(width / (width < 600 ? 34 : 40))));
@@ -617,8 +618,9 @@
     const tr = app.track, d = $('dlgTrack');
     $('tName').value = tr.name;
     $('tInstLabel').textContent = tr.type === 'drums' ? '드럼 킷' : '악기';
-    const list = tr.type === 'drums' ? Object.entries(SG.KITS) : Object.entries(SG.INSTRUMENTS).map(([k, v]) => [k, v.name]);
-    $('tInst').innerHTML = list.map(([k, n]) => `<option value="${k}">${n}</option>`).join('');
+    $('tInst').innerHTML = tr.type === 'drums'
+      ? Object.entries(SG.KITS).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')
+      : SG.instrumentOptions(esc);
     $('tInst').value = tr.inst;
     $('tVol').value = tr.vol; $('tPan').value = tr.pan; $('tRev').value = tr.rev;
     trackOutputs();
@@ -705,17 +707,17 @@
   $('kbdToggle').onclick = () => { app.ui.kbd = !app.ui.kbd; savePrefs(); renderKeyboard(); };
 
   /* ---------- 자동 작곡 ---------- */
-  const instOpts = Object.entries(SG.INSTRUMENTS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+  const instOpts = SG.instrumentOptions(esc);
   $('cGenre').innerHTML = Object.entries(CP.GENRES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
   $('cComp').innerHTML = Object.entries(CP.COMP_STYLES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   $('cBass').innerHTML = Object.entries(CP.BASS_STYLES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   $('cDrums').innerHTML = Object.entries(CP.DRUM_STYLES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
-  $('cMelInst').innerHTML = instOpts; $('cChordInst').innerHTML = instOpts;
+  $('cMelInst').innerHTML = instOpts; $('cChordInst').innerHTML = instOpts; $('cBassInst').innerHTML = instOpts;
   function fillGenre() {
     const g = CP.GENRES[$('cGenre').value];
     $('cProg').value = g.prog;
     $('cBpm').value = g.bpm; $('cSwing').value = g.swing; $('cComp').value = g.comp; $('cBass').value = g.bass;
-    $('cDrums').value = g.drums; $('cDensity').value = g.density; $('cMelInst').value = g.melInst; $('cChordInst').value = g.chordInst;
+    $('cDrums').value = g.drums; $('cDensity').value = g.density; $('cMelInst').value = g.melInst; $('cChordInst').value = g.chordInst; $('cBassInst').value = g.bassInst;
   }
   $('cGenre').onchange = fillGenre;
   $('btnCompose').onclick = () => {
@@ -738,7 +740,7 @@
     const g = CP.GENRES[$('cGenre').value];
     CP.generate(s, {
       genre: $('cGenre').value, prog: $('cProg').value, comp: $('cComp').value, bass: $('cBass').value, drums: $('cDrums').value,
-      density: +$('cDensity').value, melInst: $('cMelInst').value, chordInst: $('cChordInst').value, bassInst: g.bassInst, kit: g.kit,
+      density: +$('cDensity').value, melInst: $('cMelInst').value, chordInst: $('cChordInst').value, bassInst: $('cBassInst').value, kit: g.kit,
       seed: Math.max(1, Math.round(+$('cSeed').value || 1)), bpm: Math.max(30, Math.min(300, Math.round(+$('cBpm').value || s.bpm))),
       swing: +$('cSwing').value, parts,
     });
@@ -831,8 +833,8 @@
     const [st, a, b] = ev.data; const k = st & 0xf0;
     let p = a;
     if (app.track.type === 'drums') {
-      const map = { 36: 0, 35: 0, 38: 1, 40: 1, 39: 2, 42: 3, 44: 3, 46: 4, 48: 5, 50: 5, 47: 5, 45: 6, 43: 6, 41: 6, 49: 7, 57: 7, 51: 7 };
-      p = map[a] != null ? map[a] : (a % 12) % 8;
+      const map = { 36: 0, 35: 0, 38: 1, 40: 1, 39: 2, 42: 3, 44: 3, 46: 4, 48: 5, 50: 5, 47: 5, 45: 6, 43: 6, 41: 6, 49: 7, 57: 7, 51: 8, 59: 8, 54: 9, 70: 10, 69: 10 };
+      p = map[a] != null ? map[a] : (a % 12) % SG.DRUMS.length;
     }
     if (k === 0x90 && b > 0) app.liveOn(p, b / 127);
     else if (k === 0x80 || (k === 0x90 && b === 0)) app.liveOff(p);

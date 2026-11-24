@@ -3,21 +3,46 @@
 (function (S) {
   const T = S.theory;
 
+  // cat: 악기 고르는 목록의 묶음
   const INSTRUMENTS = {
-    piano:   { name: '피아노',      gm: 0 },
-    epiano:  { name: '일렉 피아노', gm: 4 },
-    organ:   { name: '오르간',      gm: 16 },
-    pluck:   { name: '플럭 기타',   gm: 25 },
-    strings: { name: '스트링',      gm: 48 },
-    brass:   { name: '브라스',      gm: 61 },
-    pad:     { name: '신스 패드',   gm: 89 },
-    lead:    { name: '신스 리드',   gm: 81 },
-    bell:    { name: '벨',          gm: 14 },
-    flute:   { name: '플루트',      gm: 73 },
-    bass:    { name: '신스 베이스', gm: 38 },
-    sub808:  { name: '808 베이스',  gm: 38 },
+    piano:      { name: '피아노',              gm: 0,   cat: '건반' },
+    epiano:     { name: '일렉 피아노',         gm: 4,   cat: '건반' },
+    organ:      { name: '오르간',              gm: 16,  cat: '건반' },
+    glock:      { name: '글로켄슈필',          gm: 9,   cat: '건반' },
+    musicbox:   { name: '오르골',              gm: 10,  cat: '건반' },
+    bell:       { name: '벨',                  gm: 14,  cat: '건반' },
+    agtr:       { name: '어쿠스틱 기타',       gm: 25,  cat: '기타·베이스' },
+    egtr_clean: { name: '일렉 기타 (클린)',    gm: 27,  cat: '기타·베이스' },
+    egtr_drive: { name: '일렉 기타 (드라이브)', gm: 29, cat: '기타·베이스' },
+    fbass:      { name: '핑거 베이스',         gm: 33,  cat: '기타·베이스' },
+    slap:       { name: '슬랩 베이스',         gm: 36,  cat: '기타·베이스' },
+    bass:       { name: '신스 베이스',         gm: 38,  cat: '기타·베이스' },
+    sub808:     { name: '808 베이스',          gm: 38,  cat: '기타·베이스' },
+    strings:    { name: '스트링',              gm: 48,  cat: '현악·관악·합창' },
+    violin:     { name: '바이올린',            gm: 40,  cat: '현악·관악·합창' },
+    pizz:       { name: '피치카토',            gm: 45,  cat: '현악·관악·합창' },
+    harp:       { name: '하프',                gm: 46,  cat: '현악·관악·합창' },
+    brass:      { name: '브라스',              gm: 61,  cat: '현악·관악·합창' },
+    sax:        { name: '색소폰',              gm: 65,  cat: '현악·관악·합창' },
+    flute:      { name: '플루트',              gm: 73,  cat: '현악·관악·합창' },
+    choir:      { name: '코러스 (아—)',        gm: 52,  cat: '현악·관악·합창' },
+    supersaw:   { name: '슈퍼소 리드',         gm: 81,  cat: '신스' },
+    lead:       { name: '신스 리드',           gm: 81,  cat: '신스' },
+    synbrass:   { name: '신스 브라스',         gm: 62,  cat: '신스' },
+    pad:        { name: '신스 패드',           gm: 89,  cat: '신스' },
+    pluck:      { name: '신스 플럭',           gm: 84,  cat: '신스' },
+    chip:       { name: '8비트 스퀘어',        gm: 80,  cat: '신스' },
+    koto:       { name: '고토',                gm: 107, cat: '일본 전통' },
+    shamisen:   { name: '샤미센',              gm: 106, cat: '일본 전통' },
+    shakuhachi: { name: '샤쿠하치',            gm: 77,  cat: '일본 전통' },
   };
   const KITS = { std: '스탠더드 킷', '808': '808 킷', lofi: '로파이 킷' };
+  /** <select> 안의 악기 목록(묶음별) */
+  function instrumentOptions(esc = (x) => x) {
+    const groups = {};
+    for (const [k, v] of Object.entries(INSTRUMENTS)) (groups[v.cat] = groups[v.cat] || []).push(`<option value="${k}">${esc(v.name)}</option>`);
+    return Object.entries(groups).map(([g, o]) => `<optgroup label="${esc(g)}">${o.join('')}</optgroup>`).join('');
+  }
   // 드럼 줄: 위에서 아래 순서. gm 은 MIDI 10번 채널 음 번호
   const DRUMS = [
     { id: 'kick',  name: '킥',          gm: 36 },
@@ -28,6 +53,9 @@
     { id: 'tomh',  name: '하이 탐',     gm: 48 },
     { id: 'toml',  name: '로우 탐',     gm: 45 },
     { id: 'crash', name: '크래시',      gm: 49 },
+    { id: 'ride',  name: '라이드',      gm: 51 },
+    { id: 'tamb',  name: '탬버린',      gm: 54 },
+    { id: 'shaker', name: '셰이커',     gm: 70 },
   ];
   const COLORS = ['#f2b155', '#5fb3f0', '#7bd389', '#ef6f8c', '#b08cf4', '#4fd1c5', '#f08a5d', '#d6d35a'];
 
@@ -168,5 +196,5 @@
     remove(id) { const lib = store.get(LIB, {}); delete lib[id]; store.set(LIB, lib); },
   };
 
-  S.song = { INSTRUMENTS, KITS, DRUMS, COLORS, makeTrack, newSong, normalize, clone, songEnd, resizeChords, History, store, library, newId };
+  S.song = { INSTRUMENTS, KITS, instrumentOptions, DRUMS, COLORS, makeTrack, newSong, normalize, clone, songEnd, resizeChords, History, store, library, newId };
 })(globalThis.Studio = globalThis.Studio || {});

@@ -26,7 +26,10 @@
       this.bind();
       this.resize();
       this.centerOn(66);
-      const loop = () => { if (this.dirty || this.app.player.playing) this.draw(); requestAnimationFrame(loop); };
+      const loop = () => {
+        requestAnimationFrame(loop);
+        if (this.dirty || this.app.player.playing) { try { this.draw(); } catch (e) { console.error(e); } }
+      };
       requestAnimationFrame(loop);
     }
 
@@ -59,7 +62,7 @@
       this.sy = Math.min(maxY, Math.max(0, this.sy));
     }
     centerOn(pitch) {
-      if (this.drum) { this.sy = 0; return; }
+      if (this.drum) { this.sy = 0; this.requestDraw(); return; }
       this.sy = this.rowOf(pitch) * this.rh - this.gridH / 2;
       this.clampScroll(); this.requestDraw();
     }

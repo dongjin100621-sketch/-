@@ -29,11 +29,15 @@
     house:   { name: '하우스', bpm: 124, prog: 'sensitive', comp: 'offbeat', bass: 'octave', drums: 'house', chordInst: 'organ',  melInst: 'pluck',  bassInst: 'bass',   kit: '808',  density: 0.6,  swing: 0 },
     rock:    { name: '록',     bpm: 132, prog: 'fifties',   comp: 'pulse',  bass: 'eighth', drums: 'rock',   chordInst: 'brass',  melInst: 'lead',   bassInst: 'bass',   kit: 'std',  density: 0.6,  swing: 0 },
     trap:    { name: '트랩',   bpm: 140, prog: 'epic',      comp: 'block',  bass: 'synco',  drums: 'trap',   chordInst: 'pad',    melInst: 'bell',   bassInst: 'sub808', kit: '808',  density: 0.5,  swing: 0 },
+    jpop:    { name: 'J-pop',  bpm: 134, prog: 'royal',     comp: 'strum',  bass: 'eighth', drums: 'jpop',   chordInst: 'agtr',   melInst: 'supersaw', bassInst: 'fbass', kit: 'std',  density: 0.6,  swing: 0 },
+    anime:   { name: '애니송',  bpm: 172, prog: 'komuro',    comp: 'pulse',  bass: 'octave', drums: 'anime',  chordInst: 'egtr_drive', melInst: 'violin', bassInst: 'fbass', kit: 'std', density: 0.65, swing: 0 },
+    citypop: { name: '시티팝', bpm: 104, prog: 'marunouchi', comp: 'offbeat', bass: 'synco', drums: 'pop',    chordInst: 'epiano', melInst: 'sax',    bassInst: 'slap',   kit: 'std',  density: 0.5,  swing: 0.1 },
+    wafu:    { name: '와풍(和風)', bpm: 120, prog: 'epic',  comp: 'arp',    bass: 'root',   drums: 'jpop',   chordInst: 'koto',   melInst: 'shakuhachi', bassInst: 'fbass', kit: 'std', density: 0.45, swing: 0 },
     cinema:  { name: '영화풍', bpm: 84,  prog: 'epic',      comp: 'block',  bass: 'root',   drums: 'none',   chordInst: 'strings', melInst: 'flute', bassInst: 'bass',   kit: 'std',  density: 0.35, swing: 0 },
   };
-  const COMP_STYLES = { block: '길게 누르기', pulse: '4분 리듬', offbeat: '엇박 찍기', arp: '아르페지오', ballad: '분산 화음' };
+  const COMP_STYLES = { block: '길게 누르기', pulse: '4분 리듬', offbeat: '엇박 찍기', arp: '아르페지오', ballad: '분산 화음', strum: '기타 스트로크' };
   const BASS_STYLES = { root: '근음 길게', eighth: '8분 근음', octave: '옥타브 튕기기', synco: '당김음', walk: '워킹' };
-  const DRUM_STYLES = { pop: '팝', ballad: '발라드', boombap: '붐뱁', house: '하우스(4비트)', rock: '록', trap: '트랩', none: '없음' };
+  const DRUM_STYLES = { pop: '팝', jpop: 'J-pop 8비트(탬버린)', anime: '애니송 질주', ballad: '발라드', boombap: '붐뱁', house: '하우스(4비트)', rock: '록', trap: '트랩', none: '없음' };
 
   /* 화음을 앞 화음과 가깝게 쌓는다(목소리 이끌기) */
   function voice(ch, prev, lo = 52, hi = 76) {
@@ -101,6 +105,20 @@
             const idx = i === 0 ? 0 : 1 + (pat[i] % v.length);
             add(i * PPQ / 2, i === 0 ? BAR - 8 : PPQ / 2 + 20, tones[idx], i === 0 ? 0.62 : 0.5);
           }
+          break;
+        }
+        case 'strum': {
+          // 기타 스트로크: 내려치기(낮은 음→높은 음), 올려치기(높은 음 3개, 약하게)
+          const gv = voice(ch, null, 48, 71);
+          const low = [root - 12 >= 40 ? root - 12 : root, ...gv];
+          const pat = ['D', '', 'D', 'U', '', 'U', 'D', 'U'];
+          pat.forEach((s2, i) => {
+            if (!s2) return;
+            let next = i + 1; while (next < 8 && !pat[next]) next++;
+            const len = (next - i) * PPQ / 2 - 6;
+            const tones = s2 === 'D' ? low : low.slice(-3).reverse();
+            tones.forEach((p, k) => add(i * PPQ / 2 + k * (s2 === 'D' ? 4 : 3), len - k * 3, p, (s2 === 'D' ? 0.7 : 0.5) - k * 0.02 + (i === 0 ? 0.08 : 0)));
+          });
           break;
         }
         case 'ballad':
@@ -259,6 +277,8 @@
     ballad:  { kick: 'x.......x.....o.', snare: '........x.......', chh: 'x...o...x...o...' },
     boombap: { kick: 'x......o..x.....', snare: '....x.......x...', chh: 'x.o.x.o.x.o.x.oo' },
     house:   { kick: 'x...x...x...x...', clap: '....x.......x...', chh: 'oooooooooooooooo', ohh: '..x...x...x...x.' },
+    jpop:    { kick: 'x.....x...x..x..', snare: '....x.......x...', chh: 'x.o.x.o.x.o.x.o.', tamb: '....x.......x...', shaker: 'o.o.o.o.o.o.o.o.' },
+    anime:   { kick: 'x.x...x.x.x...x.', snare: '....x.......x..o', ride: 'x.x.x.x.x.x.x.x.', tamb: '..x...x...x...x.' },
     rock:    { kick: 'x.......x.x.....', snare: '....x.......x...', chh: 'x.x.x.x.x.x.x.x.' },
     trap:    { kick: 'x......x..x.....', snare: '........x.......', chh: 'x.x.x.x.x.xxx.x.', clap: '........x.......' },
     none:    {},
@@ -274,7 +294,7 @@
       const fill = bar % 4 === 3 && bar !== song.bars - 1 || bar === song.bars - 1 && song.bars > 1;
       for (const [id, s] of Object.entries(pat)) {
         for (let i = 0; i < 16; i++) {
-          if (fill && i >= 12 && id !== 'chh' && id !== 'ohh') continue;
+          if (fill && i >= 12 && !['chh', 'ohh', 'ride', 'shaker'].includes(id)) continue;
           const c = s[i];
           if (c === 'x' || c === 'o') notes.push({ t: t0 + i * STEP, d: STEP, p: ROW[id], v: c === 'x' ? 0.9 : 0.55 });
         }

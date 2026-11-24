@@ -66,6 +66,143 @@
     },
   };
 
+  /* J-pop 에서 자주 쓰는 신스·관현악 소리 */
+  Object.assign(PRESETS, {
+    supersaw: {
+      osc: [-32, -20, -9, 0, 9, 20, 32].map((d) => ({ type: 'sawtooth', ratio: 1, detune: d, gain: 0.13 })).concat([{ type: 'sawtooth', ratio: 0.5, gain: 0.1 }]),
+      filter: { type: 'lowpass', freq: 3000, env: 2400, decay: 0.4, q: 0.7, key: 0.3 },
+      env: { a: 0.01, d: 0.3, s: 0.8, r: 0.25 }, gain: 0.52,
+    },
+    synbrass: {
+      osc: [{ type: 'sawtooth', ratio: 1, detune: -10, gain: 0.35 }, { type: 'sawtooth', ratio: 1, detune: 10, gain: 0.35 }, { type: 'square', ratio: 0.5, gain: 0.1 }],
+      filter: { type: 'lowpass', freq: 420, env: 3200, decay: 0.5, attack: 0.07, q: 1.6, key: 0.4 },
+      env: { a: 0.03, d: 0.4, s: 0.7, r: 0.2 }, gain: 0.56,
+    },
+    chip: {
+      osc: [{ type: 'square', ratio: 1, gain: 0.5 }],
+      env: { a: 0.002, d: 0.12, s: 0.7, r: 0.04 }, vib: { rate: 6, depth: 14, delay: 0.3 }, gain: 0.6,
+    },
+    glock: {
+      osc: [{ type: 'sine', ratio: 1, gain: 0.6 }, { type: 'sine', ratio: 2.76, gain: 0.25 }, { type: 'sine', ratio: 5.4, gain: 0.1 }],
+      env: { a: 0.001, d: 1.5, s: 0, r: 0.4 }, keyDecay: true, gain: 0.42,
+    },
+    musicbox: {
+      osc: [{ type: 'sine', ratio: 1, gain: 0.7 }, { type: 'sine', ratio: 4, gain: 0.12 }, { type: 'sine', ratio: 2, gain: 0.08 }],
+      fm: { ratio: 7, index: 0.35, decay: 0.04 },
+      env: { a: 0.001, d: 1.9, s: 0, r: 0.5 }, keyDecay: true, gain: 0.48,
+    },
+    sax: {
+      osc: [{ type: 'sawtooth', ratio: 1, gain: 0.55 }, { type: 'square', ratio: 1, detune: 4, gain: 0.15 }],
+      filter: { type: 'lowpass', freq: 1500, env: 1800, decay: 0.3, q: 1, key: 0.5 },
+      formants: [[650, 3, 1], [1250, 4, 0.7], [2600, 5, 0.35]],
+      noise: { gain: 0.05, freq: 3000 },
+      env: { a: 0.05, d: 0.3, s: 0.85, r: 0.12 }, vib: { rate: 5, depth: 14, delay: 0.25 }, gain: 1.1,
+    },
+    violin: {
+      osc: [{ type: 'sawtooth', ratio: 1, detune: -4, gain: 0.4 }, { type: 'sawtooth', ratio: 1, detune: 4, gain: 0.4 }],
+      filter: { type: 'lowpass', freq: 5200, env: 0, decay: 1, q: 0.5 },
+      formants: [[450, 2, 1], [1100, 2.5, 0.8], [2800, 3, 0.6]],
+      env: { a: 0.09, d: 0.3, s: 0.9, r: 0.25 }, vib: { rate: 5.8, depth: 18, delay: 0.2 }, gain: 0.9,
+    },
+    choir: {
+      osc: [{ type: 'sawtooth', ratio: 1, detune: -9, gain: 0.3 }, { type: 'sawtooth', ratio: 1, detune: 9, gain: 0.3 }, { type: 'sawtooth', ratio: 1, gain: 0.3 }, { type: 'triangle', ratio: 1, gain: 0.3 }],
+      formants: [[730, 8, 1], [1090, 9, 0.5], [2440, 10, 0.25]],
+      env: { a: 0.35, d: 0.5, s: 0.85, r: 0.6 }, vib: { rate: 4.5, depth: 8, delay: 0.3 }, gain: 1.6,
+    },
+    shakuhachi: {
+      osc: [{ type: 'sine', ratio: 1, gain: 0.8 }, { type: 'triangle', ratio: 2, gain: 0.05 }],
+      noise: { gain: 0.16, freq: 1800 },
+      env: { a: 0.1, d: 0.3, s: 0.8, r: 0.15 }, vib: { rate: 4.5, depth: 20, delay: 0.35 }, gain: 0.5,
+    },
+  });
+
+  /* 현을 뜯는 악기: Karplus–Strong 방식으로 음 높이마다 한 번 계산해 둔 소리를 튼다.
+     ks: t60(소리가 1/1000로 줄어드는 초), bright(뜯는 소리의 밝기 0~1), pos(뜯는 자리), len(최대 길이 초) */
+  const STRINGS = {
+    agtr:       { ks: { t60: 3.2, bright: 0.55, pos: 0.18, len: 3 },   body: [['peaking', 110, 1, 4], ['peaking', 2400, 1.2, 3]], tone: 6500, gain: 0.6, r: 0.25 },
+    egtr_clean: { ks: { t60: 3.6, bright: 0.45, pos: 0.25, len: 3.5 }, body: [['peaking', 900, 1, 2]], tone: 4200, gain: 0.6, r: 0.2 },
+    egtr_drive: { ks: { t60: 7, bright: 0.55, pos: 0.3, len: 4 },      pre: 3, drive: 10, body: [['highpass', 90, 0.7, 0], ['peaking', 1800, 1, 4]], tone: 3600, gain: 0.2, r: 0.15 },
+    fbass:      { ks: { t60: 2.4, bright: 0.25, pos: 0.2, len: 2.5 },  sub: 0.4, tone: 1800, gain: 0.75, r: 0.1 },
+    slap:       { ks: { t60: 1.6, bright: 0.92, pos: 0.1, len: 2 },    sub: 0.3, body: [['peaking', 2500, 1, 6]], tone: 7000, gain: 0.6, r: 0.08 },
+    koto:       { ks: { t60: 2.8, bright: 0.75, pos: 0.12, len: 3 },   body: [['peaking', 600, 1, 3]], tone: 8000, gain: 0.6, r: 0.3 },
+    shamisen:   { ks: { t60: 1.2, bright: 0.95, pos: 0.08, len: 1.6 }, drive: 1.6, body: [['highpass', 200, 0.7, 0], ['peaking', 3000, 1.5, 4]], tone: 9000, gain: 0.5, r: 0.1 },
+    harp:       { ks: { t60: 3.6, bright: 0.3, pos: 0.5, len: 3.5 },   tone: 5000, gain: 0.6, r: 0.6 },
+    pizz:       { ks: { t60: 0.5, bright: 0.35, pos: 0.4, len: 0.8 },  body: [['peaking', 450, 1, 4]], tone: 4000, gain: 0.7, r: 0.1 },
+  };
+  const ksCache = new Map();
+  function ksBuffer(ctx, id, f) {
+    const sr = ctx.sampleRate, K = STRINGS[id].ks;
+    const key = id + ':' + f.toFixed(2) + ':' + sr;
+    let e = ksCache.get(key);
+    if (e) return e;
+    const period = sr / f;
+    const N = Math.max(2, Math.floor(period - 0.5));
+    const len = Math.floor(sr * K.len);
+    const y = new Float32Array(len);
+    let seed = 1234 + N * 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 1073741823.5 - 1; };
+    const ex = new Float32Array(N);
+    let lp = 0, mean = 0;
+    for (let i = 0; i < N; i++) { lp += K.bright * (rnd() - lp); ex[i] = lp; }
+    const M = Math.max(1, Math.floor(N * K.pos));
+    for (let i = 0; i < N; i++) { y[i] = ex[i] - 0.9 * ex[(i - M + N) % N]; mean += y[i]; }
+    mean /= N;
+    for (let i = 0; i < N; i++) y[i] -= mean;
+    const g = Math.pow(0.001, 1 / (K.t60 * Math.pow(f / 110, 0.35) * f)); // 높은 음일수록 조금 빨리 사라진다
+    for (let i = N; i < len; i++) y[i] = g * 0.5 * (y[i - N] + y[i - N - 1 < 0 ? 0 : i - N - 1]);
+    let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(y[i]));
+    if (pk > 0) for (let i = 0; i < len; i++) y[i] *= 0.8 / pk;
+    const buf = ctx.createBuffer(1, len, sr);
+    buf.copyToChannel ? buf.copyToChannel(y, 0) : buf.getChannelData(0).set(y);
+    e = { buf, rate: (N + 0.5) / period };
+    if (ksCache.size > 400) ksCache.clear();
+    ksCache.set(key, e);
+    return e;
+  }
+  function stringVoice(engine, dest, inst, t, pitch, dur, vel) {
+    const ctx = engine.ctx, P = STRINGS[inst];
+    const f = T.freq(pitch);
+    const { buf, rate } = ksBuffer(ctx, inst, f);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+    let node = src;
+    if (P.drive) {
+      const pre = ctx.createGain(); pre.gain.value = P.pre || 1;
+      const ws = ctx.createWaveShaper(); ws.curve = engine.curve(P.drive);
+      node.connect(pre); pre.connect(ws); node = ws;
+    }
+    for (const [type, fq, q, gain] of P.body || []) {
+      const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = fq; b.Q.value = q; if (gain) b.gain.value = gain;
+      node.connect(b); node = b;
+    }
+    const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.Q.value = 0.6;
+    tone.frequency.value = Math.min(16000, P.tone * (0.45 + 0.75 * vel));
+    node.connect(tone);
+    const amp = ctx.createGain(), g = amp.gain;
+    const peak = P.gain * (0.3 + 0.7 * vel);
+    g.setValueAtTime(peak, t);
+    const end = t + Math.max(dur, 0.02);
+    g.setTargetAtTime(0, end, P.r / 4);
+    tone.connect(amp); amp.connect(dest);
+    const srcs = [src];
+    if (P.sub) {
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      const og = ctx.createGain();
+      og.gain.setValueAtTime(P.sub * (0.4 + 0.6 * vel), t);
+      og.gain.setTargetAtTime(0, t, P.ks.t60 / 6);
+      o.connect(og); og.connect(amp); srcs.push(o);
+    }
+    const stopAt = Math.min(end + P.r * 2 + 0.05, t + buf.duration / rate + 0.05);
+    for (const s2 of srcs) { s2.start(t); s2.stop(Math.max(stopAt, t + 0.05)); }
+    return {
+      release(at) {
+        at = Math.max(at, ctx.currentTime);
+        if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(at); else { g.cancelScheduledValues(at); g.setValueAtTime(g.value, at); }
+        g.setTargetAtTime(0, at, P.r / 4);
+        for (const s2 of srcs) { try { s2.stop(at + P.r * 2 + 0.05); } catch (e) { /* 이미 멈춤 */ } }
+      },
+    };
+  }
+
   function makeImpulse(ctx, seconds, decay) {
     const rate = ctx.sampleRate, len = Math.floor(rate * seconds);
     const buf = ctx.createBuffer(2, len, rate);
@@ -161,6 +298,7 @@
 
   /* 신스 한 음. dur 뒤에 놓는다. release(at)를 부르면 그때 놓는다(건반 연주용). */
   function synthVoice(engine, dest, inst, t, pitch, dur, vel) {
+    if (STRINGS[inst]) return stringVoice(engine, dest, inst, t, pitch, dur, vel);
     const ctx = engine.ctx;
     const P = PRESETS[inst] || PRESETS.piano;
     const f = T.freq(pitch);
@@ -186,6 +324,16 @@
     node.connect(out); out.connect(dest);
 
     let target = amp;
+    if (P.formants) {
+      // 사람 목소리·관악기처럼 몇 군데 주파수를 도드라지게(포먼트)
+      const mix = ctx.createGain();
+      for (const [fq, q, gn] of P.formants) {
+        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fq; bp.Q.value = q;
+        const bg = ctx.createGain(); bg.gain.value = gn;
+        mix.connect(bp); bp.connect(bg); bg.connect(amp);
+      }
+      target = mix;
+    }
     let filter = null;
     if (P.filter) {
       const F = P.filter;
@@ -195,7 +343,7 @@
       filter.frequency.setValueAtTime(F.attack ? base : top, t);
       if (F.attack) filter.frequency.linearRampToValueAtTime(top, t + F.attack);
       filter.frequency.setTargetAtTime(base, t + (F.attack || 0), F.decay / 3);
-      filter.connect(amp); target = filter;
+      filter.connect(target); target = filter;
     }
     const oscs = [];
     let fmOsc = null;
@@ -325,6 +473,25 @@
       case 'toml':
         tone('sine', 140, 82, 0.15, 0.9, 0.38, 0.8);
         break;
+      case 'ride': {
+        const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 6500;
+        const g = ctx.createGain(); g.gain.setValueAtTime(0.16 * v, t); g.gain.setTargetAtTime(0, t + 0.005, 0.32);
+        hp.connect(g); g.connect(out);
+        for (const fr of [263, 400, 421, 474, 587, 845]) { const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = fr * 1.9; o.connect(hp); o.start(t); o.stop(t + 1.4); }
+        noise(1.0, 'bandpass', 9000, 1, 0.12, 0.5);
+        break;
+      }
+      case 'tamb':
+        for (const off of [0, 0.014, 0.03]) noise(0.08, 'bandpass', 9500, 1.4, 0.45, 0.05, t + off);
+        noise(0.3, 'highpass', 8000, 0.8, 0.25, 0.12, t + 0.03);
+        break;
+      case 'shaker': {
+        const n = ctx.createBufferSource(); n.buffer = engine.noise;
+        const flt = ctx.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 6000; flt.Q.value = 0.8;
+        const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4 * v, t + 0.018); g.gain.setTargetAtTime(0, t + 0.02, 0.025);
+        n.connect(flt); flt.connect(g); g.connect(out); n.start(t); n.stop(t + 0.2);
+        break;
+      }
       case 'crash':
         noise(2.2, 'highpass', 4200, 0.4, 0.45, 1.4);
         noise(1.2, 'bandpass', 8000, 1.2, 0.2, 0.7);
@@ -502,5 +669,5 @@
     return new Blob([data.buffer], { type: 'audio/wav' });
   }
 
-  S.audio = { PRESETS, Engine, Session, Player, synthVoice, drumHit, playNote, render, encodeWav, swingTick };
+  S.audio = { PRESETS, STRINGS, Engine, Session, Player, synthVoice, drumHit, playNote, render, encodeWav, swingTick };
 })(globalThis.Studio = globalThis.Studio || {});
