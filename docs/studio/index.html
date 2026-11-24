@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15171c">
+<meta name="description" content="브라우저에서 바로 쓰는 작곡 프로그램: 피아노 롤, 드럼 시퀀서, 코드 진행, 자동 작곡, MIDI·WAV 내보내기">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="소리 공방">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>소리 공방</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="icons/favicon-32.png" alt="" width="22" height="22"><input id="title" class="title" aria-label="곡 제목" maxlength="80" spellcheck="false"></div>
+  <div class="transport" role="group" aria-label="재생">
+    <button class="ib" id="btnHome" title="처음으로 (Home)" data-i="home"></button>
+    <button class="ib play" id="btnPlay" title="재생/멈춤 (스페이스)" data-i="play"></button>
+    <button class="ib rec" id="btnRec" title="녹음: 재생 중이면 실시간, 멈춰 있으면 한 칸씩 입력" data-i="rec" aria-pressed="false"></button>
+    <button class="ib" id="btnLoop" title="구간 반복 (위쪽 마디 자를 끌어서 구간 지정)" data-i="loop" aria-pressed="false"></button>
+    <button class="ib" id="btnMetro" title="메트로놈" data-i="metro" aria-pressed="false"></button>
+    <div class="pos" id="pos" aria-live="off"><b>1.1</b><small>0:00</small></div>
+  </div>
+  <div class="songset">
+    <label class="fld"><span>BPM</span><input id="bpm" type="number" min="30" max="300" inputmode="numeric"></label>
+    <label class="fld"><span>조</span><select id="key"></select></label>
+    <label class="fld"><span>음계</span><select id="scale"></select></label>
+    <label class="fld"><span>마디</span><input id="bars" type="number" min="1" max="256" inputmode="numeric"></label>
+  </div>
+  <div class="actions">
+    <button class="btn accent" id="btnCompose" data-i="spark">자동 작곡</button>
+    <button class="ib" id="btnMixer" title="믹서: 음량·EQ·앰프·컴프·이펙트" data-i="mixer"></button>
+    <button class="ib" id="btnLearn" title="배우기: 음량·박자·화성·리듬" data-i="book"></button>
+    <button class="ib" id="btnMenu" title="파일·설정" data-i="menu"></button>
+  </div>
+</header>
+
+<div class="main">
+  <aside class="tracks" aria-label="트랙">
+    <div class="tracks-head"><b>트랙</b>
+      <button class="mini" id="addSynth" title="악기 트랙 추가">+ 악기</button>
+      <button class="mini" id="addDrum" title="드럼 트랙 추가">+ 드럼</button>
+    </div>
+    <ul id="trackList" class="track-list"></ul>
+    <canvas id="meter" class="meter" width="220" height="40" aria-hidden="true"></canvas>
+  </aside>
+
+  <section class="editor">
+    <div class="toolbar" id="toolbar">
+      <div class="seg" role="group" aria-label="도구">
+        <button class="tool" data-tool="pen" title="그리기 (1)" data-i="pen"></button>
+        <button class="tool" data-tool="select" title="선택 (2)" data-i="select"></button>
+        <button class="tool" data-tool="erase" title="지우기 (3)" data-i="erase"></button>
+        <button class="tool" data-tool="hand" title="화면 이동 (4) · 두 손가락으로도 이동·확대" data-i="hand"></button>
+      </div>
+      <label class="fld small"><span>격자</span><select id="snap"></select></label>
+      <div class="seg">
+        <button class="ib sm" id="btnUndo" title="되돌리기 (Ctrl+Z)" data-i="undo"></button>
+        <button class="ib sm" id="btnRedo" title="다시 하기 (Ctrl+Shift+Z)" data-i="redo"></button>
+      </div>
+      <div class="seg">
+        <button class="ib sm" id="zoomOut" title="가로 축소 (Ctrl+휠)" data-i="zoomout"></button>
+        <button class="ib sm" id="zoomIn" title="가로 확대" data-i="zoomin"></button>
+      </div>
+      <button class="mini" id="btnEdit">편집 ▾</button>
+      <button class="mini" id="btnView">보기 ▾</button>
+      <span class="selinfo" id="selInfo"></span>
+    </div>
+    <div class="roll-wrap"><canvas id="roll" aria-label="피아노 롤 편집기"></canvas></div>
+  </section>
+</div>
+
+<footer class="kbd-wrap" id="kbdWrap">
+  <div class="kbd-bar">
+    <button class="mini" id="octDown" title="옥타브 내리기 (Z)">◀</button>
+    <span id="octLabel" class="oct">C4</span>
+    <button class="mini" id="octUp" title="옥타브 올리기 (X)">▶</button>
+    <label class="chk"><input type="checkbox" id="typing"> 컴퓨터 키보드로 연주</label>
+    <span class="hint" id="kbdHint"></span>
+    <button class="mini end" id="kbdToggle">건반 숨기기</button>
+  </div>
+  <div class="kbd" id="kbd"></div>
+</footer>
+
+<!-- 메뉴 -->
+<div class="pop" id="popEdit" hidden>
+  <button data-act="selectAll">전체 선택 <kbd>Ctrl+A</kbd></button>
+  <button data-act="copy">복사 <kbd>Ctrl+C</kbd></button>
+  <button data-act="cut">잘라내기 <kbd>Ctrl+X</kbd></button>
+  <button data-act="paste">재생 위치에 붙여넣기 <kbd>Ctrl+V</kbd></button>
+  <button data-act="duplicate">뒤에 복제 <kbd>Ctrl+D</kbd></button>
+  <button data-act="delete">지우기 <kbd>Del</kbd></button>
+  <hr>
+  <button data-act="quantize">격자에 맞추기(퀀타이즈)</button>
+  <button data-act="toScale">음계 밖 음을 음계로</button>
+  <button data-act="octUp">한 옥타브 위로 <kbd>Shift+↑</kbd></button>
+  <button data-act="octDown">한 옥타브 아래로 <kbd>Shift+↓</kbd></button>
+  <button data-act="legato">다음 음까지 늘리기(레가토)</button>
+  <button data-act="humanize">사람 손맛(세기·박자 살짝 흔들기)</button>
+  <hr>
+  <button data-act="dupLoop">반복 구간을 뒤에 복제(모든 트랙)</button>
+  <button data-act="clearLoop">반복 구간 비우기(모든 트랙)</button>
+  <button data-act="clearTrack">이 트랙 음표 모두 지우기</button>
+</div>
+<div class="pop" id="popView" hidden>
+  <label><input type="checkbox" data-ui="showVel"> 세기(벨로시티) 레인</label>
+  <label><input type="checkbox" data-ui="ghost"> 다른 트랙 음표 흐리게 보기</label>
+  <label><input type="checkbox" data-ui="chordTones"> 코드 구성음 줄 강조</label>
+  <label><input type="checkbox" data-ui="scaleLock"> 음계 안의 음만 넣기</label>
+  <label><input type="checkbox" data-ui="follow"> 재생 위치 따라가기</label>
+  <label><input type="checkbox" data-ui="quantRec"> 녹음할 때 격자에 맞추기</label>
+  <hr>
+  <button data-act="zoomYIn">세로 확대</button>
+  <button data-act="zoomYOut">세로 축소</button>
+  <button data-act="fit">음표가 보이게 맞추기</button>
+</div>
+
+<!-- 코드 고르기 -->
+<div class="pop chord-pop" id="popChord" hidden>
+  <div class="pop-title" id="chordTitle">코드</div>
+  <div class="chord-grid" id="chordDiatonic"></div>
+  <div class="row">
+    <select id="chordRoot" aria-label="근음"></select>
+    <select id="chordQual" aria-label="종류"></select>
+    <button class="mini" id="chordApply">넣기</button>
+  </div>
+  <div class="row">
+    <button class="mini" id="chordPlay">들어 보기</button>
+    <button class="mini" id="chordClear">비우기</button>
+    <label class="chk"><input type="checkbox" id="chordAdvance" checked> 넣고 다음 마디로</label>
+  </div>
+</div>
+
+<!-- 자동 작곡 -->
+<dialog id="dlgCompose" class="dlg">
+  <form method="dialog">
+    <h2>자동 작곡</h2>
+    <p class="muted">장르를 고르면 어울리는 값이 채워집니다. 고른 부분의 트랙만 새로 만들고, 다른 트랙은 그대로 둡니다.</p>
+    <div class="grid2">
+      <label class="fld col"><span>장르</span><select id="cGenre"></select></label>
+      <label class="fld col"><span>코드 진행</span><select id="cProg"></select></label>
+      <label class="fld col"><span>템포(BPM)</span><input id="cBpm" type="number" min="30" max="300"></label>
+      <label class="fld col"><span>스윙</span><input id="cSwing" type="range" min="0" max="0.6" step="0.05"></label>
+      <label class="fld col"><span>반주 리듬</span><select id="cComp"></select></label>
+      <label class="fld col"><span>베이스</span><select id="cBass"></select></label>
+      <label class="fld col"><span>드럼</span><select id="cDrums"></select></label>
+      <label class="fld col"><span>멜로디 음 수</span><input id="cDensity" type="range" min="0.1" max="0.95" step="0.05"></label>
+      <label class="fld col"><span>멜로디 악기</span><select id="cMelInst"></select></label>
+      <label class="fld col"><span>반주 악기</span><select id="cChordInst"></select></label>
+      <label class="fld col"><span>베이스 악기</span><select id="cBassInst"></select></label>
+    </div>
+    <fieldset class="parts">
+      <legend>만들 부분</legend>
+      <label class="chk"><input type="checkbox" id="pMelody" checked> 멜로디</label>
+      <label class="chk"><input type="checkbox" id="pChords" checked> 코드 반주</label>
+      <label class="chk"><input type="checkbox" id="pBass" checked> 베이스</label>
+      <label class="chk"><input type="checkbox" id="pDrums" checked> 드럼</label>
+    </fieldset>
+    <div class="row seed"><span>씨앗</span><input id="cSeed" type="number" min="1" max="999999"><button type="button" class="mini" id="cDice" title="다른 씨앗">🎲 다른 곡</button>
+      <span class="muted small">같은 씨앗·설정이면 같은 곡이 나옵니다.</span></div>
+    <div class="dlg-btns">
+      <button value="cancel" class="btn">닫기</button>
+      <button type="button" class="btn accent" id="cGo">만들고 듣기</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 트랙 설정 -->
+<dialog id="dlgTrack" class="dlg">
+  <form method="dialog" id="trackForm">
+    <h2>트랙 설정</h2>
+    <label class="fld col"><span>이름</span><input id="tName" maxlength="40"></label>
+    <label class="fld col"><span id="tInstLabel">악기</span><select id="tInst"></select></label>
+    <label class="fld col"><span>음량 <output id="tVolO"></output></span><input id="tVol" type="range" min="0" max="1.2" step="0.01"></label>
+    <label class="fld col"><span>좌우(팬) <output id="tPanO"></output></span><input id="tPan" type="range" min="-1" max="1" step="0.05"></label>
+    <label class="fld col"><span>울림(리버브) <output id="tRevO"></output></span><input id="tRev" type="range" min="0" max="1" step="0.01"></label>
+    <div class="colors" id="tColors"></div>
+    <div class="row wrap">
+      <button type="button" class="mini" id="tUp">↑ 위로</button>
+      <button type="button" class="mini" id="tDown">↓ 아래로</button>
+      <button type="button" class="mini" id="tDup">복제</button>
+      <button type="button" class="mini" id="tMixer">EQ·앰프·이펙트 (믹서)</button>
+      <button type="button" class="mini danger" id="tDel">트랙 지우기</button>
+    </div>
+    <div class="dlg-btns"><button value="ok" class="btn accent">닫기</button></div>
+  </form>
+</dialog>
+
+<!-- 파일·설정 -->
+<dialog id="dlgMenu" class="dlg">
+  <form method="dialog">
+    <h2>파일·설정</h2>
+    <div class="menu-grid">
+      <button type="button" class="btn" data-act="new">새 곡</button>
+      <button type="button" class="btn" data-act="library">내 곡 목록</button>
+      <button type="button" class="btn" data-act="open">파일 열기 (.json · .mid)</button>
+      <button type="button" class="btn" data-act="saveJson">곡 파일 저장 (.json)</button>
+      <button type="button" class="btn" data-act="exportMidi">MIDI 내보내기 (.mid)</button>
+      <button type="button" class="btn" data-act="exportWav">오디오 내보내기 (.wav)</button>
+      <button type="button" class="btn" data-act="exportWavLoop">반복 구간만 .wav</button>
+      <button type="button" class="btn" data-act="midiIn">MIDI 건반 연결</button>
+      <button type="button" class="btn" data-act="help">도움말·단축키</button>
+    </div>
+    <label class="fld col"><span>전체 음량 <output id="mMasterO"></output></span><input id="mMaster" type="range" min="0" max="1.2" step="0.01"></label>
+    <label class="fld col"><span>스윙 <output id="mSwingO"></output></span><input id="mSwing" type="range" min="0" max="0.6" step="0.05"></label>
+    <label class="fld col"><span>화면</span><select id="mTheme"><option value="">기기 설정 따르기</option><option value="dark">어둡게</option><option value="light">밝게</option></select></label>
+    <p class="muted small">곡은 이 브라우저에 자동 저장됩니다. 다른 기기로 옮기려면 곡 파일(.json)로 저장하세요.</p>
+    <div class="dlg-btns"><button value="ok" class="btn accent">닫기</button></div>
+  </form>
+  <input type="file" id="fileIn" accept=".json,.mid,.midi,application/json,audio/midi" hidden>
+</dialog>
+
+<dialog id="dlgLib" class="dlg">
+  <form method="dialog">
+    <h2>내 곡</h2>
+    <ul class="lib" id="libList"></ul>
+    <div class="dlg-btns"><button value="ok" class="btn accent">닫기</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgHelp" class="dlg wide">
+  <form method="dialog">
+    <h2>도움말</h2>
+    <div class="help">
+      <h3>음표 넣기</h3>
+      <ul>
+        <li><b>그리기</b> 도구로 빈 칸을 누르면 음표가 생기고, 누른 채 오른쪽으로 끌면 길어집니다. 음표를 끌면 옮겨지고, 오른쪽 끝을 끌면 길이가 바뀝니다.</li>
+        <li>음표를 두 번 누르거나 오른쪽 클릭하면 지워집니다. <b>지우기</b> 도구로 문질러도 됩니다.</li>
+        <li><b>선택</b> 도구로 빈 곳을 끌면 여러 음표를 고릅니다(그리기 도구에서는 Shift+끌기). Alt+끌기는 복사해서 옮깁니다.</li>
+        <li>드럼 트랙에서는 칸을 누를 때마다 켜고 끄며, 끌면 여러 칸을 한 번에 칠합니다.</li>
+        <li>위쪽 <b>코드</b> 줄을 누르면 그 마디의 코드를 고릅니다. 자동 작곡에서 "코드 줄 그대로"를 고르면 직접 쓴 진행으로 반주를 만듭니다.</li>
+        <li>위쪽 <b>마디</b> 자를 누르면 재생 위치가 옮겨지고, 끌면 반복 구간이 정해집니다.</li>
+      </ul>
+      <h3>화면 움직이기</h3>
+      <ul>
+        <li>휠: 위아래 · Shift+휠: 좌우 · Ctrl+휠: 가로 확대 · Alt+휠: 세로 확대</li>
+        <li>휴대폰·태블릿: 두 손가락으로 끌면 이동, 벌리면 확대. 한 손가락 이동은 <b>화면 이동</b> 도구.</li>
+      </ul>
+      <h3>연주와 녹음</h3>
+      <ul>
+        <li>아래 건반을 누르거나, "컴퓨터 키보드로 연주"를 켜고 <kbd>A</kbd>~<kbd>;</kbd>(흰건반)·<kbd>W E T Y U O P</kbd>(검은건반)를 누릅니다. <kbd>Z</kbd>/<kbd>X</kbd>는 옥타브.</li>
+        <li><b>녹음</b>을 켜고 재생하면 연주가 그대로 기록되고, 멈춘 채로 녹음을 켜면 누를 때마다 격자 한 칸씩 음이 들어갑니다(화음은 함께 누르기).</li>
+        <li>MIDI 건반은 파일·설정 → MIDI 건반 연결(크롬·엣지).</li>
+      </ul>
+      <h3>단축키</h3>
+      <ul>
+        <li>드럼 트랙: <kbd>A</kbd>~<kbd>'</kbd> 순서로 킥·스네어·클랩·하이햇·탐·심벌·탬버린·셰이커</li>
+        <li><kbd>스페이스</kbd> 재생/멈춤 · <kbd>Home</kbd> 처음으로 · <kbd>1</kbd>~<kbd>4</kbd> 도구</li>
+        <li><kbd>Ctrl+Z</kbd> 되돌리기 · <kbd>Ctrl+Shift+Z</kbd>/<kbd>Ctrl+Y</kbd> 다시 · <kbd>Ctrl+A/C/X/V/D</kbd> 전체선택/복사/잘라내기/붙여넣기/복제</li>
+        <li><kbd>↑</kbd><kbd>↓</kbd> 반음(Shift는 옥타브) · <kbd>←</kbd><kbd>→</kbd> 격자 한 칸 · <kbd>Del</kbd> 지우기 · <kbd>Esc</kbd> 선택 풀기</li>
+      </ul>
+      <p class="muted small">박자는 4/4 고정입니다. 소리는 모두 브라우저 안에서 합성하며(샘플 파일 없음), 페이지를 처음 누른 뒤부터 납니다.</p>
+    </div>
+    <div class="dlg-btns"><button value="ok" class="btn accent">닫기</button></div>
+  </form>
+</dialog>
+
+<!-- 믹서 -->
+<dialog id="dlgMixer" class="dlg mixer-dlg">
+  <form method="dialog">
+    <div class="dlg-head"><h2>믹서</h2><span class="muted small">트랙마다 앰프 → EQ → 컴프 → 음량·팬 순서로 지나가고, 리버브·딜레이로 보냅니다. 재생하면서 바꿔 보세요.</span>
+      <button type="button" class="ib sm" id="mixPlay" data-i="play" title="재생/멈춤"></button><button value="ok" class="btn accent">닫기</button></div>
+    <div class="strips" id="mixStrips"></div>
+  </form>
+</dialog>
+
+<!-- 배우기 -->
+<dialog id="dlgLearn" class="dlg wide learn-dlg">
+  <form method="dialog">
+    <div class="dlg-head"><h2>배우기</h2>
+      <div class="tabs" role="tablist" id="learnTabs">
+        <button type="button" role="tab" data-tab="dyn">소리의 크기</button>
+        <button type="button" role="tab" data-tab="time">박자·빠르기</button>
+        <button type="button" role="tab" data-tab="harm">화성</button>
+        <button type="button" role="tab" data-tab="rhy">리듬</button>
+      </div>
+      <button value="ok" class="btn accent">닫기</button></div>
+    <div class="learn" id="learnBody"></div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="busy" class="busy" hidden><div><span class="spin"></span><b id="busyText">만드는 중…</b></div></div>
+<noscript><p style="padding:24px">소리 공방은 자바스크립트를 켜야 쓸 수 있어요.</p></noscript>
+<script src="js/theory.js"></script>
+<script src="js/song.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/midi.js"></script>
+<script src="js/compose.js"></script>
+<script src="js/roll.js"></script>
+<script src="js/app.js"></script>
+<script src="js/panels.js"></script>
+</body>
+</html>
