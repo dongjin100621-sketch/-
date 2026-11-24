@@ -35,6 +35,8 @@
   </div>
   <div class="actions">
     <button class="btn accent" id="btnCompose" data-i="spark">자동 작곡</button>
+    <button class="ib" id="btnMixer" title="믹서: 음량·EQ·앰프·컴프·이펙트" data-i="mixer"></button>
+    <button class="ib" id="btnLearn" title="배우기: 음량·박자·화성·리듬" data-i="book"></button>
     <button class="ib" id="btnMenu" title="파일·설정" data-i="menu"></button>
   </div>
 </header>
@@ -183,6 +185,7 @@
       <button type="button" class="mini" id="tUp">↑ 위로</button>
       <button type="button" class="mini" id="tDown">↓ 아래로</button>
       <button type="button" class="mini" id="tDup">복제</button>
+      <button type="button" class="mini" id="tMixer">EQ·앰프·이펙트 (믹서)</button>
       <button type="button" class="mini danger" id="tDel">트랙 지우기</button>
     </div>
     <div class="dlg-btns"><button value="ok" class="btn accent">닫기</button></div>
@@ -258,6 +261,30 @@
   </form>
 </dialog>
 
+<!-- 믹서 -->
+<dialog id="dlgMixer" class="dlg mixer-dlg">
+  <form method="dialog">
+    <div class="dlg-head"><h2>믹서</h2><span class="muted small">트랙마다 앰프 → EQ → 컴프 → 음량·팬 순서로 지나가고, 리버브·딜레이로 보냅니다. 재생하면서 바꿔 보세요.</span>
+      <button type="button" class="ib sm" id="mixPlay" data-i="play" title="재생/멈춤"></button><button value="ok" class="btn accent">닫기</button></div>
+    <div class="strips" id="mixStrips"></div>
+  </form>
+</dialog>
+
+<!-- 배우기 -->
+<dialog id="dlgLearn" class="dlg wide learn-dlg">
+  <form method="dialog">
+    <div class="dlg-head"><h2>배우기</h2>
+      <div class="tabs" role="tablist" id="learnTabs">
+        <button type="button" role="tab" data-tab="dyn">소리의 크기</button>
+        <button type="button" role="tab" data-tab="time">박자·빠르기</button>
+        <button type="button" role="tab" data-tab="harm">화성</button>
+        <button type="button" role="tab" data-tab="rhy">리듬</button>
+      </div>
+      <button value="ok" class="btn accent">닫기</button></div>
+    <div class="learn" id="learnBody"></div>
+  </form>
+</dialog>
+
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="busy" class="busy" hidden><div><span class="spin"></span><b id="busyText">만드는 중…</b></div></div>
 <noscript><p style="padding:24px">소리 공방은 자바스크립트를 켜야 쓸 수 있어요.</p></noscript>
@@ -268,5 +295,6 @@
 <script src="js/compose.js"></script>
 <script src="js/roll.js"></script>
 <script src="js/app.js"></script>
+<script src="js/panels.js"></script>
 </body>
 </html>

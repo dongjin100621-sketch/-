@@ -61,9 +61,12 @@
 
   /* 불러오기 */
   function gmToInst(prog) {
-    const exact = { 9: 'glock', 10: 'musicbox', 24: 'agtr', 25: 'agtr', 26: 'egtr_clean', 27: 'egtr_clean', 33: 'fbass', 34: 'fbass', 36: 'slap', 37: 'slap',
-      40: 'violin', 45: 'pizz', 46: 'harp', 52: 'choir', 53: 'choir', 54: 'choir', 62: 'synbrass', 63: 'synbrass', 77: 'shakuhachi', 80: 'chip',
-      104: 'shamisen', 105: 'agtr', 106: 'shamisen', 107: 'koto' };
+    const exact = { 5: 'wurli', 6: 'harpsi', 7: 'clav', 8: 'celesta', 9: 'glock', 10: 'musicbox', 11: 'vibes', 12: 'marimba', 13: 'xylo',
+      21: 'accordion', 22: 'harmonica', 23: 'accordion', 24: 'nylon', 25: 'agtr', 26: 'egtr_clean', 27: 'egtr_clean', 28: 'muted', 29: 'egtr_drive', 30: 'heavy',
+      32: 'upright', 33: 'fbass', 34: 'fbass', 36: 'slap', 37: 'slap', 39: 'acid', 40: 'violin', 42: 'cello', 43: 'upright', 45: 'pizz', 46: 'harp', 47: 'timpani',
+      52: 'choir', 53: 'ooh', 54: 'vox', 55: 'orchhit', 56: 'trumpet', 57: 'trombone', 60: 'horn', 62: 'synbrass', 63: 'synbrass',
+      68: 'oboe', 71: 'clarinet', 77: 'shakuhachi', 80: 'sqlead', 85: 'vox', 104: 'sitar', 105: 'banjo', 106: 'shamisen', 107: 'koto', 108: 'kalimba',
+      110: 'erhu', 114: 'steeldrum' };
     if (exact[prog]) return exact[prog];
     if (prog <= 3) return 'piano';
     if (prog <= 7) return 'epiano';

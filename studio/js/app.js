@@ -24,6 +24,8 @@
     redo: '<path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',
     zoomin: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6M11 8v6"/>',
     zoomout: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/>',
+    mixer: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/><path d="M9 7h7M9 11h5"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   };
   const icon = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -67,7 +69,7 @@
       const AC = window.AudioContext || window.webkitAudioContext;
       app.ctx = new AC({ latencyHint: 'interactive' });
       app.engine = new A.Engine(app.ctx);
-      app.engine.master.gain.value = app.song.master;
+      app.engine.applyMaster(app.song);
     }
     if (app.ctx.state === 'suspended') app.ctx.resume();
     return app.engine;
@@ -75,14 +77,10 @@
   function previewSession() {
     const eng = audio();
     if (!app.preview) app.preview = new A.Session(eng);
-    // 미리 듣기는 음소거·솔로와 상관없이 그 트랙 소리로 들린다
-    const tr = app.track;
-    const c = app.preview.chain(tr);
+    // 미리 듣기는 음소거·솔로와 상관없이 그 트랙 소리로 들린다(앰프·EQ는 그대로)
     const now = app.ctx.currentTime;
-    c.vol.gain.setTargetAtTime(tr.vol * tr.vol, now, 0.01);
-    if (c.pan) c.pan.pan.setTargetAtTime(tr.pan, now, 0.01);
-    c.send.gain.setTargetAtTime(tr.rev * 0.6, now, 0.01);
-    eng.master.gain.setTargetAtTime(app.song.master, now, 0.01);
+    const c = app.preview.applyTrack(app.track, true, now);
+    eng.applyMaster(app.song, now);
     return c.input;
   }
   app.previewNote = (p, v = 0.8, tr = app.track) => {
@@ -197,7 +195,7 @@
     if (!app.song.tracks.some((t) => t.id === keepTrack)) app.trackId = app.song.tracks[0].id;
     if (!opt.keepHistory) app.history.reset(app.song);
     roll.sel.clear();
-    if (app.engine) app.engine.master.gain.value = app.song.master;
+    if (app.engine) app.engine.applyMaster(app.song, app.ctx.currentTime);
     player.update();
     renderAll();
   }
@@ -641,6 +639,7 @@
     $(id).onchange = () => app.commit('믹서');
   }
   $('tColors').onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; app.track.color = b.dataset.c; app.commit('색'); openTrackDlg(); };
+  $('tMixer').onclick = () => { $('dlgTrack').close(); $('btnMixer').click(); };
   $('tUp').onclick = () => moveTrack(-1);
   $('tDown').onclick = () => moveTrack(1);
   function moveTrack(dir) {
@@ -765,7 +764,7 @@
     $('mMasterO').textContent = Math.round(app.song.master * 100) + '%';
     $('mSwingO').textContent = app.song.swing ? Math.round(app.song.swing * 100) + '%' : '없음';
   }
-  $('mMaster').oninput = () => { app.song.master = +$('mMaster').value; menuOutputs(); player.update(); if (app.engine) app.engine.master.gain.value = app.song.master; };
+  $('mMaster').oninput = () => { app.song.master = +$('mMaster').value; menuOutputs(); app.refreshAudio(); };
   $('mMaster').onchange = () => app.commit('전체 음량');
   $('mSwing').oninput = () => { app.song.swing = +$('mSwing').value; menuOutputs(); };
   $('mSwing').onchange = () => app.commit('스윙');
@@ -934,6 +933,22 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
   }
   app.toast = toast;
+  app.audio = audio;
+  app.esc = esc;
+  app.icon = icon;
+  app.renderAll = renderAll;
+  app.renderHeader = renderHeader;
+  app.renderTransport = renderTransport;
+  app.selectTrack = selectTrack;
+  app.sortNotes = sortNotes;
+  app.saveFile = saveFile;
+  app.busy = busy;
+  /** 믹서 값이 바뀌면 재생 중·미리 듣기 소리에 바로 반영 */
+  app.refreshAudio = () => {
+    player.update();
+    if (app.preview) app.preview.update(app.song);
+    if (app.engine) app.engine.applyMaster(app.song, app.ctx.currentTime);
+  };
 
   /* ---------- 시작 ---------- */
   paintIcons();

@@ -5,37 +5,74 @@
 
   // cat: 악기 고르는 목록의 묶음
   const INSTRUMENTS = {
-    piano:      { name: '피아노',              gm: 0,   cat: '건반' },
-    epiano:     { name: '일렉 피아노',         gm: 4,   cat: '건반' },
-    organ:      { name: '오르간',              gm: 16,  cat: '건반' },
-    glock:      { name: '글로켄슈필',          gm: 9,   cat: '건반' },
-    musicbox:   { name: '오르골',              gm: 10,  cat: '건반' },
-    bell:       { name: '벨',                  gm: 14,  cat: '건반' },
-    agtr:       { name: '어쿠스틱 기타',       gm: 25,  cat: '기타·베이스' },
-    egtr_clean: { name: '일렉 기타 (클린)',    gm: 27,  cat: '기타·베이스' },
-    egtr_drive: { name: '일렉 기타 (드라이브)', gm: 29, cat: '기타·베이스' },
-    fbass:      { name: '핑거 베이스',         gm: 33,  cat: '기타·베이스' },
-    slap:       { name: '슬랩 베이스',         gm: 36,  cat: '기타·베이스' },
-    bass:       { name: '신스 베이스',         gm: 38,  cat: '기타·베이스' },
-    sub808:     { name: '808 베이스',          gm: 38,  cat: '기타·베이스' },
-    strings:    { name: '스트링',              gm: 48,  cat: '현악·관악·합창' },
-    violin:     { name: '바이올린',            gm: 40,  cat: '현악·관악·합창' },
-    pizz:       { name: '피치카토',            gm: 45,  cat: '현악·관악·합창' },
-    harp:       { name: '하프',                gm: 46,  cat: '현악·관악·합창' },
-    brass:      { name: '브라스',              gm: 61,  cat: '현악·관악·합창' },
-    sax:        { name: '색소폰',              gm: 65,  cat: '현악·관악·합창' },
-    flute:      { name: '플루트',              gm: 73,  cat: '현악·관악·합창' },
-    choir:      { name: '코러스 (아—)',        gm: 52,  cat: '현악·관악·합창' },
-    supersaw:   { name: '슈퍼소 리드',         gm: 81,  cat: '신스' },
-    lead:       { name: '신스 리드',           gm: 81,  cat: '신스' },
-    synbrass:   { name: '신스 브라스',         gm: 62,  cat: '신스' },
-    pad:        { name: '신스 패드',           gm: 89,  cat: '신스' },
-    pluck:      { name: '신스 플럭',           gm: 84,  cat: '신스' },
-    chip:       { name: '8비트 스퀘어',        gm: 80,  cat: '신스' },
-    koto:       { name: '고토',                gm: 107, cat: '일본 전통' },
-    shamisen:   { name: '샤미센',              gm: 106, cat: '일본 전통' },
-    shakuhachi: { name: '샤쿠하치',            gm: 77,  cat: '일본 전통' },
+    piano: { name: '피아노', gm: 0, cat: '건반' },
+    epiano: { name: '일렉 피아노 (로즈)', gm: 4, cat: '건반' },
+    wurli: { name: '월리처', gm: 5, cat: '건반' },
+    clav: { name: '클라비넷', gm: 7, cat: '건반' },
+    harpsi: { name: '하프시코드', gm: 6, cat: '건반' },
+    organ: { name: '오르간', gm: 16, cat: '건반' },
+    accordion: { name: '아코디언', gm: 21, cat: '건반' },
+    musicbox: { name: '오르골', gm: 10, cat: '건반' },
+    celesta: { name: '첼레스타', gm: 8, cat: '건반' },
+    glock: { name: '글로켄슈필', gm: 9, cat: '말렛·선율 타악기' },
+    vibes: { name: '비브라폰', gm: 11, cat: '말렛·선율 타악기' },
+    marimba: { name: '마림바', gm: 12, cat: '말렛·선율 타악기' },
+    xylo: { name: '실로폰', gm: 13, cat: '말렛·선율 타악기' },
+    bell: { name: '벨', gm: 14, cat: '말렛·선율 타악기' },
+    steeldrum: { name: '스틸드럼', gm: 114, cat: '말렛·선율 타악기' },
+    kalimba: { name: '칼림바', gm: 108, cat: '말렛·선율 타악기' },
+    timpani: { name: '팀파니', gm: 47, cat: '말렛·선율 타악기' },
+    agtr: { name: '어쿠스틱 기타 (스틸)', gm: 25, cat: '기타' },
+    nylon: { name: '나일론 기타', gm: 24, cat: '기타' },
+    egtr_clean: { name: '일렉 기타 (클린)', gm: 27, cat: '기타' },
+    muted: { name: '일렉 기타 (뮤트)', gm: 28, cat: '기타' },
+    egtr_drive: { name: '일렉 기타 (드라이브)', gm: 29, cat: '기타' },
+    heavy: { name: '일렉 기타 (헤비)', gm: 30, cat: '기타' },
+    ukulele: { name: '우쿨렐레', gm: 24, cat: '기타' },
+    mandolin: { name: '만돌린', gm: 25, cat: '기타' },
+    banjo: { name: '밴조', gm: 105, cat: '기타' },
+    fbass: { name: '핑거 베이스', gm: 33, cat: '베이스' },
+    slap: { name: '슬랩 베이스', gm: 36, cat: '베이스' },
+    upright: { name: '콘트라베이스', gm: 32, cat: '베이스' },
+    bass: { name: '신스 베이스', gm: 38, cat: '베이스' },
+    sub808: { name: '808 베이스', gm: 38, cat: '베이스' },
+    acid: { name: '애시드 베이스 (303)', gm: 39, cat: '베이스' },
+    reese: { name: '리스 베이스', gm: 38, cat: '베이스' },
+    fmbass: { name: 'FM 베이스', gm: 38, cat: '베이스' },
+    strings: { name: '스트링 앙상블', gm: 48, cat: '현악' },
+    stacc: { name: '스트링 스타카토', gm: 48, cat: '현악' },
+    violin: { name: '바이올린', gm: 40, cat: '현악' },
+    cello: { name: '첼로', gm: 42, cat: '현악' },
+    pizz: { name: '피치카토', gm: 45, cat: '현악' },
+    harp: { name: '하프', gm: 46, cat: '현악' },
+    brass: { name: '브라스 섹션', gm: 61, cat: '관악' },
+    trumpet: { name: '트럼펫', gm: 56, cat: '관악' },
+    trombone: { name: '트롬본', gm: 57, cat: '관악' },
+    horn: { name: '호른', gm: 60, cat: '관악' },
+    sax: { name: '색소폰', gm: 65, cat: '관악' },
+    clarinet: { name: '클라리넷', gm: 71, cat: '관악' },
+    oboe: { name: '오보에', gm: 68, cat: '관악' },
+    flute: { name: '플루트', gm: 73, cat: '관악' },
+    harmonica: { name: '하모니카', gm: 22, cat: '관악' },
+    choir: { name: '코러스 (아—)', gm: 52, cat: '합창·보컬' },
+    ooh: { name: '코러스 (우—)', gm: 53, cat: '합창·보컬' },
+    vox: { name: '보컬 신스', gm: 85, cat: '합창·보컬' },
+    supersaw: { name: '슈퍼소 리드', gm: 81, cat: '신스' },
+    lead: { name: '신스 리드', gm: 81, cat: '신스' },
+    sqlead: { name: '스퀘어 리드', gm: 80, cat: '신스' },
+    chip: { name: '8비트 스퀘어', gm: 80, cat: '신스' },
+    synbrass: { name: '신스 브라스', gm: 62, cat: '신스' },
+    pluck: { name: '신스 플럭', gm: 84, cat: '신스' },
+    pad: { name: '신스 패드', gm: 89, cat: '신스' },
+    warmpad: { name: '따뜻한 패드', gm: 89, cat: '신스' },
+    orchhit: { name: '오케스트라 히트', gm: 55, cat: '신스' },
+    koto: { name: '고토', gm: 107, cat: '세계 악기' },
+    shamisen: { name: '샤미센', gm: 106, cat: '세계 악기' },
+    shakuhachi: { name: '샤쿠하치', gm: 77, cat: '세계 악기' },
+    sitar: { name: '시타르', gm: 104, cat: '세계 악기' },
+    erhu: { name: '얼후', gm: 110, cat: '세계 악기' },
   };
+
   const KITS = { std: '스탠더드 킷', '808': '808 킷', lofi: '로파이 킷' };
   /** <select> 안의 악기 목록(묶음별) */
   function instrumentOptions(esc = (x) => x) {
@@ -66,15 +103,18 @@
     return Object.assign({
       id: newId(), type, name: type === 'drums' ? '드럼' : '피아노',
       inst: type === 'drums' ? 'std' : 'piano', role: '',
-      vol: 0.8, pan: 0, rev: 0.2, mute: false, solo: false,
+      vol: 0.8, pan: 0, rev: 0.2, dly: 0, comp: 0, mute: false, solo: false,
+      eq: defaultEq(), amp: { type: 'none', drive: 0.5, tone: 0.5 },
       color: COLORS[0], notes: [],
     }, opts);
   }
 
+  const defaultEq = () => ({ hp: 20, low: 0, mid: 0, midF: 1000, high: 0 });
+  const defaultMix = () => ({ low: 0, mid: 0, high: 0, comp: 0.4, limit: true, revLevel: 0.7, dlyDiv: '3/16', dlyFb: 0.35 });
   function newSong() {
     const s = {
       v: 1, title: '새 곡', bpm: 110, key: 0, scale: 'major', bars: 8, swing: 0,
-      master: 0.85, loop: { on: false, start: 0, end: T.BAR * 4 },
+      master: 0.85, mix: defaultMix(), loop: { on: false, start: 0, end: T.BAR * 4 },
       chords: new Array(8).fill(null), tracks: [],
     };
     s.tracks.push(makeTrack('synth', { name: '피아노', inst: 'piano', color: COLORS[0] }));
@@ -97,6 +137,14 @@
       bars: clamp(Math.round(num(raw.bars, 8)), 1, 256),
       swing: clamp(num(raw.swing, 0), 0, 0.75),
       master: clamp(num(raw.master, 0.85), 0, 1.2),
+      mix: (() => {
+        const m = raw.mix && typeof raw.mix === 'object' ? raw.mix : {}, dm = defaultMix();
+        return {
+          low: clamp(num(m.low, 0), -12, 12), mid: clamp(num(m.mid, 0), -12, 12), high: clamp(num(m.high, 0), -12, 12),
+          comp: clamp(num(m.comp, dm.comp), 0, 1), limit: m.limit !== false, revLevel: clamp(num(m.revLevel, dm.revLevel), 0, 1.5),
+          dlyDiv: ['1/16', '1/8', '3/16', '1/4', '3/8', '1/2'].includes(m.dlyDiv) ? m.dlyDiv : dm.dlyDiv, dlyFb: clamp(num(m.dlyFb, dm.dlyFb), 0, 0.85),
+        };
+      })(),
       loop: { on: !!(raw.loop && raw.loop.on), start: 0, end: T.BAR * 4 },
       chords: [], tracks: [],
     };
@@ -119,6 +167,11 @@
         inst: type === 'drums' ? (KITS[t.inst] ? t.inst : 'std') : (INSTRUMENTS[t.inst] ? t.inst : 'piano'),
         role: typeof t.role === 'string' ? t.role : '',
         vol: clamp(num(t.vol, 0.8), 0, 1.2), pan: clamp(num(t.pan, 0), -1, 1), rev: clamp(num(t.rev, 0.2), 0, 1),
+        dly: clamp(num(t.dly, 0), 0, 1), comp: clamp(num(t.comp, 0), 0, 1),
+        eq: (() => { const e = t.eq && typeof t.eq === 'object' ? t.eq : {};
+          return { hp: clamp(num(e.hp, 20), 20, 1000), low: clamp(num(e.low, 0), -15, 15), mid: clamp(num(e.mid, 0), -15, 15), midF: clamp(num(e.midF, 1000), 200, 8000), high: clamp(num(e.high, 0), -15, 15) }; })(),
+        amp: (() => { const a = t.amp && typeof t.amp === 'object' ? t.amp : {};
+          return { type: typeof a.type === 'string' && /^[a-z]+$/.test(a.type) ? a.type : 'none', drive: clamp(num(a.drive, 0.5), 0, 1), tone: clamp(num(a.tone, 0.5), 0, 1) }; })(),
         mute: !!t.mute, solo: !!t.solo,
         color: typeof t.color === 'string' && /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : COLORS[i % COLORS.length],
       });
@@ -196,5 +249,5 @@
     remove(id) { const lib = store.get(LIB, {}); delete lib[id]; store.set(LIB, lib); },
   };
 
-  S.song = { INSTRUMENTS, KITS, instrumentOptions, DRUMS, COLORS, makeTrack, newSong, normalize, clone, songEnd, resizeChords, History, store, library, newId };
+  S.song = { INSTRUMENTS, KITS, instrumentOptions, defaultEq, defaultMix, DRUMS, COLORS, makeTrack, newSong, normalize, clone, songEnd, resizeChords, History, store, library, newId };
 })(globalThis.Studio = globalThis.Studio || {});

@@ -1,8 +1,8 @@
 'use strict';
 /* 한 번 열어 두면 오프라인에서도 작곡할 수 있게 파일을 보관한다.
    목록과 VERSION 은 tools/build_pwa.py studio 가 갱신한다. */
-const VERSION = 'studio-2bd3ffac';
-const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/app.js", "js/audio.js", "js/compose.js", "js/midi.js", "js/roll.js", "js/song.js", "js/theory.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
+const VERSION = 'studio-508ff94d';
+const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/app.js", "js/audio.js", "js/compose.js", "js/midi.js", "js/panels.js", "js/roll.js", "js/song.js", "js/theory.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
 const FONTS = /^fonts\.(googleapis|gstatic)\.com$/;
 
 self.addEventListener('install', (e) => {
