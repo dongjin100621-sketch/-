@@ -1,7 +1,7 @@
 'use strict';
 /* 오프라인에서도 열리도록 앱 파일을 보관한다. 파일을 고치면 VERSION을 올린다. */
-const VERSION = 'wander-d3e79101';
-const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/combat.js", "js/data.js", "js/engine.js", "js/main.js", "js/quests.js", "js/story.js", "js/ui.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "img/hero.jpg", "img/hero_face.jpg"];
+const VERSION = 'wander-4578ad4e';
+const SHELL = ["./", "index.html", "manifest.webmanifest", "css/style.css", "js/combat.js", "js/data.js", "js/engine.js", "js/extra.js", "js/main.js", "js/quests.js", "js/story.js", "js/ui.js", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "img/hero.jpg", "img/hero_face.jpg"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

@@ -10,6 +10,8 @@ const Game = {
   boot() {
     let z = 'm'; try { z = localStorage.getItem('wander-size') || 'm'; } catch (e) { /* 무시 */ }
     UI.setSize(z);
+    let th = 'auto'; try { th = localStorage.getItem('wander-theme') || 'auto'; } catch (e) { /* 무시 */ }
+    UI.setTheme(th);
     document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => UI.setTab(b.dataset.tab));
     $('#tb-open').onclick = () => UI.openSheet('status');
     $('#topbar .tb-hero').onclick = () => UI.openSheet('status');
@@ -97,6 +99,8 @@ const Game = {
     list.push({ t: '🧭 주변을 탐험한다', hint: `${R.land} · 반나절 · 무작위 사건`, fn: () => Game.explore() });
     if (q < 3) list.push({ t: `📜 지역 이야기 — ${QUEST_NAMES[S.region]}`, hint: `${q + 1}장 · ${QUEST_HINTS[S.region][q]}`, fn: () => Game.story(), cls: 'main' });
     if (S.region === 'central' && S.seals.length >= 5 && !S.quest.final) list.push({ t: `🌸 최종장 — ${QUEST_NAMES.final}`, hint: '다섯 꽃잎이 떨린다', fn: () => Game.finale(), cls: 'main final' });
+    const sd = S.side[S.region];
+    if (q >= 1 && sd < 3) list.push({ t: `🧩 곁이야기 — ${SIDE_NAMES[S.region]}`, hint: `${sd + 1}장 · ${SIDE_HINTS[S.region][sd]}`, fn: () => Game.side(), cls: 'side' });
     const bk = `${S.region}-${S.day}`;
     list.push({ t: '📋 의뢰 게시판', hint: S.bountyDone === bk ? '오늘 의뢰는 끝냈다' : '현상금 토벌 · 하루 한 번', disabled: S.bountyDone === bk, fn: () => Game.bounty() });
     list.push({ t: '🏪 상점', hint: `금화 ${S.gold}`, fn: () => Game.shop() });
@@ -155,6 +159,7 @@ const Game = {
       return Combat.start(id, { win: o.win, flee: o.flee, noFlee: o.noFlee, weak: o.weakFlag && S.flags[o.weakFlag], ctx });
     }
     if (o.go) return Game.runScene(o.go, ctx);
+    if (o.then) return o.then();
     if (ctx.after) { const f = ctx.after; ctx.after = null; return f(); }
     Game.hub();
   },
@@ -181,6 +186,13 @@ const Game = {
     UI.say(`▸ ${QUEST_NAMES[S.region]}`, 'me');
     G.advance(1);
     Game.runScene(QUESTS[S.region][q], { id: `q_${S.region}_${q}` });
+  },
+
+  side() {
+    const S = G.S, n = S.side[S.region];
+    UI.say(`▸ ${SIDE_NAMES[S.region]}`, 'me');
+    G.advance(1);
+    Game.runScene(SIDE[S.region][n], { id: `s_${S.region}_${n}` });
   },
 
   finale() {
@@ -212,10 +224,19 @@ const Game = {
       choices: [
         { t: `하룻밤 묵는다`, cost: R.inn, ok: { text: '푹신한 침대에서 깊이 잠들었다. 몸과 마음이 가득 찼다.', fn: S2 => { G.sleep(); S2.hp = G.maxHp(); S2.mp = G.maxMp(); }, log: `${R.town}의 여관에서 쉬었다` } },
         { t: '술 한 잔 시키고 소문을 듣는다', cost: 1, ok: { fn: () => UI.say(pick(R.rumors), 'quote'), time: 0 } },
+        { t: '🎲 주인과 주사위 내기를 한다', ok: { then: () => Game.dice() } },
         { t: '마구간 건초 더미에서 잔다', ok: { text: '말 냄새가 나지만 그럭저럭 잤다.', fn: S2 => { G.sleep(); G.heal(Math.ceil(G.maxHp() / 2)); G.restoreMp(Math.ceil(G.maxMp() / 2)); } } },
         { t: '나간다', ok: {} }
       ]
     }, { id: 'inn' });
+  },
+
+  dice(again) {
+    const S = G.S;
+    if (!again) UI.say('주인이 나무 컵에 주사위 두 개를 넣고 흔든다. “두 눈의 합이 큰 쪽이 이기는 거요. 쌍육(12)이 나오면 두 배!”');
+    const bets = [5, 20, 50].map(b => ({ t: `금화 ${b} 걸기`, hint: S.gold < b ? '금화 부족' : `보유 ${S.gold}`, disabled: S.gold < b, fn: () => { DiceGame.play(b); G.save(); Game.dice(true); } }));
+    bets.push({ t: '↩ 그만한다', cls: 'ghost', fn: () => Game.hub(true) });
+    UI.choices(bets); UI.flush(); Game.refresh();
   },
 
   /* ── 상점 ── */

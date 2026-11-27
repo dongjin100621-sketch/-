@@ -31,7 +31,7 @@ const G = {
       st: { ...C.st }, gold: 30, day: 1, phase: 1, region: 'central',
       inv: {}, eq: { weapon: null, armor: null, acc: null },
       skills: [...C.skills], flags: {}, quest: { central: 0, west: 0, south: 0, east: 0, north: 0, final: 0 },
-      seals: [], journal: [], seen: {}, kills: 0, travelled: 0, ended: false, poison: 0, chill: 0
+      seals: [], journal: [], seen: {}, side: { central: 0, west: 0, south: 0, east: 0, north: 0 }, bestiary: {}, kills: 0, travelled: 0, ended: false, poison: 0, chill: 0
     };
     for (const [id, n] of Object.entries(C.items)) S.inv[id] = n;
     S.eq.weapon = C.gear.weapon; S.eq.armor = C.gear.armor;
@@ -177,6 +177,7 @@ const G = {
     if (o.flag) for (const f of [].concat(o.flag)) S.flags[f] = true;
     if (o.time) G.advance(o.time);
     if (o.quest) { const [r, n] = o.quest; S.quest[r] = n; }
+    if (o.side) { const [r, n] = o.side; S.side[r] = n; }
     if (o.seal && !S.seals.includes(o.seal)) {
       S.seals.push(o.seal);
       UI.say(`<b>유람 인장 획득 — ${REGIONS[o.seal].name}</b> (${S.seals.length}/5)`, 'level');
@@ -195,7 +196,10 @@ const G = {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return null;
       const S = JSON.parse(raw);
-      return S && S.v === 1 && CLASSES[S.cls] ? S : null;
+      if (!S || S.v !== 1 || !CLASSES[S.cls]) return null;
+      S.side = S.side || { central: 0, west: 0, south: 0, east: 0, north: 0 };
+      S.bestiary = S.bestiary || {};
+      return S;
     } catch (e) { return null; }
   },
   wipe() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 무시 */ } }

@@ -5,7 +5,7 @@
 
 const REGIONS = {
   central: {
-    name: '중앙', land: '아르센 평원', town: '왕도 루멘하르트', icon: '👑', color: '#d9b86c', lv: '1~3',
+    name: '중앙', land: '아르센 평원', town: '왕도 루멘하르트', icon: '👑', color: '#C9973B', lv: '1~3',
     inn: 8, x: 50, y: 50,
     desc: '끝없는 밀밭 한가운데, 하얀 성벽의 왕도 루멘하르트가 서 있다. 대륙의 모든 길은 이 성문 앞에서 만난다.',
     enemies: ['dogs', 'bandit', 'shade', 'sewerrat'],
@@ -20,7 +20,7 @@ const REGIONS = {
     ]
   },
   west: {
-    name: '서부', land: '속삭임 숲', town: '숲마을 엘름우드', icon: '🌲', color: '#7ccf9a', lv: '2~4',
+    name: '서부', land: '속삭임 숲', town: '숲마을 엘름우드', icon: '🌲', color: '#5E9A6B', lv: '2~4',
     inn: 10, x: 16, y: 50,
     desc: '하늘을 가린 고목들 사이로 안개가 흐른다. 나무 위에 지은 마을 엘름우드에서는 바람 소리가 노래처럼 들린다.',
     enemies: ['thornwolf', 'wisp', 'mossgolem'],
@@ -33,7 +33,7 @@ const REGIONS = {
     ]
   },
   south: {
-    name: '남부', land: '황금 사구와 산호 해안', town: '항구도시 사하렌', icon: '🏜️', color: '#e8a05c',
+    name: '남부', land: '황금 사구와 산호 해안', town: '항구도시 사하렌', icon: '🏜️', color: '#D97757',
     lv: '3~5', inn: 12, x: 50, y: 85,
     desc: '붉은 사구가 바다와 맞닿는 곳. 흰 돛과 향신료 냄새로 가득한 항구도시 사하렌이 햇볕 아래 반짝인다.',
     enemies: ['scorpion', 'raider', 'mummy'],
@@ -46,7 +46,7 @@ const REGIONS = {
     ]
   },
   east: {
-    name: '동부', land: '청운 산맥', town: '산성도시 연화성', icon: '⛰️', color: '#e48aa8',
+    name: '동부', land: '청운 산맥', town: '산성도시 연화성', icon: '⛰️', color: '#C2668A',
     lv: '4~6', inn: 14, x: 84, y: 50,
     desc: '구름 위로 솟은 봉우리마다 붉은 기와 사원이 걸려 있다. 연꽃 연못을 품은 산성도시 연화성은 요즘 땅울림에 잠을 이루지 못한다.',
     enemies: ['ronin', 'foxwisp', 'guardian'],
@@ -59,7 +59,7 @@ const REGIONS = {
     ]
   },
   north: {
-    name: '북부', land: '서리관 고원', town: '빙성 하르그림', icon: '❄️', color: '#9fd3ff',
+    name: '북부', land: '서리관 고원', town: '빙성 하르그림', icon: '❄️', color: '#5F8FBF',
     lv: '5~8', inn: 16, x: 50, y: 15,
     desc: '얼어붙은 호수 위로 푸른 오로라가 흐른다. 검은 돌로 쌓은 성채 하르그림은 그치지 않는 눈보라 속에서 종을 울린다.',
     enemies: ['frostwolf', 'icedead', 'yeti'],

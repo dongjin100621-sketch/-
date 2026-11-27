@@ -82,6 +82,7 @@ const UI = {
     if (C.stun) st.push('멍함'); if (C.mark) st.push('약점 노출'); if (C.enraged) st.push('분노');
     const me = [];
     if (G.S.poison) me.push(`중독 ${G.S.poison}`); if (G.S.chill) me.push(`둔화 ${G.S.chill}`);
+    if (C.sharp) me.push(`날 +${C.sharp}`);
     if (C.buff.acT) me.push(`방어 +${C.buff.ac} (${C.buff.acT})`); if (C.buff.hitT) me.push(`고양 (${C.buff.hitT})`);
     el.innerHTML = `<div class="en-top"><b>${C.e.name}</b>${C.e.boss ? '<span class="tag boss">우두머리</span>' : ''}<span class="en-ac">방어도 ${Combat.enemyAc()}</span></div>
       <div class="bar hp"><i style="width:${pct}%"></i><span>${C.hp} / ${C.max}</span></div>
@@ -190,7 +191,13 @@ const UI = {
     const fin = S.seals.length >= 5
       ? `<div class="q final ${S.quest.final ? 'done' : ''}"><div class="qh"><span>🌸 ${QUEST_NAMES.final}</span><span class="qs">${S.quest.final ? '완료' : '열림'}</span></div><small>${S.quest.final ? '청령화가 피었다.' : QUEST_HINTS.final[0]}</small></div>`
       : `<div class="q locked"><div class="qh"><span>🔒 ${QUEST_NAMES.final}</span></div><small>다섯 지역의 인장을 모두 모으면 열린다.</small></div>`;
-    return `<p class="lead">다섯 바람을 모아 마른 청령화를 피워라.</p>${rows}${fin}`;
+    const side = ['central', 'west', 'south', 'east', 'north'].map(r => {
+      const n = S.side[r], R = REGIONS[r], open = S.quest[r] >= 1;
+      return `<div class="q side ${n >= 3 ? 'done' : ''} ${open ? '' : 'locked'}" style="--c:${R.color}">
+        <div class="qh"><span>${open ? '🧩' : '🔒'} ${R.name} — ${SIDE_NAMES[r]}</span><span class="qs">${n >= 3 ? '완료' : open ? `${n} / 3` : '잠김'}</span></div>
+        <small>${!open ? '지역 이야기 1장을 마치면 열린다.' : n >= 3 ? '보답을 받았다.' : SIDE_HINTS[r][n]}</small></div>`;
+    }).join('');
+    return `<p class="lead">다섯 바람을 모아 마른 청령화를 피워라.</p><h3>지역 이야기</h3>${rows}${fin}<h3>곁이야기</h3>${side}`;
   },
 
   tab_map() {
@@ -223,7 +230,12 @@ const UI = {
     const j = S.journal.slice().reverse().map(e => `<li><span>${e.d}일</span>${esc(e.t)}</li>`).join('');
     return `<h3>유람 일지</h3><ul class="journal">${j || '<li>아직 기록이 없다.</li>'}</ul>
       <h3>기록</h3><div class="quick"><div><small>쓰러뜨린 적</small><b>${S.kills}</b></div><div><small>여행한 날</small><b>${S.travelled}</b></div><div><small>인장</small><b>${S.seals.length}/5</b></div></div>
+      <h3>몬스터 도감 <small>${Object.keys(S.bestiary).length} / ${Object.keys(ENEMIES).length}</small></h3>
+      <div class="bestiary">${Object.entries(ENEMIES).map(([id, e]) => S.bestiary[id]
+        ? `<div class="be ${e.boss ? 'boss' : ''}"><b>${e.name}</b><span>×${S.bestiary[id]}</span><small>${e.desc} · 체력 ${e.hp} · 방어도 ${e.ac}</small></div>`
+        : `<div class="be unknown"><b>???</b></div>`).join('')}</div>
       <h3>설정</h3>
+      <div class="setrow"><span>테마</span><span class="seg">${['auto', 'light', 'dark'].map(z => `<button class="mini ${UI.theme === z ? 'on' : ''}" data-act="theme" data-id="${z}">${{ auto: '자동', light: '밝게', dark: '어둡게' }[z]}</button>`).join('')}</span></div>
       <div class="setrow"><span>글자 크기</span><span class="seg">${['s', 'm', 'l'].map(z => `<button class="mini ${UI.size === z ? 'on' : ''}" data-act="size" data-id="${z}">${{ s: '작게', m: '보통', l: '크게' }[z]}</button>`).join('')}</span></div>
       <div class="setrow"><span>진행은 자동 저장된다</span><button class="mini danger" data-act="reset">새 여정</button></div>`;
   },
@@ -239,8 +251,17 @@ const UI = {
     else if (a === 'use') { Game.useItem(id); return; }
     else if (a === 'travel') { if (Game.mode === 'hub') { UI.closeSheet(); Game.travelAsk(id); } return; }
     else if (a === 'size') { UI.setSize(id); }
+    else if (a === 'theme') { UI.setTheme(id); }
     else if (a === 'reset') { UI.confirm('지금 여정을 지우고 새로 시작할까요?', () => { G.wipe(); location.reload(); }); return; }
     G.save(); Game.refresh();
+  },
+
+  setTheme(t) {
+    UI.theme = t;
+    if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('wander-theme', t); } catch (e) { /* 무시 */ }
+    const dark = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.querySelector('meta[name="theme-color"]').content = dark ? '#1F1E1D' : '#FAF9F5';
   },
 
   setSize(z) {

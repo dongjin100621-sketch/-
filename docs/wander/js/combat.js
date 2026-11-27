@@ -10,7 +10,7 @@ const Combat = {
     if (opts.weak) hp = Math.round(hp * 0.7);
     Combat.C = {
       id, e: E, hp, max: hp, turn: 0, opts,
-      buff: { ac: 0, acT: 0, hit: 0, dmg: 0, hitT: 0 }, mark: 0, stun: 0, enraged: false
+      buff: { ac: 0, acT: 0, hit: 0, dmg: 0, hitT: 0 }, sharp: 0, mark: 0, stun: 0, enraged: false
     };
     G.S.poison = 0; G.S.chill = 0;
     Game.mode = 'combat';
@@ -30,7 +30,7 @@ const Combat = {
     C.turn++;
     const acts = [];
     const w = G.weapon();
-    acts.push({ t: `⚔️ 공격`, hint: `${w.name} · 명중 ${sign(Combat.hitBonus())} · ${w.dmg}${sign(G.mod(w.stat) + C.buff.dmg)}`, fn: () => Combat.attack() });
+    acts.push({ t: `⚔️ 공격`, hint: `${w.name} · 명중 ${sign(Combat.hitBonus())} · ${w.dmg}${sign(G.mod(w.stat) + C.buff.dmg + C.sharp)}`, fn: () => Combat.attack() });
     for (const sid of S.skills) {
       const sk = SKILLS[sid];
       acts.push({ t: `✨ ${sk.name}`, hint: `마나 ${sk.mp} · ${sk.desc}`, disabled: S.mp < sk.mp, fn: () => Combat.skill(sid), cls: 'skill' });
@@ -47,7 +47,7 @@ const Combat = {
   itemMenu() {
     const S = G.S;
     const list = Object.keys(S.inv).filter(id => ITEMS[id].type === 'use' && id !== 'ration').map(id => ({
-      t: `${ITEMS[id].name} ×${S.inv[id]}`, hint: ITEMS[id].desc, fn: () => { Combat.useItem(id); }
+      t: `${ITEMS[id].name} ×${S.inv[id]}`, hint: ITEMS[id].desc, disabled: !!(ITEMS[id].use.flee && Combat.C.opts.noFlee), fn: () => { Combat.useItem(id); }
     }));
     list.push({ t: '↩ 돌아가기', fn: () => Combat.playerTurn(), cls: 'ghost' });
     UI.choices(list); UI.flush();
@@ -62,7 +62,7 @@ const Combat = {
     const hit = r === 20 || (r !== 1 && total >= ac);
     UI.dice({ label, roll: r, bonus: b, total, dc: ac, dcLabel: '방어도', ok: hit, crit: r === 20, fumble: r === 1 });
     if (!hit) { UI.say(pick(['빗나갔다.', '공격이 막혔다.', '허공을 갈랐다.'])); return; }
-    let d = Dice.roll(w.dmg).total + G.mod(w.stat) + C.buff.dmg;
+    let d = Dice.roll(w.dmg).total + G.mod(w.stat) + C.buff.dmg + C.sharp;
     if (extraDmg !== '0') d += Dice.roll(extraDmg).total;
     if (r === 20) d += Dice.roll(w.dmg).total + (extraDmg !== '0' ? Dice.roll(extraDmg).total : 0);
     Combat.hurt(Math.max(1, d), r === 20 ? '치명타! ' : '');
@@ -113,6 +113,12 @@ const Combat = {
     const S = G.S, it = ITEMS[id], u = it.use;
     if (!G.take(id)) return;
     UI.say(`${it.name}을(를) 사용했다.`);
+    if (u.flee) {
+      UI.say('연기 속으로 몸을 숨겼다.', 'good');
+      const C = Combat.C; Combat.end();
+      return Game.runOutcome(C.opts.flee || { text: '무사히 빠져나왔다.' }, C.opts.ctx);
+    }
+    if (u.sharpen) { Combat.C.sharp += u.sharpen; UI.say(`날이 번뜩인다. 이번 전투 동안 피해 +${u.sharpen}`, 'good'); }
     if (u.bomb) { Combat.hurt(Dice.roll(u.bomb).total + ((Combat.C.e.sp || []).includes('plant') ? 4 : 0)); }
     if (u.heal) { const h = G.heal(Dice.roll(u.heal).total); UI.say(`체력 +${h}`, 'gain'); }
     if (u.mp) { const m = G.restoreMp(u.mp); UI.say(`마나 +${m}`, 'gain'); }
@@ -189,7 +195,7 @@ const Combat = {
   victory() {
     const C = Combat.C, S = G.S;
     UI.say(`<b>${C.e.name}을(를) 쓰러뜨렸다!</b>`, 'victory');
-    S.kills++;
+    S.kills++; S.bestiary[C.id] = (S.bestiary[C.id] || 0) + 1;
     Combat.end();
     G.apply({ xp: C.e.xp, gold: C.e.gold[1] ? C.e.gold : 0 });
     Game.runOutcome(C.opts.win || {}, C.opts.ctx);
