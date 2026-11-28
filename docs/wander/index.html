@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>은빛 유랑기</title>
+<meta name="description" content="중세 판타지 대륙 에이렌의 중앙·북부·남부·서부·동부를 유람하는 텍스트 TRPG">
+<meta name="theme-color" content="#1F1E1D">
+<script>try{var t=localStorage.getItem("wander-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 시작 화면 -->
+<section id="title">
+  <div class="t-bg" aria-hidden="true"></div>
+  <div class="t-inner">
+    <p class="t-kicker">대륙 에이렌 · 다섯 바람의 텍스트 TRPG</p>
+    <h1>은빛 유랑기</h1>
+    <p class="t-sub">중앙의 왕도에서 북부의 설원, 남부의 사구, 서부의 숲, 동부의 산맥, 그리고 바다 건너 군도와 잿빛 황무지, 구름 위 천공섬까지.<br>마른 청령화 한 송이를 품고 다섯 바람을 찾아 떠나는 여행.</p>
+    <div class="t-btns">
+      <button class="btn primary" id="t-continue" hidden>이어하기</button>
+      <button class="btn" id="t-new">새 여정</button>
+    </div>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <!-- 모바일 요약 막대 -->
+  <header id="topbar">
+    <button class="tb-hero" aria-label="상태창 열기"><img src="img/hero_face.jpg" alt=""><span id="tb-alert" class="dot" hidden></span></button>
+    <div class="tb-main">
+      <div class="tb-row"><b id="tb-name"></b><span id="tb-lv"></span><span class="tb-gold">🪙 <b id="tb-gold"></b></span></div>
+      <div class="tb-bars">
+        <div class="bar hp sm" id="tb-hp"><i></i><span></span></div>
+        <div class="bar mp sm" id="tb-mp"><i></i><span></span></div>
+      </div>
+    </div>
+    <button class="btn tb-open" id="tb-open">상태창</button>
+  </header>
+
+  <main id="stage">
+    <section id="story" aria-label="이야기">
+      <div id="scene-head">
+        <div><div id="sh-region"></div><div id="sh-town"></div></div>
+        <div id="sh-time"></div>
+      </div>
+      <div id="story-scroll">
+        <div id="log" aria-live="polite"></div>
+      </div>
+      <div id="dock">
+        <div id="enemy" hidden></div>
+        <div id="choices" role="group" aria-label="선택지"></div>
+      </div>
+    </section>
+
+    <div id="scrim" aria-hidden="true"></div>
+    <aside id="panel" tabindex="-1" aria-label="상태창">
+      <div class="panel-head">
+        <span class="grab" aria-hidden="true"></span>
+        <h2>상태창</h2>
+        <button class="icon-btn" id="sheet-close" aria-label="상태창 닫기">✕</button>
+      </div>
+      <nav id="tabs" role="tablist">
+        <button role="tab" data-tab="status" aria-selected="true">상태</button>
+        <button role="tab" data-tab="grow" aria-selected="false">성장</button>
+        <button role="tab" data-tab="bag" aria-selected="false">가방</button>
+        <button role="tab" data-tab="quest" aria-selected="false">임무</button>
+        <button role="tab" data-tab="map" aria-selected="false">지도</button>
+        <button role="tab" data-tab="log" aria-selected="false">일지</button>
+      </nav>
+      <div id="panel-body"></div>
+    </aside>
+  </main>
+</div>
+
+<div id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head"><h2 id="modal-title"></h2><button class="icon-btn" id="modal-close" aria-label="닫기">✕</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="js/data.js"></script>
+<script src="js/story.js"></script>
+<script src="js/quests.js"></script>
+<script src="js/extra.js"></script>
+<script src="js/growth.js"></script>
+<script src="js/world.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
