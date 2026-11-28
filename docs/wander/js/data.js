@@ -143,13 +143,13 @@ const ENEMIES = {
   ronin:    { name: '산적 무사', hp: 32, ac: 15, hit: 6, dmg: '1d10+3', xp: 95, gold: [20, 35], desc: '부러진 칼집을 찬 떠돌이 무사.' },
   foxwisp:  { name: '안개 여우령', hp: 30, ac: 15, hit: 6, dmg: '2d6+2', xp: 100, gold: [0, 10], sp: ['drain', 'undead'], desc: '꼬리 끝마다 푸른 불을 단 여우의 혼.' },
   guardian: { name: '석상 수호자', hp: 44, ac: 16, hit: 6, dmg: '2d8+2', xp: 120, gold: [0, 0], sp: ['heavy'], desc: '천 개 계단을 지키는 돌 사자.' },
-  cheongun: { name: '석룡의 망령 청운', hp: 96, ac: 15, hit: 7, dmg: '2d6+2', xp: 600, gold: [180, 180], boss: true, sp: ['undead', 'heavy', 'multi'], desc: '끊어진 용맥에 묶인 산의 수호룡.' },
+  cheongun: { name: '석룡의 망령 청운', hp: 140, ac: 15, hit: 8, dmg: '2d6+3', xp: 600, gold: [180, 180], boss: true, sp: ['undead', 'heavy', 'multi'], desc: '끊어진 용맥에 묶인 산의 수호룡.' },
 
   frostwolf:{ name: '서리 늑대', hp: 36, ac: 15, hit: 7, dmg: '2d6+3', xp: 120, gold: [0, 6], sp: ['chill', 'ice'], desc: '입김마다 얼음 가루가 흩날린다.' },
   icedead:  { name: '얼음 망자', hp: 42, ac: 15, hit: 7, dmg: '2d8+2', xp: 135, gold: [10, 30], sp: ['undead', 'ice', 'chill'], desc: '얼음 속에 갇혀 죽은 병사가 일어선다.' },
   yeti:     { name: '설인', hp: 58, ac: 15, hit: 8, dmg: '2d8+4', xp: 170, gold: [10, 25], sp: ['ice', 'heavy'], desc: '눈보라처럼 하얀 털의 거구.' },
-  hrimdal:  { name: '서리 거인 흐림달', hp: 120, ac: 16, hit: 8, dmg: '2d10+3', xp: 800, gold: [220, 220], boss: true, sp: ['ice', 'heavy', 'chill'], desc: '저주받은 왕관을 쓴 서리 거인.' },
+  hrimdal:  { name: '서리 거인 흐림달', hp: 185, ac: 16, hit: 9, dmg: '2d10+4', xp: 800, gold: [220, 220], boss: true, sp: ['ice', 'heavy', 'chill'], desc: '저주받은 왕관을 쓴 서리 거인.' },
 
   voidling: { name: '공허의 그림자', hp: 50, ac: 16, hit: 8, dmg: '2d8+3', xp: 200, gold: [20, 40], sp: ['drain'], desc: '빛을 먹는 검은 형체.' },
-  nameless: { name: '공허의 사도 무명', hp: 130, ac: 16, hit: 8, dmg: '2d8+3', xp: 1200, gold: [500, 500], boss: true, sp: ['drain', 'heavy', 'multi'], desc: '다섯 지역의 재앙을 엮어 온, 이름을 버린 마법사.' }
+  nameless: { name: '공허의 사도 무명', hp: 250, ac: 18, hit: 11, dmg: '2d10+5', xp: 1200, gold: [500, 500], boss: true, sp: ['drain', 'heavy', 'multi'], desc: '다섯 지역의 재앙을 엮어 온, 이름을 버린 마법사.' }
 };

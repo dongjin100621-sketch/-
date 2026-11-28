@@ -95,18 +95,27 @@ const Game = {
     G.save();
     if (!quiet) UI.say(`<span class="sep"></span>${R.town}, ${PHASES[S.phase]}. 무엇을 할까?`, 'prompt');
     else UI.say(`${R.town}, ${PHASES[S.phase]}. 무엇을 할까?`, 'prompt');
-    const q = S.quest[S.region], list = [];
+    const list = [];
     list.push({ t: '🧭 주변을 탐험한다', hint: `${R.land} · 반나절 · 무작위 사건`, fn: () => Game.explore() });
-    if (q < 3) list.push({ t: `📜 지역 이야기 — ${QUEST_NAMES[S.region]}`, hint: `${q + 1}장 · ${QUEST_HINTS[S.region][q]}`, fn: () => Game.story(), cls: 'main' });
-    if (S.region === 'central' && S.seals.length >= 5 && !S.quest.final) list.push({ t: `🌸 최종장 — ${QUEST_NAMES.final}`, hint: '다섯 꽃잎이 떨린다', fn: () => Game.finale(), cls: 'main final' });
-    const sd = S.side[S.region];
-    if (q >= 1 && sd < 3) list.push({ t: `🧩 곁이야기 — ${SIDE_NAMES[S.region]}`, hint: `${sd + 1}장 · ${SIDE_HINTS[S.region][sd]}`, fn: () => Game.side(), cls: 'side' });
+    for (const [id, M] of Object.entries(MAINS)) {
+      const q = S.quest[id] || 0;
+      if (M.region !== S.region || q >= M.scenes.length || (M.unlock && !M.unlock(S))) continue;
+      const fin = id === 'final' || id === 'sky';
+      list.push({ t: `${fin ? '🌸' : '📜'} ${M.part || '지역 이야기'} — ${M.name}`, hint: `${q + 1}장 · ${M.hints[q]}`, fn: () => Game.story(id), cls: 'main' + (fin ? ' final' : '') });
+    }
+    for (const [id, Q] of Object.entries(SIDEQ)) {
+      const n = S.side[id] || 0;
+      if (Q.region !== S.region || n >= 3 || !Q.unlock(S)) continue;
+      list.push({ t: `🧩 곁이야기 — ${Q.name}`, hint: `${n + 1}장 · ${Q.hints[n] || ''}`, fn: () => Game.side(id), cls: 'side' });
+    }
+    if (S.region === 'central' && G.canJob()) list.push({ t: '⚜ 영웅의 전당 — 전직 시험', hint: '레벨 6 달성 · 새로운 길을 고른다', fn: () => Game.jobTrial(), cls: 'main' });
     const bk = `${S.region}-${S.day}`;
     list.push({ t: '📋 의뢰 게시판', hint: S.bountyDone === bk ? '오늘 의뢰는 끝냈다' : '현상금 토벌 · 하루 한 번', disabled: S.bountyDone === bk, fn: () => Game.bounty() });
     list.push({ t: '🏪 상점', hint: `금화 ${S.gold}`, fn: () => Game.shop() });
     list.push({ t: '🛏 여관', hint: `숙박 금화 ${R.inn} · 소문`, fn: () => Game.inn() });
-    list.push({ t: '🗺 다른 지역으로 떠난다', hint: Object.keys(ROUTES[S.region]).map(r => REGIONS[r].name).join(' · '), fn: () => Game.travelMenu() });
+    list.push({ t: '🗺 다른 지역으로 떠난다', hint: Game.routes(S.region).map(([r]) => REGIONS[r].name).join(' · '), fn: () => Game.travelMenu() });
     if (S.pendingStat) list.push({ t: '⬆ 능력치 포인트 배분', hint: `${S.pendingStat}점 남음 · 상태창`, fn: () => { UI.openSheet('status'); Game.hub(true); }, cls: 'ghost' });
+    if (S.sp) list.push({ t: '🌳 기술 포인트 사용', hint: `${S.sp}점 남음 · 상태창 → 성장`, fn: () => { UI.openSheet('grow'); Game.hub(true); }, cls: 'ghost' });
     UI.choices(list); UI.flush(); Game.refresh();
   },
 
@@ -181,23 +190,51 @@ const Game = {
     Game.runScene(ev, { id: ev.id });
   },
 
-  story() {
-    const S = G.S, q = S.quest[S.region];
-    UI.say(`▸ ${QUEST_NAMES[S.region]}`, 'me');
+  story(id) {
+    const S = G.S, M = MAINS[id], q = S.quest[id] || 0;
+    UI.say(`▸ ${M.name}`, 'me');
     G.advance(1);
-    Game.runScene(QUESTS[S.region][q], { id: `q_${S.region}_${q}` });
+    Game.runScene(M.scenes[q], { id: `q_${id}_${q}` });
   },
 
-  side() {
-    const S = G.S, n = S.side[S.region];
-    UI.say(`▸ ${SIDE_NAMES[S.region]}`, 'me');
+  side(id) {
+    const S = G.S, Q = SIDEQ[id], n = S.side[id] || 0;
+    UI.say(`▸ ${Q.name}`, 'me');
     G.advance(1);
-    Game.runScene(SIDE[S.region][n], { id: `s_${S.region}_${n}` });
+    Game.runScene(Q.scenes[n], { id: `s_${id}_${n}` });
   },
 
-  finale() {
-    UI.say('▸ 옛 천문탑으로 향한다', 'me');
-    Game.runScene(QUESTS.final[0], { id: 'final' });
+  routes(r) {
+    const S = G.S;
+    return Object.entries(ROUTES[r]).filter(([d]) => !REGIONS[d].locked || !REGIONS[d].locked(S));
+  },
+
+  /* ── 전직 ── */
+  jobTrial() {
+    const S = G.S, C = CLASSES[S.cls];
+    UI.say('▸ 영웅의 전당으로 간다', 'me');
+    Game.runScene({
+      title: '영웅의 전당',
+      text: `대성당 옆 하얀 대리석 전당. 역대 영웅들의 석상 사이에서 늙은 전당지기가 등불을 든다.<br>“${C.name}의 길을 걸어온 자여. 그대의 다음 걸음을 보여 주게. 석상 하나가 그대를 시험할 걸세.”`,
+      choices: [
+        { t: '시험을 받는다', ok: { text: '석상이 눈을 뜨고 검을 든다!', fight: S.lvl >= 8 ? 'guardian' : 'royalguard', noFlee: true, win: { text: '석상이 무릎을 꿇고 빛이 되어 흩어진다. 전당지기가 고개를 끄덕인다. “두 갈래 길이 보이는군. 고르게.”', then: () => Game.jobPick() } } },
+        { t: '다음에 온다', ok: {} }
+      ]
+    }, { id: 'job' });
+  },
+  jobPick() {
+    const S = G.S;
+    const jobs = Object.entries(JOBS).filter(([, J]) => J.base === S.cls);
+    UI.choices(jobs.map(([id, J]) => ({
+      t: `${J.icon} ${J.name}`, hint: `${J.blurb} · 기술: ${J.skills.map(k => SKILLS[k].name).join(', ')} · ${Object.entries(J.st).map(([k, v]) => `${STATS[k].name} +${v}`).join(', ')}`,
+      fn: () => UI.confirm(`<b>${J.name}</b>(으)로 전직할까요? 되돌릴 수 없습니다.`, () => {
+        G.setJob(id);
+        UI.say(`▸ ${J.name}의 길을 고른다`, 'me');
+        UI.say(`<b>${J.icon} ${J.name}</b>(으)로 전직했다! 새 기술: ${J.skills.map(k => `<b>${SKILLS[k].name}</b>`).join(', ')}. 성장 탭에 전직 기술 트리가 열렸다.`, 'level');
+        Game.hub();
+      }, () => Game.jobPick())
+    })));
+    UI.flush(); Game.refresh();
   },
 
   bounty() {
@@ -271,7 +308,7 @@ const Game = {
     const S = G.S;
     UI.say('▸ 지도를 펼친다', 'me');
     UI.say('어디로 갈까?');
-    const list = Object.entries(ROUTES[S.region]).map(([r, d]) => {
+    const list = Game.routes(S.region).map(([r, d]) => {
       const R = REGIONS[r], need = Game.rationNeed(d);
       return { t: `${R.icon} ${R.name} — ${R.town}`, hint: `${d}일 · 식량 ${need} 필요 (보유 ${S.inv.ration || 0}) · 권장 Lv.${R.lv}${S.seals.includes(r) ? ' · 인장 ✓' : ''}`, fn: () => Game.travelAsk(r) };
     });
@@ -314,7 +351,7 @@ const Game = {
     if (!S.flags['visit_' + dest]) {
       S.flags['visit_' + dest] = true;
       UI.say(R.desc);
-      UI.say(`<span class="muted">${R.name} · 권장 레벨 ${R.lv} · 지역 이야기: 「${QUEST_NAMES[dest]}」</span>`);
+      UI.say(`<span class="muted">${R.name} · 권장 레벨 ${R.lv}${MAINS[dest] ? ` · 지역 이야기: 「${MAINS[dest].name}」` : ''}</span>`);
       if (!first) G.log(`${R.town}에 처음 도착했다`);
     } else UI.say(`${R.town}에 돌아왔다.`);
     Game.refresh();

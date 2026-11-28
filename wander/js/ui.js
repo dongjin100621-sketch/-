@@ -30,7 +30,9 @@ const UI = {
     UI.queue = [];
     while (log.children.length > 160) log.firstChild.remove();
     const list = UI.pending; UI.pending = null;
+    if (list) UI.awaiting = true;
     const show = () => {
+      UI.awaiting = false;
       if (list) UI.renderChoices(list);
       log.lastElementChild && log.lastElementChild.scrollIntoView({ block: 'end', behavior: fast ? 'auto' : 'smooth' });
     };
@@ -67,7 +69,11 @@ const UI = {
       b.className = 'choice ' + (c.cls || '');
       b.disabled = !!c.disabled;
       b.innerHTML = `<span class="cn">${n + 1}</span><span class="ct">${c.t}${c.hint ? `<small>${c.hint}</small>` : ''}</span>`;
-      b.onclick = () => { if (box.dataset.lock) return; box.dataset.lock = 1; box.classList.remove('show'); c.fn(); delete box.dataset.lock; };
+      b.onclick = () => {
+        if (box.dataset.lock) return; box.dataset.lock = 1; box.classList.remove('show');
+        c.fn(); delete box.dataset.lock;
+        if (!UI.awaiting && $('#modal').hidden && box.contains(b)) box.classList.add('show');
+      };
       box.appendChild(b);
     });
     requestAnimationFrame(() => box.classList.add('show'));
@@ -94,11 +100,11 @@ const UI = {
     const S = G.S; if (!S) return;
     const R = REGIONS[S.region];
     $('#tb-name').textContent = S.name;
-    $('#tb-lv').textContent = `Lv.${S.lvl} ${CLASSES[S.cls].name}`;
+    $('#tb-lv').textContent = `Lv.${S.lvl} ${G.className()}`;
     UI.bar($('#tb-hp'), S.hp, G.maxHp());
     UI.bar($('#tb-mp'), S.mp, G.maxMp());
     $('#tb-gold').textContent = S.gold;
-    $('#tb-alert').hidden = !S.pendingStat;
+    $('#tb-alert').hidden = !S.pendingStat && !S.sp;
     document.documentElement.style.setProperty('--region', R.color);
     $('#sh-region').textContent = `${R.icon} ${R.name} · ${R.land}`;
     $('#sh-town').textContent = R.town;
@@ -133,15 +139,23 @@ const UI = {
       const v = G.stat(k), m = G.mod(k), cb = G.checkBonus(k), plus = S.pendingStat ? `<button class="plus" data-act="stat" data-id="${k}" aria-label="${STATS[k].name} 올리기">+</button>` : '';
       return `<div class="stat" title="${STATS[k].desc}"><span class="sn">${STATS[k].name}</span><span class="sv">${v}</span><span class="sm">${sign(m)}</span><span class="sc">판정 ${sign(cb)}</span>${plus}</div>`;
     }).join('');
-    const eq = ['weapon', 'armor', 'acc'].map(slot => {
-      const it = ITEMS[S.eq[slot]], lab = { weapon: '무기', armor: '방어구', acc: '장신구' }[slot];
-      return `<div class="eq"><span class="eqs">${lab}</span>${it ? `<span class="eqn">${it.name}<small>${it.desc}</small></span><button class="mini" data-act="unequip" data-id="${slot}">해제</button>` : '<span class="eqn empty">비어 있음</span>'}</div>`;
+    const eq = SLOTS.map(slot => {
+      const it = ITEMS[S.eq[slot]];
+      let runes = '';
+      if (slot === 'weapon' || slot === 'armor') {
+        const holes = it ? it.sockets || 0 : 0, list = S.runes[slot] || [], word = G.runeword(slot);
+        const n = Math.max(holes, list.length);
+        if (n) runes = `<div class="sockets">${Array.from({ length: n }, (_, i) => list[i]
+          ? `<button class="rune ${i < holes ? '' : 'off'}" data-act="unsock" data-id="${slot}:${i}" title="${RUNES[list[i]].desc} · 누르면 금화 15로 회수">${RUNES[list[i]].name.replace(' 룬', '')}</button>`
+          : `<span class="rune empty" title="빈 홈 — 가방에서 룬을 새기세요">◇</span>`).join('')}${word ? `<span class="rword">✦ ${word.name}</span>` : ''}</div>`;
+      }
+      return `<div class="eq"><span class="eqs">${SLOT_NAMES[slot]}</span>${it ? `<span class="eqn"><span class="g${it.grade || 0}">${it.name}</span><small>${it.desc}${it.sockets ? ` · 홈 ${it.sockets}` : ''}</small>${runes}</span><button class="mini" data-act="unequip" data-id="${slot}">해제</button>` : `<span class="eqn empty">비어 있음${runes}</span>`}</div>`;
     }).join('');
-    const seals = Object.keys(REGIONS).map(r => `<span class="seal ${S.seals.includes(r) ? 'on' : ''}" style="--c:${REGIONS[r].color}" title="${REGIONS[r].name}">${REGIONS[r].icon}</span>`).join('');
+    const seals = ['central', 'west', 'south', 'east', 'north'].map(r => `<span class="seal ${S.seals.includes(r) ? 'on' : ''}" style="--c:${REGIONS[r].color}" title="${REGIONS[r].name}">${REGIONS[r].icon}</span>`).join('');
     return `
       <div class="hero">
         <img src="img/hero.jpg" alt="${esc(S.name)}의 초상: 은빛 머리와 푸른 눈의 여행자">
-        <div class="hero-cap"><div class="hero-title">${G.title()}</div><div class="hero-name">${esc(S.name)}</div><div class="hero-cls">${C.icon} ${C.name} · 레벨 ${S.lvl}</div></div>
+        <div class="hero-cap"><div class="hero-title">${G.title()}</div><div class="hero-name">${esc(S.name)}</div><div class="hero-cls">${G.classIcon()} ${G.className()} · 레벨 ${S.lvl}</div></div>
       </div>
       <div class="bars">
         <label>체력</label><div class="bar hp"><i style="width:${Math.round(S.hp / G.maxHp() * 100)}%"></i><span>${S.hp} / ${G.maxHp()}</span></div>
@@ -150,76 +164,107 @@ const UI = {
       </div>
       <div class="quick">
         <div><small>방어도</small><b>${G.ac()}</b></div><div><small>명중</small><b>${sign(G.atkBonus())}</b></div>
-        <div><small>피해</small><b>${w.dmg}${sign(G.mod(w.stat))}</b></div><div><small>금화</small><b>${S.gold}</b></div>
+        <div><small>피해</small><b>${w.dmg}${sign(G.mod(w.stat) + G.bonus('dmg'))}</b></div><div><small>금화</small><b>${S.gold}</b></div>
         <div><small>식량</small><b>${S.inv.ration || 0}</b></div><div><small>날짜</small><b>${S.day}일</b></div>
       </div>
       ${S.pendingStat ? `<div class="notice">능력치 포인트 <b>${S.pendingStat}</b> — 올릴 능력치의 + 를 누르세요</div>` : ''}
       <h3>능력치</h3><div class="stats">${stats}</div>
       <h3>장비</h3>${eq}
-      <h3>기술</h3><div class="skills">${S.skills.map(s => `<div class="sk"><b>${SKILLS[s].name}</b><span class="mpc">MP ${SKILLS[s].mp}</span><small>${SKILLS[s].desc}</small></div>`).join('')}
-        ${Object.entries(C.learn).filter(([l]) => +l > S.lvl).map(([l, s]) => `<div class="sk locked"><b>${SKILLS[s].name}</b><span class="mpc">Lv.${l}</span></div>`).join('')}</div>
-      <h3>특성</h3><p class="trait">${C.trait}</p>
+      <h3>기술 <small>${S.sp ? `기술 포인트 ${S.sp} — 성장 탭` : ''}</small></h3><div class="skills">${S.skills.map(s => `<div class="sk"><b>${SKILLS[s].name}</b><span class="mpc">MP ${SKILLS[s].mp}</span><small>${SKILLS[s].desc}</small></div>`).join('')}</div>
+      <h3>특성과 보너스</h3><p class="trait">${C.trait}${S.job ? `<br>${JOBS[S.job].icon} ${JOBS[S.job].name}: ${JOBS[S.job].blurb}` : ''}</p>
+      <div class="bonuses">${Object.keys(BONUS_NAMES).filter(k => !STAT_KEYS.includes(k)).map(k => [k, G.bonus(k)]).filter(([, v]) => v).map(([k, v]) => `<span>${BONUS_NAMES[k]} <b>${sign(v)}</b></span>`).join('') || '<span class="muted">추가 보너스 없음</span>'}${G.critMin() < 20 ? `<span>치명타 <b>${G.critMin()}~20</b></span>` : ''}</div>
       <h3>유람 인장 <small>${S.seals.length} / 5</small></h3><div class="seals">${seals}</div>`;
   },
 
   tab_bag() {
     const S = G.S;
-    const ids = Object.keys(S.inv).sort((a, b) => 'use weapon armor acc key'.indexOf(ITEMS[a].type) - 'use weapon armor acc key'.indexOf(ITEMS[b].type));
+    const order = 'use weapon helm armor acc rune key';
+    const ids = Object.keys(S.inv).sort((a, b) => order.indexOf(ITEMS[a].type) - order.indexOf(ITEMS[b].type) || (ITEMS[b].grade || 0) - (ITEMS[a].grade || 0));
     if (!ids.length) return '<p class="empty-note">가방이 비어 있다.</p>';
-    const label = { use: '소모품', weapon: '무기', armor: '방어구', acc: '장신구', key: '귀중품' };
+    const label = { use: '소모품', weapon: '무기', helm: '투구', armor: '방어구', acc: '장신구', rune: '룬 — 무기·방어구의 홈에 새긴다', key: '귀중품' };
     let html = '', last = '';
     for (const id of ids) {
       const it = ITEMS[id];
       if (it.type !== last) { html += `<h3>${label[it.type]}</h3>`; last = it.type; }
       let btn = '';
       if (it.type === 'use' && !it.combatOnly && Game.mode !== 'combat') btn = `<button class="mini" data-act="use" data-id="${id}">사용</button>`;
-      if (['weapon', 'armor', 'acc'].includes(it.type)) btn = `<button class="mini" data-act="equip" data-id="${id}">장착</button>`;
-      html += `<div class="item"><span class="in">${it.name} <em>×${S.inv[id]}</em><small>${it.desc}${it.dmg ? ` · ${it.dmg} ${STATS[it.stat].name}` : ''}</small></span>${btn}</div>`;
+      if (SLOTS.includes(it.type)) btn = `<button class="mini" data-act="equip" data-id="${id}">장착</button>`;
+      if (it.type === 'rune') btn = `<button class="mini" data-act="socket" data-id="${id}">새기기</button>`;
+      html += `<div class="item"><span class="in"><span class="g${it.grade || 0}">${it.name}</span> <em>×${S.inv[id]}</em><small>${it.desc}${it.dmg ? ` · ${it.dmg} ${STATS[it.stat].name}` : ''}${it.sockets ? ` · 홈 ${it.sockets}` : ''}</small></span>${btn}</div>`;
     }
     return html;
   },
 
+  tab_grow() {
+    const S = G.S;
+    const nodeHtml = n => {
+      const own = S.tree.includes(n.id), st = G.canLearn(n);
+      const what = n.skill ? `기술: ${SKILLS[n.skill].name} — ${SKILLS[n.skill].desc}` : n.desc;
+      return `<div class="node ${own ? 'own' : st.ok ? 'can' : 'lock'}">
+        <span class="nl">Lv.${n.lv}</span><span class="nn"><b>${n.skill ? '✨ ' : ''}${n.name}</b><small>${what}${n.req ? ` · 선행: ${n.req.map(r => G.node(r).name).join(', ')}` : ''}</small></span>
+        ${own ? '<span class="nown">✓</span>' : `<button class="mini" data-act="learn" data-id="${n.id}" ${st.ok ? '' : 'disabled'}>${st.why}</button>`}</div>`;
+    };
+    const base = TREES[S.cls].slice().sort((a, b) => a.lv - b.lv).map(nodeHtml).join('');
+    let job = '';
+    if (S.job) {
+      const J = JOBS[S.job];
+      job = `<h3>${J.icon} ${J.name} 트리</h3>${J.tree.map(nodeHtml).join('')}`;
+    } else {
+      const opts = Object.values(JOBS).filter(J => J.base === S.cls);
+      job = `<h3>전직</h3><p class="trait">${S.lvl >= 6 ? '레벨 6 달성! 왕도 루멘하르트의 <b>영웅의 전당</b>에서 시험을 받으면 전직할 수 있다.' : '레벨 6이 되면 왕도 루멘하르트의 영웅의 전당에서 전직할 수 있다.'}</p>
+        <div class="jobs">${opts.map(J => `<div class="job"><b>${J.icon} ${J.name}</b><small>${J.blurb}</small><small>기술: ${J.skills.map(k => SKILLS[k].name).join(', ')}</small></div>`).join('')}</div>`;
+    }
+    return `<div class="sp-box"><span>기술 포인트</span><b>${S.sp}</b><small>레벨이 오를 때마다 1점</small></div>
+      <h3>${CLASSES[S.cls].icon} ${CLASSES[S.cls].name} 트리</h3>${base}${job}
+      <h3>룬어 (같은 칸에 세 룬을 맞추면)</h3><div class="rwords">${RUNEWORDS.map(w => `<div class="rw"><b>${w.name}</b> <small>${SLOT_NAMES[w.slot]} · ${w.need.map(r => RUNES[r].name).join(' + ')} → ${w.desc}</small></div>`).join('')}</div>`;
+  },
+
   tab_quest() {
     const S = G.S;
-    const rows = ['central', 'west', 'south', 'east', 'north'].map(r => {
-      const q = S.quest[r], R = REGIONS[r], done = q >= 3;
-      return `<div class="q ${done ? 'done' : ''}" style="--c:${R.color}">
-        <div class="qh"><span>${R.icon} ${R.name} — ${QUEST_NAMES[r]}</span><span class="qs">${done ? '완료' : `${q} / 3`}</span></div>
-        <div class="qp">${[0, 1, 2].map(i => `<i class="${i < q ? 'on' : ''}"></i>`).join('')}</div>
-        <small>${done ? '인장과 꽃잎을 얻었다.' : QUEST_HINTS[r][q]} · 권장 Lv.${R.lv}</small></div>`;
+    const mains = Object.entries(MAINS).map(([id, M]) => {
+      const q = S.quest[id] || 0, R = REGIONS[M.region], len = M.scenes.length, done = q >= len, open = !M.unlock || M.unlock(S);
+      return `<div class="q ${done ? 'done' : ''} ${open ? '' : 'locked'}" style="--c:${R.color}">
+        <div class="qh"><span>${open ? R.icon : '🔒'} ${M.part || R.name} — ${M.name}</span><span class="qs">${done ? '완료' : open ? `${q} / ${len}` : '잠김'}</span></div>
+        ${open ? `<div class="qp">${M.scenes.map((_, i) => `<i class="${i < q ? 'on' : ''}"></i>`).join('')}</div>` : ''}
+        <small>${!open ? M.lockText : done ? '완료했다.' : `${M.hints[q]} · ${R.town}`} · 권장 Lv.${R.lv}</small></div>`;
     }).join('');
-    const fin = S.seals.length >= 5
-      ? `<div class="q final ${S.quest.final ? 'done' : ''}"><div class="qh"><span>🌸 ${QUEST_NAMES.final}</span><span class="qs">${S.quest.final ? '완료' : '열림'}</span></div><small>${S.quest.final ? '청령화가 피었다.' : QUEST_HINTS.final[0]}</small></div>`
-      : `<div class="q locked"><div class="qh"><span>🔒 ${QUEST_NAMES.final}</span></div><small>다섯 지역의 인장을 모두 모으면 열린다.</small></div>`;
-    const side = ['central', 'west', 'south', 'east', 'north'].map(r => {
-      const n = S.side[r], R = REGIONS[r], open = S.quest[r] >= 1;
+    const sides = Object.entries(SIDEQ).map(([id, Q]) => {
+      const n = S.side[id] || 0, R = REGIONS[Q.region], open = Q.unlock(S);
       return `<div class="q side ${n >= 3 ? 'done' : ''} ${open ? '' : 'locked'}" style="--c:${R.color}">
-        <div class="qh"><span>${open ? '🧩' : '🔒'} ${R.name} — ${SIDE_NAMES[r]}</span><span class="qs">${n >= 3 ? '완료' : open ? `${n} / 3` : '잠김'}</span></div>
-        <small>${!open ? '지역 이야기 1장을 마치면 열린다.' : n >= 3 ? '보답을 받았다.' : SIDE_HINTS[r][n]}</small></div>`;
+        <div class="qh"><span>${open ? '🧩' : '🔒'} ${R.name} — ${Q.name}</span><span class="qs">${n >= 3 ? '완료' : open ? '진행 가능' : '잠김'}</span></div>
+        <small>${!open ? Q.lockText : n >= 3 ? '보답을 받았다.' : Q.hints[n]}</small></div>`;
     }).join('');
-    return `<p class="lead">다섯 바람을 모아 마른 청령화를 피워라.</p><h3>지역 이야기</h3>${rows}${fin}<h3>곁이야기</h3>${side}`;
+    const mem = ['memory_crown', 'memory_sea', 'memory_ash'].filter(id => G.has(id)).length;
+    return `<p class="lead">다섯 바람을 모아 마른 청령화를 피워라.</p>
+      <div class="quick"><div><small>인장</small><b>${S.seals.length}/5</b></div><div><small>기억 조각</small><b>${mem}/3</b></div><div><small>곁이야기</small><b>${Object.keys(SIDEQ).filter(id => (S.side[id] || 0) >= 3).length}/${Object.keys(SIDEQ).length}</b></div></div>
+      <h3>메인 이야기</h3>${mains}<h3>곁이야기</h3>${sides}`;
   },
 
   tab_map() {
     const S = G.S, ids = Object.keys(REGIONS);
+    const vis = r => !REGIONS[r].locked || !REGIONS[r].locked(S);
     const seen = new Set();
     let lines = '';
     for (const a of ids) for (const [b, d] of Object.entries(ROUTES[a])) {
       const k = [a, b].sort().join(); if (seen.has(k)) continue; seen.add(k);
-      const A = REGIONS[a], B = REGIONS[b], live = a === S.region || b === S.region;
-      lines += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" class="${live ? 'live' : ''}"/><text x="${(A.x + B.x) / 2 + (A.x === B.x ? 4 : 0)}" y="${(A.y + B.y) / 2 + (A.x === B.x ? 1 : -1.5)}" class="days">${d}일</text>`;
+      const A = REGIONS[a], B = REGIONS[b], live = a === S.region || b === S.region, locked = !vis(a) || !vis(b);
+      const dx = A.x === B.x ? 4 : 0;
+      lines += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" class="${live ? 'live' : ''} ${locked ? 'locked' : ''}"/><text x="${(A.x + B.x) / 2 + dx}" y="${(A.y + B.y) / 2 + (dx ? 1 : -1.5)}" class="days">${locked ? '' : d + '일'}</text>`;
     }
+    const routes = Object.fromEntries(Game.routes(S.region));
     const nodes = ids.map(r => {
-      const R = REGIONS[r], here = r === S.region, can = ROUTES[S.region][r];
-      return `<g class="node ${here ? 'here' : ''} ${can ? 'can' : ''}" data-act="${can && Game.mode === 'hub' ? 'travel' : ''}" data-id="${r}" style="--c:${R.color}" ${can && Game.mode === 'hub' ? 'role="button" tabindex="0"' : ''}>
-        <circle cx="${R.x}" cy="${R.y}" r="${here ? 8 : 6.5}"/><text x="${R.x}" y="${R.y + 1.6}" class="ic">${R.icon}</text>
-        <text x="${R.x}" y="${R.y + (R.y > 70 ? -10 : 13)}" class="lb">${R.name}${S.seals.includes(r) ? ' ✓' : ''}</text></g>`;
+      const R = REGIONS[r], here = r === S.region, can = routes[r] && Game.mode === 'hub', v = vis(r);
+      return `<g class="node ${here ? 'here' : ''} ${can ? 'can' : ''} ${v ? '' : 'hidden'}" data-act="${can ? 'travel' : ''}" data-id="${r}" style="--c:${R.color}" ${can ? 'role="button" tabindex="0"' : ''}>
+        <circle cx="${R.x}" cy="${R.y}" r="${here ? 7.5 : 6}"/><text x="${R.x}" y="${R.y + 1.6}" class="ic">${v ? R.icon : '?'}</text>
+        <text x="${R.x}" y="${R.y + (R.y > 70 ? -9.5 : 12)}" class="lb">${v ? R.name : '???'}${S.seals.includes(r) ? ' ✓' : ''}</text></g>`;
     }).join('');
-    const list = Object.entries(ROUTES[S.region]).map(([r, d]) => `<div class="route"><span><span>${REGIONS[r].icon} <b>${REGIONS[r].name}</b> · ${REGIONS[r].town}</span><small>${d}일 · 권장 Lv.${REGIONS[r].lv}</small></span>${Game.mode === 'hub' ? `<button class="mini" data-act="travel" data-id="${r}">떠나기</button>` : ''}</div>`).join('');
+    const list = Game.routes(S.region).map(([r, d]) => `<div class="route"><span><span>${REGIONS[r].icon} <b>${REGIONS[r].name}</b> · ${REGIONS[r].town}</span><small>${d}일 · 권장 Lv.${REGIONS[r].lv}</small></span>${Game.mode === 'hub' ? `<button class="mini" data-act="travel" data-id="${r}">떠나기</button>` : ''}</div>`).join('');
     return `<p class="lead">대륙 에이렌 — 지금 <b>${REGIONS[S.region].town}</b></p>
       <svg class="map" viewBox="0 0 100 100" role="img" aria-label="대륙 지도">
         <defs><radialGradient id="mg" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="var(--map-a)"/><stop offset="1" stop-color="var(--map-b)"/></radialGradient></defs>
-        <path d="M50 3 C70 4 88 14 95 32 C99 46 97 62 92 74 C84 90 66 98 50 97 C32 98 14 90 7 74 C1 60 2 42 7 28 C14 12 32 3 50 3Z" fill="url(#mg)" class="land"/>
+        <path d="M14 4 C40 1 70 2 86 8 C96 14 97 34 95 52 C94 64 90 70 80 74 C66 80 60 92 46 96 C30 99 14 94 7 80 C2 64 3 40 4 24 C5 12 8 6 14 4Z" fill="url(#mg)" class="land"/>
+        <ellipse cx="86" cy="86" rx="10" ry="7" fill="url(#mg)" class="land"/><ellipse cx="76" cy="93" rx="4" ry="3" fill="url(#mg)" class="land"/><ellipse cx="95" cy="76" rx="3" ry="2.5" fill="url(#mg)" class="land"/>
+        ${vis('sky') ? '<ellipse cx="74" cy="22" rx="10" ry="5" class="sky-isle"/>' : ''}
         ${lines}${nodes}</svg>
       ${Game.mode === 'hub' ? '' : '<p class="muted small">마을에 있을 때만 떠날 수 있다.</p>'}
       ${list}`;
@@ -250,10 +295,33 @@ const UI = {
     else if (a === 'unequip') G.unequip(id);
     else if (a === 'use') { Game.useItem(id); return; }
     else if (a === 'travel') { if (Game.mode === 'hub') { UI.closeSheet(); Game.travelAsk(id); } return; }
+    else if (a === 'learn') { if (G.learn(id)) { const n = G.node(id); UI.toast(n.skill ? `새 기술: ${SKILLS[n.skill].name}` : `${n.name} 습득`); } }
+    else if (a === 'socket') { UI.socketMenu(id); return; }
+    else if (a === 'unsock') {
+      const [slot, i] = id.split(':');
+      UI.confirm(`${RUNES[S.runes[slot][+i]].name}을(를) 금화 15로 회수할까요? 룬은 가방으로 돌아온다.`, () => { if (G.unsocket(slot, +i)) UI.toast('룬을 회수했다'); else UI.toast('금화가 모자란다'); G.save(); Game.refresh(); });
+      return;
+    }
     else if (a === 'size') { UI.setSize(id); }
     else if (a === 'theme') { UI.setTheme(id); }
     else if (a === 'reset') { UI.confirm('지금 여정을 지우고 새로 시작할까요?', () => { G.wipe(); location.reload(); }); return; }
     G.save(); Game.refresh();
+  },
+
+  socketMenu(runeId) {
+    const S = G.S, R = RUNES[runeId];
+    const slots = ['weapon', 'armor'].filter(sl => R.slot === 'any' || R.slot === sl);
+    const rows = slots.map(sl => {
+      const it = ITEMS[S.eq[sl]], holes = it ? it.sockets || 0 : 0, used = (S.runes[sl] || []).length;
+      const ok = it && used < holes;
+      return `<div class="item"><span class="in">${SLOT_NAMES[sl]}: ${it ? it.name : '없음'}<small>홈 ${used} / ${holes}${(S.runes[sl] || []).length ? ' · ' + S.runes[sl].map(r => RUNES[r].name).join(', ') : ''}</small></span><button class="mini" data-sock="${sl}" ${ok ? '' : 'disabled'}>${ok ? '새기기' : '홈 없음'}</button></div>`;
+    }).join('');
+    UI.modal(`${R.name} 새기기`, `<p class="muted small">${R.desc}. 룬은 장비 칸에 새겨져 장비를 바꿔도 남는다. 지금 장비의 홈 수만큼만 효과가 켜진다.</p>${rows}`, b => {
+      b.querySelectorAll('[data-sock]').forEach(x => x.onclick = () => {
+        if (G.socket(runeId, x.dataset.sock)) { UI.toast(`${R.name}을(를) 새겼다`); const w = G.runeword(x.dataset.sock); if (w) UI.toast(`룬어 완성: ${w.name}!`); }
+        UI._cancel = null; UI.closeModal(); G.save(); Game.refresh();
+      });
+    });
   },
 
   setTheme(t) {
@@ -282,11 +350,17 @@ const UI = {
     if (bind) bind($('#modal-body'));
     $('#modal-close').focus();
   },
-  closeModal() { $('#modal').hidden = true; },
-  confirm(msg, yes) {
+  closeModal() {
+    $('#modal').hidden = true;
+    const f = UI._cancel; UI._cancel = null;
+    if (f) f();
+    else if (!UI.awaiting && $('#choices').children.length) $('#choices').classList.add('show');
+  },
+  confirm(msg, yes, no) {
     UI.modal('확인', `<p>${msg}</p><div class="row"><button class="btn" id="cf-no">취소</button><button class="btn primary" id="cf-yes">확인</button></div>`, b => {
+      UI._cancel = no || null;
       $('#cf-no', b).onclick = UI.closeModal;
-      $('#cf-yes', b).onclick = () => { UI.closeModal(); yes(); };
+      $('#cf-yes', b).onclick = () => { UI._cancel = null; UI.closeModal(); yes(); };
     });
   },
 
